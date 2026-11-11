@@ -44,9 +44,10 @@ python tools/mex_symbols.py 0x<each injection address>
 
 | Kind | How |
 |-|-|
-| C event (`Event_Init` / `Event_Update` / `Event_Think` / `Event_Menu`) | One file `src/melee/tm/events/<name>.c` exporting an event descriptor; register it in the native event table instead of loading a `.dat` |
-| Observing ASM injection (OSD trigger, counter) | A `call` hook on a nearby `bl` if the needed values are arguments or reachable from them; otherwise an `inject` hook. Logic in a `tm/` file |
-| Behaviour-changing ASM | `function` hook with an edited copy of the decomp's C, unless Slippi patches that function; then `call` or `inject` |
+| C event (`Event_Init` / `Event_Update` / `Event_Think` / `Event_Menu`) | One file `src/melee/tm/events/<name>.c` exporting a `const TmEventDesc`, registered in its page of `tm_event_pages` (`tm_event.c`). Model: `events/laserland.c`. Menus become `const TmOptionDesc` / `TmMenuDesc` tables (positional initialisers; C89); statics move into the event data block |
+| Observing ASM injection (OSD trigger, counter) | A `call` hook on a nearby `bl` if the needed values are arguments or reachable from them (fighter GObj, globals). `inject` only as a last resort: the project goal is no assembly. Logic in a `tm/` file |
+| Behaviour-changing ASM | `function` hook with an edited copy of the decomp's C, unless Slippi patches that function; then `call` |
+| A cluster of injections into one screen or subsystem | Replace the subsystem's entry with one `function` hook and carry edited copies of its functions (model: `tm_ess.c`) |
 | ASM that duplicates a Slippi code (unlocks, UCF, tournament defaults, neutral spawns) | Drop it. Check with `tools/tm_slippi_collisions.py` |
 | ASM that only exists to reach C (function table, loader, relocation, struct size) | Delete; not needed natively |
 | Legacy ASM event | Rewrite against the C event API using the ASM as the spec; port a C event of similar shape first |

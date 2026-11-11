@@ -33,11 +33,19 @@ What this means for every change:
 - Never replace or patch at an address Slippi patches (`config/GALE01/slippi_injections.txt`).
 - `tools/overlay_check.py` must pass on any DOL meant to run.
 - `--non-matching` (freely shifted) builds are for local experiments only.
+- **No assembly (project goal, set by the owner 2026-11-11).** Mod code is C. Port TM-CE's
+  assembly injections by understanding what they do and writing C against the decomp, usually
+  as an edited copy of the vanilla function behind a `function` or `call` hook
+  (`src/melee/tm/tm_ess.c` replaces ~25 injections that way). Do not add `.s` files or inline
+  asm. The `inject` hook kind (a generated register-saving trampoline) is a last resort; if
+  you think you need it, look for a `call`, `function` or `pointer` hook first and say why
+  none works.
 
-The overlay toolchain works at build level (`tools/overlay_link.py`: compile flags, separate
-link, DOL append, arena patch, `call` / `function` / `word` hooks) but **no overlay DOL has
-been booted yet** and it is not wired into ninja. See the experiment table in
-`overlay-build.md` for what is proven.
+The overlay toolchain works at build level: `python tools/overlay_build.py` compiles
+`src/melee/tm` and `src/melee/ai`, links them as an overlay, applies
+`config/GALE01/tm_hooks.txt` and runs the layout check, on top of a matching build. **No
+overlay DOL has been booted yet.** See the experiment table in `overlay-build.md` for what is
+proven, and "Port status" in `training-mode-port.md` for what has been ported.
 
 ## Build
 
@@ -87,7 +95,7 @@ ninja
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
-| Link mod objects into an overlay DOL | `python tools/overlay_link.py -o OUT objs... [--hooks file]` |
+| Build the training overlay DOL | `python tools/overlay_build.py` → `build/overlay/main.dol` |
 | Does a DOL keep the vanilla layout? | `python tools/overlay_check.py <dol> [--patches list]` |
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
 

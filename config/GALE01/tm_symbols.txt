@@ -1,0 +1,15 @@
+# Extra absolute symbols made visible to overlay code (NAME ADDRESS).
+# These name vanilla memory that has no symbol of its own.
+
+# Root pointer for all training-mode state. 4 bytes of alignment padding at the
+# end of camera.c's .sbss (0x804D6458-0x804D6470; last symbol cm_804D6468 is 4
+# bytes). Zeroed at boot with the rest of .sbss, inside the range Slippi's
+# rollback saves, and not referenced by Slippi, m-ex or TM-CE.
+tm_state 804D646C
+
+# Persistent training-mode state (TmPersist, src/melee/tm/tm.h). A block of
+# TM_PERSIST_RESERVED bytes at the vanilla __ArenaLo, directly below the
+# overlay code (tools/overlay_build.py links the overlay at 0x804F1C00).
+# NOT saved by Slippi's rollback and not zeroed by the OS; tm_Hook_Boot
+# clears it.
+tm_persist 804F0C00

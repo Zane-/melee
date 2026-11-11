@@ -38,10 +38,9 @@ Matching build (the default; must reproduce the retail DOL):
 ```
 
 The shipping training build is the address-preserving overlay (`docs/ai/overlay-build.md`):
-run the matching build, compile mod files with the overlay flags, then
-`python tools/overlay_link.py -o OUT objs... --hooks hooks.txt` and
-`python tools/overlay_check.py OUT/main.dol --patches OUT/patches.txt`. This is not in ninja
-yet.
+run the matching build with ninja, then `python tools/overlay_build.py`. It compiles the mod
+sources, links the overlay, applies `config/GALE01/tm_hooks.txt`, runs the layout check and
+writes `build/overlay/main.dol`. Its last line must be `OK: vanilla layout preserved`.
 
 Shifted dev build (links `Equivalent` mod objects anywhere; experiments only, breaks Slippi):
 
@@ -68,17 +67,48 @@ Incremental builds are fast.
 `configure.py` mode is sticky: `build.ninja` remembers the flags. Say which mode you left the
 tree in.
 
-## Run in Dolphin
+## Setting up on another machine (Linux)
 
-Unverified on this machine; update this section after the first successful boot.
+Nothing under `build/`, `orig/` or `.venv/` is in git. On a fresh checkout:
 
-1. Extract the full disc once (git-ignored): `build/tools/dtk disc extract <iso> orig/GALE01`
-   (`files/` and `sys/` appear).
-2. Copy `build/GALE01/main.dol` over a **copy** of the extract's `sys/main.dol`; keep
-   `orig/GALE01/sys/main.dol` retail, the build reads it.
-3. Open that folder's `sys/main.dol` in Dolphin (`/Applications/Dolphin.app`), or add the
-   folder to Dolphin's game paths.
-4. With `--map`, load `build/GALE01/main.elf.MAP` as Dolphin's symbol map for debugging.
+1. `python3 -m venv .venv && .venv/bin/pip install ninja` (or use a system ninja).
+2. Put the retail v1.02 `main.dol` at `orig/GALE01/sys/main.dol`
+   (SHA-1 `08e0bf20134dfcb260699671004527b2d6bb1a45`). `build/tools/dtk disc extract <iso>
+   orig/GALE01` extracts the whole disc once dtk has been downloaded by the first ninja run;
+   or extract the system data with Dolphin.
+3. `python configure.py && ninja` — on Linux x86_64 no `--wrapper` is needed; the build
+   downloads its own wibo. Confirm the SHA-1 match.
+4. `python tools/overlay_build.py` — picks the wrapper for the host
+   (`tools/overlay_wrapper.py`; override with `MELEE_WRAPPER`). **Only verified on macOS so
+   far.**
+
+## Boot test
+
+Not done yet on any machine; update this section with what actually happens.
+
+1. Extract the full disc to a scratch folder outside `orig/` (for example
+   `build/disc/`): `build/tools/dtk disc extract <iso> build/disc`.
+2. Copy `build/overlay/main.dol` over `build/disc/sys/main.dol`.
+3. Optional, for the pause menu: copy `../TrainingMode/dats/eventMenu.dat` to
+   `build/disc/files/TmMenu.dat`.
+4. Open `build/disc/sys/main.dol` in Dolphin (it boots extracted discs from that layout), or
+   add `build/disc` to Dolphin's game paths.
+
+What to look for, in order:
+
+| Check | Proves |
+|-|-|
+| Game reaches the title screen | Overlay sections load, arena patch is sound |
+| "TM-Native v0.1" in the bottom-right corner | Boot and scene hooks run; overlay code calls vanilla correctly |
+| 1P → Event Match shows the training event list | `function` hook and `tm_ess.c` work |
+| Confirm → CSS → SSS → match starts, Laser Land panel in the top-left | `pointer` hook, match data, event framework |
+| Start opens the TM menu (only with `TmMenu.dat`) | Menu engine and its art |
+| Same steps in Slippi Dolphin, then a direct-connect match between two instances | Slippi compatibility; watch for "DESYNC DETECTED" |
+
+If it crashes, Dolphin's log shows the faulting address: look it up in
+`build/overlay/overlay.map` (overlay code, `0x804F1C00` and up) or with
+`python tools/mex_symbols.py 0x<addr>` (vanilla code). Load `build/overlay/overlay.map`
+alongside the vanilla map for symbols.
 
 ## Report
 

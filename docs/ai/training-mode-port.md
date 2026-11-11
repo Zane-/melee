@@ -76,6 +76,58 @@ Resolve any other injection with `python tools/mex_symbols.py 0x<address>`.
 | `stc_match` (8046B6A0) | starts at the `.bss` of the match TU; `symbols.txt` shows a local `controller` label there | Find the real struct through its accessors in `gm/` before use |
 | `event_vars` pointer (803D7054) | none (m-ex) | Becomes a normal global |
 
+## Port status
+
+Everything listed as ported compiles, links into the overlay and passes the layout check.
+**None of it has been run.** Update this table as pieces are booted and compared with TM-CE.
+
+| TM-CE piece | Native file | State |
+|-|-|-|
+| Boot / scene / match hooks (`OnBoot`, `OnSceneChange`, `OnStartMelee`) | `src/melee/tm/tm.c`, `config/GALE01/tm_hooks.txt` | Ported as three `call` hooks; never run |
+| Version watermark (`TM_CreateWatermark`) | `src/melee/tm/tm.c` | Ported; never run. This is the first visible proof for a boot test |
+| Menu engine (`menu.c`, `menu.h`) | `src/melee/tm/tm_menu.c`, `tm_menu.h` | Ported with a redesign (below); not hooked to anything yet, needs the `eventMenu` art on disc |
+| Event lifecycle (`EventLoad`, `EventUpdate`, `EventDesc`, event data block, `Event_Exit`) | `src/melee/tm/tm_event.c`, `tm_event.h` | Ported; never run |
+| Hazard removal (`Hazards_Disable`) | `tmEvent_DisableHazards` in `tm_event.c` | Ported; never run |
+| Laser Land event (`laserland.c`) | `src/melee/tm/events/laserland.c` | Ported; never run. Readout is a plain text panel, not TM-CE's HUD panel |
+| Event select screen (~25 ASM files under `Custom Events/Event Select Screen`) | `src/melee/tm/tm_ess.c`, one `function` hook on `mnEvent_8024E838` | Ported in C as an edited copy of vanilla `mn/mnevent.c`; never run. Has pages (L / R, digital or analog), event names, descriptions, X / Y jump, scroll limits. Missing: high scores, OSD settings on Left / Right, tutorial toggle, version / QR panel. Text positions and line spacing are guesses to tune by eye |
+| Match rules from the event (`EventInit`, rules half) | `tmEvent_ApplyMatchData` in `tm_event.c` | Ported; never run. TM-CE's bit names are mapped onto the decomp's partly unnamed `StartMeleeRules` bits by position |
+| `EventInit` player half (forced character / CPU / stage, Sopo), allowed-character CSS icons, event name on CSS, CPU choice backup | — | Not started |
+| HUD drawing helpers, messages, tips (`events.c`) | — | Not started |
+| Savestates (`savestate_v1.c`) | — | Not started |
+| OSDs (`osds.c` + ~70 ASM) | — | Not started |
+| 13 remaining C events, 15 ASM events, `lab_css.c` | — | Not started |
+
+How an event is reached: 1P menu → Event Match opens the training event select screen
+(`tm_ess.c`). Confirming stores the page and event in `tm_persist`, sets `event_active` and
+enters vanilla Training mode (CSS → SSS → match). A `pointer` hook on that mode's match state
+on_enter (`tm_Hook_TrainingMatchEnter`) then applies the event's match data and sets
+`rules.on_match_start = tmEvent_Load`. `event_active` is cleared whenever a scene starts in
+the menu mode, so choosing Training directly from the menu still gives plain vanilla Training.
+Vanilla Event Mode (`gm/gmevent.c`) is no longer reachable from the menu.
+
+Known gaps in this flow: leaving the match returns to where vanilla Training returns (the 1P
+menu), not to the event select screen; the vanilla training menu objects are still created
+(pausing is disabled so it cannot open); the pause menu needs `TmMenu.dat` (TM-CE's
+`dats/eventMenu.dat`) on the disc and is skipped without it.
+
+Adding an event: one file in `src/melee/tm/events/` exporting a `const TmEventDesc`, plus one
+line in its page's array in `tm_event.c` (`tm_event_pages`). Use `laserland.c` as the model. Per-event state goes in
+the zeroed 512-byte data block (`gobj->user_data`), never in statics.
+
+Differences from TM-CE introduced by the port:
+
+- **Menus are split into `const` definitions and live heap copies** (`TmMenuDesc` /
+  `TmOptionDesc` vs `TmMenu` / `TmOption`), because overlay code cannot have writable statics.
+  TM-CE code such as `LabOptions_General[OPTGEN_X].val` becomes
+  `opts = tmMenu_Options(gobj, &LabMenu_General); opts[OPTGEN_X].val`, and runtime edits to a
+  label or range go through `opts[i].d`. Every menu table in `lab.h` and the event headers
+  needs this conversion.
+- Option names, descriptions and string values are printed with `"%s"` instead of being used
+  as format strings.
+- Shortcuts name `(menu definition, option index)` instead of pointing at an option.
+- The engine reads the local master pad and freezes the game itself, as TM-CE does. That is
+  not rollback-safe; a netplay drill needs a synced-input path instead.
+
 ## Design decisions to settle before porting
 
 1. **Own mode vs. hijacking Event Mode.** Recommended: add `GM_TM` with its own

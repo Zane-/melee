@@ -1,0 +1,23 @@
+# Hook table for the training overlay. Applied by tools/overlay_link.py.
+# kind  site  target  note        (see docs/ai/overlay-build.md)
+
+# main: `bl gmMainLib_8015FBA4`, the last init call before the mode loop.
+call  main+0x154          tm_Hook_Boot         one-time init
+
+# gm_801A4BD4: `bl lb_80014534`, the last call of per-scene setup.
+# TM-CE's OnSceneChange is at +0xC0 in the same function.
+call  gm_801A4BD4+0xF4    tm_Hook_SceneChange  per-scene init
+
+# fn_8016E730 (match start): `bl lbBgFlash_Init`. TM-CE's OnStartMelee is the
+# next instruction.
+call  fn_8016E730+0x194   tm_Hook_StartMelee   per-match init
+
+# gm_Mode_Training_States[2].on_enter (vanilla Training mode's match state,
+# gm_801B1F70). The wrapper calls it, then sets the match-start callback so
+# the selected training event runs inside vanilla Training mode.
+pointer  gm_Mode_Training_States+0x34  tm_Hook_TrainingMatchEnter  event entry
+
+# mnEvent_8024E838: entry of the vanilla Event Match select screen. Replaced
+# whole by the training event select screen (src/melee/tm/tm_ess.c). Slippi
+# does not patch this function.
+function  mnEvent_8024E838  tm_Hook_EventSelectEnter  event select screen

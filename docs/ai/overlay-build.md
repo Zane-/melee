@@ -6,8 +6,8 @@ code as an overlay, so stock Slippi Dolphin works with it. Background: `slippi-t
 Status (2026-11-11): **the build-time half works; nothing has been booted.** A test file
 compiles into overlay sections, links against vanilla symbols, is appended to the matching DOL
 with hooks applied, and passes the layout check. Whether that DOL runs, and runs under Slippi,
-is untested. The overlay is not yet wired into `configure.py` / ninja; the steps are run by
-hand.
+is untested. `python tools/overlay_build.py` runs the whole overlay build (compile mod
+sources, link, hook, check) on top of a matching build; it is not part of ninja.
 
 ## The invariant
 
@@ -90,8 +90,8 @@ word       Fighter_800679B0+0xC          0x38802524     allocation size immediat
 | `call` | Retargets one `bl X` to an overlay function with X's signature, which normally calls X itself | Most "before / after" hooks. Pure C | works |
 | `function` | Writes `b target` at a vanilla function's entry | Behaviour changes; the target is an edited copy of the decomp's C | works |
 | `word` | Overwrites one 32-bit word | Constants, immediates, table slots with known values | works |
-| `pointer` | Stores an overlay symbol's address in a vanilla data slot | Mode, scene, stage and item callback tables | not implemented |
-| `inject` | Replaces one instruction with a branch to an asm trampoline | Last resort, when a value is only in a register mid-function | not implemented |
+| `pointer` | Stores an overlay symbol's address in a vanilla data slot | Mode, scene, stage and item callback tables | works |
+| `inject` | Replaces one instruction with a branch to a generated trampoline that calls `void target(TmRegs*)` (`src/melee/tm/tm_hook.h`), restores registers, runs the displaced instruction and resumes | Last resort, when a value is only in a register mid-function. The target can read and edit registers | builds; trampoline disassembly checked; never executed |
 
 The tool refuses:
 
@@ -100,16 +100,29 @@ The tool refuses:
   dead code). This covers `Fighter_procInput`, `Fighter_procAnim`, the frame loop
   `gm_801A4D34`, `gm_801A4BD4`, match start `fn_8016E730` and the CSS, among others. Use
   `call` there;
-- a `call` hook on an instruction that is not a `bl`.
+- a `call` hook on an instruction that is not a `bl`;
+- an `inject` hook on a branch instruction, a `pointer` hook on code, two hooks on one site.
+
+The project's hook table is `config/GALE01/tm_hooks.txt`.
+
+Order of preference: `pointer`, `call`, `function`, `word`, and `inject` only as a last
+resort. The project goal is no assembly: an `inject` hook is the one place machine code is
+generated rather than compiled from C, and so far none is used. A whole vanilla screen or
+subsystem can often be replaced with a single `function` hook on its entry point when the rest
+of its functions are only reachable from there (see `src/melee/tm/tm_ess.c`).
 
 ### Where mod state lives
 
-- All mutable state: heap allocations made after boot (`HSD_MemAlloc`), reached from **one
-  root pointer**. Enforced at link time as described above.
-- The root pointer must itself be in a range Slippi saves. Open: which spare vanilla `.bss` /
-  `.sbss` bytes or unused struct slot to use (experiment 5).
-- State that must not roll back (coach link buffers, UI-only settings) lives in a separate
-  allocation that simulation code never reads.
+Overlay code has no writable statics (enforced at link time). There are two roots, both
+absolute symbols from `config/GALE01/tm_symbols.txt`, declared in `src/melee/tm/tm.h`:
+
+| Root | Address | Lifetime | Rolled back by Slippi | Use |
+|-|-|-|-|-|
+| `tm_state` (`TmMatch*`) | `0x804D646C`: 4 bytes of alignment padding at the end of `camera.c`'s `.sbss`, zeroed at boot, unused by Slippi, m-ex and TM-CE | Points at a `HSD_MemAlloc` block created at match start; NULL outside a match | Yes (pointer and block) | Everything that affects or follows the simulation |
+| `tm_persist` (`TmPersist`) | `0x804F0C00`, 0x1000 bytes reserved below the overlay code (which is linked at `0x804F1C00`) | Whole session; cleared by the boot hook | **No** | Settings chosen outside a match, display-only data |
+
+The scene heap is reset on every scene change, so anything allocated with `HSD_MemAlloc` dies
+with the scene; `tm_Hook_SceneChange` clears the pointers.
 
 ### Struct growth
 
@@ -139,8 +152,8 @@ Re-run both tools and regenerate `slippi_injections.txt` whenever Slippi updates
 | 1 | Route a whole mod file to custom sections, no small data | **Pass.** `#pragma section` in a `-prefix` header plus `-sdata 0 -sdata2 0 -str reuse,readonly` leaves only `.tmtext` and `.tmrodata` |
 | 2 | Place the overlay without moving vanilla | **Pass, by a different route than planned.** Linking mod objects together with the vanilla objects grows `.init` (the linker adds a ROM-copy table entry per section) and shifts the whole image by 0x20. Linking the overlay separately against absolute vanilla addresses and appending it to the matching DOL leaves vanilla untouched. Branch targets and data addresses in the output were decoded and are correct |
 | 3 | Raise the arena without touching a Slippi site | **Pass at build level.** Two `lis`/`addi` pairs in `OSInit` (`0x80343094`, `0x803430CC`) are patched to the overlay end. Neither is a Slippi site. The second pair matters: on a retail disc the arena starts at `_stack_addr`, not `__ArenaLo`. Not booted |
-| 7 | Patcher | **Partly done.** `call`, `function`, `word` work and are checked against Slippi; `pointer` and `inject` are not written |
+| 7 | Patcher | **Done at build level.** All five hook kinds are implemented and checked against Slippi |
 | 4 | Boots in Dolphin; boots in Slippi Dolphin; a direct-connect match between two local instances stays in sync with a do-nothing overlay | **Not run.** Needs a full disc extract and a visible test hook. Main risk: Slippi hardcodes one savestate range inside the arena (`0x8065C000–0x8071B000`, "unknown region" in its source) and the overlay shifts the arena up. m-ex shifts it too and runs under Slippi, so this is expected to work |
-| 5 | Root pointer slot inside a saved range | Not started |
+| 5 | Root pointer slot inside a saved range | **Chosen, not exercised:** `0x804D646C` (see "Where mod state lives") |
 | 6 | Replacing a function that uses its file's `static`s | Mostly answered by experiment 2: the overlay can reference uniquely named vanilla statics directly. Ambiguous names remain a gap |
-| 8 | Wire the overlay into `configure.py` / ninja as a third build mode | Not started |
+| 8 | One-command overlay build | **Done** as `tools/overlay_build.py` (outside ninja). It refuses to run unless `build/GALE01/main.dol` has the retail SHA-1 |

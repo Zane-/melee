@@ -15,6 +15,11 @@ Hook table (--hooks), one hook per line, '#' comments allowed:
     call      SITE  TARGET  [note]   retarget the `bl` at SITE to overlay TARGET
     function  SITE  TARGET  [note]   write `b TARGET` at SITE (a function entry)
     word      SITE  VALUE   [note]   overwrite the 32-bit word at SITE
+    pointer   SITE  TARGET  [note]   store TARGET's address in the data word at SITE
+    inject    SITE  TARGET  [note]   replace the instruction at SITE with a branch
+                                     to a generated trampoline that calls
+                                     `void TARGET(TmRegs*)`, then runs the
+                                     displaced instruction and returns
 SITE is `vanilla_symbol`, `vanilla_symbol+0xOFF` or a hex address. TARGET is an
 overlay global. For `call`, the overlay function must have the signature of
 the function originally called, and normally calls it itself.
@@ -36,8 +41,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from overlay_wrapper import wrapper  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
-WRAPPER = ROOT / "tools" / "wibo_macos_wrapper.py"
 MWLD = ROOT / "build" / "compilers" / "GC" / "1.3.2" / "mwldeppc.exe"
 SLIPPI = ROOT / "config" / "GALE01" / "slippi_injections.txt"
 
@@ -55,6 +62,44 @@ ARENA_SITES = [
     (0x80343094, (0x3C60804F, 0x38630C00)),  # &__ArenaLo
     (0x803430CC, (0x3C60804F, 0x3863EC00)),  # &_stack_addr (retail debug flag)
 ]
+
+
+INJECT_FRAME = 0x110
+
+
+def inject_trampoline(at, target, displaced, resume, branch):
+    """Machine code for an `inject` hook.
+
+    Saves r0, LR, CR, CTR, XER, r3-r31 and f0-f13 in a stack frame, calls
+    `void target(TmRegs* regs)` (see src/melee/tm/tm_hook.h) with a pointer to
+    the saved registers, restores them (so the target may edit them), runs the
+    displaced instruction and branches back to the instruction after the site.
+    """
+    c = [
+        0x94210000 | (-INJECT_FRAME & 0xFFFF),  # stwu r1,-0x110(r1)
+        0x90010008,  # stw r0,0x08(r1)
+        0x7C0802A6, 0x9001000C,  # mflr r0 ; stw r0,0x0C(r1)
+        0x7C000026, 0x90010010,  # mfcr r0 ; stw r0,0x10(r1)
+        0x7C0902A6, 0x90010014,  # mfctr r0 ; stw r0,0x14(r1)
+        0x7C0102A6, 0x90010018,  # mfxer r0 ; stw r0,0x18(r1)
+        0xBC610020,  # stmw r3,0x20(r1)
+    ]
+    c += [0xD8010000 | (n << 21) | (0x98 + 8 * n) for n in range(14)]  # stfd fN
+    c.append(0x38610008)  # addi r3,r1,8
+    c.append(branch(at + 4 * len(c), target, True))
+    c += [0xC8010000 | (n << 21) | (0x98 + 8 * n) for n in range(14)]  # lfd fN
+    c += [
+        0x80010010, 0x7C0FF120,  # lwz r0,0x10(r1) ; mtcr r0
+        0x80010014, 0x7C0903A6,  # lwz r0,0x14(r1) ; mtctr r0
+        0x80010018, 0x7C0103A6,  # lwz r0,0x18(r1) ; mtxer r0
+        0x8001000C, 0x7C0803A6,  # lwz r0,0x0C(r1) ; mtlr r0
+        0xB8610020,  # lmw r3,0x20(r1)
+        0x80010008,  # lwz r0,0x08(r1)
+        0x38210000 | INJECT_FRAME,  # addi r1,r1,0x110
+        displaced,
+    ]
+    c.append(branch(at + 4 * len(c), resume, False))
+    return c
 
 
 def dol_offset(h, addr):
@@ -115,6 +160,8 @@ def main():
     ap.add_argument("--base-dol", type=Path, default=ROOT / "build/GALE01/main.dol")
     ap.add_argument("--origin", type=lambda x: int(x, 0), default=0x804F0C00)
     ap.add_argument("--hooks", type=Path, help="hook table (see module docstring)")
+    ap.add_argument("--symbols", type=Path,
+                    help="extra absolute symbols for the overlay, lines of NAME ADDRESS")
     ap.add_argument("--keep", nargs="*", default=None,
                     help="symbols to force-keep (default: all overlay globals)")
     args = ap.parse_args()
@@ -162,6 +209,16 @@ def main():
     clash = sorted(set(defined) & set(globals_))
     if clash:
         sys.exit("overlay redefines vanilla symbols: " + ", ".join(clash[:10]))
+    extra = {}
+    if args.symbols and args.symbols.exists():
+        for line in args.symbols.read_text().splitlines():
+            line = line.split("#")[0].split()
+            if len(line) >= 2:
+                extra[line[0]] = int(line[1], 16)
+    clash = sorted(set(extra) & (set(globals_) | set(defined)))
+    if clash:
+        sys.exit("extra symbols clash with existing ones: " + ", ".join(clash))
+    globals_.update(extra)
     resolved, missing = {}, []
     for name in sorted(undefined):
         if name in globals_:
@@ -190,7 +247,7 @@ def main():
     elf_path = out / "overlay.elf"
     rsp = out / "overlay.rsp"
     rsp.write_text("\n".join(str(o) for o in args.objects) + "\n")
-    cmd = [str(WRAPPER), str(MWLD), "-fp", "hardware", "-nodefaults", "-warn", "off",
+    cmd = [*wrapper(), str(MWLD), "-fp", "hardware", "-nodefaults", "-warn", "off",
            "-msgstyle", "std",
            # The linker needs an entry symbol defined in an object; it is unused.
            "-main", keep[0], "-map", str(out / "overlay.map"),
@@ -211,48 +268,35 @@ def main():
     }
     placed = []
     kinds = dict(OVERLAY_SECTIONS)
+
+    def append_section(name, kind, addr, data):
+        if not free[kind]:
+            sys.exit(f"no free DOL {kind} slot for {name}")
+        slot = free[kind].pop(0)
+        while len(dol) % 0x20:
+            dol.append(0)
+        data = bytes(data) + b"\0" * (-len(data) % 0x20)
+        h[slot], h[18 + slot], h[36 + slot] = len(dol), addr, len(data)
+        dol.extend(data)
+        placed.append((name, addr, len(data)))
+
     for s in linked.sections:
         if s["name"] not in kinds or not s["size"]:
             continue
         if s["type"] == SHT_NOBITS:
             sys.exit(f"{s['name']} is uninitialised data; overlay state must be on the heap")
-        if not free[kinds[s["name"]]]:
-            sys.exit(f"no free DOL {kinds[s['name']]} slot for {s['name']}")
-        slot = free[kinds[s["name"]]].pop(0)
-        while len(dol) % 0x20:
-            dol.append(0)
-        data = linked.section_data(s)
-        data += b"\0" * (-len(data) % 0x20)
-        h[slot], h[18 + slot], h[36 + slot] = len(dol), s["addr"], len(data)
-        dol += data
-        placed.append((s["name"], s["addr"], len(data)))
+        append_section(s["name"], kinds[s["name"]], s["addr"], linked.section_data(s))
     if not placed:
         sys.exit("overlay link produced no sections (everything dead-stripped?)")
-    dol[:0xE4] = struct.pack(">57I", *h)
 
-    # 6. Raise the arena start past the overlay. OSInit sets the arena low
-    # bound from __ArenaLo, or from _stack_addr when the disc's debug flag is
-    # below 2 (the retail case). Point both at the end of the overlay,
-    # otherwise the heaps are created on top of it and OSInit zeroes it.
-    end = max(a + n for _, a, n in placed)
-    new_lo = (end + 0x1F) & ~0x1F
-    patches = []
-    for site, old in ARENA_SITES:
-        off = dol_offset(h, site)
-        have = struct.unpack_from(">II", dol, off)
-        if have != old:
-            sys.exit(f"arena site {site:08X}: expected {old[0]:08X} {old[1]:08X}, "
-                     f"found {have[0]:08X} {have[1]:08X}")
-        hi = ((new_lo + 0x8000) >> 16) & 0xFFFF
-        lo = new_lo & 0xFFFF
-        struct.pack_into(">II", dol, off, (old[0] & 0xFFFF0000) | hi,
-                         (old[1] & 0xFFFF0000) | lo)
-        patches.append((site, 8, f"arena low -> {new_lo:08X}"))
-    # 7. Hooks.
+    # 6. Hooks. Patches are collected first and written at the end, because
+    # `inject` hooks add a trampoline section that moves the overlay end.
+    patches = []  # (addr, [words], note)
+    trampolines = bytearray()
+    tramp_base = (max(a + n for _, a, n in placed) + 0x1F) & ~0x1F
     if args.hooks:
         ov = {name: val for name, val, sz, bind, typ, shndx in linked.symbols
               if bind == STB_GLOBAL and shndx not in (0, 0xFFF1)}
-
         slippi = {}
         if SLIPPI.exists():
             for line in SLIPPI.read_text().splitlines():
@@ -261,19 +305,16 @@ def main():
                     slippi[int(addr, 16)] = name
         sizes = {val: sz for name, val, sz, bind, typ, shndx in base.symbols
                  if typ == STT_FUNC and sz}
-
-        def site_addr(text):
-            sym, _, offs = text.partition("+")
-            try:
-                return int(sym, 16) if not offs and len(sym) == 8 else None
-            except ValueError:
-                return None
+        text_ranges = [(h[18 + i], h[18 + i] + h[36 + i]) for i in range(7)
+                       if h[36 + i] and h[18 + i] < args.origin]
 
         def vanilla(text):
-            raw = site_addr(text)
-            if raw is not None:
-                return raw
             sym, _, offs = text.partition("+")
+            if not offs and len(sym) == 8:
+                try:
+                    return int(sym, 16)
+                except ValueError:
+                    pass
             if sym in globals_:
                 addr = globals_[sym]
             elif sym in locals_ and len(locals_[sym]) == 1:
@@ -288,53 +329,88 @@ def main():
                 sys.exit(f"branch {frm:08X} -> {to:08X} out of range")
             return 0x48000000 | (d & 0x03FFFFFC) | (1 if link else 0)
 
+        seen = {}
         for ln, line in enumerate(args.hooks.read_text().splitlines(), 1):
             line = line.split("#")[0].strip()
             if not line:
                 continue
+            where = f"{args.hooks}:{ln}"
             parts = line.split(None, 3)
             if len(parts) < 3:
-                sys.exit(f"{args.hooks}:{ln}: expected KIND SITE TARGET [note]")
+                sys.exit(f"{where}: expected KIND SITE TARGET [note]")
             kind, site_s, target = parts[:3]
             note = parts[3] if len(parts) > 3 else ""
             site = vanilla(site_s)
-            off = dol_offset(h, site)
-            old = struct.unpack_from(">I", dol, off)[0]
+            if site in seen:
+                sys.exit(f"{where}: {site_s} already hooked at line {seen[site]}")
+            seen[site] = ln
+            old = struct.unpack_from(">I", dol, dol_offset(h, site))[0]
+            in_text = any(a <= site < b for a, b in text_ranges)
+            if site in slippi:
+                sys.exit(f"{where}: {site_s} ({site:08X}) is patched by Slippi "
+                         f"({slippi[site]})")
             if kind == "word":
                 new = int(target, 0)
-            else:
-                if target not in ov:
-                    sys.exit(f"{args.hooks}:{ln}: {target} is not an overlay global")
-                if kind == "call":
-                    if old >> 26 != 18 or old & 3 != 1:
-                        sys.exit(f"{args.hooks}:{ln}: {site_s} ({site:08X}) is "
-                                 f"{old:08X}, not a `bl`")
-                    new = branch(site, ov[target], True)
-                elif kind == "function":
-                    new = branch(site, ov[target], False)
-                else:
-                    sys.exit(f"{args.hooks}:{ln}: unknown hook kind {kind}")
-            if site in slippi:
-                sys.exit(f"{args.hooks}:{ln}: {site_s} ({site:08X}) is patched by "
-                         f"Slippi ({slippi[site]})")
-            if kind == "function":
+            elif target not in ov:
+                sys.exit(f"{where}: {target} is not an overlay global")
+            elif kind == "pointer":
+                if in_text:
+                    sys.exit(f"{where}: {site_s} is code; `pointer` is for data slots")
+                new = ov[target]
+            elif not in_text:
+                sys.exit(f"{where}: {site_s} ({site:08X}) is not in vanilla code")
+            elif kind == "call":
+                if old >> 26 != 18 or old & 3 != 1:
+                    sys.exit(f"{where}: {site_s} ({site:08X}) is {old:08X}, not a `bl`")
+                new = branch(site, ov[target], True)
+            elif kind == "function":
                 size = sizes.get(site, 0)
+                if not size:
+                    sys.exit(f"{where}: {site_s} is not the start of a vanilla function")
                 inside = [x for x in slippi if site <= x < site + size]
                 if inside:
-                    sys.exit(f"{args.hooks}:{ln}: cannot replace {site_s}: Slippi "
-                             "patches inside it at "
-                             + ", ".join(f"{x:08X}" for x in sorted(inside))
-                             + ". Use a `call` hook instead.")
-                if not size:
-                    sys.exit(f"{args.hooks}:{ln}: {site_s} is not the start of a "
-                             "vanilla function")
-            struct.pack_into(">I", dol, off, new)
-            patches.append((site, 4, f"{kind} {site_s} -> {target} {note}".strip()))
+                    sys.exit(f"{where}: cannot replace {site_s}: Slippi patches inside "
+                             "it at " + ", ".join(f"{x:08X}" for x in sorted(inside))
+                             + ". Use a `call` or `inject` hook instead.")
+                new = branch(site, ov[target], False)
+            elif kind == "inject":
+                op = old >> 26
+                if op in (16, 18) or (op == 19 and (old >> 1) & 0x3FF in (16, 528)):
+                    sys.exit(f"{where}: {site_s} ({site:08X}) is a branch ({old:08X}); "
+                             "inject on a neighbouring instruction or use `call`")
+                at = tramp_base + len(trampolines)
+                code = inject_trampoline(at, ov[target], old, site + 4, branch)
+                trampolines.extend(struct.pack(f">{len(code)}I", *code))
+                new = branch(site, at, False)
+            else:
+                sys.exit(f"{where}: unknown hook kind {kind}")
+            patches.append((site, [new], f"{kind} {site_s} -> {target} {note}".strip()))
 
+    if trampolines:
+        append_section(".tmtramp", "text", tramp_base, trampolines)
+
+    # 7. Raise the arena start past the overlay. OSInit sets the arena low
+    # bound from __ArenaLo, or from _stack_addr when the disc's debug flag is
+    # below 2 (the retail case). Point both at the end of the overlay,
+    # otherwise the heaps are created on top of it and OSInit zeroes it.
+    end = max(a + n for _, a, n in placed)
+    new_lo = (end + 0x1F) & ~0x1F
+    for site, old in ARENA_SITES:
+        have = struct.unpack_from(">II", dol, dol_offset(h, site))
+        if have != old:
+            sys.exit(f"arena site {site:08X}: expected {old[0]:08X} {old[1]:08X}, "
+                     f"found {have[0]:08X} {have[1]:08X}")
+        hi = ((new_lo + 0x8000) >> 16) & 0xFFFF
+        words = [(old[0] & 0xFFFF0000) | hi, (old[1] & 0xFFFF0000) | (new_lo & 0xFFFF)]
+        patches.append((site, words, f"arena low -> {new_lo:08X}"))
+
+    dol[:0xE4] = struct.pack(">57I", *h)
+    for site, words, note in patches:
+        struct.pack_into(f">{len(words)}I", dol, dol_offset(h, site), *words)
     (out / "main.dol").write_bytes(dol)
     (out / "patches.txt").write_text(
         "# Patch sites applied by tools/overlay_link.py\n"
-        + "".join(f"{a:08X} {n} {note}\n" for a, n, note in patches)
+        + "".join(f"{a:08X} {4 * len(w)} {note}\n" for a, w, note in sorted(patches))
     )
 
     syms = sorted(

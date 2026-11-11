@@ -8,10 +8,11 @@ description: Add new native C code to the Melee training build and hook it into 
 Read `docs/ai/modding.md` for the reasoning. This is the checklist.
 
 The shipping build is an address-preserving overlay (`docs/ai/overlay-build.md`): vanilla code
-and data must not move. Mod files are compiled with the overlay flags, linked with
-`tools/overlay_link.py` and hooked through a hook table; read "How the overlay build works"
-in that doc for the exact commands. The overlay is not in ninja yet, so these steps are run
-by hand, and no overlay DOL has been booted yet.
+and data must not move. Put the file under `src/melee/tm/` or `src/melee/ai/`, add hooks to
+`config/GALE01/tm_hooks.txt`, and run `python tools/overlay_build.py` (needs a matching build
+first). No `configure.py` entry is needed for overlay files. No overlay DOL has been booted
+yet. Use `src/melee/tm/tm.c` and `tm_menu.c` as models; state hangs off `tm_state` (per
+match, rolled back) or `tm_persist` (session, not rolled back), see `tm.h`.
 
 Hard rules for mod files:
 
@@ -26,11 +27,8 @@ Hard rules for mod files:
    functions with the file name: `tm_menu.c` → `tmMenu_Open`.
 2. Header declares only that file's public symbols. Shared structs go in the module's
    `types.h`, typedefs and enums in `forward.h`.
-3. Register in `configure.py` inside a `MeleeLib` placed after the `sfx` lib:
-   ```py
-   Object(Equivalent, "melee/tm/tm_menu.c"),
-   ```
-4. Do not touch `config/GALE01/splits.txt` or `symbols.txt`.
+3. No registration is needed: `tools/overlay_build.py` compiles every `.c` under those two
+   directories. Do not touch `configure.py`, `splits.txt` or `symbols.txt`.
 
 Template:
 
@@ -72,9 +70,8 @@ designated initialisers or compound literals, float literals `1.0F`.
    `call` → `function` → `inject` → `word`.
 4. Write the mod-side function. For a `call` hook it has the same signature as the function it
    wraps and calls the original itself.
-5. Add the hook as a line in the hook table (kind, `vanilla_symbol+offset`, target, note) and
-   link with `tools/overlay_link.py --hooks`. The tool rejects Slippi conflicts. `pointer` and
-   `inject` kinds are not implemented yet. Never edit the vanilla file.
+5. Add the hook as a line in `config/GALE01/tm_hooks.txt` (kind, `vanilla_symbol+offset`,
+   target, note). The build rejects Slippi conflicts. Never edit the vanilla file.
 
 For a throwaway shifted dev build only, an inline call guarded by `#ifndef MUST_MATCH` works
 (`docs/ai/modding.md`). Do not commit it.
@@ -96,8 +93,7 @@ Follow "Adding a mode" in `docs/ai/runtime.md`; copy `src/melee/gm/gmtrainingmod
 
 1. Matching build still reports the retail SHA (`build-melee` skill). Mandatory after any
    vanilla-file edit.
-2. `tools/overlay_link.py` succeeds and `python tools/overlay_check.py OUT/main.dol --patches
-   OUT/patches.txt` passes.
+2. `python tools/overlay_build.py` ends with `OK: vanilla layout preserved`.
 3. Boot test if the change is reachable; for anything gameplay-affecting, a two-instance
    Slippi direct-connect session with no desync.
 
