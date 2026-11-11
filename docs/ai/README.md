@@ -1,0 +1,30 @@
+# Agent docs index
+
+These docs are written for AI agents (and humans) working on the training build.
+Start with the root `CLAUDE.md`, then read only what the task needs.
+
+| Doc | Read it when |
+|-|-|
+| [codebase-map.md](codebase-map.md) | You need to know which module or file owns something, or how names work |
+| [runtime.md](runtime.md) | You need the boot → mode → scene → frame flow, GObjs, fighters, text, memory, files |
+| [overlay-build.md](overlay-build.md) | You are adding code that must ship: sections, hooks, state, the layout invariant |
+| [modding.md](modding.md) | You want a quick shifted dev build for an experiment |
+| [training-mode-port.md](training-mode-port.md) | You are porting anything from `../TrainingMode` |
+| [ai-coach.md](ai-coach.md) | You are working on the Claude coach link |
+| [slippi-tandem.md](slippi-tandem.md) | You are working on netplay / Slippi direct-connect training |
+
+Skills (task recipes) are in `.claude/skills/`:
+
+| Skill | Use |
+|-|-|
+| `build-melee` | Configure, build, verify the SHA, run in Dolphin |
+| `find-symbol` | Go from an address, a MexTK name or a behaviour to the decomp function |
+| `add-native-code` | Add a new translation unit and hook it into vanilla code |
+| `port-tm-feature` | Port one Training Mode event, OSD or ASM injection to native C |
+
+## Keeping these docs true
+
+- Every claim here was checked against the source at the time of writing, but function names
+  change often upstream (renames are the main upstream activity). If a name in a doc no longer
+  greps, look it up by address in `config/GALE01/symbols.txt` and fix the doc.
+- Mark anything you did not verify as unverified. Do not turn a plan into a statement of fact.
