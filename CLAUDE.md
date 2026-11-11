@@ -34,20 +34,25 @@ What this means for every change:
 - `tools/overlay_check.py` must pass on any DOL meant to run.
 - `--non-matching` (freely shifted) builds are for local experiments only.
 
-The overlay toolchain (custom sections, linker script, patcher) is **not built yet**; see the
-experiment list in `overlay-build.md`. Until it exists, mod work is limited to standalone
-files, tools and docs.
+The overlay toolchain works at build level (`tools/overlay_link.py`: compile flags, separate
+link, DOL append, arena patch, `call` / `function` / `word` hooks) but **no overlay DOL has
+been booted yet** and it is not wired into ninja. See the experiment table in
+`overlay-build.md` for what is proven.
 
 ## Build
 
 ```sh
 . .venv/bin/activate                      # ninja lives here
-python configure.py --wrapper build/tools/wibo-macos            # matching
-python configure.py --wrapper build/tools/wibo-macos --non-matching --map   # shifted dev build, not for netplay
+python configure.py --wrapper tools/wibo_macos_wrapper.py            # matching
+python configure.py --wrapper tools/wibo_macos_wrapper.py --non-matching --map   # shifted dev build, not for netplay
 ninja
 ```
 
-- Needs `orig/GALE01/sys/main.dol` (already extracted, git-ignored) and Rosetta 2 (wibo-macos is x86_64).
+- Needs `orig/GALE01/sys/main.dol` (already extracted, git-ignored), Rosetta 2, and
+  `build/tools/wibo-macos`. The wrapper script replaces `sjiswrap.exe`, which does not load
+  under wibo on macOS.
+- Verified 2026-11-11: the matching build reproduces the retail SHA-1 on this machine in
+  about 2.5 minutes from clean.
 - Matching success = `build/GALE01/ok` and the final line reports the SHA-1 match.
 - Output: `build/GALE01/main.dol`, `main.elf`, and `main.elf.MAP` with `--map`.
 - Details and troubleshooting: `.claude/skills/build-melee/SKILL.md`.
@@ -82,6 +87,7 @@ ninja
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
+| Link mod objects into an overlay DOL | `python tools/overlay_link.py -o OUT objs... [--hooks file]` |
 | Does a DOL keep the vanilla layout? | `python tools/overlay_check.py <dol> [--patches list]` |
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
 

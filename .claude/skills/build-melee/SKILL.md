@@ -11,13 +11,19 @@ description: Configure and build the Melee decomp (matching or the non-matching 
 |-|-|-|
 | ninja | `.venv/bin/ninja --version` | `python3 -m venv .venv && .venv/bin/pip install ninja` |
 | Retail DOL | `shasum orig/GALE01/sys/main.dol` = `08e0bf20134dfcb260699671004527b2d6bb1a45` | Extract from a v1.02 ISO; ask the user where theirs is |
-| Compiler wrapper | `build/tools/wibo-macos` runs | See below |
+| wibo | `build/tools/wibo-macos` exists | Download `wibo-macos` from the `decompals/wibo` GitHub releases (1.2.0 is known to work); ask the user first |
 | Rosetta 2 (Apple Silicon) | `arch -x86_64 /usr/bin/true` exits 0 | The user must install it: `softwareupdate --install-rosetta`. Do not install it yourself |
 
 The Metrowerks compiler is a Windows program. On this Mac it runs through `wibo-macos`
-(x86_64, from the `decompals/wibo` releases), passed with `--wrapper`. Without Rosetta every
-compile step fails with `Bad CPU type in executable`. On Linux x86_64 the build downloads its
-own wibo and needs no `--wrapper`.
+(x86_64, needs Rosetta). Always pass `--wrapper tools/wibo_macos_wrapper.py`, not wibo itself:
+the build normally runs the compiler through `sjiswrap.exe` to feed it Shift JIS, and
+`sjiswrap.exe` does not load under wibo-macos 1.2.0. The wrapper script does the conversion
+itself for the ~15 sources with Japanese text. Symptoms of using wibo directly:
+`PeLoaderErr(GetProcAddressFail)` on every compile. Without Rosetta: `Bad CPU type in
+executable`. On Linux x86_64 the build downloads its own wibo and needs no `--wrapper`.
+
+The wrapper only converts the `.c` file being compiled. If a header ever gains non-ASCII text
+outside a comment, the matching SHA check will fail; fix the wrapper then.
 
 The first `ninja` downloads the pinned tools (dtk, objdiff-cli, compilers, sjiswrap) into
 `build/`. That is expected.
@@ -27,24 +33,27 @@ The first `ninja` downloads the pinned tools (dtk, objdiff-cli, compilers, sjisw
 Matching build (the default; must reproduce the retail DOL):
 
 ```sh
-.venv/bin/python configure.py --wrapper build/tools/wibo-macos --ninja .venv/bin/ninja
+.venv/bin/python configure.py --wrapper tools/wibo_macos_wrapper.py --ninja .venv/bin/ninja
 .venv/bin/ninja
 ```
 
-The shipping training build is the address-preserving overlay (`docs/ai/overlay-build.md`).
-Its build mode does not exist yet. When it does, a build is good only if
-`python tools/overlay_check.py build/GALE01/main.dol --patches <patch list>` passes.
+The shipping training build is the address-preserving overlay (`docs/ai/overlay-build.md`):
+run the matching build, compile mod files with the overlay flags, then
+`python tools/overlay_link.py -o OUT objs... --hooks hooks.txt` and
+`python tools/overlay_check.py OUT/main.dol --patches OUT/patches.txt`. This is not in ninja
+yet.
 
 Shifted dev build (links `Equivalent` mod objects anywhere; experiments only, breaks Slippi):
 
 ```sh
-.venv/bin/python configure.py --wrapper build/tools/wibo-macos --ninja .venv/bin/ninja --non-matching --map
+.venv/bin/python configure.py --wrapper tools/wibo_macos_wrapper.py --ninja .venv/bin/ninja --non-matching --map
 .venv/bin/ninja
 ```
 
 Other useful flags: `--debug` (`-O0`, implies non-matching), `--max-errors 0`, `--warn all`.
 
-A full build compiles ~1,100 objects; run it in the background if it may exceed two minutes.
+A clean build compiles ~1,100 objects in about 2.5 minutes on this machine; run it in the
+background.
 Incremental builds are fast.
 
 ## Reading the result

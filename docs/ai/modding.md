@@ -47,7 +47,7 @@ Rules that hold in every build:
    order comes from `configure.py` order.
 3. Reconfigure and build:
    ```sh
-   python configure.py --wrapper build/tools/wibo-macos --non-matching --map
+   python configure.py --wrapper tools/wibo_macos_wrapper.py --non-matching --map
    ninja
    ```
 4. New files do not need entries in `splits.txt` or `symbols.txt`; those describe the retail DOL.
@@ -133,8 +133,8 @@ to bisect.
 
 | Check | Command | Proves |
 |-|-|-|
-| Matching build | `python configure.py --wrapper build/tools/wibo-macos && ninja` | Hooks compile out; vanilla untouched |
-| Training build links | `python configure.py --wrapper build/tools/wibo-macos --non-matching --map && ninja` | Mod code compiles and links |
+| Matching build | `python configure.py --wrapper tools/wibo_macos_wrapper.py && ninja` | Hooks compile out; vanilla untouched |
+| Training build links | `python configure.py --wrapper tools/wibo_macos_wrapper.py --non-matching --map && ninja` | Mod code compiles and links |
 | Boots | Copy `build/GALE01/main.dol` into a full disc extract's `sys/` and open it in Dolphin | It runs |
 
 Always switch back to the mode you were asked to leave the tree in, and say which checks ran.

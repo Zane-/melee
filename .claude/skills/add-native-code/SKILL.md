@@ -8,9 +8,10 @@ description: Add new native C code to the Melee training build and hook it into 
 Read `docs/ai/modding.md` for the reasoning. This is the checklist.
 
 The shipping build is an address-preserving overlay (`docs/ai/overlay-build.md`): vanilla code
-and data must not move. The overlay toolchain (sections, linker script, patcher) is not built
-yet, so today this skill covers writing mod files and planning hooks; inline hooks are for
-throwaway shifted dev builds only and must not be committed.
+and data must not move. Mod files are compiled with the overlay flags, linked with
+`tools/overlay_link.py` and hooked through a hook table; read "How the overlay build works"
+in that doc for the exact commands. The overlay is not in ninja yet, so these steps are run
+by hand, and no overlay DOL has been booted yet.
 
 Hard rules for mod files:
 
@@ -36,10 +37,8 @@ Template:
 ```c
 #include "tm_menu.h"
 
-#include <platform.h>
-
-#include <baselib/gobj.h>
-#include <baselib/gobjproc.h>
+#include <sysdolphin/baselib/gobj.h>
+#include <sysdolphin/baselib/gobjproc.h>
 
 static void tmMenu_Think(HSD_GObj* gobj);
 
@@ -73,8 +72,9 @@ designated initialisers or compound literals, float literals `1.0F`.
    `call` → `function` → `inject` → `word`.
 4. Write the mod-side function. For a `call` hook it has the same signature as the function it
    wraps and calls the original itself.
-5. Record the hook as a line for the hook table: kind, `vanilla_symbol+offset`, target, note.
-   Until the patcher exists, keep these in the feature's notes; do not edit the vanilla file.
+5. Add the hook as a line in the hook table (kind, `vanilla_symbol+offset`, target, note) and
+   link with `tools/overlay_link.py --hooks`. The tool rejects Slippi conflicts. `pointer` and
+   `inject` kinds are not implemented yet. Never edit the vanilla file.
 
 For a throwaway shifted dev build only, an inline call guarded by `#ifndef MUST_MATCH` works
 (`docs/ai/modding.md`). Do not commit it.
@@ -96,8 +96,8 @@ Follow "Adding a mode" in `docs/ai/runtime.md`; copy `src/melee/gm/gmtrainingmod
 
 1. Matching build still reports the retail SHA (`build-melee` skill). Mandatory after any
    vanilla-file edit.
-2. `python tools/overlay_check.py <built dol> --patches <list>` passes, once the overlay build
-   exists.
+2. `tools/overlay_link.py` succeeds and `python tools/overlay_check.py OUT/main.dol --patches
+   OUT/patches.txt` passes.
 3. Boot test if the change is reachable; for anything gameplay-affecting, a two-instance
    Slippi direct-connect session with no desync.
 
