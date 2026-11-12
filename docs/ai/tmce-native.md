@@ -67,6 +67,13 @@ Slippi's required General Codes sites with the same effect. They are applied for
 under Slippi its codes are applied after the DOL loads and win. Only that kind may touch a
 Slippi site.
 
+Fighter block: TM-CE's `FighterData` is 0x2530 bytes (vanilla 0x23EC + m-ex 0xC + TM 0x138,
+`FighterData.TM` at 0x23F8). `src/melee/tm/tm_fighter.c` sizes `fighter_alloc_data` to at
+least `sizeof(FighterData)` and zeroes each block on creation (m-ex's Custom Playerdata
+Variables). m-ex's own sites are Slippi Recording injections, so the hooks wrap the neighbouring
+calls. **Open for netplay:** Slippi Recording also grows this block; check whether its fields
+overlap 0x23EC-0x2530 before running TM code under Slippi.
+
 Known deviations from TM-CE kept on purpose:
 
 - `lab.c` rewrites one vanilla instruction at runtime (Pokémon Stadium transformation,

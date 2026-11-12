@@ -17,6 +17,7 @@
 void tmce_Boot(void);
 int tmce_IsLoaded(void);
 int tmce_GetEventPage(void);
+int tmce_FighterDataSize(void);
 /// @}
 
 /// @name TM-CE events.c (tmFunction table entries)

@@ -28,6 +28,13 @@ void tm_Hook_SceneChange(void);
 void tm_Hook_StartMelee(int arg);
 /// @}
 
+/// @name Hook targets (tm_fighter.c)
+/// @{
+void tm_Hook_FighterAllocInit(struct _HSD_ObjAllocData* data, size_t size,
+                              u32 align);
+void* tm_Hook_FighterAlloc(struct _HSD_ObjAllocData* data);
+/// @}
+
 /// @name Hook targets (tm_event_start.c)
 /// @{
 void tm_Hook_EventEnterVs(GameModeState* state);

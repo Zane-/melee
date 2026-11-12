@@ -55,3 +55,10 @@ int tmce_GetEventPage(void)
 {
     return stc_memcard->TM_EventPage;
 }
+
+/* sizeof(FighterData) in MexTK terms: vanilla's 0x23EC plus m-ex's 0xC and
+ * TM-CE's 0x138 (FighterData.TM). Used by src/melee/tm/tm_fighter.c. */
+int tmce_FighterDataSize(void)
+{
+    return sizeof(FighterData);
+}

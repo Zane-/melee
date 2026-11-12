@@ -19,3 +19,10 @@ call  fn_8016E730+0x194   tm_Hook_StartMelee   TM-CE OnStartMelee
 # Event match setup (tm_Hook_EventEnterVs, src/melee/tm/tm_event_start.c) is
 # reached through the css area's replacement event state list
 # (config/GALE01/tm_hooks/css.txt, tm_css_EventStates[1].on_enter).
+
+# Per-fighter block size and zeroing for m-ex/TM-CE fields (FighterData.TM).
+# Replaces m-ex Custom Playerdata Variables/*.asm, whose sites are Slippi
+# Recording injections; these wrap the neighbouring calls.
+call  Fighter_800679B0+0x28      tm_Hook_FighterAllocInit  fighter block >= 0x2530
+call  Fighter_Create+0x50        tm_Hook_FighterAlloc      zero fighter block
+call  ftDemo_CreateFighter+0x4C  tm_Hook_FighterAlloc      zero fighter block (results)
