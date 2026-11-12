@@ -77,6 +77,11 @@ slippi-ssbm-asm `Recording/Recording.s` at d0ce23a), so it does not overlap TM-C
 
 Known deviations from TM-CE kept on purpose:
 
+- OSD core fixes TM-CE bugs: previous-move-instance is stored at `TM.last_move_hurt` (0x2414,
+  which the SDI display reads) instead of 0x2418; the insta double jump table is indexed by
+  the ply byte, not a word; expired message queue entries are cleared; the OSD window count
+  (0x1F28) is clamped to 3.
+
 - `lab.c` rewrites one vanilla instruction at runtime (Pokémon Stadium transformation,
   `0x801D463C`). Kept for fidelity; should become a `call` hook.
 - TM-CE's OnSceneChange ran at `gm_801A4BD4+0xC0`; ours runs at `+0xF4` (three calls later).
@@ -121,7 +126,9 @@ See "Port status" below; update it as pieces are booted.
 | Misc (`misc`: 37 ported, 4 dropped: On No Save = Slippi; Boot Up Tasks = dead; nametag save and save renaming = m-ex launcher only) | Ported, not booted |
 | Unlock Everything (Additional Codes; trophies spoofed, save not filled) | Ported as `slippi-word`, not booted |
 | Boot → ESS → Lab CSS → SSS → Lab match | **Booted 2026-11-11** (plain Dolphin, Linux). Savestate bad read fixed by patch 0004 |
-| OSDs, legacy events, other Additional Codes | Not started |
+| OSD toggle menu (`osdmenu`: Toggle UI, 13 files) | Ported, not booted |
+| OSD core (`osdcore`: message system, FighterData.TM per-frame bookkeeping, fastfall, frame advantage, previous move instance, Generic Per Frame, IC follower check, Act OoWait). API in `src/melee/tm/osdcore/osd.h` | Ported, not booted. `Fighter_ChangeMotionState` and `ftCommon_CheckFallFast` are replaced by edited copies (hooks inside the vanilla bodies would be dead) |
+| Individual OSDs, legacy events, other Additional Codes | Not started |
 | Skills for adding new events (owner request; after parity) | Not started |
 
 Open questions from the area ports (check when booting):

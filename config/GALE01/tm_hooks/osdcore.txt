@@ -1,0 +1,37 @@
+# osdcore area: TM-CE on-screen display foundation
+# (../TrainingMode/ASM/training-mode/Onscreen Display/). Code in
+# src/melee/tm/osdcore/ and src/tmce/osdcore_vars.c; API in
+# src/melee/tm/osdcore/osd.h.
+
+# Message Display System/Create Message Struct.asm (un_802FF498+0x50):
+# message areas + timer GObj, set up with the score display each match.
+call      un_802FF498+0x48           tm_osd_Hook_ScoreCanvas   message areas
+
+# Message Display System/Disable Hiding Score on Pause.asm,
+# Disable Showing Score on Unpause.asm: nop the score display hide/show.
+word      ifAll_802F3394+0x24        0x60000000                no un_802FF570 on pause
+word      ifAll_802F33CC+0x24        0x60000000                no un_802FF620 on unpause
+
+# Additional Playerblock Variables/StatesAndTimers/IncFrameCounts.asm
+# (Fighter_procAnim+0x818; Slippi patches this function, so wrap the next call).
+call      Fighter_procAnim+0x81C     tm_osd_Hook_ProcAnim      TM frame counts, input history
+
+# StatesAndTimers/ShiftStates.asm (+0x40) and Fastfall Timer/Initialize
+# Fastfall Variable.asm (+0x51C): edited copy, Slippi does not patch it.
+function  Fighter_ChangeMotionState  tm_osd_ChangeMotionState  TM state history
+
+# Fastfall Timer/Increment Fastfall Variable.asm (+0x28), Display FF
+# Timing.asm (+0x54): edited copy.
+function  ftCommon_CheckFallFast     tm_osd_CheckFallFast      fastfall timer + OSD
+
+# Frame Advantage/Save Pointer to Shield Owner On Hit.asm
+# (ftColl_80076CBC+0x1F0): wrap its only call.
+call      ftColl_80078C70+0x428      tm_osd_Hook_HitShield     TM.fighter_hurt_shield
+
+# Previous Move Instance Hit By/Backup Previous Move Instance Player was Hit
+# By.asm (pl_80038144+0xC8): wrap its only call.
+call      ftColl_8007861C+0xD4       tm_osd_Hook_TrickHit      TM.last_move_hurt
+
+# Generic Per Frame.asm (Fighter_procInput+0xAE4; Slippi patches this
+# function, so wrap the call before it).
+call      Fighter_procInput+0xAE0    tm_osd_Hook_ProcInput     generic per-frame OSDs
