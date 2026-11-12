@@ -1,0 +1,9 @@
+{
+  "comment": "Smoke test of the test runner on a TM-CE event without character rotation: boots into Powershield as Fox, holds shield for 5 seconds.",
+  "event": "powershield",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "trace": 60,
+  "inputs": [{"at": 0, "hold": 300, "buttons": ["R"], "r": 255}]
+}

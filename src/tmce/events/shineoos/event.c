@@ -161,13 +161,6 @@ static struct {
     Stats stats[MAX_SCENARIOS];
 } ev;
 
-#ifdef TM_TEST_BOT
-/* Test builds (tools/test_shineoos.py): shine for the player on the frame a
- * frame-perfect shine out of shield would come out (3 frames of jump squat
- * after shieldstun, shine on the 4th), to check that each scenario is
- * really punishable. A vanilla function, resolved by the overlay linker. */
-void ftFx_SpecialLw_Enter(GOBJ* gobj);
-#endif
 
 static int IsShine(FighterData* fd)
 {
@@ -296,6 +289,22 @@ static void Reset(void)
             ev.stats[idx].successes, ev.stats[idx].attempts);
 }
 
+static int OosFrame(void);
+
+#ifdef TM_TEST
+/* The message up to its first line break, for a JSON string. */
+static char* Reason(char* fmt)
+{
+    static char buf[48];
+    int i;
+    for (i = 0; fmt[i] != '\0' && fmt[i] != '\n' && i < 47; i++) {
+        buf[i] = fmt[i] == '"' ? '\'' : fmt[i];
+    }
+    buf[i] = '\0';
+    return buf;
+}
+#endif
+
 static void Result(int success, char* fmt, int a, int b)
 {
     Stats* st = &ev.stats[ev.scenario];
@@ -304,6 +313,19 @@ static void Result(int success, char* fmt, int a, int b)
         st->successes++;
     }
     ev.last_success = success;
+#ifdef TM_TEST
+    /* Test builds: one JSON result line (tools/tmtest.py). */
+    OSReport("TMTEST {\"result\":\"%s\",\"scenario\":\"%s\","
+             "\"cpu\":%d,\"shield_hit\":%d,\"stun_end\":%d,"
+             "\"shine\":%d,\"oos_frame\":%d,\"distance\":%.1f,"
+             "\"why\":\"%s\"}\n",
+             success ? "success" : "fail",
+             ShineOos_Deck.entries[ev.scenario].name,
+             ShineOos_Deck.entries[ev.scenario].ckind,
+             ev.phase >= PHASE_PUNISH, ev.stun_end, ev.shine_frame,
+             ev.shine_frame >= 0 && ev.stun_end >= 0 ? OosFrame() : -1,
+             ev.stun_distance, Reason(fmt));
+#endif
     event_vars->Message_Display(MSG_KIND, MSG_QUEUE,
                                 success ? MSGCOLOR_GREEN : MSGCOLOR_RED, fmt,
                                 a, b);
@@ -328,10 +350,14 @@ static void ApplyInputs(FighterData* cpu)
     }
 }
 
-/* Frame N out of shield: 1 = the first frame you could act. */
+/* Frame N out of shield: 1 = the first frame you could act, so a
+ * frame-perfect jump-cancel shine is frame 4. Calibrated with
+ * tools/tmtest.py: X on the frame shieldstun ends, down-B 3 frames later,
+ * gives shine_frame - stun_end = 4 (this think sees each state change on
+ * the frame after it happens, for both). */
 static int OosFrame(void)
 {
-    return ev.shine_frame - ev.stun_end + 1;
+    return ev.shine_frame - ev.stun_end;
 }
 
 void Event_Init(GOBJ* gobj)
@@ -432,6 +458,11 @@ void Event_Think(GOBJ* event)
         } else if (ev.timer > Scenario()->attack_timeout) {
             /* The attack missed the shield: not the player's fault. */
             Message(MSGCOLOR_YELLOW, "Attack missed\nresetting", 0, 0, 0);
+#ifdef TM_TEST
+            OSReport("TMTEST {\"result\":\"attack_missed\","
+                     "\"scenario\":\"%s\"}\n",
+                     ShineOos_Deck.entries[ev.scenario].name);
+#endif
             ev.phase = PHASE_RESULT;
             ev.timer = 30;
         }
@@ -442,13 +473,6 @@ void Event_Think(GOBJ* event)
             ev.stun_end = ev.attack_frame;
             ev.stun_distance = fabs(cd->phys.pos.X - hd->phys.pos.X);
         }
-#ifdef TM_TEST_BOT
-        if (ev.stun_end >= 0 && ev.shine_frame < 0 &&
-            ev.attack_frame == ev.stun_end + 3)
-        {
-            ftFx_SpecialLw_Enter(hmn);
-        }
-#endif
         if (ev.shine_frame < 0 && IsShine(hd)) {
             ev.shine_frame = ev.attack_frame;
         }

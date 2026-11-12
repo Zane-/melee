@@ -18,6 +18,10 @@
  */
 #include "addcodes.h"
 
+#ifdef TM_TEST
+#include "test/tmtest.h"
+#endif
+
 #include <melee/gm/forward.h>
 #include <melee/gm/gm_1601.h>
 #include <melee/gm/gm_1A3F.h>
@@ -59,7 +63,14 @@ static u32 acAnyPadHeld(void)
 static bool acSelectLab(void)
 {
     int page, event;
-    if (!tmce_ac_FindEvent(TM_AC_BOOT_EVENT_FILE, &page, &event)) {
+    const char* file = TM_AC_BOOT_EVENT_FILE;
+#ifdef TM_TEST
+    /* Test builds boot into the configured event (test/tmtest.h). */
+    if (tm_test_config.magic == TM_TEST_MAGIC) {
+        file = tm_test_config.event;
+    }
+#endif
+    if (!tmce_ac_FindEvent(file, &page, &event)) {
         return false;
     }
     tmce_ac_SetEventPage(page);

@@ -112,6 +112,7 @@ ninja
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
 | Build the training overlay DOL | `python tools/overlay_build.py` → `build/overlay/main.dol` |
 | Put it and TM-CE's art on the extracted disc | `python tools/tmce_disc.py` → boot `build/disc/sys/main.dol` |
+| Test an event: scripted, deterministic, headless, JSON results | `python tools/tmtest.py tests/tmtest/...`; `docs/ai/testing.md` |
 | Does a DOL keep the vanilla layout? | `python tools/overlay_check.py <dol> [--patches list]` |
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
 | Game knowledge: characters, techniques, frame data, community guides | `data/README.md`, skill `melee-knowledge` |

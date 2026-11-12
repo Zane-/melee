@@ -43,6 +43,11 @@ HOOKS = ROOT / "config" / "GALE01" / "tm_hooks.txt"
 # lives in src/melee/tm/<area>/. TM_EXCLUDE=area1,area2 leaves both out.
 HOOKS_DIR = ROOT / "config" / "GALE01" / "tm_hooks"
 EXCLUDE = [a for a in os.environ.get("TM_EXCLUDE", "").split(",") if a]
+# The test runner (src/melee/tm/test, src/tmce/test_*.c, tm_hooks/test.txt)
+# is only in test builds: TM_TEST=1 (tools/tmtest.py) also defines TM_TEST.
+TM_TEST = os.environ.get("TM_TEST", "") not in ("", "0")
+if not TM_TEST:
+    EXCLUDE.append("test")
 SYMBOLS = ROOT / "config" / "GALE01" / "tm_symbols.txt"
 BASE_DOL = ROOT / "build" / "GALE01" / "main.dol"
 BASE_SHA1 = (ROOT / "config" / "GALE01" / "build.sha1").read_text().split()[0]
@@ -81,9 +86,9 @@ TMCE_TABLES = {"event": "evFunction", "css": "cssFunction"}
 
 
 def extra_defines():
-    """TM_DEFINES='A=1 B="x"': extra -D flags for every mod file (test builds)."""
+    """TM_DEFINES='A=1 B=x': extra -D flags for every mod file (test builds)."""
     import shlex
-    out = []
+    out = ["-DTM_TEST=1"] if TM_TEST else []
     for d in shlex.split(os.environ.get("TM_DEFINES", "")):
         out += ["-D" + d]
     return out

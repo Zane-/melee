@@ -77,7 +77,7 @@ static const OosScenario sc_marth_dtilt = { 6.0F, in_dtilt, 40, 0, -6 };
 static const OosScenario sc_marth_fsmash = { 4.0F, in_fsmash, 40, 0, -27 };
 static const OosScenario sc_marth_fair = { 26.0F, in_marth_fair, 60, 0, -4 };
 static const OosScenario sc_sheik_utilt = { 6.0F, in_utilt, 40, 0, -15 };
-static const OosScenario sc_sheik_dash_attack = { 27.0F, in_dash_attack, 60,
+static const OosScenario sc_sheik_dash_attack = { 19.0F, in_dash_attack, 60,
                                                   0, -23 };
 static const OosScenario sc_falcon_dtilt = { 5.0F, in_dtilt, 40, 0, -17 };
 static const OosScenario sc_falcon_nair = { 30.0F, in_falcon_nair, 60, 0, -4 };

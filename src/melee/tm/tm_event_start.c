@@ -3,6 +3,9 @@
 #include "tmce.h"
 #include "legacy/legacy.h"
 #include "rotation/tm_rotation.h"
+#ifdef TM_TEST
+#include "test/tmtest.h"
+#endif
 
 #include <melee/gm/gm_1601.h>
 #include <melee/gm/gm_16A2.h>
@@ -319,6 +322,9 @@ void tm_Hook_EventEnterVs(GameModeState* arg0)
     struct gm_804D6900_t** levels;
     int page;
 
+#ifdef TM_TEST
+    tm_test_OnMatchEnter(); /* test builds: no CSS loaded the fighters */
+#endif
     if (!tmce_IsLoaded()) {
         gmEvent_onEnterVs(arg0);
         return;

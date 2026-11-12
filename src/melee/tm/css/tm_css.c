@@ -1,5 +1,9 @@
 #include "tm_css.h"
 
+#ifdef TM_TEST
+#include "test/tmtest.h"
+#endif
+
 #include "../tm.h"
 #include "../tmce.h"
 
@@ -102,6 +106,10 @@ void tm_css_EventModeLoad(void)
     tm_css_EventStates[TM_STATE_SSS].info.enter_data = van[0].info.enter_data;
     tm_css_EventStates[TM_STATE_SSS].info.exit_data = van[0].info.enter_data;
     gm_Mode_Event_OnLoad();
+#ifdef TM_TEST
+    /* Test builds: skip the CSS (src/melee/tm/test/tmtest.h). */
+    tm_test_OnEventModeLoad();
+#endif
 }
 
 /// `pointer` hook on the menu mode's on_load (modes[GM_MENU]; vanilla NULL).

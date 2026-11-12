@@ -1,0 +1,51 @@
+{
+  "comment": "Soak: 30 s of random scenarios (switch every attempt) with a reactive shine OoS (1 frame late), to exercise character swaps and preloading. Expect no crash.",
+  "event": "shineoos",
+  "hmn": "fox",
+  "seed": 7,
+  "max_frames": 1800,
+  "options": [
+    [
+      1,
+      0
+    ],
+    [
+      4,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 0,
+      "hold": 1800,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    },
+    {
+      "on_exit": {
+        "port": 0,
+        "state": "GuardSetOff"
+      },
+      "delay": 0,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "on_exit": {
+        "port": 0,
+        "state": "GuardSetOff"
+      },
+      "delay": 3,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ]
+}

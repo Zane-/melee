@@ -1,0 +1,8 @@
+# Test runner (src/melee/tm/test/, docs/ai/testing.md). Applied only in test
+# builds (TM_TEST=1, tools/tmtest.py); never in a build meant for play.
+
+# gm_801A4D34 (game loop): `bl lb_800198E0` pops one raw pad reading per
+# logic frame. Port 1 gets the test script's input first. (Slippi's nearest
+# site is the instruction before, 801A4DE4; test builds do not run under
+# Slippi.)
+call  gm_801A4D34+0xB4  tm_test_PadRenew  scripted input

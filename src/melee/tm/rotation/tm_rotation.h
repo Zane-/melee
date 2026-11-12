@@ -26,9 +26,11 @@
  * State is in overlay statics: not rollback-safe (offline events only).
  */
 
-/// Characters preloaded per session besides the player's. Each costs a
-/// fighter data file and costume in main memory and animations in ARAM.
-#define TM_ROT_MAX_CHARS 3
+/// Characters preloaded per session besides the player's and the event's
+/// own CPU: 4 different fighters in all, what a 4-player VS match loads.
+/// 3 extra overflows the preload heap ("memp_kouho" in lbmemory.c) while
+/// the files stream in (found with tools/tmtest.py soak runs).
+#define TM_ROT_MAX_CHARS 2
 
 typedef struct TmRotEntry {
     int ckind;        ///< external character id (CKIND_*)
