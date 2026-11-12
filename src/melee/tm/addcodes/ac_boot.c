@@ -59,7 +59,7 @@ static u32 acAnyPadHeld(void)
 static bool acSelectLab(void)
 {
     int page, event;
-    if (!tmce_ac_FindEvent("lab", &page, &event)) {
+    if (!tmce_ac_FindEvent(TM_AC_BOOT_EVENT_FILE, &page, &event)) {
         return false;
     }
     tmce_ac_SetEventPage(page);

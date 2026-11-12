@@ -27,3 +27,7 @@ event  laserland   laserland.c                               -
 event  eggs        eggs.c                                    -
 event  techchase   techchase.c                               -
 event  slalom      slalom.c                                  wavedash.dat
+
+# Events written for this build (src/tmce/events/<name>/; desc.c is linked
+# globally, see tools/overlay_build.py).
+event  shineoos    src/tmce/events/shineoos/event.c          -

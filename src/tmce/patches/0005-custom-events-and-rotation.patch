@@ -1,0 +1,29 @@
+--- a/src/events.h	2026-11-11 20:24:17.192484171 -0800
++++ b/src/events.h	2026-11-11 20:24:17.230025587 -0800
+@@ -113,6 +113,9 @@
+     u8 scoreType;
+     u8 callbackPriority;
+     EventMatchData *matchData;
++    // native build: optional TmRotDeck (src/melee/tm/rotation/tm_rotation.h);
++    // its characters are preloaded at match start so the CPU can switch
++    const void *rotation;
+ } EventDesc;
+ typedef struct EventPage
+ {
+--- a/src/events.c	2026-11-11 20:24:17.192484171 -0800
++++ b/src/events.c	2026-11-11 20:24:17.230338264 -0800
+@@ -754,10 +754,14 @@
+     .events = CharacterSpecific_Events,
+ };
+ 
++// native build: events written for this build (src/tmce/custom_pages.c)
++extern EventPage Custom_Page;
++
+ EventPage *EventPages[] = {
+     &Minigames_Page,
+     &General_Page,
+     &CharacterSpecific_Page,
++    &Custom_Page,
+ };
+ 
+ ////////////////////////

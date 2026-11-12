@@ -62,3 +62,10 @@ int tmce_FighterDataSize(void)
 {
     return sizeof(FighterData);
 }
+
+/* EventDesc.rotation (patch 0005) of an event, or NULL. */
+const void* tmce_GetEventRotation(int page, int event)
+{
+    EventDesc* desc = GetEventDesc(page, event);
+    return desc != NULL ? desc->rotation : NULL;
+}

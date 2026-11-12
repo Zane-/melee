@@ -80,6 +80,15 @@ TMCE_MWCC = "build/compilers/GC/3.0a5.2/mwcceppc.exe"
 TMCE_TABLES = {"event": "evFunction", "css": "cssFunction"}
 
 
+def extra_defines():
+    """TM_DEFINES='A=1 B="x"': extra -D flags for every mod file (test builds)."""
+    import shlex
+    out = []
+    for d in shlex.split(os.environ.get("TM_DEFINES", "")):
+        out += ["-D" + d]
+    return out
+
+
 def tmce_cflags(debug):
     rel = lambda p: str(p.relative_to(ROOT))  # noqa: E731
     return [
@@ -89,7 +98,7 @@ def tmce_cflags(debug):
         "-lang=c99", "-O4,p",
         "-inline", "auto",
         "-maxerrors", "8", "-msgstyle", "gcc", "-warn", "off",
-        "-DTM_OVERLAY", *(["-DTM_DEBUG=1"] if debug else []),
+        "-DTM_OVERLAY", *(["-DTM_DEBUG=1"] if debug else []), *extra_defines(),
         "-i", rel(TMCE_OURS / "include"), "-i", rel(TMCE_OURS),
         "-i", rel(TMCE_OUT / "src"), "-i", rel(TMCE_OUT / "MexTK" / "include"),
         "-i", rel(TMCE_OUT / "MexTK"),
@@ -214,21 +223,36 @@ def build_tmce(args):
     prepare_tmce_tree()
     units = read_units()
     flags = tmce_cflags(args.tm_debug)
-    dep = max(newest_mtime([TMCE_OUT / "src", TMCE_OUT / "MexTK", TMCE_OURS], "*.h"),
+    dep = max(newest_mtime([TMCE_OUT / "src", TMCE_OUT / "MexTK", TMCE_OURS,
+                            ROOT / "src" / "melee" / "tm"], "*.h"),
               (TMCE_OUT / "tree.stamp").stat().st_mtime)
     obj_dir = TMCE_OUT / "obj"
 
     jobs, unit_objs = [], {}
     for u in units:
         for s in u["sources"]:
-            obj = obj_dir / u["name"] / Path(s).with_suffix(".o")
-            jobs.append((TMCE_MWCC, flags, TMCE_OUT / "src" / s, obj, dep, args.force))
+            # "src/..." is a repo path (our own events, src/tmce/events);
+            # anything else is a TM-CE source file.
+            src_path = ROOT / s if s.startswith("src/") else TMCE_OUT / "src" / s
+            stem = Path(s).stem
+            if s.startswith("src/"):  # name objects after the unit (maps)
+                stem = u["name"] if stem == "event" else f"{u['name']}_{stem}"
+            obj = obj_dir / u["name"] / f"{stem}.o"
+            jobs.append((TMCE_MWCC, flags, src_path, obj, dep, args.force))
             unit_objs.setdefault(u["name"], []).append(obj)
     # Area glue is src/tmce/<area>_*.c; TM_EXCLUDE leaves it out too.
     glue = sorted(p for p in TMCE_OURS.glob("*.c")
                   if not any(p.stem.startswith(a + "_") for a in EXCLUDE))
+    # Custom events' EventDesc and data (src/tmce/events/<name>/desc.c).
+    glue += sorted(TMCE_OURS.glob("events/*/desc.c"))
+    def glue_obj(s):
+        name = s.with_suffix(".o").name
+        if s.parent != TMCE_OURS:  # events/<name>/desc.c
+            name = f"{s.parent.name}_{name}"
+        return obj_dir / "glue" / name
+
     for s in glue:
-        jobs.append((TMCE_MWCC, flags, s, obj_dir / "glue" / s.with_suffix(".o").name,
+        jobs.append((TMCE_MWCC, flags, s, glue_obj(s),
                      dep, args.force))
     compile_all(jobs, args.j)
 
@@ -277,7 +301,7 @@ def build_tmce(args):
         reg_c.write_text(text)
     final += compile_all([(TMCE_MWCC, flags, reg_c, obj_dir / "tmce_registry.o",
                            dep, args.force)], 1)
-    final += [obj_dir / "glue" / s.with_suffix(".o").name for s in glue]
+    final += [glue_obj(s) for s in glue]
     return final
 
 
@@ -306,7 +330,7 @@ def main():
     sources = sorted(p for d in MOD_DIRS for p in (ROOT / d).rglob("*.c")
                      if not any(x in p.parents for x in excluded))
     hdr = newest_mtime([ROOT / d for d in MOD_DIRS], "*.h")
-    jobs = [(MWCC, CFLAGS, s, OUT / "obj" / s.relative_to(ROOT).with_suffix(".o"),
+    jobs = [(MWCC, CFLAGS + extra_defines(), s, OUT / "obj" / s.relative_to(ROOT).with_suffix(".o"),
              hdr, args.force) for s in sources]
     objs = compile_all(jobs, args.j)
     if not args.no_tmce:

@@ -23,6 +23,18 @@
 #define TM_AC_BOOT_TO_LAB 1
 #endif
 
+/// Event file (EventDesc.eventFile) to boot into when TM_AC_BOOT_TO_LAB is
+/// set. Test builds override it with a bare token (quotes do not survive
+/// the compiler wrapper), e.g.
+/// `TM_DEFINES='TM_AC_BOOT_EVENT=shineoos' tools/overlay_build.py`.
+#define TM_AC_STR_(x) #x
+#define TM_AC_STR(x) TM_AC_STR_(x)
+#ifdef TM_AC_BOOT_EVENT
+#define TM_AC_BOOT_EVENT_FILE TM_AC_STR(TM_AC_BOOT_EVENT)
+#else
+#define TM_AC_BOOT_EVENT_FILE "lab"
+#endif
+
 /// @name Hook targets: ac_camera.c (Enable C Stick Always, Better Camera)
 /// @{
 void tm_ac_CheckCameraInfo(int player, int buttons_down, int buttons_pressed,

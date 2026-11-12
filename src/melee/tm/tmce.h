@@ -18,6 +18,8 @@ void tmce_Boot(void);
 int tmce_IsLoaded(void);
 int tmce_GetEventPage(void);
 int tmce_FighterDataSize(void);
+/// EventDesc.rotation (a TmRotDeck*) of an event, or NULL.
+const struct TmRotDeck* tmce_GetEventRotation(int page, int event);
 /// @}
 
 /// @name TM-CE events.c (tmFunction table entries)

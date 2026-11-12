@@ -2,6 +2,7 @@
 
 #include "tmce.h"
 #include "legacy/legacy.h"
+#include "rotation/tm_rotation.h"
 
 #include <melee/gm/gm_1601.h>
 #include <melee/gm/gm_16A2.h>
@@ -328,6 +329,12 @@ void tm_Hook_EventEnterVs(GameModeState* arg0)
     if (GetEventFile(page, level) != NULL) {
         /* TM-CE: players, stage and rules from the event's EventDesc. */
         EventInit(page, level, md);
+        /* Character rotation: preload the deck's CPU characters
+         * (src/melee/tm/rotation/tm_rotation.h). */
+        if (tmce_GetEventRotation(page, level) != NULL) {
+            tm_rot_Preload(tmce_GetEventRotation(page, level),
+                           md->rules.stkind);
+        }
         /* Vanilla onEnterVs from +0x9C8. */
         gm_LoadRumbleEnabled(md);
         gm_80168F88();

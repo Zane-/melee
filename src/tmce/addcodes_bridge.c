@@ -13,8 +13,8 @@ int GetPageEventNum(int page);
 int tmce_ac_FindEvent(const char* file, int* page, int* event)
 {
     int p, e;
-    for (p = 0; p < GetPageNum(); p++) {
-        for (e = 0; e < GetPageEventNum(p); e++) {
+    for (p = 0; p <= GetPageNum(); p++) { /* GetPageNum = last index */
+        for (e = 0; e <= GetPageEventNum(p); e++) { /* last index too */
             EventDesc* desc = GetEventDesc(p, e);
             if (desc != NULL && desc->eventFile != NULL &&
                 strcmp(desc->eventFile, file) == 0)
