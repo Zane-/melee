@@ -29,7 +29,7 @@
 typedef struct RotState {
     const TmRotDeck* deck;
     int stkind;
-    int loaded[TM_ROT_MAX_CHARS + 2]; ///< ckinds loaded this session
+    int loaded[8]; ///< ckinds loaded this session
     int loaded_num;
     u8 bag[ROT_MAX_ENTRIES];          ///< shuffled entry indices
     int bag_num;
@@ -77,6 +77,7 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
     int wanted[ROT_MAX_ENTRIES];
     int wanted_num = 0;
     int extra_num = 0;
+    int room;
     int i, j;
 
     rot.deck = deck;
@@ -90,7 +91,7 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
      * count as loaded. */
     for (i = 0; i < CACHE_ENTRIES; i++) {
         if (gc->entries[i].char_id != ChKind_None &&
-            rot.loaded_num < TM_ROT_MAX_CHARS + 2)
+            rot.loaded_num < 8)
         {
             rot.loaded[rot.loaded_num++] = gc->entries[i].char_id;
         }
@@ -108,8 +109,14 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
         }
     }
 
+    /* Room left, counting what is already cached. */
+    room = TM_ROT_MAX_FIGHTERS - rot.loaded_num;
+    if (room < 0) {
+        room = 0;
+    }
+
     /* Random subset if there are more than fit (Fisher-Yates prefix). */
-    for (i = 0; i < wanted_num && i < TM_ROT_MAX_CHARS; i++) {
+    for (i = 0; i < wanted_num && i < room; i++) {
         int k = i + HSD_Randi(wanted_num - i);
         int t = wanted[i];
         wanted[i] = wanted[k];
@@ -117,7 +124,7 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
     }
 
     for (i = 0; i < CACHE_ENTRIES && extra_num < wanted_num &&
-                extra_num < TM_ROT_MAX_CHARS;
+                extra_num < room;
          i++)
     {
         if (gc->entries[i].char_id == ChKind_None) {

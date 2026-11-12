@@ -6,7 +6,7 @@
  *
  * An event lists scenarios in a deck. Each entry names the CPU character it
  * needs. When the match loads, the deck's characters are preloaded (up to
- * TM_ROT_MAX_CHARS, a random subset if there are more), so switching the
+ * TM_ROT_MAX_FIGHTERS in all, a random subset if there are more), so switching the
  * CPU's character between scenarios is instant: the old fighter is removed
  * and a new one spawned, the way vanilla Event Match brings in CPUs.
  *
@@ -26,11 +26,12 @@
  * State is in overlay statics: not rollback-safe (offline events only).
  */
 
-/// Characters preloaded per session besides the player's and the event's
-/// own CPU: 4 different fighters in all, what a 4-player VS match loads.
-/// 3 extra overflows the preload heap ("memp_kouho" in lbmemory.c) while
-/// the files stream in (found with tools/tmtest.py soak runs).
-#define TM_ROT_MAX_CHARS 2
+/// Most different fighters preloaded at once, including the player's and
+/// any already in the game cache: what a 4-player VS match loads. A 5th
+/// overflows the preload heap ("memp_kouho" in lbmemory.c) while the files
+/// stream in (found with tools/tmtest.py soak runs). The deck's characters
+/// fill the remaining slots, a random subset if they do not all fit.
+#define TM_ROT_MAX_FIGHTERS 4
 
 typedef struct TmRotEntry {
     int ckind;        ///< external character id (CKIND_*)

@@ -11,8 +11,10 @@
  * the shield early, well before landing, which is when shine OoS punishes
  * them. Distances and aerial frames are tuned with tools/test_shineoos.py,
  * whose test build shines on the frame-4 timing and checks that it hits.
- * Dropped: Peach down smash (-26, but its multi-hit pushback leaves Peach
- * ~28 units away even from point blank: out of shine range).
+ * Dropped, out of shine range in tools/tmtest.py runs: Peach down smash
+ * (-26, but its multi-hit pushback leaves Peach ~28 units away even from
+ * point blank); Sheik dash attack (-23, but it either slides through
+ * without touching the shield or leaves Sheik 17-24 units away).
  */
 #include "shineoos.h"
 
@@ -25,12 +27,6 @@
 static const OosInput in_dtilt[] = { { 0, 1, 0, -80, 0, 0, PAD_BUTTON_A }, END };
 static const OosInput in_utilt[] = { { 0, 1, 0, 80, 0, 0, PAD_BUTTON_A }, END };
 static const OosInput in_fsmash[] = { { 0, 1, 0, 0, TOWARD, 0, 0 }, END };
-/* Dash toward the player, dash attack. */
-static const OosInput in_dash_attack[] = {
-    { 0, 8, TOWARD, 0, 0, 0, 0 },
-    { 8, 1, TOWARD, 0, 0, 0, PAD_BUTTON_A },
-    END,
-};
 
 /* Short-hop aerials that hit the shield early. Frame 0 = jump input; the
  * jump squat and landing frames are from `query.py jump <cpu>`. No fast
@@ -62,12 +58,15 @@ static const OosInput in_falco_dair[] = {
     { 27, 1, 0, 0, 0, 0, PAD_TRIGGER_R },
     END,
 };
-/* Jigglypuff, facing away: airborne frame 6, lands frame 39; bair (C-stick
- * away from the player = behind her) hits 6 frames after. */
+/* Jigglypuff, facing away: airborne frame 6, lands frame 39; a short drift
+ * toward the player (6 frames: more carries her through the shield), then
+ * bair (C-stick away from the player = behind her). Tuned with
+ * tests/tmtest/shineoos/jigglypuff_bair.json: hits from her own side,
+ * 6.5 units away when shieldstun ends. */
 static const OosInput in_puff_bair[] = {
     { 0, 1, 0, 0, 0, 0, PAD_BUTTON_X },
-    { 6, 30, TOWARD, 0, 0, 0, 0 },
-    { 22, 1, TOWARD, 0, AWAY, 0, 0 },
+    { 6, 6, TOWARD, 0, 0, 0, 0 },
+    { 12, 1, 0, 0, AWAY, 0, 0 },
     { 36, 1, 0, 0, 0, 0, PAD_TRIGGER_R },
     END,
 };
@@ -77,20 +76,17 @@ static const OosScenario sc_marth_dtilt = { 6.0F, in_dtilt, 40, 0, -6 };
 static const OosScenario sc_marth_fsmash = { 4.0F, in_fsmash, 40, 0, -27 };
 static const OosScenario sc_marth_fair = { 26.0F, in_marth_fair, 60, 0, -4 };
 static const OosScenario sc_sheik_utilt = { 6.0F, in_utilt, 40, 0, -15 };
-static const OosScenario sc_sheik_dash_attack = { 19.0F, in_dash_attack, 60,
-                                                  0, -23 };
 static const OosScenario sc_falcon_dtilt = { 5.0F, in_dtilt, 40, 0, -17 };
 static const OosScenario sc_falcon_nair = { 30.0F, in_falcon_nair, 60, 0, -4 };
 static const OosScenario sc_peach_dtilt = { 5.0F, in_dtilt, 40, 0, -6 };
 static const OosScenario sc_falco_dair = { 20.0F, in_falco_dair, 60, 0, -4 };
-static const OosScenario sc_puff_bair = { 12.0F, in_puff_bair, 60, 1, -4 };
+static const OosScenario sc_puff_bair = { 22.0F, in_puff_bair, 60, 1, -4 };
 
 static const TmRotEntry entries[] = {
     { CKIND_MARTH, 0, &sc_marth_dtilt, "Marth - Down Tilt" },
     { CKIND_MARTH, 0, &sc_marth_fsmash, "Marth - Forward Smash" },
     { CKIND_MARTH, 0, &sc_marth_fair, "Marth - Fair (early)" },
     { CKIND_SHEIK, 0, &sc_sheik_utilt, "Sheik - Up Tilt" },
-    { CKIND_SHEIK, 0, &sc_sheik_dash_attack, "Sheik - Dash Attack" },
     { CKIND_FALCON, 0, &sc_falcon_dtilt, "Falcon - Down Tilt" },
     { CKIND_FALCON, 0, &sc_falcon_nair, "Falcon - Nair (early)" },
     { CKIND_PEACH, 0, &sc_peach_dtilt, "Peach - Down Tilt" },

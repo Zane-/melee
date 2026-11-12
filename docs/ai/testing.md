@@ -78,6 +78,7 @@ Report measured numbers (frames, distances), not only pass/fail, so a failing te
   Committing in the mode's `on_load` does not work: `preloadState` (`lbDvdPreload_3`) releases
   the heaps after it.
 - At most 4 different fighters can be preloaded; a 5th overflows the preload heap
-  (`memp_kouho`, `lbmemory.c`). Character rotation is capped accordingly.
+  (`memp_kouho`, `lbmemory.c`). Character rotation counts what is already cached and fills
+  up to 4 (`TM_ROT_MAX_FIGHTERS`).
 - Fox's shine out of shield: jump on the frame shieldstun ends, down-B on the first airborne frame
   (3 later); the shine is out on frame 4. Down-B during jump squat does nothing.
