@@ -1,0 +1,34 @@
+{
+  "comment": "The drill's own reference script, played by the engine as a demonstration (option 4 = 2), must be graded a frame-perfect success in this scenario. No scripted inputs.",
+  "event": "course",
+  "drill": "fox-shine-oos",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      0,
+      5
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      6,
+      1
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "oos_frame": 4,
+    "measured": 4
+  },
+  "cpu": "falcon"
+}

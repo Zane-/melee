@@ -24,6 +24,22 @@
 #define SOOS_PUNISH_TIMEOUT 60
 #define SOOS_FOLLOWUP_TIMEOUT 90
 
+/* Marks for the reference script. */
+enum { SOOS_MARK_STUN_END = 1 };
+
+/* The answer: hold shield; jump on the frame the drill sees shieldstun end;
+ * down-B 3 frames later (Fox's jump squat), his first airborne frame.
+ * Offsets found with the engine's demonstration in tools/melee_sim
+ * (tests/tmtest/course/fox-shine-oos/demo_*.json): 0 and 3 give out-of-
+ * shield frame 4; a jump one frame earlier is still in shieldstun and
+ * comes out as a spot dodge. */
+static const CourseRefInput soos_reference[] = {
+    { 0, 0, 600, 0, 0, 0, 0, PAD_TRIGGER_R, 140 },
+    { SOOS_MARK_STUN_END, 0, 1, 0, 0, 0, 0, PAD_BUTTON_X, 0 },
+    { SOOS_MARK_STUN_END, 3, 1, 0, -127, 0, 0, PAD_BUTTON_B, 0 },
+    { COURSE_REF_END },
+};
+
 enum {
     SOOS_WAIT_SHIELD,
     SOOS_ATTACK,
@@ -188,6 +204,7 @@ static void soos_Think(CourseCtx* c)
         if (soos.stun_end < 0 && hd->state_id != ASID_GUARDSETOFF) {
             soos.stun_end = soos.attack_frame;
             soos.distance = fabs(cd->phys.pos.X - hd->phys.pos.X);
+            course_Mark(c, SOOS_MARK_STUN_END);
         }
         if (soos.shine_frame < 0 && soos_IsShine(hd)) {
             soos.shine_frame = soos.attack_frame;
@@ -254,4 +271,5 @@ static const CourseDrill Drill_FoxShineOos = {
     .help = { "Hold shield. When the attack hits your shield, jump out",
               "of shield and shine on the first frame of the jump.",
               "D-Pad left/right: change scenario. D-Pad down: reset." },
+    .reference = soos_reference,
 };

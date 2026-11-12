@@ -43,6 +43,31 @@ typedef struct CourseCtx {
     int cpu_hit;  ///< the CPU took damage this frame
 } CourseCtx;
 
+/* The inputs that solve a drill, relative to marks: moments of an attempt
+ * the drill announces with course_Mark (mark 0 is the attempt's first
+ * frame). One script, three uses: the demonstration, the guide's timeline,
+ * and the automated proof that the drill can be won (a test build plays it
+ * and expects a success).
+ *
+ * A demonstration runs the attempt twice with the same random numbers:
+ * first only the mark-0 inputs (the player's part of the setup, like
+ * holding shield) to see on which frames the marks fall, then everything,
+ * each input placed against its mark's frame. That is how an input can
+ * land on the exact frame of something the drill only observes a frame
+ * later, and why `frame` may be negative. */
+#define COURSE_REF_END 0xFF
+#define COURSE_REF_LEAD 3 /* neutral frames before the script starts */
+#define COURSE_MAX_MARKS 8
+typedef struct CourseRefInput {
+    u8 mark;     ///< COURSE_REF_END ends the list
+    s16 frame;   ///< frames after the mark
+    u16 hold;    ///< frames held (0 = 1)
+    s8 lx, ly;   ///< main stick, -127..127, X toward the opponent
+    s8 cx, cy;   ///< C-stick
+    u16 buttons; ///< PAD_BUTTON_* | PAD_TRIGGER_*
+    u8 trigger;  ///< analog R, 0..140
+} CourseRefInput;
+
 typedef struct CourseDrill {
     /// Once per match, before the first attempt.
     void (*Init)(void);
@@ -55,6 +80,8 @@ typedef struct CourseDrill {
     int option_count;
     /// Up to three lines for the HELP entry of the pause menu.
     const char* help[3];
+    /// The inputs that solve it (see CourseRefInput), or NULL.
+    const CourseRefInput* reference;
 } CourseDrill;
 
 /* Engine services for drills. */
@@ -64,6 +91,7 @@ static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
 static void course_Script(CourseCtx* c, const CourseInput* in, int frame);
 static void course_Message(int color, char* fmt, const char* a, int b,
                            int c);
+static void course_Mark(CourseCtx* c, int mark);
 static void course_Measure(int measured, int target);
 static void course_Report(const char* key, int value);
 static void course_ReportF(const char* key, float value);
@@ -81,8 +109,11 @@ enum {
     OPT_SWITCH,
     OPT_SIDE,
     OPT_RESET_DELAY,
+    OPT_DEMO,
     OPT_COMMON_COUNT, /* the drill's options start here */
 };
+
+enum { DEMO_OFF, DEMO_ONCE, DEMO_ALWAYS };
 
 enum { SWITCH_EVERY, SWITCH_ON_SUCCESS, SWITCH_MANUAL };
 enum { SIDE_RANDOM, SIDE_LEFT, SIDE_RIGHT };
@@ -93,6 +124,7 @@ static const char* opt_switch[] = { "Every Attempt", "On Success",
 static const char* opt_side[] = { "Random", "Left", "Right" };
 static const char* opt_reset_delay[] = { "Fast", "Normal", "Slow" };
 static const int reset_delay_frames[] = { 20, 45, 90 };
+static const char* opt_demo[] = { "Off", "Show Once", "Keep Showing" };
 
 static EventOption Options_Common[OPT_COMMON_COUNT] = {
     {
@@ -125,6 +157,14 @@ static EventOption Options_Common[OPT_COMMON_COUNT] = {
         .name = "Reset Delay",
         .desc = { "How long the result shows before the next attempt." },
         .values = opt_reset_delay,
+    },
+    {
+        .kind = OPTKIND_STRING,
+        .value_num = countof(opt_demo),
+        .name = "Demonstration",
+        .desc = { "The game plays the drill for you: first the",
+                  "situation, then the answer. Not counted." },
+        .values = opt_demo,
     },
 };
 
@@ -168,6 +208,12 @@ static struct {
     int has_measure;
     int measured;
     int target;
+    int attempt_frame; /* Thinks since the attempt's reset (0 = first) */
+    int marks[COURSE_MAX_MARKS]; /* attempt_frame of each mark, -1 = not yet */
+    int demo;          /* 0 = off, 1 = observing pass, 2 = playing pass */
+    int demo_marks[COURSE_MAX_MARKS]; /* from the observing pass */
+    u32 demo_seed;     /* RNG seed both passes start from */
+    int demo_scenario;
     char report[160]; /* extra JSON fields of the current attempt */
     int report_len;
     Stats total;
@@ -286,6 +332,94 @@ static void course_Script(CourseCtx* c, const CourseInput* in, int frame)
     }
 }
 
+/* Announce a moment the reference script can place inputs against. Only
+ * the first call per attempt counts. */
+static void course_Mark(CourseCtx* c, int mark)
+{
+    if (mark > 0 && mark < COURSE_MAX_MARKS && en.marks[mark] < 0) {
+        en.marks[mark] = en.attempt_frame;
+    }
+}
+
+/* Write this frame's pad for the player's fighter, the way the Lab's
+ * playback does (lab.c Record_SetInputs): the engine pad the fighter reads
+ * and the raw reading UCF looks at. Sticks arrive as -127..127 and the
+ * engine pad counts to 80. */
+static void SetPlayerPad(FighterData* hd, int lx, int ly, int cx, int cy,
+                         int buttons, int trigger)
+{
+    HSD_Pad* pad = PadGetEngine(hd->pad_index);
+    PADStatus* stat = PadGetRaw(hd->pad_index);
+
+    pad->held = buttons;
+    pad->stickX = (s8) (lx * 80 / 127);
+    pad->stickY = (s8) (ly * 80 / 127);
+    pad->substickX = (s8) (cx * 80 / 127);
+    pad->substickY = (s8) (cy * 80 / 127);
+    pad->fstickX = (float) pad->stickX / 80;
+    pad->fstickY = (float) pad->stickY / 80;
+    pad->fsubstickX = (float) pad->substickX / 80;
+    pad->fsubstickY = (float) pad->substickY / 80;
+    pad->triggerRight = trigger;
+    pad->triggerLeft = 0;
+    pad->ftriggerRight = (float) trigger / 140;
+    pad->ftriggerLeft = 0;
+
+    stat->button = buttons;
+    stat->stickX = pad->stickX;
+    stat->stickY = pad->stickY;
+    stat->substickX = pad->substickX;
+    stat->substickY = pad->substickY;
+    stat->triggerRight = trigger;
+    stat->triggerLeft = 0;
+    stat->analogA = 0;
+    stat->analogB = 0;
+}
+
+/* During a demonstration the player's pad is the reference script. */
+static void PlayReference(CourseCtx* c)
+{
+    const CourseRefInput* in = en.drill->reference;
+    int lx = 0, ly = 0, cx = 0, cy = 0, buttons = 0, trigger = 0;
+
+    /* Both passes must start from the same pad state: whatever was held
+     * when the attempt began (by the player, or by the pass before) is let
+     * go for COURSE_REF_LEAD frames first, so every button of the script
+     * is a fresh press. */
+    if (en.run != RUN_ATTEMPT || en.attempt_frame < COURSE_REF_LEAD) {
+        SetPlayerPad(c->hd, 0, 0, 0, 0, 0, 0);
+        return;
+    }
+    for (; in->mark != COURSE_REF_END; in++) {
+        int hold = in->hold ? in->hold : 1;
+        int base, t;
+        if (in->mark == 0) {
+            base = COURSE_REF_LEAD;
+        } else if (en.demo == 2 && en.demo_marks[in->mark] >= 0) {
+            base = en.demo_marks[in->mark];
+        } else {
+            continue;
+        }
+        t = en.attempt_frame - (base + in->frame);
+        if (t < 0 || t >= hold) {
+            continue;
+        }
+        if (in->lx != 0 || in->ly != 0) {
+            lx = (int) (in->lx * -c->toward); /* toward the opponent */
+            ly = in->ly;
+        }
+        if (in->cx != 0 || in->cy != 0) {
+            cx = (int) (in->cx * -c->toward);
+            cy = in->cy;
+        }
+        buttons |= in->buttons;
+        if (in->trigger > trigger) {
+            trigger = in->trigger;
+        }
+    }
+    SetPlayerPad(c->hd, lx, ly, cx, cy, buttons, trigger);
+}
+
 /* What the attempt measured against what was needed (frames, usually):
  * shown in the statistics and the test report. Call before course_Result. */
 static void course_Measure(int measured, int target)
@@ -349,11 +483,12 @@ static void TestReport(CourseCtx* c, const char* result, char* fmt)
 {
     OSReport("TMTEST {\"result\":\"%s\",\"drill\":\"%s\","
              "\"scenario\":\"%s\",\"cpu\":%d,\"measured\":%d,"
-             "\"target\":%d%s,\"why\":\"%s\"}\n",
+             "\"target\":%d,\"demo\":%d%s,\"why\":\"%s\"}\n",
              result, en.info->id, ScenarioName(c->scenario),
              c->entry != NULL ? c->entry->ckind : -1,
              en.has_measure ? en.measured : -1,
-             en.has_measure ? en.target : -1, en.report, Reason(fmt));
+             en.has_measure ? en.target : -1, en.demo, en.report,
+             Reason(fmt));
 }
 #endif
 
@@ -392,13 +527,36 @@ static void Count(Stats* st, int success)
  * two ints), and reset after the reset delay. */
 static void course_Result(CourseCtx* c, int success, char* fmt, int a, int b)
 {
+#ifdef TM_TEST
+    if (en.demo != 1) { /* the observing pass of a demonstration is silent */
+        TestReport(c, success ? "success" : "fail", fmt);
+    }
+#endif
+    if (en.demo == 1) {
+        /* The observing pass is over: play it for real, at once. */
+        memcpy(en.demo_marks, en.marks, sizeof(en.demo_marks));
+        en.demo = 2;
+        en.run = RUN_RESULT;
+        en.result_timer = 1;
+        return;
+    }
+    if (en.demo == 2) {
+        /* Not the player's attempt: shown, not counted. */
+        event_vars->Message_Display(MSG_KIND, MSG_QUEUE, MSGCOLOR_YELLOW,
+                                    fmt, a, b);
+        en.demo = 0;
+        if (Options_Main[OPT_DEMO].val == DEMO_ONCE) {
+            Options_Main[OPT_DEMO].val = DEMO_OFF;
+        }
+        en.run = RUN_RESULT;
+        en.result_timer =
+            reset_delay_frames[Options_Main[OPT_RESET_DELAY].val] + 30;
+        return;
+    }
     Count(&en.stats[c->scenario], success);
     Count(&en.total, success);
     CountDrill(success);
     en.last_success = success;
-#ifdef TM_TEST
-    TestReport(c, success ? "success" : "fail", fmt);
-#endif
     event_vars->Message_Display(MSG_KIND, MSG_QUEUE,
                                 success ? MSGCOLOR_GREEN : MSGCOLOR_RED, fmt,
                                 a, b);
@@ -421,6 +579,9 @@ static void course_Retry(CourseCtx* c, char* fmt)
 static int PickScenario(void)
 {
     int fixed = Options_Main[OPT_SCENARIO].val;
+    if (en.demo == 2) {
+        return en.demo_scenario; /* the pass that was just observed */
+    }
     if (fixed > 0 && ScenarioUsable(fixed - 1)) {
         return fixed - 1;
     }
@@ -441,9 +602,22 @@ static int PickScenario(void)
 static void Reset(void)
 {
     CourseCtx* c = &en.ctx;
-    int idx = PickScenario();
+    int idx;
     int side;
+    int i;
     Stats* st;
+
+    /* A demonstration is two attempts from the same random numbers. */
+    if (en.demo == 0 && Options_Main[OPT_DEMO].val != DEMO_OFF &&
+        en.drill->reference != NULL)
+    {
+        en.demo = 1;
+        en.demo_seed = **stc_rng_seed;
+    }
+    if (en.demo != 0) {
+        **stc_rng_seed = en.demo_seed;
+    }
+    idx = PickScenario();
 
     if (idx < 0) {
         course_Message(MSGCOLOR_RED, "No scenarios loaded", 0, 0, 0);
@@ -476,6 +650,13 @@ static void Reset(void)
     c->hmn_hit = 0;
     c->cpu_hit = 0;
     en.run = RUN_ATTEMPT;
+    en.attempt_frame = 0;
+    for (i = 0; i < COURSE_MAX_MARKS; i++) {
+        en.marks[i] = -1;
+    }
+    if (en.demo == 1) {
+        en.demo_scenario = idx;
+    }
     en.has_measure = 0;
     en.report[0] = '\0';
     en.report_len = 0;
@@ -485,8 +666,16 @@ static void Reset(void)
     en.hmn_percent = c->hd->dmg.percent;
     en.cpu_percent = c->cd != NULL ? c->cd->dmg.percent : 0;
     st = &en.stats[idx];
-    course_Message(MSGCOLOR_WHITE, "%s\n%d / %d", ScenarioName(idx),
-                   st->successes, st->attempts);
+    if (en.demo == 1) {
+        course_Message(MSGCOLOR_YELLOW, "Demo: watch\n%s",
+                       ScenarioName(idx), 0, 0);
+    } else if (en.demo == 2) {
+        course_Message(MSGCOLOR_YELLOW, "Demo: answer\n%s",
+                       ScenarioName(idx), 0, 0);
+    } else {
+        course_Message(MSGCOLOR_WHITE, "%s\n%d / %d", ScenarioName(idx),
+                       st->successes, st->attempts);
+    }
 }
 
 /* `def` with the value `cur` holds, if `cur` was built before or had a
@@ -573,7 +762,14 @@ void Event_Think(GOBJ* event)
         Fighter_ZeroCPUInputs(cd);
     }
 
-    /* D-pad: cycle scenario / reset. */
+    /* D-pad: cycle scenario / reset. Either also stops a demonstration. */
+    if (en.demo != 0 &&
+        (hd->input.down & (HSD_BUTTON_DPAD_LEFT | HSD_BUTTON_DPAD_RIGHT |
+                           HSD_BUTTON_DPAD_DOWN)))
+    {
+        en.demo = 0;
+        Options_Main[OPT_DEMO].val = DEMO_OFF;
+    }
     if (hd->input.down & (HSD_BUTTON_DPAD_LEFT | HSD_BUTTON_DPAD_RIGHT)) {
         int dir = (hd->input.down & HSD_BUTTON_DPAD_RIGHT) ? 1 : -1;
         int n = ScenarioCount(), i;
@@ -605,9 +801,13 @@ void Event_Think(GOBJ* event)
     en.hmn_percent = hd->dmg.percent;
     en.cpu_percent = cd != NULL ? cd->dmg.percent : 0;
 
+    if (en.demo != 0) {
+        PlayReference(c);
+    }
     if (en.run == RUN_ATTEMPT) {
         c->timer++;
         en.drill->Think(c);
+        en.attempt_frame++;
     } else if (--en.result_timer <= 0) {
         Reset();
     }
