@@ -7,6 +7,11 @@ unmodified and linked into the overlay; its assembly is rewritten as native C ho
 This replaces the earlier plan in `training-mode-port.md` of reimplementing TM-CE against the
 decomp (the reimplemented menu engine, event select screen and Laser Land were deleted).
 
+Since 2026-11-12 the build is organised as character courses (`training-courses.md`): TM-CE's
+event select screen stops being the entry point, and its machinery (Lab, events, savestates,
+menus, HUD, OSDs) is what the course engine and hub are built from. This file stays the
+reference for that machinery and for the port's status.
+
 ## How TM-CE works (what we replace)
 
 TM-CE = vanilla disc + m-ex's `Start.dol` + `codes.gct` (all of `ASM/`, as Gecko codes) +
@@ -146,7 +151,7 @@ See "Port status" below; update it as pieces are booted.
 | Hitbox visualizer (`hitbox`: Hitbox Visualizer/ 5 files, Hide Player GFX When Hitboxes Enabled/ 3 files). `ftDrawCommon_800805C8` (keeps calling addcodes' `tm_ac_DrawHurtbox`), `lbColl_80009F54`, `efSync_Spawn` and `ftColl_8007A06C` are replaced by edited copies. The display is still vanilla's per-fighter hitbox flag the Lab sets | Ported, not booted |
 | Additional Codes dropped because Slippi provides them (the owner runs this build on Slippi Dolphin, decided 2026-11-11): UCF 0.84, Polling Drift Fix, Neutral Spawn/Respawn, Longer Nametags, Random CSS Music, Salty Runback, Hide Nametag When Invisible, Disable FoD in Doubles, L+R+A Returns to CSS, Lag Reduction Prompt, CSS door/rumble codes | Dropped on purpose |
 | Additional Codes not done: Physics Display, Idle Screen, Display Animation Name, Enable 1P in VS No Time, Reboot With LRAStart | Not started |
-| Skills for adding new events (owner request; after parity) | Not started |
+| Skills for adding new drills | `plan-character-course`, `design-training-scenario`, `add-course-drill` (2026-11-12); the course engine they target is not built (`training-courses.md`) |
 
 Open questions from the area ports (check when booting):
 

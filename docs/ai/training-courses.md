@@ -1,0 +1,242 @@
+# Character courses: the training build's architecture
+
+Decided 2026-11-12 by the owner: training is reorganised around **the character you play**.
+You pick your character first, then a hub offers that character's course in four parts,
+**Tech, Neutral, Punish, Defense**, plus free practice (the Lab and TM-CE's generic events).
+Each drill teaches in the game itself: a guide you can summon, a demonstration, timing
+feedback on every attempt, and statistics. The aim is one coherent path to getting good at a
+character instead of a flat list of unrelated events.
+
+This replaces TM-CE's organisation (event select screen → pages of events → character
+select). It does not replace TM-CE's machinery: the Lab, the generic events, savestates, the
+menu engine, messages, HUD drawing and the OSDs stay and are what courses are built from
+(`tmce-native.md`).
+
+**Status: design. Nothing in "Engine" or "Hub" below exists yet.** What exists is noted as
+such. Do not read a planned interface as a fact; update this file as milestones land.
+
+## What exists today (the base)
+
+| Piece | Where | State |
+|-|-|-|
+| TM-CE core, Lab, 13 C events, 15 legacy events, OSDs | `tmce-native.md` | Ported; boot → event select → Lab booted, most of the rest not booted |
+| Event mode state list (CSS → match → SSS) as overlay data | `src/melee/tm/css/tm_css.c` | Ported |
+| Boot straight into an event's CSS | `src/melee/tm/addcodes/ac_boot.c` (`TM_AC_BOOT_EVENT`) | Ported |
+| A drill written for this build: Shine OoS (phases, scripted CPU inputs, per-scenario stats, options menu, test bot) | `src/tmce/events/shineoos/` | Uncommitted work in progress |
+| CPU character rotation (one event, many opponents, preloaded) | `src/melee/tm/rotation/` | Uncommitted work in progress |
+| Automated Dolphin runs (pipe input, memory reads over GDB) | `tools/dolphin_harness.py`, `tools/test_shineoos.py` | Uncommitted work in progress |
+| Game knowledge and calculators | `data/`, `tools/melee_data/query.py` | Done |
+
+Shine OoS is the prototype of a course drill. The engine below is that event's structure
+made common.
+
+## User flow
+
+```
+boot ─► character select ─► HUB (for that character) ─► drill ─► back to the hub
+                              │
+                              ├─ Tech      individual techniques, executed alone
+                              ├─ Neutral   openings: scenarios that end in a first hit
+                              ├─ Punish    conversions: what to do once you have the hit
+                              ├─ Defense   getting out: SDI, ASDI, teching, recovering
+                              └─ Free      Lab, TM-CE's generic events
+```
+
+- The character select screen comes first and is where you change character. Only the
+  player's character is picked there; a drill brings its own opponents.
+- The hub lists only what applies to the picked character: that character's course plus
+  the universal drills every character has (wavedash, L-cancel, teching...).
+- Each hub row shows the drill's name, a one-line goal and its statistics (attempts,
+  success rate, best streak). A course reads top to bottom as a curriculum.
+- Leaving a drill returns to the hub at the same row. B from the hub returns to character
+  select.
+- Booting goes straight to character select (as boot-to-Lab does now). The vanilla menus
+  stay reachable (hold Y at boot).
+
+### The four parts
+
+| Part | Question it answers | A repetition | Graded on |
+|-|-|-|-|
+| **Tech** | Can my hands do it? | One technique, no opponent pressure (a passive dummy when the tech needs a target) | Frame accuracy of the inputs |
+| **Neutral** | Can I get the first hit? | A realistic neutral situation with a CPU that commits to something; ends when the player lands the opening hit or grab, or is hit | Whether the opening was won, and how early |
+| **Punish** | Can I convert it? | Starts at the hit, grab or shielded move; the CPU tries to escape (DI, SDI, tech, mash) within a tolerance the drill sets | Whether the conversion was true (no escape window), damage or kill |
+| **Defense** | Can I get out? | The CPU performs the combo, pressure or edgeguard on the player | Whether the escape happened in the frames that allow it |
+
+The parts chain: a Neutral drill ends in the situation a Punish drill starts from, and
+Defense drills are Punish drills seen from the other side. A course links them explicitly
+(`leads_to`), so the hub can offer "continue into the punish".
+
+Frame tolerance is the main difficulty knob everywhere: how late the player may be (Tech),
+how quickly the CPU reacts (Neutral), how many frames of slack the CPU's escape leaves
+(Punish), how tight the escape window is (Defense).
+
+## Architecture
+
+```
+data/characters, data/techniques        knowledge (exists)
+        │  plan-character-course skill
+        ▼
+data/courses/<id>.md                    the curriculum: ordered drills per part, each a spec
+        │  add-course-drill skill
+        ▼
+src/tmce/course/                        ENGINE: one event unit that runs any drill
+src/tmce/course/drills/<area>/*.c       DRILLS: a description + a few callbacks each
+src/tmce/course/gen/                    generated tables (frame data, course lists)
+src/melee/tm/hub/                       HUB: menu after character select
+```
+
+### Engine (planned: `src/tmce/course/`)
+
+One TM-CE event unit, `course`, runs every drill. A drill is data plus callbacks; it owns no
+match setup, menu, statistics or reset code of its own. The engine provides:
+
+| Service | What it does | Built from |
+|-|-|-|
+| Attempt loop | `SETUP → READY → ACTIVE → RESULT → reset`, with a timeout | Shine OoS's phase machine |
+| Reset | Savestate after setup, reload per attempt; or re-place fighters for simple drills | `event_vars->Savestate_*`, Shine OoS `ResetFighter` |
+| CPU scripts | Frame-indexed input lists played into the CPU's pad, mirrored by side | Shine OoS `OosInput` / `ApplyInputs` |
+| CPU choices | Weighted random picks per attempt (DI, tech, delay, which attack), seeded per attempt | new |
+| Opponent rotation | A deck of scenarios with different CPU characters | `tm_rotation.h` |
+| Detectors | Reusable observers: entered action state X, on frame N after event Y, hit landed, hit taken, shield hit, L-cancel result, tech result, grounded/airborne, ledge grabbed, stock lost | TM-CE `FighterData.TM` bookkeeping, OSD code |
+| Grading | Success or fail plus a **timing verdict**: the frame the input came, the window, early/late by how many frames | new |
+| Feedback | Result message, colour, and a per-attempt input timeline bar | `Message_Display`, `HUD_DrawActionLogBar` |
+| Statistics | Per drill and per scenario: attempts, successes, current and best streak, mean frame error, last 20 results | new; Shine OoS has attempts/successes |
+| Guide overlay | Summoned at will (D-pad up); pauses the drill; pages of text, an input timeline, the numbers that matter; "watch a demonstration" | `HUD_DrawRects/Text`, new |
+| Demonstration | The reference input script performed in the match, optionally in slow motion with the inputs shown | CPU scripts; see below |
+| Options menu | Common options (tolerance, side, percent, reset delay, CPU choice weights) plus the drill's own | TM-CE `EventMenu` |
+| Controls | D-pad left/right scenario, down reset, up guide (as Shine OoS) | |
+
+A drill definition (shape, not final names):
+
+```c
+typedef struct CourseDrill {
+    const char* id;            /* "fox-waveshine-usmash", same as data/courses */
+    u8 part;                   /* COURSE_TECH / NEUTRAL / PUNISH / DEFENSE */
+    u32 characters;            /* CSSID_* mask of player characters; 0 = universal */
+    const char* name;
+    const char* goal;          /* one line, shown in the hub */
+    const CourseGuide* guide;  /* pages, timeline, key numbers */
+    const TmRotDeck* deck;     /* scenarios: CPU character + per-scenario data */
+    const CourseScript* reference; /* inputs that solve it: demo, timeline, test */
+    void (*Setup)(CourseCtx*);     /* place fighters, percents, states */
+    void (*Think)(CourseCtx*);     /* run detectors, drive the CPU, call course_Result */
+    const EventOption* options;    /* drill-specific options */
+    s16 stage;
+    const char* leads_to;      /* id of the drill this situation continues into */
+} CourseDrill;
+```
+
+**One reference input script per drill, three uses.** Every drill carries the inputs that
+solve it. The same script (1) is played as the in-game demonstration, (2) draws the input
+timeline in the guide, and (3) is run by the automated test, which must see the drill grade
+it as a success. A drill whose reference fails its own grading does not ship.
+
+**No hand-typed game numbers.** Frame data and attributes used by drills come from
+`data/framedata/*.json` through a generated header (`tools/melee_data/gen_course_tables.py`,
+planned), so a drill says `FD(fox, usmash).hit` and not `7`. Numbers that have to be tuned in
+Dolphin (distances, script timings) are named constants with a comment saying how they were
+tuned.
+
+**Where state lives.** Courses are offline, so overlay statics are allowed, like the rest of
+TM-CE. Statistics that should survive a power cycle need memory card space, which is not
+designed yet (see open decisions).
+
+### Guide overlay and demonstrations
+
+The guide is how a player learns a drill without leaving the game:
+
+1. **What and why**: two or three sentences from the knowledge base.
+2. **Inputs**: the reference script drawn as a timeline (one row per button or stick
+   direction, frames left to right, windows shaded).
+3. **Numbers**: the frames that define success ("shine on the first airborne frame: frame 4
+   after shield stun"), generated from the frame data.
+4. **Common errors**: what each failure verdict means and how to fix it.
+5. **Watch**: plays the reference script in the match, at full speed or slowed, with the
+   input display on, then hands control back.
+
+Text is authored in the course file (`data/courses/<id>.md`) and compiled into the drill's
+`CourseGuide`; it is not written twice.
+
+How the demonstration is performed is the least proven part. Planned order of preference:
+(a) the engine drives the player's own fighter from the script for the length of the demo
+(TM-CE's Lab does this for input playback; how much of that can be reused outside the Lab is
+unverified); (b) fall back to a second copy of the player's character as a CPU, driven by
+the proven CPU script path. Milestone M2 settles this.
+
+### Hub (planned: `src/melee/tm/hub/`)
+
+The event mode's state list is already ours (`tm_css_EventStates`), so the flow change is
+local to it. Plan: the hub is a menu drawn in the character select scene once the character
+is confirmed (TM-CE's `lab_css.c` already builds menus in that scene), rather than a new
+scene. Choosing a drill sets the event (the `course` unit) and the drill id, preloads what
+the drill needs and moves to the match state; choosing the Lab or a generic event sets that
+event and continues as TM-CE does today (stage select when the event has no fixed stage).
+Returning from a match re-enters character select with the hub open on the same row.
+
+Unverified: opening an overlay menu from the vanilla CSS confirm, skipping the CPU puck for
+course drills, and reopening the hub on return. The alternative, a dedicated game-mode state
+with its own scene, costs more code but has no CSS interactions. M1 decides.
+
+TM-CE's event select screen stops being the entry point. Its code stays until the hub's
+"Free" section can launch every event it could.
+
+### Course content (`data/courses/`)
+
+A course is a markdown file per character: front matter, then the four parts as ordered
+lists of drill specs. Universal drills live in `data/courses/universal.md` and are included
+by reference with per-character parameters (Fox's wavedash numbers differ from Luigi's but
+the drill is the same). Format and rules: `data/courses/README.md`. The build generates the
+hub's lists and the guide text from these files, so the curriculum the player sees and the
+document an agent edits are the same thing.
+
+## Milestones
+
+Each ends with something booted in Dolphin and an automated run.
+
+| | Deliverable | Proves |
+|-|-|-|
+| **M0** | Shine OoS and rotation committed as they are; harness documented | The base the engine is extracted from |
+| **M1** | Engine skeleton with attempt loop, reset, CPU scripts, grading, statistics, messages; Shine OoS re-expressed as a drill on it; hub with the four parts and Free, entered after character select | The flow and the drill shape |
+| **M2** | Guide overlay with timeline and numbers; demonstration playback; reference-script test runner for all drills | Teaching in game; the three-uses rule |
+| **M3** | Fox course: Tech complete, then Punish, Defense, Neutral (curriculum in `data/courses/fox.md`) | The recipe, end to end |
+| **M4** | Universal drills parameterised for every character; second character course (Falco or Marth) written only with the skills | That the recipe transfers |
+| later | Persistent statistics; course progress view; coach integration (`ai-coach.md` can read the same statistics) | |
+
+Order inside M3: Tech first (no CPU behaviour to tune), then Punish (builds on Shine OoS),
+then Defense (needs CPU combo scripts), then Neutral (needs the most CPU behaviour).
+
+## Rules
+
+- A drill is added through `data/courses/` first, then code. No drill exists only in C.
+- Every drill has: a goal, a guide, a reference script, a timing verdict on failure, and
+  statistics. A drill that can only say "fail" is not finished.
+- Every drill is proven winnable by its reference script in an automated run, and proven to
+  fail on a deliberately wrong script (one frame outside the window).
+- CPU behaviour is what that character really does (sourced in `data/characters/`), with the
+  realistic options randomised. A CPU that always does the same thing is a Tech drill, not a
+  Neutral, Punish or Defense drill.
+- Numbers come from generated tables or are named, commented tuning constants.
+- The overlay rules of `CLAUDE.md` apply unchanged: no edits to vanilla functions, hooks
+  through the hook tables, C only, `overlay_check.py` passes.
+- Courses are offline. Nothing here runs under rollback; tandem drills (`slippi-tandem.md`)
+  are a separate design.
+
+## Open decisions (owner)
+
+1. **Persistent statistics.** Session-only until designed. Options: unused save data fields
+   as TM-CE does for settings (small), or a separate memory card file (room for history).
+2. **What "complete" means for a drill** (unlocking, medals, a target success rate), or
+   whether the hub only shows numbers.
+3. **Hub look.** Plan is TM-CE's menu style with no new art. Custom art is a later choice.
+4. **Fate of TM-CE's character-specific events** (ledgedash, eggs, the legacy Multishine...).
+   Plan: each is either re-expressed as a course drill or stays under Free; none is deleted
+   until its replacement exists.
+
+## Skills
+
+| Skill | Use |
+|-|-|
+| `plan-character-course` | Write or extend `data/courses/<id>.md` from the knowledge base |
+| `design-training-scenario` | One drill spec from a prompt, in the course format |
+| `add-course-drill` | Implement one specified drill on the engine, guide and test included |
+| `melee-knowledge` | Every lookup those three need |

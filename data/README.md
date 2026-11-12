@@ -15,6 +15,7 @@ Start from the skill `.claude/skills/melee-knowledge/SKILL.md` (how to look thin
 | `characters/README.md` | Index table of all 26 characters | Generator |
 | `techniques/<id>.md` | Universal techniques and mechanics (wavedash, shield, DI, teching, ledge options, knockback formulas...) | Research |
 | `techniques/README.md` | Index of techniques | Generator |
+| `courses/<id>.md`, `courses/universal.md` | Character courses: the ordered Tech / Neutral / Punish / Defense curriculum and each drill's spec and guide (`courses/README.md`) | `plan-character-course`, `design-training-scenario` skills |
 | `framedata/<id>.json` | Machine-readable frame data and attributes, extracted from the game files | `tools/melee_data/extract.py` |
 | `resources/README.md`, `resources/library/*.md` | The Melee Library link index, by section | Generator |
 | `resources/meleelibrary.json` | Parsed snapshot of meleelibrary.com (2026-11-11) | `tools/melee_data/library.py` |

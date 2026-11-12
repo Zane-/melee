@@ -6,10 +6,9 @@ description: Turn a prompt like "shine out of shield against Marth's forward sma
 # Design a training scenario from a prompt
 
 Output of this skill: a **scenario spec** (format below) whose every number is looked up or
-computed, plus a list of what still has to be tuned in Dolphin. Implementing the spec as an
-event is a separate step: follow the `add-training-event` skill if it exists, otherwise use
-`src/tmce/events/shineoos/` (deck of CPU input scripts, `OosScenario`, `TmRotDeck` in
-`src/melee/tm/rotation/tm_rotation.h`) as the worked example and `port-tm-feature` for TM-CE
+computed, plus a list of what still has to be tuned in Dolphin. Implementing the spec is a
+separate step: the `add-course-drill` skill (worked example: `src/tmce/events/shineoos/`,
+with `TmRotDeck` in `src/melee/tm/rotation/tm_rotation.h`), and `port-tm-feature` for TM-CE
 services (savestates, menus, messages).
 
 Lookups go through the `melee-knowledge` skill. Do not take frame numbers or percents from
@@ -71,6 +70,15 @@ Typical derivations:
   frames before landing. The estimate is +/-2 frames; mark the timeline `tune: true`.
 
 ## 3. Write the spec
+
+**Course drills.** A scenario that belongs to a character course
+(`docs/ai/training-courses.md`) is written into `data/courses/<id>.md` in the course format
+(`data/courses/README.md`, "Full spec"). That format is the block below plus the teaching
+fields: `part` (tech, neutral, punish, defense), `requires`, `leads_to`, `knowledge`, a
+`deck` of scenarios instead of a single `cpu`, `cpu_choices`, `grading` (what the timing
+verdict measures, the tolerance levels and the verdict texts), `reference` (the player
+inputs that solve it) and a player-facing **Guide**. Sections 1, 2 and 4 apply unchanged;
+set the drill's status to `specified` when every field is filled.
 
 One YAML block. Keep every field; write `unknown` or `tune` instead of guessing.
 

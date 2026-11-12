@@ -1,10 +1,13 @@
 # Melee decomp — agent guide
 
 This repo is the matching decompilation of Super Smash Bros. Melee (NTSC 1.02, `GALE01`).
-This fork's goal is a **custom training build**: Training Mode (TM-CE, source in
-`../TrainingMode`) ported to native C **faithfully and completely**, then custom
-character-specific drills (e.g. shine out of shield) built on it, an in-game AI coach driven by
-Claude, and tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc index.
+This fork's goal is a **custom training build** organised as **character courses** (owner
+decision 2026-11-12): pick your character, then train it through Tech, Neutral, Punish and
+Defense drills that teach in game (guide, demonstration, timing feedback, statistics). The
+courses are built on Training Mode (TM-CE, source in `../TrainingMode`) ported to native C;
+its Lab and generic events stay as free practice. Later: an in-game AI coach driven by
+Claude, and tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc
+index and `docs/ai/training-courses.md` for the course architecture and its status.
 
 ## Facts that shape every task
 
@@ -113,7 +116,9 @@ ninja
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
 | Game knowledge: characters, techniques, frame data, community guides | `data/README.md`, skill `melee-knowledge` |
 | Frame data lookups and knockback / on-shield calculators | `python tools/melee_data/query.py` (`--help`) |
-| Prompt to training scenario spec | skill `design-training-scenario` |
+| Course architecture: hub, drill engine, milestones | `docs/ai/training-courses.md` |
+| Course curricula and drill specs | `data/courses/` (`README.md` for the format) |
+| Plan a course / specify a drill / implement a drill | skills `plan-character-course`, `design-training-scenario`, `add-course-drill` |
 
 ## Verification status
 
