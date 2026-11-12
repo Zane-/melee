@@ -30,7 +30,8 @@ Spec (JSON):
     ],
     # on_exit/on_enter fire on the frame after the change is seen (a
     # 1-frame reaction); "exact": true places the input on the frame of the
-    # change itself, found by a traced dry run (deterministic).
+    # change itself, found by traced dry runs (deterministic), in order, so
+    # later exact triggers may depend on earlier exact inputs.
     "expect": {"event_result": "success"}   # optional, checked by the event's
   }                                          # own TMTEST result lines
 """
@@ -186,23 +187,31 @@ def resolve_exact(spec, timeout):
     """Turn {"on_exit"/"on_enter": ..., "exact": true} inputs into absolute
     frames. A state trigger can only react on the frame after it sees the
     change (one frame late, like a human reaction); for frame-perfect
-    scripts, a traced dry run without those inputs finds the frame the
-    change really happened (runs are deterministic) and the input is placed
-    there. Only the first occurrence is used."""
-    exact = [e for e in spec.get("inputs", []) if e.get("exact")]
-    if not exact:
-        return spec
-    dry = dict(spec, trace=1, inputs=[e for e in spec["inputs"] if not e.get("exact")])
-    res = run(dry, timeout)
-    frames = [r for r in res["records"] if "p" in r]
-    out = []
-    for e in spec["inputs"]:
-        if not e.get("exact"):
-            out.append(e)
-            continue
-        kind = "on_enter" if "on_enter" in e else "on_exit"
-        port = e[kind].get("port", 0)
-        state = ident(STATE, e[kind]["state"], "state")
+    scripts, a traced dry run finds the frame the change really happened
+    (runs are deterministic) and the input is placed there; "occurrence": N
+    in the trigger picks the Nth change (default 1). Exact inputs
+    are resolved in order, one dry run per distinct trigger, each run
+    including the inputs already placed, so a later trigger can depend on
+    what an earlier exact input caused."""
+    inputs = list(spec.get("inputs", []))
+    while True:
+        pending = [k for k, e in enumerate(inputs) if e.get("exact")]
+        if not pending:
+            return dict(spec, inputs=inputs)
+        first = inputs[pending[0]]
+        kind = "on_enter" if "on_enter" in first else "on_exit"
+        key = (kind, first[kind].get("port", 0), first[kind]["state"],
+               first[kind].get("occurrence", 1))
+        group = [k for k in pending
+                 if kind in inputs[k] and
+                 (kind, inputs[k][kind].get("port", 0), inputs[k][kind]["state"],
+                  inputs[k][kind].get("occurrence", 1)) == key]
+        # Dry run: everything resolved or not exact, up to this trigger.
+        dry_inputs = [e for e in inputs if not e.get("exact")]
+        dry = dict(spec, trace=1, inputs=dry_inputs)
+        res = run(dry, timeout)
+        frames = [r for r in res["records"] if "p" in r]
+        port, state, nth = key[1], ident(STATE, key[2], "state"), key[3]
         hit = None
         for a, b in zip(frames, frames[1:]):
             if port >= len(a["p"]) or port >= len(b["p"]):
@@ -210,16 +219,18 @@ def resolve_exact(spec, timeout):
             was, now = a["p"][port]["st"], b["p"][port]["st"]
             if (kind == "on_exit" and was == state and now != state) or \
                (kind == "on_enter" and was != state and now == state):
-                # trace frame f shows the state at the end of frame f-1
-                hit = b["f"] - 1
-                break
+                nth -= 1
+                if nth == 0:
+                    hit = b["f"] - 1  # trace frame f shows the end of frame f-1
+                    break
         if hit is None:
-            raise ValueError(f"exact input: {kind} {e[kind]} never happened in the "
+            raise ValueError(f"exact input: {kind} {first[kind]} never happened in the "
                              f"dry run (results: {[r for r in res['records'] if 'result' in r][:3]})")
-        fixed = {k: v for k, v in e.items() if k not in ("exact", kind, "delay")}
-        fixed["at"] = hit + e.get("delay", 0)
-        out.append(fixed)
-    return dict(spec, inputs=out)
+        for k in group:
+            e = inputs[k]
+            fixed = {x: v for x, v in e.items() if x not in ("exact", kind, "delay")}
+            fixed["at"] = hit + e.get("delay", 0)
+            inputs[k] = fixed
 
 
 def run(spec, timeout=180, keep_log=False):
@@ -290,6 +301,26 @@ def run(spec, timeout=180, keep_log=False):
     return result
 
 
+STATE_NAME = {v: k for k, v in STATE.items()}
+
+
+def print_states(res):
+    """One line per change: frame, then per fighter state (name), x, y."""
+    prev = None
+    for r in res["records"]:
+        if "p" not in r:
+            if "result" in r or "match" in r:
+                print("   ", json.dumps(r))
+            continue
+        st = tuple(p["st"] for p in r["p"])
+        if st == prev:
+            continue
+        prev = st
+        cols = [f"{p['st']:#05x} {STATE_NAME.get(p['st'], ''):<18s} x{p['x']:7.1f} y{p['y']:6.1f}"
+                for p in r["p"]]
+        print(f"  f{r['f']:4d}  " + " | ".join(cols))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("spec", nargs="+", type=Path)
@@ -297,6 +328,8 @@ def main():
     ap.add_argument("--json", action="store_true", help="print full results as JSON")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--keep-log", action="store_true")
+    ap.add_argument("--states", action="store_true",
+                    help="trace every frame and print each fighter's state changes")
     ap.add_argument("--window", action="store_true",
                     help="allow a visible Dolphin window if xvfb-run is missing")
     args = ap.parse_args()
@@ -312,8 +345,12 @@ def main():
             print(f"{path.name}: SETUP FAILED: {e}")
             failed += 1
             continue
+        if args.states:
+            spec = dict(spec, trace=1)
         res = run(spec, args.timeout, args.keep_log)
         res["spec"] = str(path)
+        if args.states:
+            print_states(res)
         if args.json:
             print(json.dumps(res))
             continue

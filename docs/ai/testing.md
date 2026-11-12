@@ -46,6 +46,14 @@ hooks `OSReport`); keep tests independent of Dolphin specifics.
   **after** the change is visible (a one-frame reaction). `"exact": true` places the input on the
   frame of the change itself: the runner does a traced dry run first (runs are deterministic) and
   rewrites it to `at`. Only the first occurrence is used.
+- `"occurrence": N` in an exact trigger picks the Nth time the state is entered or left (a
+  jump out of shield and a later jump out of the shine are both KneeBend).
+- Which frame "exact" means: the frame during which the change happened. An input on that frame
+  works when the change comes from the animation (shieldstun ending: jump out of shield on it),
+  but not when it comes from physics later in the frame (landing): use `delay: 1` there. Likewise
+  an input on the frame a jump squat starts plus 3 is still in jump squat; the first frame Fox
+  can act in the air is +4. Check with `--states` rather than guessing.
+- A button held by an earlier input (R for the shield) cannot be pressed again: airdodge with L.
 - Names for `hmn`/`cpu`/`stage`/`state` are the tables at the top of `tools/tmtest.py`; numbers
   work too. State names follow `ftCo_MS_*` in `src/melee/ft/kinds/ftCommon/forward.h`.
 - `trace: N` logs both fighters every N frames: the way to see what actually happened.
@@ -66,7 +74,8 @@ Report measured numbers (frames, distances), not only pass/fail, so a failing te
 
 ## Workflow for tuning a drill
 
-1. Write the spec with `trace: 1`, run it, read the states frame by frame.
+1. Run the spec with `--states` (traces every frame, prints each fighter's state changes with
+   positions) and read what actually happened.
 2. Change the scenario data, rerun (`--no-build` only when the C did not change).
 3. Keep one spec per scenario under `tests/tmtest/<event>/` with `expect`, plus a soak spec
    (long random run) for crashes. Run the folder before committing.

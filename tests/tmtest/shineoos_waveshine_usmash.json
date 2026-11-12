@@ -1,0 +1,111 @@
+{
+  "comment": "FINDING, kept as a regression: against Marth's down tilt the same waveshine up smash is NOT reachable: the shine slides Marth ~46 units (set knockback, so percent does not matter) while Fox's waveland covers ~22. Shine OoS then waveshine up smash vs Marth down tilt at 20%: the aerial shine OoS lands into the grounded shine loop (0x169); jump out of it the frame after landing (delay 1: a landing happens after the frame's input is read), airdodge with L (R is held for the shield) down-toward 4 frames after the jump squat starts (the first frame Fox can act in the air) (wavedash toward Marth, on the left), then up smash when the 10-frame landing lag ends.",
+  "event": "shineoos",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 200,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      4,
+      1
+    ],
+    [
+      5,
+      20
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 0,
+      "hold": 240,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    },
+    {
+      "on_exit": {
+        "port": 0,
+        "state": "GuardSetOff"
+      },
+      "delay": 0,
+      "buttons": [
+        "X"
+      ],
+      "exact": true
+    },
+    {
+      "on_exit": {
+        "port": 0,
+        "state": "GuardSetOff"
+      },
+      "delay": 3,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ],
+      "exact": true
+    },
+    {
+      "on_enter": {
+        "port": 0,
+        "state": 361
+      },
+      "delay": 1,
+      "buttons": [
+        "X"
+      ],
+      "exact": true
+    },
+    {
+      "on_enter": {
+        "port": 0,
+        "state": "KneeBend",
+        "occurrence": 2
+      },
+      "delay": 4,
+      "buttons": [
+        "L"
+      ],
+      "l": 255,
+      "stick": [
+        -127,
+        -40
+      ],
+      "exact": true
+    },
+    {
+      "on_enter": {
+        "port": 0,
+        "state": "LandingFallSpecial"
+      },
+      "delay": 10,
+      "cstick": [
+        0,
+        127
+      ],
+      "exact": true
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "why": "No follow-up"
+  },
+  "cpu": "marth",
+  "trace": 1
+}
