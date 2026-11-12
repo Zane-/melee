@@ -71,8 +71,9 @@ Fighter block: TM-CE's `FighterData` is 0x2530 bytes (vanilla 0x23EC + m-ex 0xC 
 `FighterData.TM` at 0x23F8). `src/melee/tm/tm_fighter.c` sizes `fighter_alloc_data` to at
 least `sizeof(FighterData)` and zeroes each block on creation (m-ex's Custom Playerdata
 Variables). m-ex's own sites are Slippi Recording injections, so the hooks wrap the neighbouring
-calls. **Open for netplay:** Slippi Recording also grows this block; check whether its fields
-overlap 0x23EC-0x2530 before running TM code under Slippi.
+calls. Slippi Recording grows the block to 0x2600 and only uses byte 0x25FF (`LCancelStatus`;
+slippi-ssbm-asm `Recording/Recording.s` at d0ce23a), so it does not overlap TM-CE's
+0x23EC-0x2530. Under Slippi the hook keeps Slippi's larger size.
 
 Known deviations from TM-CE kept on purpose:
 

@@ -16,9 +16,8 @@
  * (Fighter_800679B0+0xC, Fighter_Create+0x54) are Slippi Recording
  * injections, so these hooks wrap the neighbouring calls instead.
  *
- * Under Slippi, its Recording code also grows this block. The larger size
- * wins here, but whether Slippi's extra fields overlap FighterData.TM is not
- * checked yet (see docs/ai/tmce-native.md).
+ * Under Slippi, its Recording code grows this block to 0x2600 and only uses
+ * byte 0x25FF, clear of FighterData.TM; the larger size wins here.
  */
 
 /// Wraps the first `HSD_ObjAllocInit` call in Fighter_800679B0 (+0x28),
