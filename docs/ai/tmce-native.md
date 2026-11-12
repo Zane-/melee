@@ -60,7 +60,7 @@ Known deviations from TM-CE kept on purpose:
 
 ## Porting a TM-CE assembly file
 
-Work by area. Each area owns `src/melee/tm/<area>/`, `config/GALE01/tm_hooks/<area>.txt`
+Work by area (parallel workers used this in the first round). Each area owns `src/melee/tm/<area>/`, `config/GALE01/tm_hooks/<area>.txt`
 and optionally `src/tmce/<area>_*.c` (code that needs MexTK types). Areas in progress:
 
 | Area | TM-CE assembly | 
@@ -93,5 +93,16 @@ See "Port status" below; update it as pieces are booted.
 | TM-CE C (core + 14 events + labCSS) compiled and linked | Builds, layout check passes. Not booted |
 | Boot (eventMenu.dat, OnFileLoad), OnSceneChange, OnStartMelee | Ported (`src/melee/tm/tm.c`, `src/tmce/boot.c`). Not booted |
 | C-event match setup (`onEnterVs` + `EventInit`) | Ported (`src/melee/tm/tm_event_start.c`). Not booted |
-| Event select screen, CSS/SSS flow, Misc | In progress (areas above) |
+| Event select screen (`ess`: 24 ported, 1 no-op dropped) | Ported, not booted. L (OSD menu) needs the OSD area |
+| Event CSS/SSS flow (`css`: 21 ported, 1 no-op dropped). Event mode runs from a replacement state list (CSS → match → SSS) | Ported, not booted |
+| Misc (`misc`: 37 ported, 4 dropped: On No Save = Slippi; Boot Up Tasks = dead; nametag save and save renaming = m-ex launcher only) | Ported, not booted |
 | OSDs, legacy events, Additional Codes | Not started |
+
+Open questions from the area ports (check when booting):
+
+- TM-CE's CPU/character backup area in the save data (`+0xD10`, raw offsets) is not mapped to
+  decomp types.
+- `Increase CSS SIS Text Heap` sits on a Slippi site; it is ported as a `call` hook on
+  `preloadState+0x58` instead.
+- The event select help panel writes its QR code straight into the GX FIFO, relying on the
+  vertex format left by earlier drawing, as TM-CE does.

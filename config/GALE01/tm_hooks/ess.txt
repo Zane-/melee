@@ -1,0 +1,49 @@
+# TM-CE event select screen (area `ess`). Code: src/melee/tm/ess/ess.c.
+# Sources: ../TrainingMode/ASM/training-mode/Custom Events/Event Select Screen/
+# and Custom Events/Unlock All Events/. Slippi patches none of these functions.
+
+# Unlock Event 1.asm (+0x50) + OnlyDisplayEventsOnPage.asm (+0x188)
+function  mnEvent_8024CE74  tm_Ess_MaxScroll        ESS max scroll = page size
+# Spoof All Events as Not Played.asm (+0x12C), SkipDisplayingEventNames.asm
+# (+0x28C), Display Custom Event Names on ESS.asm (+0x314)
+function  mnEvent_8024D15C  tm_Ess_DrawRow          ESS row: TM-CE event name
+# Display Custom Event Descriptions.asm (+0x2C), Toggle Tutorial Text.asm (+0x6C)
+function  mnEvent_8024D7E0  tm_Ess_DrawDescription  ESS description, page arrows
+# Custom ESS Button Actions.asm (+0xC8), Jump Down.asm (+0x134), Jump Down -
+# Update Cursor.asm (+0x234), Jump Up.asm (+0x258), Jump Up - Update
+# Cursor.asm (+0x350), CannotScrollPastEventsOnPage.asm (+0x664)
+function  mnEvent_8024D864  tm_Ess_Think            ESS input
+# Remove Version Indicator 1.asm (+0x64)
+function  mnEvent_8024E2A0  tm_Ess_LeaveA           ESS exit: remove TM-CE texts
+# Remove Version Indicator 2.asm (+0x64)
+function  mnEvent_8024E34C  tm_Ess_LeaveB           ESS exit: remove TM-CE texts
+# Never Scroll If Less than 9 Events on Page.asm (+0x18)
+function  mnEvent_8024E420  tm_Ess_InitData         ESS initial cursor
+# Event Code Version Indicator.asm (+0x44)
+function  mnEvent_8024E524  tm_Ess_Create           ESS build: page/version texts
+
+# Change ESS Proc To Pri 1.asm: `li r5,0` -> `li r5,1`
+word  mnEvent_8024E838+0xD8  0x38A00001  ESS think proc priority 1
+# Always Show Select Character Texture.asm: nop the `bne`
+word  mnEvent_8024D0CC+0x1C  0x60000000  ESS portrait: always "select character"
+# Always Spoof AnyCharacter.asm: `lbz r0,0(r3)` -> `li r0,33`
+word  gm_Mode_Event_OnLoad+0x108  0x38000021  event: any character
+# Always Copy CSS Character Info.asm: nop the `bne` at onEnterVs+0x440
+# (gm/gmevent.c; static, name not unique). Only the vanilla path of
+# onEnterVs reaches it; tm_Hook_EventEnterVs handles TM-CE C events.
+word  801BB1B0  0x60000000  event: always copy CSS character
+
+# Load/Save Event High Scores.asm (+0x4 of each; whole function replaced)
+function  gmMainLib_8015CF5C  tm_Ess_GetScore      event score per TM-CE event
+function  gmMainLib_8015CF70  tm_Ess_SetScore      event score per TM-CE event
+# Custom Event Highscore Types.asm
+function  gm_801BEB8C  tm_Ess_GetScoreType         score type from EventDesc
+
+# Remove Event Texture.asm (mnMain_Scene_OnEnter+0x83C, after the MnMaAll
+# load). The load is variadic, so this wraps the next call. Slippi patches
+# this function at 8022E93C only.
+call  mnMain_Scene_OnEnter+0x840  tm_Ess_MainMenuLangUS  main menu: hide textures
+
+# Not ported:
+# Unlock Event 2.asm (gm_80162EC8+0x20, `beq- 0xC`) assembles to the vanilla
+# word 0x4182000C: no effect.

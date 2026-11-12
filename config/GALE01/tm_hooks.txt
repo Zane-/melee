@@ -16,6 +16,6 @@ call  gm_801A4BD4+0xF4    tm_Hook_SceneChange  TM-CE OnSceneChange
 # Hooks/OnStartMelee.asm (TM-CE: the next instruction).
 call  fn_8016E730+0x194   tm_Hook_StartMelee   TM-CE OnStartMelee
 
-# gm_Mode_Event_States[1].on_enter (vanilla onEnterVs, event match setup).
-# Replaces the C-event half of Custom Events/Custom Event Code - Rewrite.asm.
-pointer  gm_Mode_Event_States+0x1C  tm_Hook_EventEnterVs  event match setup
+# Event match setup (tm_Hook_EventEnterVs, src/melee/tm/tm_event_start.c) is
+# reached through the css area's replacement event state list
+# (config/GALE01/tm_hooks/css.txt, tm_css_EventStates[1].on_enter).

@@ -1,0 +1,36 @@
+# Area `css`: TM-CE event character / stage select flow.
+# Code: src/melee/tm/css/. TM-CE files: ../TrainingMode/ASM/training-mode/
+# Custom Events/{CSS and SSS, Custom Event Preload Behavior, A+B to Reset
+# Event}, Hooks/OnCSSLoad.asm. See docs/ai/tmce-native.md.
+
+# modes[] (gm/gmscdata.c), event mode entry (modes+0x35C, GM_EVENT): on_load
+# and the state list. Replaces Add SSS To Event Match Scene List.asm
+# (runGameMode+0x11C), Load CSS + Preload CPU.asm, Restore Event CPU.asm,
+# Disable Event Preload - CSS Enter.asm (onEnterCss), Load Character ssm
+# Files.asm, Backup Event CPU.asm, Load SSS For Certain Events.asm
+# (onExitCss), and both A+B to Reset Event files (onExitVs), through the
+# list's C callbacks (src/melee/tm/css/tm_css.c).
+pointer  modes+0x360  tm_css_EventModeLoad  event mode on_load: fill TM-CE state list
+pointer  modes+0x36C  tm_css_EventStates    event mode states: CSS, match, SSS
+
+# Main menu mode entry (modes+0x190, GM_MENU): the credits state TM-CE adds
+# in the same file. Vanilla on_load is NULL.
+pointer  modes+0x194  tm_css_MenuModeLoad   menu mode on_load: copy menu state
+pointer  modes+0x1A0  tm_css_MenuStates     menu mode states: menu, credits
+
+# Only reached for legacy (assembly-only) events, which still use vanilla
+# onEnterVs (src/melee/tm/tm_event_start.c).
+# Dont Adjust CPU Color in Event Mode When Its Already in Use.asm: `bne` -> `b`.
+word  gmEvent_onEnterVs+0x524  0x48000030  b +0x30: keep the CPU colour
+# Disable Event Preload - Match Enter.asm: `extsb r0,r0` -> `li r0,-1`.
+word  gmEvent_onEnterVs+0x8D8  0x3800FFFF  li r0,-1: no preload hijack
+
+# mnCharSel_802640A0 (CSS setup) is also patched by Slippi: `call` hooks only.
+# Display Event Name on CSS.asm (+0x464): wraps `bl HSD_JObjAnimAll`.
+call  mnCharSel_802640A0+0x460   tm_css_JObjAnimAll      event name on CSS
+# Toggle CSS Icon Vibibility.asm (+0x4D8): wraps `bl HSD_GObjObject_80390A70`.
+call  mnCharSel_802640A0+0x4E4   tm_css_GObjObject       allowed-character icons
+# Overwrite VS Text.asm: the `bl mnCharSel_8025BD30` it overwrites.
+call  mnCharSel_802640A0+0x2274  tm_css_UpdateRulesText  blank VS rules text
+# Hooks/OnCSSLoad.asm (+0x2770): wraps `bl mnCharSel_8025EE8C` after it.
+call  mnCharSel_802640A0+0x2778  tm_css_8025EE8C         run the event's cssFunction

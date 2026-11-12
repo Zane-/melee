@@ -1,0 +1,76 @@
+# Hook table for the `misc` area: ports of ../TrainingMode/ASM/training-mode/
+# Misc/**. C in src/melee/tm/misc/ and src/tmce/misc_bridge.c.
+# kind  site  target  note        (see docs/ai/tmce-native.md)
+
+# --- HSD_Update Tweak/ ------------------------------------------------------
+# Always Run Debug Update.asm: nop the `DbLevel < 3` branch around the
+# per-frame debug pause / frame-step check, so TM-CE's handlers run.
+word      gm_801A4D34+0xC0           0x60000000                 always run gm_801A4970
+# Check for DBLevel.asm
+function  gm_801A4970                tm_misc_DbPauseInput       skip debug dump below DbLevel 3
+# Clear HSDUpdate for no Debug Melee.asm
+function  gm_SetDbPauseInputHandlers tm_misc_SetDbPauseInputHandlers  no debug handlers below DbLevel 3
+# Clear HSDUpdate for no Debug.asm (gm_801A4BD4+0x34 inlines the above)
+call      gm_801A4BD4+0x74           tm_misc_SceneSetInitDefaults  clear debug handlers per scene
+# Allow Z in VS While Paused.asm
+word      Fighter_procInput+0x3A4    0x60000000                 allow Z while paused
+
+# --- Frame Advance Rewrite.asm -------------------------------------------
+function  gm_AnyControllerPressedZ   tm_misc_AnyControllerPressedZ  hold Z to frame advance
+
+# --- Disable USB Screenshot.asm --------------------------------------------
+word      gm_801A4D34+0x33C          0x60000000                 no db_TakeScreenshotIfPending
+
+# --- Savestate support ---------------------------------------------------
+# Skip Assert for no_reaction_always.asm: `b 8006d4b0` -> `b +0x20C`
+word      Fighter_procCollResolve+0x2A8  0x4800020C             skip no_reaction_always assert
+# Skip Assert for Respawn Platform.asm
+word      800D5524                 0x4800007C                 skip respawn platform assert (fn_800D54A4+0x80)
+# Skip SetGroundStateAssert For Restore States.asm: `bne` -> `b`, same target
+word      ftCommon_8007D7FC+0xEC     0x48000030                 skip ground state assert
+# GObj_Destory Exits When Input = 0.asm: NULL frees return instead of asserting
+word      HSD_GObjFree+0x18          0x480000D8                 HSD_GObjFree(NULL) returns
+
+# --- Text ------------------------------------------------------------------
+# Text Modifications/Add Symbols..., Make Spaces Store 0x1A, Make Spaces Not
+# Store 00s, Parse Numbers Correctly, Text - Increment Max Size: one copy.
+function  HSD_SisLib_803A67EC        tm_misc_SisEncode          TM-CE text encoder
+# Increase CSS SIS Text Heap.asm (its own site 0x801A3F9C is a Slippi
+# injection; raise the size in the call instead)
+call      preloadState+0x58          tm_misc_CssTextHeap        CSS text heap >= 0x4800
+# Increase In-Game SIS Text Heap.asm: `li r3,0x4800` -> `li r3,0x7000`
+word      preloadState+0x60          0x38607000                 in-game text heap 0x7000
+
+# --- Score display / results -----------------------------------------------
+# Count NonExistant Player Kills.asm
+word      gm_801BC4F4+0xA8           0x60000000                 count kills of absent players
+# Disable Calls to ScoreDisplay_Remove.asm: `blr` at the entry
+word      un_802FF4FC                0x4E800020                 ScoreDisplay_Remove does nothing
+# ScoreDisplay - Change GXLink Pri.asm: `li r9,0` -> `li r9,1`
+word      un_802FF498+0x40           0x39200001                 score display GX link 1
+
+# --- Never Play Movies in Archives.asm --------------------------------------
+word      80259090                 0x48000018                 never play movies (fn_80258ED0+0x1C0)
+
+# --- Character Randomness/ ------------------------------------------------
+function  ftGw_SpecialS_GetRandomInt tm_misc_GwJudgeRoll        GnW Hammer.asm
+call      ftLg_SpecialS_SetVars+0x84 tm_misc_LuigiMisfireRoll   Luigi Misfire.asm
+function  ftPe_AttackS4_Enter        tm_misc_PeachFSmashEnter   Peach FSmash.asm
+call      8011D0BC                 tm_misc_PeachPullItem      Peach Item.asm (spawnVeg+0xA4)
+call      it_802BD32C+0xC0           tm_misc_PeachTurnipRoll    Peach Turnip.asm
+call      800B2938                 tm_misc_CpuAttack          Nana Throw.asm: remember fp (ftCo_800B2790+0x1A8)
+call      ftCo_800B683C+0x7B4        tm_misc_CpuThrowRoll       Nana Throw.asm
+
+# --- Match / scene -----------------------------------------------------------
+# Better VS Mode Frame Counter/
+call      fn_8016E730+0x38           tm_misc_MatchStartPreGObjProc  frame counter init
+call      gm_Scene_Vs_OnFrame+0x58   tm_misc_VsFrame            frame counter inc
+# Allow light press in LRAS.asm
+call      fn_8016CFE0+0x204          tm_misc_LrasButtons        light-press LRAS
+# Corneria - Move Ship on Stage Init.asm
+call      grCorneria_801DD674+0x304  tm_misc_CorneriaInitShip   move ship on init
+# Display Stick Info When Paused/
+call      gm_801A0FEC+0xF8           tm_misc_PauseShow          stick info on pause
+call      gm_801A10FC+0x24           tm_misc_PauseHide          stick info off on unpause
+# Display Tweet Message And Version Number.asm
+call      Exception_ReportStackTrace+0x28  tm_misc_CrashReport  crash banner
