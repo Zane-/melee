@@ -142,6 +142,13 @@ static const TmRotEntry aa_entries[] = {
 };
 const TmRotDeck AntiAir_Deck = { aa_entries, countof(aa_entries) };
 
+static const TmRotEntry cc_entries[] = {
+    { CKIND_PEACH, 0, 0, "Peach - Crouching" },
+    { CKIND_SAMUS, 0, 0, "Samus - Crouching" },
+    { CKIND_MARTH, 0, 0, "Marth - Crouching" },
+};
+const TmRotDeck CrouchCancel_Deck = { cc_entries, countof(cc_entries) };
+
 const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = {
         .id = "fox-shine-oos",
@@ -173,6 +180,43 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .cpu_kind = CKIND_FALCON,
         .deck = &WavedashBack_Deck,
     },
+    [DRILL_FOX_SHIELD_THEN_PUNISH] = {
+        .id = "fox-shield-then-punish",
+        .name = "Shield, Then Punish",
+        .goal = "Shield the jump-in and punish; do not shield the grab",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_FALCON,
+        .deck = &WavedashBack_Deck,
+    },
+    [DRILL_FOX_APPROACH] = {
+        .id = "fox-approach-nair-dair",
+        .name = "Approach: Read the Stance",
+        .goal = "Pick the move that beats what the opponent is doing",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+    },
+    [DRILL_FOX_RUNNING_SHINE] = {
+        .id = "fox-running-shine",
+        .name = "Running Shine",
+        .goal = "Catch a dash dance or a jump with shine",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+    },
+    [DRILL_FOX_LASER_FORCING] = {
+        .id = "fox-laser-forcing",
+        .name = "Lasers Force the Approach",
+        .goal = "Laser until they come, then punish the approach",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+    },
     [DRILL_FOX_ANTI_AIR] = {
         .id = "fox-anti-air",
         .name = "Anti-Air",
@@ -182,6 +226,16 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_FALCON,
         .deck = &AntiAir_Deck,
+    },
+    [DRILL_FOX_VS_CROUCH_CANCEL] = {
+        .id = "fox-vs-crouch-cancel",
+        .name = "Beat Crouch Cancel",
+        .goal = "Open a crouching opponent with down air, shine or grab",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_PEACH,
+        .deck = &CrouchCancel_Deck,
     },
     /* Tech drills, in the course's order (the hub lists by this table). */
     [DRILL_TECH_SHORT_HOP] = {

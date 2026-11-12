@@ -1,0 +1,39 @@
+{
+  "comment": "Hitting with something else is not the drill.",
+  "event": "course",
+  "drill": "fox-running-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 40,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 20,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

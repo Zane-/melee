@@ -1,0 +1,47 @@
+{
+  "comment": "The same nair on a shielding Marth is blocked.",
+  "event": "course",
+  "drill": "fox-approach-nair-dair",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      3
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 60,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 14,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 17,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "stance": 2
+  }
+}

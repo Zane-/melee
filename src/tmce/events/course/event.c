@@ -314,6 +314,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/fox_pressure.inc.h"
 #include "drills/tech_ledge.inc.h"
 #include "drills/fox_neutral.inc.h"
+#include "drills/fox_neutral_reads.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -331,6 +332,11 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_WHIFF_PUNISH] = &Drill_FoxWhiffPunish,
     [DRILL_FOX_WAVEDASH_BACK] = &Drill_FoxWavedashBack,
     [DRILL_FOX_ANTI_AIR] = &Drill_FoxAntiAir,
+    [DRILL_FOX_SHIELD_THEN_PUNISH] = &Drill_FoxShieldThenPunish,
+    [DRILL_FOX_APPROACH] = &Drill_FoxApproach,
+    [DRILL_FOX_RUNNING_SHINE] = &Drill_FoxRunningShine,
+    [DRILL_FOX_LASER_FORCING] = &Drill_FoxLaserForcing,
+    [DRILL_FOX_VS_CROUCH_CANCEL] = &Drill_FoxVsCrouchCancel,
     [DRILL_FOX_SHDL] = &Drill_FoxShdl,
     [DRILL_TECH_SHIELD_DROP] = &Drill_TechShieldDrop,
     [DRILL_TECH_LEDGEDASH] = &Drill_TechLedgedash,

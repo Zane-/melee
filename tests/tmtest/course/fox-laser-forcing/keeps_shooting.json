@@ -1,0 +1,188 @@
+{
+  "comment": "Lasering through the approach: Marth's dash attack hits.",
+  "event": "course",
+  "drill": "fox-laser-forcing",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 8,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 15,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 35,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 38,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 45,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 65,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 68,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 75,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 95,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 98,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 105,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 125,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 128,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 135,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 155,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 158,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 165,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 185,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 188,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 195,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 215,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 218,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 225,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

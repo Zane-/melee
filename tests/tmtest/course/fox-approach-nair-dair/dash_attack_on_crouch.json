@@ -1,0 +1,44 @@
+{
+  "comment": "A dash attack on a crouching Marth is crouch cancelled (a running short hop nair passes over him).",
+  "event": "course",
+  "drill": "fox-approach-nair-dair",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      2
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 40,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 19,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "stance": 1
+  }
+}

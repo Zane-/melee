@@ -14,8 +14,9 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish), all sixteen of Fox's Tech drills, and the first Neutral
-drill, `fox-whiff-punish`. The rest of Neutral, Punish and Defense are still plans. The owner played an earlier build on
+opens after character select. Built: `fox-shine-oos` (Punish), all sixteen of Fox's Tech drills and all eight of his
+Neutral drills. The rest of Punish, and Defense, are still plans. None of the Neutral
+drills has been played by a person. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
 update this file as milestones land.
@@ -200,6 +201,18 @@ Changed after the owner's first play session (2026-11-12):
   reacts to the CPU needs no observing pass. `course_IsDemo()` lets a drill fix its
   difficulty during a demonstration (the whiff punish demonstration is tuned for Normal
   reaction).
+
+- **CPU behaviours built for Neutral** (`drills/fox_neutral.inc.h`,
+  `fox_neutral_reads.inc.h`), each small enough to copy: reacts to the player entering
+  its reach (whiff punish); jumps in after an unpredictable wait, from a `WhiffScenario`
+  (wavedash back, anti-air, shield then punish); runs up and grabs (shield then punish);
+  holds a stance and changes it (approach, crouch cancel); dash dances and hops (running
+  shine); counts lasers and then runs in (laser forcing, which tells a laser from a real
+  hit by its damage). Jump-in scripts and their landing frames were measured against a
+  standing Fox in the simulator sandbox; on shield a jump-in lands later than its `faf`
+  for a miss, so shield-then-punish waits for the CPU to stand again instead.
+- **Demonstrations that change**: `course_DemoCount()` cycles the stance or the
+  aerial-or-grab branch from one demonstration to the next.
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL
