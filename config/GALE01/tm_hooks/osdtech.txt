@@ -1,0 +1,31 @@
+# TM-CE OSDs: Dashback, Ledge Codes, Wavedash Display, SDI Display
+# (../TrainingMode/ASM/training-mode/Onscreen Display/). Native side:
+# src/melee/tm/osdtech/osdtech.c; display logic: src/tmce/osdtech_osd.c.
+# Each `call` wraps the call next to TM-CE's injection site; osdtech.c says
+# why that is the same point.
+
+# Dashback/Run Out of Tilt Turn.asm (800C9B88) + Dashback Display - Static
+# Function.asm (0x80005518)
+call      ftCo_Turn_IASA+0x194          tm_osdtech_DashEnter         dashback display
+
+# Ledge Codes/Frames Spent in CliffWait.asm (8009AB78)
+call      ftCo_8009AAFC+0x80            tm_osdtech_CliffFallEnter    frames in CliffWait
+# Ledge Codes/Ledgestall/Ledgestall Display.asm (800814EC)
+call      ftCliffCommon_80081370+0x178  tm_osdtech_CliffCatchSFX     ledgestall vulnerability
+# Ledge Codes/GALINT/*.asm + Standalaone - GALINT Display.asm (0x80005514)
+call      ftCo_LandingAir_EnterWithLag+0xF8  tm_osdtech_LandingAirBasic  GALINT aerial interrupt (8008D6F4)
+call      ftCo_AirCatchHit_Coll+0xCC    tm_osdtech_AirCatchLand      GALINT laser land (80082C40)
+call      ftCo_Landing_Anim+0x24        tm_osdtech_LandingAnimLand   GALINT ledgedash (800D5D5C)
+call      ft_80082B1C+0x34              tm_osdtech_NoImpactLand      GALINT no impact land (80082B4C)
+
+# Wavedash Display/Save Airdodge Y Angle.asm (80099B74): edited copy
+function  ftCo_80099A9C                 tm_osdtech_EscapeAirEnter    save airdodge angle + hop type
+# Wavedash Display/Wavedash Timing Display.asm (80099D7C)
+call      ftCo_80099D70+0x18            tm_osdtech_EscapeAirLand     wavedash display
+
+# SDI Display/Initialize Total SDI Inputs Variable.asm (8008F71C, the exit
+# of ftCo_8008EC90): wrap both callers
+call      Fighter_procCollResolve+0x20C tm_osdtech_DamageEnter       reset SDI counters
+call      ftKb_SpecialN_800F5C34+0x7C   tm_osdtech_DamageEnter       reset SDI counters (Kirby)
+# SDI Display/SDI Display Main.asm (8008E52C, ftCo_Damage_OnEveryHitlag)
+call      Fighter_procUpdate+0x5D0      tm_osdtech_PreHitlagCallback SDI display

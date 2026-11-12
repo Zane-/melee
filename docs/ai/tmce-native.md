@@ -77,6 +77,12 @@ slippi-ssbm-asm `Recording/Recording.s` at d0ce23a), so it does not overlap TM-C
 
 Known deviations from TM-CE kept on purpose:
 
+- OSD and legacy ports fix more TM-CE bugs, each noted in the C: combo damage always read
+  port 1; Powershield's stray store through r29; L-cancel counters overlapping vanilla's score
+  display cache (now statics); legacy savestates kept a dangling backup pointer;
+  PlacePlayersCenterStage read code bytes for slots 2-5; DisableHazards jumped through code
+  bytes for stage kinds > 32.
+
 - OSD core fixes TM-CE bugs: previous-move-instance is stored at `TM.last_move_hurt` (0x2414,
   which the SDI display reads) instead of 0x2418; the insta double jump table is indexed by
   the ply byte, not a word; expired message queue entries are cleared; the OSD window count
@@ -128,7 +134,9 @@ See "Port status" below; update it as pieces are booted.
 | Boot → ESS → Lab CSS → SSS → Lab match | **Booted 2026-11-11** (plain Dolphin, Linux). Savestate bad read fixed by patch 0004 |
 | OSD toggle menu (`osdmenu`: Toggle UI, 13 files) | Ported, not booted |
 | OSD core (`osdcore`: message system, FighterData.TM per-frame bookkeeping, fastfall, frame advantage, previous move instance, Generic Per Frame, IC follower check, Act OoWait). API in `src/melee/tm/osdcore/osd.h` | Ported, not booted. `Fighter_ChangeMotionState` and `ftCommon_CheckFallFast` are replaced by edited copies (hooks inside the vanilla bodies would be dead) |
-| Individual OSDs, legacy events, other Additional Codes | Not started |
+| Individual OSDs: `osdact` (act out of airborne/shield/tumble/float, 24 + 3 statics, 1 dead dropped), `osdtech` (ledge codes/GALINT, dashback, wavedash, SDI; 13), `osdmisc` (combo counter, L-cancel, powershield, jump cancel, grab breakout, boost grab, glide toss, airdodge item throw, Yoshi egg, Bowser fortress; 17, 2 dead dropped) | Ported, not booted. All of Onscreen Display/ is now covered |
+| Legacy events (`src/melee/tm/legacy`): dispatch from `tm_event_start.c`, shared library (lines 8600-12371), Multishine, Reaction | Ported, not booted. 13 events left as stubs (`legacy/events/*.c`), split into 3 batches in `legacy.h` |
+| Other Additional Codes (Better Camera, Enable C Stick Always, Boot to Event Mode, ...) | Not started; owner asked for C-stick in all events, TM-CE's camera, boot into the Lab |
 | Skills for adding new events (owner request; after parity) | Not started |
 
 Open questions from the area ports (check when booting):

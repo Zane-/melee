@@ -1,0 +1,53 @@
+# osdmisc area: TM-CE on-screen displays (../TrainingMode/ASM/training-mode/
+# Onscreen Display/): Combo Counter/, L Cancel Display NEW, Powershield,
+# Jump Cancel, Grab Breakout, Boost Grab, Glide Toss, Airdodge Item Throw,
+# Yoshi Egg Toss, Bowser Fortress NIL. Code: src/melee/tm/osdmisc/.
+
+# L Cancel Display NEW.asm (ftCo_LandingAir_EnterWithMsidLag+0x68): after
+# the last call. Counters reset with the score display block at match start.
+call      ftCo_LandingAir_EnterWithMsidLag+0x64  tm_osdmisc_LandingAirSetAnimRate  L-cancel OSD
+call      un_802FF498+0x20           tm_osdmisc_ScoreInitZero  reset L-cancel rates
+
+# Powershield.asm (ftColl_80077688+0x18, its start): wrap its only caller.
+call      ftColl_8007925C+0x618      tm_osdmisc_ShieldHitByItem  powershield OSD
+
+# Jump Cancel.asm (ftCo_KneeBend_IASA+0x9C, the shared epilogue): KneeBend's
+# IASA callback in the common motion state table.
+pointer   ftData_MotionStateList+0x310  tm_osdmisc_KneeBendIASA  jump cancel OSD
+
+# Grab Breakout.asm (fn_800DA054+0x28, after the victim is loaded): wrap
+# the three callers.
+call      fn_800DA190+0x34           tm_osdmisc_CatchPullPhys  grab breakout OSD
+call      fn_800DA4A0+0xC            tm_osdmisc_CatchPullPhys  grab breakout OSD
+call      fn_800DA678+0xC            tm_osdmisc_CatchPullPhys  grab breakout OSD
+
+# Boost Grab.asm (ftCo_800D8AE0+0x78) / Glide Toss.asm (ftCo_8009563C+0x84):
+# just before the call that starts the new action.
+call      ftCo_800D8AE0+0x80         tm_osdmisc_StartBoostGrab   boost grab OSD
+call      ftCo_8009563C+0x88         tm_osdmisc_StartGlideToss   glide toss OSD
+
+# Airdodge Item Throw.asm (ftCo_EscapeAir_IASA+0x58): after the item check.
+call      ftCo_EscapeAir_IASA+0x48   tm_osdmisc_EscapeAirItemCheck  airdodge item OSD
+
+# Yoshi Egg Toss.asm (fn_8012E110+0xF8) / Bowser Fortress NIL.asm
+# (ftCo_80096D28+0x1C): callbacks reached only through function pointers
+# set in code; edited copies.
+function  fn_8012E110                tm_osdmisc_YoshiEggAccessory  egg toss OSD
+function  ftCo_80096D28              tm_osdmisc_FallSpecialLand    Bowser NIL OSD
+
+# Combo Counter - On Combo Increment.asm (pl_80040ED4+0xD0) and Pummels and
+# Multi-Hits ... .asm (pl_80040ED4+0x30): wrap its only caller.
+call      pl_8003EB30+0xD4           tm_osdmisc_ComboStat      combo counter
+# Skip Original Combo End Check.asm: `b 0x14` over vanilla's combo end.
+word      Fighter_procAnim+0x7E4     0x48000014                skip vanilla combo end
+# Custom Function Blrl + Keep Combo Counter Going ... .asm
+# (Fighter_procAnim+0x828, the epilogue join point): install a proc that
+# runs Fighter_procAnim, then that logic.
+call      Fighter_Create+0x33C       tm_osdmisc_SetupProcAnim  procAnim + combo end
+call      ftDemo_CreateFighter+0x298 tm_osdmisc_SetupProcAnim  procAnim + combo end
+# Disregard Projectile Hitboxes w Same Move ID.asm (ftColl_80078998+0x48)
+function  ftColl_80078998            tm_osdmisc_ItemHitStats   projectile combo hits
+# Interrupting Move with Same Move Gives a Unique ID.asm (ft_800895E0+0x30)
+function  ft_800895E0                tm_osdmisc_SetAttackInstance  unique attack instance
+# Throw Hitboxes Update Variable in Playerblock.asm (ftCo_800DDDE4+0x84)
+call      ftCo_800DDDE4+0x80         tm_osdmisc_ThrowHit       throw damage source
