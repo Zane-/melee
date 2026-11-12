@@ -1,0 +1,28 @@
+{
+  "comment": "Reference demonstration (shine out of shield) against scenario 5.",
+  "event": "course",
+  "drill": "fox-oos-choice",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

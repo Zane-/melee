@@ -1,0 +1,58 @@
+{
+  "comment": "A steeper wavedash (127,-65... here -50) does not reach Marth.",
+  "event": "course",
+  "drill": "fox-waveshine-usmash",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 20,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 26,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 29,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        -127,
+        -50
+      ]
+    },
+    {
+      "at": 39,
+      "hold": 1,
+      "cstick": [
+        0,
+        127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

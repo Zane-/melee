@@ -1,0 +1,35 @@
+{
+  "comment": "A rising neutral air hits the shield early: Marth grabs Fox as he lands.",
+  "event": "course",
+  "drill": "fox-shield-pressure",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 13,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "hits": 1
+  }
+}

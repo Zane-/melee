@@ -1,0 +1,32 @@
+{
+  "comment": "Shielding Marth's forward smash and never hitting back.",
+  "event": "course",
+  "drill": "fox-oos-choice",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      2
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 500,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}
