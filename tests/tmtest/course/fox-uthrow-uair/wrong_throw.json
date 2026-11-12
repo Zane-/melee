@@ -1,0 +1,39 @@
+{
+  "comment": "A down throw is not the drill.",
+  "event": "course",
+  "drill": "fox-uthrow-uair",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    },
+    {
+      "at": 24,
+      "hold": 2,
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

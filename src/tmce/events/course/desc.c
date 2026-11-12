@@ -149,6 +149,29 @@ static const TmRotEntry cc_entries[] = {
 };
 const TmRotDeck CrouchCancel_Deck = { cc_entries, countof(cc_entries) };
 
+static const TmRotEntry floaty_entries[] = {
+    { CKIND_MARTH, 0, 0, "Marth" },
+    { CKIND_SHEIK, 0, 0, "Sheik" },
+    { CKIND_PEACH, 0, 0, "Peach" },
+    { CKIND_JIGGLYPUFF, 0, 0, "Jigglypuff" },
+};
+const TmRotDeck Floaty_Deck = { floaty_entries, countof(floaty_entries) };
+
+static const TmRotEntry fastfaller_entries[] = {
+    { CKIND_FALCO, 0, 0, "Falco" },
+    { CKIND_FOX, 1, 0, "Fox" },
+};
+const TmRotDeck FastFaller_Deck = { fastfaller_entries,
+                                    countof(fastfaller_entries) };
+
+static const TmRotEntry killconfirm_entries[] = {
+    { CKIND_MARTH, 0, 0, "Marth" },
+    { CKIND_SHEIK, 0, 0, "Sheik" },
+    { CKIND_JIGGLYPUFF, 0, 0, "Jigglypuff" },
+};
+const TmRotDeck KillConfirm_Deck = { killconfirm_entries,
+                                     countof(killconfirm_entries) };
+
 const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = {
         .id = "fox-shine-oos",
@@ -179,6 +202,26 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
     },
+    [DRILL_FOX_UTHROW_UAIR] = {
+        .id = "fox-uthrow-uair",
+        .name = "Up Throw Up Air",
+        .goal = "Up air them out of up throw before they jump away",
+        .part = COURSE_PUNISH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+        .deck = &Floaty_Deck,
+    },
+    [DRILL_FOX_CHAINGRAB] = {
+        .id = "fox-uthrow-chaingrab",
+        .name = "Chain Grab Fastfallers",
+        .goal = "Regrab Fox and Falco out of up throw",
+        .part = COURSE_PUNISH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_FALCO,
+        .deck = &FastFaller_Deck,
+    },
     [DRILL_FOX_SHIELD_PRESSURE] = {
         .id = "fox-shield-pressure",
         .name = "Shield Pressure",
@@ -187,6 +230,16 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .characters = CSSID_FOX,
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
+    },
+    [DRILL_FOX_KILL_CONFIRM] = {
+        .id = "fox-kill-confirm",
+        .name = "Kill Confirms",
+        .goal = "Turn an opening into the stock at kill percent",
+        .part = COURSE_PUNISH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+        .deck = &KillConfirm_Deck,
     },
     [DRILL_FOX_WHIFF_PUNISH] = {
         .id = "fox-whiff-punish",

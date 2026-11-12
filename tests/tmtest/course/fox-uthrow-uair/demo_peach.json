@@ -1,0 +1,28 @@
+{
+  "comment": "Reference demonstration (no DI) against scenario 3.",
+  "event": "course",
+  "drill": "fox-uthrow-uair",
+  "hmn": "fox",
+  "cpu": "peach",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "comment": "Up throw and stand there.",
+  "event": "course",
+  "drill": "fox-uthrow-chaingrab",
+  "hmn": "fox",
+  "cpu": "falco",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    },
+    {
+      "at": 24,
+      "hold": 2,
+      "stick": [
+        0,
+        127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "regrabs": 0
+  }
+}

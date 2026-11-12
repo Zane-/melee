@@ -1,0 +1,67 @@
+{
+  "comment": "At 110% the waveshine up smash that is a true follow-up at 30% (fox-waveshine-usmash) does not connect on Marth: no kill, he survives.",
+  "event": "course",
+  "drill": "fox-kill-confirm",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      5,
+      110
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 20,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 26,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 29,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        -127,
+        -40
+      ]
+    },
+    {
+      "at": 39,
+      "hold": 1,
+      "cstick": [
+        0,
+        127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "hits": 0
+  }
+}

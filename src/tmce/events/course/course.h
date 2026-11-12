@@ -49,7 +49,10 @@ enum CourseDrillId {
     DRILL_FOX_ILLUSION_SHORTEN,
     DRILL_FOX_OOS_CHOICE,
     DRILL_FOX_WAVESHINE_USMASH,
+    DRILL_FOX_UTHROW_UAIR,
+    DRILL_FOX_CHAINGRAB,
     DRILL_FOX_SHIELD_PRESSURE,
+    DRILL_FOX_KILL_CONFIRM,
     DRILL_FOX_WHIFF_PUNISH,
     DRILL_FOX_WAVEDASH_BACK,
     DRILL_FOX_SHIELD_THEN_PUNISH,
@@ -145,5 +148,9 @@ extern const TmRotDeck WavedashBack_Deck;
 extern const TmRotDeck AntiAir_Deck;
 /// Opponents that crouch cancel (no scenario data).
 extern const TmRotDeck CrouchCancel_Deck;
+/// Opponents by how they fall (no scenario data).
+extern const TmRotDeck Floaty_Deck;
+extern const TmRotDeck FastFaller_Deck;
+extern const TmRotDeck KillConfirm_Deck;
 
 #endif

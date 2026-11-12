@@ -14,8 +14,10 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish), all sixteen of Fox's Tech drills and all eight of his
-Neutral drills. The rest of Punish, and Defense, are still plans. None of the Neutral
+opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and seven of
+eleven Punish drills (Shine OoS, OoS choice, waveshine up smash, up throw up air, chain
+grab, shield pressure, kill confirms). Still plans: shine knockdown, aerial confirm, shine
+spike, edgeguard from the stage, and all of Defense. None of the Neutral or new Punish
 drills has been played by a person. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
@@ -213,6 +215,18 @@ Changed after the owner's first play session (2026-11-12):
   for a miss, so shield-then-punish waits for the CPU to stand again instead.
 - **Demonstrations that change**: `course_DemoCount()` cycles the stance or the
   aerial-or-grab branch from one demonstration to the next.
+
+- **CPU behaviours built for Punish** (`drills/fox_punish.inc.h`,
+  `fox_punish_throws.inc.h`): shields as soon as it can after being hit (waveshine up
+  smash: a blocked follow-up was not true); tries to grab out of shield on every free
+  frame (shield pressure; a shield hit is counted on the rising edge of the CPU's hitlag
+  flag); DIs while stuck and jumps away after a reaction time (`th_CpuEscape`, option "CPU
+  Escape"). Two findings from the simulator that shaped them: a CPU that jumps on its
+  first free frame cannot be up-aired out of up throw as Marth at any percent from 60 to
+  130, so that drill works on reaction; and a CPU left holding its DI direction after
+  hitstun walked off the stage and "died", so DI is applied only while it is stuck.
+- **A standing dummy makes kill moves trivial**: the kill confirm drill requires the
+  opener to be a grab, shine, up tilt or dash attack.
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL

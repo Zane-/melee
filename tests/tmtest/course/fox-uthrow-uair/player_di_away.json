@@ -1,0 +1,72 @@
+{
+  "comment": "Marth at 90% with full DI away (seed 1): dash 6 frames under him, full hop, up air 8 frames later.",
+  "event": "course",
+  "drill": "fox-uthrow-uair",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    },
+    {
+      "at": 24,
+      "hold": 2,
+      "stick": [
+        0,
+        127
+      ]
+    },
+    {
+      "at": 57,
+      "hold": 60,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 64,
+      "hold": 8,
+      "buttons": [
+        "X"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 72,
+      "hold": 1,
+      "cstick": [
+        0,
+        127
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "frame": 23,
+    "di": -127
+  }
+}
