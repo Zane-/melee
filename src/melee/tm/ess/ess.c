@@ -381,8 +381,8 @@ static void essOpenHelp(bool hard_r)
 }
 
 /// L: open the OSD toggles (the rules menu's "random stage select" screen
-/// with entering_menu = 3; the OSD menu itself is TM-CE's Onscreen Display
-/// assembly, not ported yet).
+/// with entering_menu = 3; the OSD menu itself is TM-CE's Onscreen
+/// Display/Toggle UI, ported in src/melee/tm/osdmenu/).
 static void essOpenOsdMenu(void)
 {
     MnEventData* data = essData();

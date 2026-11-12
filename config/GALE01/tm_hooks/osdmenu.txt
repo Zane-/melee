@@ -1,0 +1,28 @@
+# osdmenu area: TM-CE's OSD toggle menu (src/melee/tm/osdmenu/osdmenu.c).
+# Replaces ../TrainingMode/ASM/training-mode/Onscreen Display/Toggle UI/*.asm.
+# Slippi patches none of these functions.
+
+# Random stage select screen (mn/mnstagesw.c) reused as the OSD list.
+#   Set Flag on Leaving Custom RSS.asm (+0x4C), Return to First Page When
+#   Loaded With L.asm (+0x64), Can Disable All Toggles in Custom RSS.asm
+#   (+0xE4), Disable Save to Bitfield Every Change.asm (+0x160), XY To Adjust
+#   OSD Position.asm (+0x178), Return to Event Screen When Pressing
+#   Start.asm (+0x1A8):
+function  fn_80235F80               tm_osdmenu_Think         OSD menu input proc
+#   Load Alt Text When Loaded With L.asm (+0x1A8), Remove Text When Leaving
+#   Custom RSS.asm (+0x224):
+function  fn_80236998               tm_osdmenu_Proc          OSD menu display proc
+#   Load Toggles When Loaded With L .asm:
+call      mnStageSw_80236CBC+0x144  tm_osdmenu_GetToggle     row state = OSD bit
+#   Save Toggles When Loaded With L.asm:
+call      mnStageSw_8023593C+0x58   tm_osdmenu_SetToggle     row state -> OSD bit
+
+# VS rules menu (mn/mnmainrule.c).
+#   Load Random Stage Select On L Press.asm (fn_8022F538+0x40):
+call      fn_8022F538+0x2C          tm_osdmenu_RulesButtons  L opens the OSD menu
+#   Press L for OSD Indicator.asm (end of mn_80230E38), at its three callers:
+call      mn_8023164C+0xAC          tm_osdmenu_CreateRules   "L = OSD" note
+call      mn_80231714+0xAC          tm_osdmenu_CreateRules   "L = OSD" note
+call      mn_80231804+0x758         tm_osdmenu_CreateRules   "L = OSD" note
+#   Remove Press L for OSD Indicator.asm (mn_802308F0+0x84):
+call      mn_802308F0+0x7C          tm_osdmenu_RulesRemoveText  remove the note
