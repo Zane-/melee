@@ -1,0 +1,21 @@
+{
+  "comment": "Reference demonstration: special landing on frame 7, free on 17.",
+  "event": "course",
+  "drill": "fox-waveshine",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "measured": 7,
+    "free": 17
+  }
+}

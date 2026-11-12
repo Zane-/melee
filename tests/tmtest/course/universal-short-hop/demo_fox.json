@@ -1,0 +1,19 @@
+{
+  "comment": "Reference script played as a demonstration must be a short hop.",
+  "event": "course",
+  "drill": "universal-short-hop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

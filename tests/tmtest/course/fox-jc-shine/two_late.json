@@ -1,0 +1,33 @@
+{
+  "comment": "X 5 frames later with the default leniency (2).",
+  "event": "course",
+  "drill": "fox-jc-shine",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 45,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 6
+  }
+}

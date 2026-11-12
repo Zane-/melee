@@ -35,6 +35,11 @@ int tmce_test_SetOption(const char* file, int index, int value)
             return 0;
         }
         (*menu_ptr)->options[index].val = value;
+        if ((*menu_ptr)->options[index].name == NULL) {
+            /* Marks the slot as set for events that fill their menu in
+             * at init (the course engine's MergeOption). */
+            (*menu_ptr)->options[index].name = "";
+        }
         return 1;
     }
     return 0;

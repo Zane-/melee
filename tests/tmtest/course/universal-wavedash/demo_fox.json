@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: perfect wavedash (airborne frame 1).",
+  "event": "course",
+  "drill": "universal-wavedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "measured": 1
+  }
+}

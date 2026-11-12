@@ -1,0 +1,22 @@
+{
+  "comment": "X held 2 frames: short hop.",
+  "event": "course",
+  "drill": "universal-short-hop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 2,
+      "buttons": [
+        "X"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "held": 2
+  }
+}

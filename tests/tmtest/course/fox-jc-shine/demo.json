@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: jump on shine frame 4.",
+  "event": "course",
+  "drill": "fox-jc-shine",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "measured": 4
+  }
+}

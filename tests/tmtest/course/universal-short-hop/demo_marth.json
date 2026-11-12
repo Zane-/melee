@@ -1,0 +1,19 @@
+{
+  "comment": "Same with Marth (jump squat 4).",
+  "event": "course",
+  "drill": "universal-short-hop",
+  "hmn": "marth",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

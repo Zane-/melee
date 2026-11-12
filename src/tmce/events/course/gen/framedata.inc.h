@@ -50,12 +50,14 @@ typedef struct CourseFighterData {
     u8 jump_squat;       ///< frames before airborne
     u8 landing_lag;      ///< normal landing
     u8 weight;
+    float jump_v;        ///< full hop initial Y speed
+    float hop_v;         ///< short hop initial Y speed
     CourseMoveData move[CMOVE_COUNT];
 } CourseFighterData;
 
 /* Indexed by FighterData.kind (internal fighter kind). */
 static const CourseFighterData course_fd[27] = {
-    /*  0 mario */ { 4, 4, 100, {
+    /*  0 mario */ { 4, 4, 100, 2.3F, 1.4F, {
         [CMOVE_JAB1] = { 2, 16, 15, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 38, 48, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 5, 33, 32, 0, 0, 9, 0, 0 },
@@ -81,7 +83,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /*  1 fox */ { 3, 4, 75, {
+    /*  1 fox */ { 3, 4, 75, 3.68F, 2.1F, {
         [CMOVE_JAB1] = { 2, 16, 17, 0, 0, 4, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 4, 36, 39, 0, 0, 7, 0, 0 },
         [CMOVE_FTILT] = { 5, 27, 26, 0, 0, 9, 0, 0 },
@@ -107,7 +109,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 34 },
     } },
-    /*  2 captain-falcon */ { 4, 4, 104, {
+    /*  2 captain-falcon */ { 4, 4, 104, 3.1F, 1.9F, {
         [CMOVE_JAB1] = { 3, 16, 21, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 7, 38, 39, 0, 0, 10, 0, 0 },
         [CMOVE_FTILT] = { 9, 30, 29, 0, 0, 11, 0, 0 },
@@ -133,7 +135,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 22 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 24 },
     } },
-    /*  3 donkey-kong */ { 5, 5, 114, {
+    /*  3 donkey-kong */ { 5, 5, 114, 2.7F, 1.6F, {
         [CMOVE_JAB1] = { 5, 25, 24, 0, 0, 4, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 9, 55, 54, 0, 0, 11, 0, 0 },
         [CMOVE_FTILT] = { 8, 34, 33, 0, 0, 10, 0, 0 },
@@ -159,7 +161,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 34 },
     } },
-    /*  4 kirby */ { 3, 4, 70, {
+    /*  4 kirby */ { 3, 4, 70, 2.0F, 1.5F, {
         [CMOVE_JAB1] = { 3, 16, 17, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 9, 60, 63, 0, 0, 8, 0, 0 },
         [CMOVE_FTILT] = { 5, 28, 32, 0, 0, 11, 0, 0 },
@@ -185,7 +187,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 34, 33, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 28 },
     } },
-    /*  5 bowser */ { 8, 6, 117, {
+    /*  5 bowser */ { 8, 6, 117, 2.8F, 1.6F, {
         [CMOVE_JAB1] = { 7, 21, 24, 0, 0, 5, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 10, 56, 59, 0, 0, 11, 0, 0 },
         [CMOVE_FTILT] = { 12, 37, 47, 0, 0, 14, 0, 0 },
@@ -211,7 +213,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 33 },
     } },
-    /*  6 link */ { 6, 4, 104, {
+    /*  6 link */ { 6, 4, 104, 2.5F, 1.5F, {
         [CMOVE_JAB1] = { 6, 20, 24, 0, 0, 5, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 7, 40, 53, 0, 0, 12, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -237,7 +239,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 38 },
     } },
-    /*  7 sheik */ { 3, 4, 90, {
+    /*  7 sheik */ { 3, 4, 90, 2.8F, 2.14F, {
         [CMOVE_JAB1] = { 2, 16, 17, 0, 0, 4, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 36, 37, 0, 0, 10, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -263,7 +265,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 39 },
     } },
-    /*  8 ness */ { 4, 4, 94, {
+    /*  8 ness */ { 4, 4, 94, 2.5F, 1.5F, {
         [CMOVE_JAB1] = { 3, 20, 19, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 8, 40, 41, 0, 0, 5, 0, 0 },
         [CMOVE_FTILT] = { 7, 35, 34, 0, 0, 11, 0, 0 },
@@ -289,7 +291,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /*  9 peach */ { 5, 4, 90, {
+    /*  9 peach */ { 5, 4, 90, 2.2F, 1.6F, {
         [CMOVE_JAB1] = { 2, 16, 19, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 36, 37, 0, 0, 12, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -315,7 +317,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 51, 50, 0, 0, 0, 1, 39 },
     } },
-    /* 10 ice-climbers */ { 3, 4, 88, {
+    /* 10 ice-climbers */ { 3, 4, 88, 2.6F, 1.4F, {
         [CMOVE_JAB1] = { 4, 16, 29, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 11, 38, 41, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 6, 28, 31, 0, 0, 8, 0, 0 },
@@ -341,7 +343,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 11 ice-climbers */ { 3, 4, 88, {
+    /* 11 ice-climbers */ { 3, 4, 88, 2.6F, 1.4F, {
         [CMOVE_JAB1] = { 4, 16, 29, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 11, 38, 41, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 6, 28, 31, 0, 0, 8, 0, 0 },
@@ -367,7 +369,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 12 pikachu */ { 3, 4, 80, {
+    /* 12 pikachu */ { 3, 4, 80, 2.6F, 1.7F, {
         [CMOVE_JAB1] = { 2, 22, 21, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 5, 50, 49, 0, 0, 8, 0, 0 },
         [CMOVE_FTILT] = { 5, 30, 29, 0, 0, 8, 0, 0 },
@@ -393,7 +395,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 24 },
     } },
-    /* 13 samus */ { 3, 4, 110, {
+    /* 13 samus */ { 3, 4, 110, 2.1F, 1.7F, {
         [CMOVE_JAB1] = { 3, 18, 17, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 7, 38, 37, 0, 0, 13, 0, 0 },
         [CMOVE_FTILT] = { 6, 30, 31, 0, 0, 10, 0, 0 },
@@ -419,7 +421,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 36 },
     } },
-    /* 14 yoshi */ { 5, 4, 108, {
+    /* 14 yoshi */ { 5, 4, 108, 2.5F, 1.8F, {
         [CMOVE_JAB1] = { 3, 18, 17, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 10, 42, 43, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 6, 30, 29, 0, 0, 12, 0, 0 },
@@ -445,7 +447,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 34, 33, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 23 },
     } },
-    /* 15 jigglypuff */ { 5, 4, 60, {
+    /* 15 jigglypuff */ { 5, 4, 60, 1.6F, 1.05F, {
         [CMOVE_JAB1] = { 5, 16, 17, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 4, 39, 39, 0, 0, 12, 0, 0 },
         [CMOVE_FTILT] = { 6, 28, 27, 0, 0, 10, 0, 0 },
@@ -471,7 +473,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 34, 33, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 28 },
     } },
-    /* 16 mewtwo */ { 5, 4, 85, {
+    /* 16 mewtwo */ { 5, 4, 85, 2.3F, 1.4F, {
         [CMOVE_JAB1] = { 8, 26, 29, 0, 0, 6, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 10, 38, 49, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 6, 29, 31, 0, 0, 10, 0, 0 },
@@ -497,7 +499,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 34, 33, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 17 luigi */ { 4, 4, 100, {
+    /* 17 luigi */ { 4, 4, 100, 2.4F, 1.4F, {
         [CMOVE_JAB1] = { 2, 16, 15, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 4, 59, 63, 0, 0, 2, 0, 0 },
         [CMOVE_FTILT] = { 4, 32, 32, 0, 0, 10, 0, 0 },
@@ -523,7 +525,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 18 marth */ { 4, 4, 87, {
+    /* 18 marth */ { 4, 4, 87, 2.4F, 1.5F, {
         [CMOVE_JAB1] = { 4, 26, 27, 0, 0, 6, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 12, 40, 49, 0, 0, 12, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -549,7 +551,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 38 },
     } },
-    /* 19 zelda */ { 6, 4, 90, {
+    /* 19 zelda */ { 6, 4, 90, 2.1F, 1.6F, {
         [CMOVE_JAB1] = { 11, 27, 29, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 36, 37, 0, 0, 13, 0, 0 },
         [CMOVE_FTILT] = { 12, 37, 37, 0, 0, 13, 0, 0 },
@@ -575,7 +577,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 51, 50, 0, 0, 0, 1, 39 },
     } },
-    /* 20 young-link */ { 4, 4, 85, {
+    /* 20 young-link */ { 4, 4, 85, 2.62F, 1.5F, {
         [CMOVE_JAB1] = { 6, 20, 23, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 7, 40, 53, 0, 0, 11, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -601,7 +603,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 38 },
     } },
-    /* 21 dr-mario */ { 4, 4, 100, {
+    /* 21 dr-mario */ { 4, 4, 100, 2.3F, 1.4F, {
         [CMOVE_JAB1] = { 2, 16, 15, 0, 0, 4, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 38, 43, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 4, 30, 29, 0, 0, 8, 0, 0 },
@@ -627,7 +629,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 22 falco */ { 5, 4, 80, {
+    /* 22 falco */ { 5, 4, 80, 4.1F, 1.9F, {
         [CMOVE_JAB1] = { 2, 16, 17, 0, 0, 4, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 4, 36, 39, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 5, 27, 26, 0, 0, 9, 0, 0 },
@@ -653,7 +655,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 34 },
     } },
-    /* 23 pichu */ { 3, 2, 55, {
+    /* 23 pichu */ { 3, 2, 55, 2.6F, 1.7F, {
         [CMOVE_JAB1] = { 2, 22, 21, 0, 0, 2, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 5, 50, 49, 0, 0, 8, 0, 0 },
         [CMOVE_FTILT] = { 5, 30, 29, 0, 0, 8, 0, 0 },
@@ -679,7 +681,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 33, 32, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 24 },
     } },
-    /* 24 mr-game-and-watch */ { 4, 4, 60, {
+    /* 24 mr-game-and-watch */ { 4, 4, 60, 2.3F, 1.4F, {
         [CMOVE_JAB1] = { 4, 16, 17, 0, 0, 3, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 6, 38, 37, 0, 0, 9, 0, 0 },
         [CMOVE_FTILT] = { 0 },
@@ -705,7 +707,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 35, 34, 0, 0, 0, 1, 30 },
         [CMOVE_LEDGE_ROLL] = { 0, 50, 49, 0, 0, 0, 1, 27 },
     } },
-    /* 25 ganondorf */ { 6, 5, 109, {
+    /* 25 ganondorf */ { 6, 5, 109, 2.6F, 2.0F, {
         [CMOVE_JAB1] = { 3, 19, 21, 0, 0, 8, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 7, 38, 39, 0, 0, 14, 0, 0 },
         [CMOVE_FTILT] = { 9, 30, 29, 0, 0, 13, 0, 0 },
@@ -731,7 +733,7 @@ static const CourseFighterData course_fd[27] = {
         [CMOVE_LEDGE_GETUP] = { 0, 34, 33, 0, 0, 0, 1, 22 },
         [CMOVE_LEDGE_ROLL] = { 0, 49, 48, 0, 0, 0, 1, 24 },
     } },
-    /* 26 roy */ { 5, 4, 85, {
+    /* 26 roy */ { 5, 4, 85, 2.6F, 1.5F, {
         [CMOVE_JAB1] = { 4, 26, 31, 0, 0, 6, 0, 0 },
         [CMOVE_DASH_ATTACK] = { 12, 40, 57, 0, 0, 12, 0, 0 },
         [CMOVE_FTILT] = { 0 },

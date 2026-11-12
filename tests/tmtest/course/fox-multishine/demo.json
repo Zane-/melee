@@ -1,0 +1,21 @@
+{
+  "comment": "Reference demonstration: 3 shines (default), frame perfect.",
+  "event": "course",
+  "drill": "fox-multishine",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "shines": 3,
+    "worst_late": 0
+  }
+}

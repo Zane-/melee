@@ -20,6 +20,52 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .cpu_kind = CKIND_MARTH,
         .deck = &ShineOos_Deck,
     },
+    /* Tech drills, in the course's order (the hub lists by this table). */
+    [DRILL_TECH_SHORT_HOP] = {
+        .id = "universal-short-hop",
+        .name = "Short Hop",
+        .goal = "Leave the ground with a short hop every time",
+        .part = COURSE_TECH,
+        .characters = 0,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
+    [DRILL_TECH_WAVEDASH] = {
+        .id = "universal-wavedash",
+        .name = "Wavedash",
+        .goal = "Air dodge into the ground on your first airborne frame",
+        .part = COURSE_TECH,
+        .characters = 0,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
+    [DRILL_FOX_WAVESHINE] = {
+        .id = "fox-waveshine",
+        .name = "Waveshine",
+        .goal = "Shine, jump, wavedash with no wasted frames",
+        .part = COURSE_TECH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
+    [DRILL_FOX_JC_SHINE] = {
+        .id = "fox-jc-shine",
+        .name = "Frame-Perfect JC Shine",
+        .goal = "Jump out of shine on the first possible frame",
+        .part = COURSE_TECH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
+    [DRILL_FOX_MULTISHINE] = {
+        .id = "fox-multishine",
+        .name = "Multishine",
+        .goal = "Consecutive shines without leaving the ground",
+        .part = COURSE_TECH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
 };
 
 int Course_Current = DRILL_FOX_SHINE_OOS;

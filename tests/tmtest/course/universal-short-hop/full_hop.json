@@ -1,0 +1,21 @@
+{
+  "comment": "X held 6 frames: full hop, a fail.",
+  "event": "course",
+  "drill": "universal-short-hop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 6,
+      "buttons": [
+        "X"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

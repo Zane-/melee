@@ -22,10 +22,10 @@ L-cancelled, Ice Climbers' desynced wavedash).
 
 | id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
 |-|-|-|-|-|-|
-| `universal-short-hop` | Short hop | Short hop every time; press length shown | [short hop](../techniques/short-hop.md) | - | planned |
+| `universal-short-hop` | Short hop | Short hop every time; press length shown | [short hop](../techniques/short-hop.md) | - | implemented: `drills/tech_short_hop.inc.h`; simulator and Dolphin specs pass (2026-11-12). Press length shown in the verdict |
 | `universal-l-cancel` | L-cancel | L-cancel whiffed, hit and shielded aerials | [L-cancel](../techniques/l-cancel.md) | `lcancel` | planned |
 | `universal-shffl` | SHFFL | All four components with per-component feedback | [SHFFL](../techniques/shffl.md), [fast fall](../techniques/fast-fall.md) | `lcancel` | planned |
-| `universal-wavedash` | Wavedash | Air dodge on the first airborne frame at a chosen angle | [wavedash](../techniques/wavedash.md), [waveland](../techniques/waveland.md) | `wavedash` | planned |
+| `universal-wavedash` | Wavedash | Air dodge on the first airborne frame at a chosen angle | [wavedash](../techniques/wavedash.md), [waveland](../techniques/waveland.md) | `wavedash` | implemented: `drills/tech_wavedash.inc.h`; simulator and Dolphin specs pass (2026-11-12). Chosen length / angle not built |
 | `universal-dash-dance` | Dash dance and pivot | Controlled dash lengths and turnarounds | [dash dance](../techniques/dash-dance.md), [pivot](../techniques/pivot.md) | - | planned |
 | `universal-jc-grab` | Jump-cancel grab and up smash | Standing grab and up smash out of a run | [jump cancel](../techniques/jump-cancel.md) | - | planned |
 | `universal-ledgedash` | Ledgedash | Onto the stage with intangibility left | [ledgedash](../techniques/ledgedash.md) | `ledgedash` | planned |

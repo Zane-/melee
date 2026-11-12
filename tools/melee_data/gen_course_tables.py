@@ -80,6 +80,8 @@ def generate():
         "    u8 jump_squat;       ///< frames before airborne",
         "    u8 landing_lag;      ///< normal landing",
         "    u8 weight;",
+        "    float jump_v;        ///< full hop initial Y speed",
+        "    float hop_v;         ///< short hop initial Y speed",
         "    CourseMoveData move[CMOVE_COUNT];",
         "} CourseFighterData;",
         "",
@@ -93,9 +95,10 @@ def generate():
                 cache[cid] = json.load(f)
         c = cache[cid]
         a = c["attributes"]
-        out.append("    /* %2d %s */ { %d, %d, %d, {" % (
+        out.append("    /* %2d %s */ { %d, %d, %d, %sF, %sF, {" % (
             kind, cid, a["jump_startup_time"], a["normal_landing_lag"],
-            a["weight"]))
+            a["weight"], float(a["jump_v_initial_velocity"]),
+            float(a["hop_v_initial_velocity"])))
         for name, key in MOVES:
             m = c["moves"].get(key)
             if m is None:

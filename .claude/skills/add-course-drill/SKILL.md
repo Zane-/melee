@@ -9,11 +9,13 @@ Architecture and milestones: `docs/ai/training-courses.md`. Spec format and stat
 `data/courses/README.md`. TM-CE services and build: `docs/ai/tmce-native.md`. Overlay rules:
 `CLAUDE.md` (no edits to vanilla functions, hooks through the hook tables, C only).
 
-**Engine status (update this when it changes): M2, 2026-11-12.** The engine runs drills
-with a guide overlay, demonstrations and generated frame data, and the hub lists them
-(`docs/ai/training-courses.md` says exactly what is built). One drill exists and is the
-model: `src/tmce/events/course/drills/fox_shine_oos.inc.h`. Not built yet, so a drill cannot
-use them: savestate resets, the detector library, guide text generated from the course file.
+**Engine status (update this when it changes): M3 started, 2026-11-12.** The engine runs
+drills with a guide overlay, demonstrations and generated frame data, and the hub lists them
+(`docs/ai/training-courses.md` says exactly what is built). Models to copy: with an opponent
+and a deck of scenarios, `drills/fox_shine_oos.inc.h`; alone and graded on frames,
+`drills/tech_wavedash.inc.h` and `drills/fox_shine_tech.inc.h`. Not built yet, so a drill
+cannot use them: savestate resets, the detector library, a passive target dummy, guide text
+generated from the course file.
 
 Adding a drill touches four places:
 
@@ -32,6 +34,17 @@ Adding a drill touches four places:
 Finding a reference's offsets: start from the spec's frames, run the `demo_` spec in the
 simulator, read the verdict, adjust, repeat (a build and a run take about 20 seconds). An
 input one frame early often comes out as a different action, not nothing.
+
+Rules that cost a debugging round each:
+
+- Count frames with `c->state`, `c->state_frames`, `c->held`, `c->down` (the player at the
+  end of the previous frame), not `hd->state_id` inside `Think`.
+- Every line of a verdict message is at most 32 characters after formatting; a longer one
+  asserts in `Message_Display`.
+- A guide has at most 8 lines, and the whole panel at most 32 texts.
+- Measure the technique's frames in the simulator sandbox first (`melee-sim` skill) and
+  write them in the drill's header comment with the date.
+- Add failing specs too (too early, too late, strict leniency), not only the success.
 
 Numbers in `Think` and `Guide` come from `course_Fighter(c->hd)` / `course_Fighter(c->cd)`
 (jump squat, weight, per-move `hit`, `faf`, `total`, landing lag, intangibility); add a

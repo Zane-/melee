@@ -1,0 +1,49 @@
+{
+  "comment": "Jump 3 late and dodge 1 late, Leniency = Frame Perfect.",
+  "event": "course",
+  "drill": "fox-waveshine",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      5,
+      0
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 46,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 50,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        90,
+        -90
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "comment": "Same with Leniency = Frame Perfect: a fail.",
+  "event": "course",
+  "drill": "universal-wavedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 300,
+  "options": [
+    [
+      5,
+      0
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 44,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        90,
+        -90
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "measured": 2
+  }
+}

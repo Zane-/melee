@@ -12,9 +12,11 @@ select). It does not replace TM-CE's machinery: the Lab, the generic events, sav
 menu engine, messages, HUD drawing and the OSDs stay and are what courses are built from
 (`tmce-native.md`).
 
-**Status (2026-11-12): M1 and M2 are in.** The engine runs one drill (`fox-shine-oos`) with
-a guide overlay, a demonstration and generated frame data; the hub opens after character
-select. Every other drill is still a plan. "Built" and "Planned" are marked per section;
+**Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
+runs six drills with a guide overlay, a demonstration and generated frame data; the hub
+opens after character select. Built: `fox-shine-oos` (Punish) and five Tech drills,
+`universal-short-hop`, `universal-wavedash`, `fox-waveshine`, `fox-jc-shine`,
+`fox-multishine`. The other drills in `data/courses/fox.md` are still plans. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |
@@ -124,7 +126,27 @@ As built in M2:
   `gen/framedata.inc.h`, generated from `data/framedata/`. Regenerate with
   `python tools/melee_data/gen_course_tables.py` after `extract.py`.
 
-Two things learned the hard way: the simulator never runs drawing code (GX callbacks), so
+Added with the first Tech drills (M3):
+
+- **Solo drills**: `cpu_kind = -1` in the drill's info, `course_PlaceSolo` in `Setup`.
+- **End-of-frame sampling**: `c->state`, `c->prev_state`, `c->state_frames`, `c->held`,
+  `c->down` are the player at the end of the previous frame, taken by a proc that runs
+  after the fighters'. The drill's `Think` runs part-way through the fighter's frame, so
+  `hd->state_id` read there shows input- and landing-driven state changes a frame later
+  than animation-driven ones; frame counts mixing the two come out one off. Count frames
+  with the sampled fields.
+- **Leniency option**: `COURSE_OPT_LENIENCY` in the drill's options and
+  `course_Leniency(index)`; default 2 frames late still succeeds.
+- **Script frames in jump squats**: a `CourseRefInput`'s last field adds that many of the
+  player's jump squats to its frame, so one script fits every character. A script with no
+  marks is demonstrated in one pass.
+- **Options per drill**: a drill's own options reset to their defaults when another drill
+  is opened; the common ones carry over.
+- **HUD text limit**: TM-CE's HUD has 32 texts per frame and the game stops when a 33rd is
+  drawn. The guide stays under it (it numbers only some timeline frames) and `GuideText`
+  refuses past the limit.
+
+Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL
 `event_vars->HUD_DrawTextEx`, which TM-CE's table leaves unset; call `HUD_DrawTextEx`
 directly); and both passes of a demonstration must start from a released pad, or the first

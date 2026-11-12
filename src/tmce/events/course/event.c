@@ -41,6 +41,17 @@ typedef struct CourseCtx {
     float toward; ///< +1/-1: the player's direction seen from the CPU
     int hmn_hit;  ///< the player took damage this frame
     int cpu_hit;  ///< the CPU took damage this frame
+    /* The player at the end of the previous frame, sampled after every
+     * fighter proc has run (Sample). Think itself runs part-way through the
+     * fighter's frame: read there, a state entered by an input or a landing
+     * shows up a frame later than one entered by an animation ending, and
+     * frame counts between the two come out one off. Count frames with
+     * these, not with hd->state_id. */
+    int state;        ///< action state
+    int prev_state;   ///< the state before that one
+    int state_frames; ///< frames in `state` (1 = entered that frame)
+    int held;         ///< buttons held that frame
+    int down;         ///< buttons pressed that frame
 } CourseCtx;
 
 /* The inputs that solve a drill, relative to marks: moments of an attempt
@@ -66,6 +77,7 @@ typedef struct CourseRefInput {
     s8 cx, cy;   ///< C-stick
     u16 buttons; ///< PAD_BUTTON_* | PAD_TRIGGER_*
     u8 trigger;  ///< analog R, 0..140
+    s8 js;       ///< `frame` is this many jump squats later (the player's)
 } CourseRefInput;
 
 /* What the guide overlay shows for a drill. The drill fills the text (with
@@ -102,6 +114,8 @@ typedef struct CourseDrill {
 static void course_Phase(CourseCtx* c, int phase);
 static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
                          int cpu_faces_away, float cpu_percent);
+static void course_PlaceSolo(CourseCtx* c, float x);
+static int course_Leniency(int option);
 static void course_Script(CourseCtx* c, const CourseInput* in, int frame);
 static void course_Message(int color, char* fmt, const char* a, int b,
                            int c);
@@ -139,6 +153,20 @@ static const char* opt_side[] = { "Random", "Left", "Right" };
 static const char* opt_reset_delay[] = { "Fast", "Normal", "Slow" };
 static const int reset_delay_frames[] = { 20, 45, 90 };
 static const char* opt_demo[] = { "Off", "Show Once", "Keep Showing" };
+
+/* For drills graded on frames: how many frames late still counts. A drill
+ * puts COURSE_OPT_LENIENCY in its options and reads it with
+ * course_Leniency(index of that option). */
+static const char* opt_leniency[] = { "Frame Perfect", "1 Frame", "2 Frames",
+                                      "4 Frames" };
+static const int leniency_frames[] = { 0, 1, 2, 4 };
+#define COURSE_OPT_LENIENCY                                                   \
+    {                                                                         \
+        .kind = OPTKIND_STRING, .value_num = countof(opt_leniency), .val = 2, \
+        .name = "Leniency",                                                   \
+        .desc = { "How many frames late still counts as a success." },        \
+        .values = opt_leniency,                                               \
+    }
 
 static EventOption Options_Common[OPT_COMMON_COUNT] = {
     {
@@ -254,9 +282,17 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 /* Drills are headers by name only (`.inc.h`): the build rechecks units when
  * a header changes, and would miss an edit to an included .c file. */
 #include "drills/fox_shine_oos.inc.h"
+#include "drills/tech_short_hop.inc.h"
+#include "drills/tech_wavedash.inc.h"
+#include "drills/fox_shine_tech.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
+    [DRILL_TECH_SHORT_HOP] = &Drill_TechShortHop,
+    [DRILL_TECH_WAVEDASH] = &Drill_TechWavedash,
+    [DRILL_FOX_WAVESHINE] = &Drill_FoxWaveshine,
+    [DRILL_FOX_JC_SHINE] = &Drill_FoxJcShine,
+    [DRILL_FOX_MULTISHINE] = &Drill_FoxMultishine,
 };
 
 /* ---- engine ------------------------------------------------------------- */
@@ -341,6 +377,20 @@ static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
     ResetFighter(Fighter_GetGObj(1), cpu_x, cpu_faces_away ? s : -s,
                  cpu_percent);
     Match_CorrectCamera();
+}
+
+/* Drills without an opponent: the player standing at x, facing right. */
+static void course_PlaceSolo(CourseCtx* c, float x)
+{
+    ResetFighter(Fighter_GetGObj(0), x, 1.0F, 0);
+    Match_CorrectCamera();
+}
+
+/* Frames of lateness the drill's Leniency option (its index among the
+ * drill's own options) allows. */
+static int course_Leniency(int option)
+{
+    return leniency_frames[Options_Main[OPT_COMMON_COUNT + option].val];
 }
 
 /* Apply the script entries active on `frame` to the CPU's pad. The engine
@@ -429,7 +479,8 @@ static void PlayReference(CourseCtx* c)
         } else {
             continue;
         }
-        t = en.attempt_frame - (base + in->frame);
+        t = en.attempt_frame -
+            (base + in->frame + in->js * course_Fighter(c->hd)->jump_squat);
         if (t < 0 || t >= hold) {
             continue;
         }
@@ -612,11 +663,12 @@ static void course_Retry(CourseCtx* c, char* fmt)
 #define GUIDE_X (-25.0F)
 #define GUIDE_Y (-10.5F) /* clear of the damage display below */
 #define GUIDE_W 50.0F
-#define GUIDE_H 29.5F
+#define GUIDE_H 32.5F
 #define GUIDE_TEXT_X (GUIDE_X + 1.5F)
-#define GUIDE_LINE_H 1.95F
+#define GUIDE_LINE_H 1.9F
 #define GUIDE_TIMELINE_FROM (-2) /* frames shown around the script's mark */
 #define GUIDE_TIMELINE_TO 8
+#define GUIDE_TIMELINE_SOLO 15 /* frames shown of a script without marks */
 
 static void GuideOpen(CourseCtx* c)
 {
@@ -647,6 +699,10 @@ static void GuideText(const char* text, float x, float y, float size,
     /* w = 0: HUD_DrawTextEx anchors at the rect's centre. */
     Rect r = { x, y, 0, 0 };
     static const GXColor black = { 0, 0, 0, 255 };
+    HUDCamData* cam = event_vars->hudcam_gobj->userdata;
+    if (cam->text_cache_used >= countof(cam->text_cache)) {
+        return; /* out of HUD texts: drawing one more stops the game */
+    }
     /* Called directly: TM-CE leaves event_vars->HUD_DrawTextEx NULL (its
      * table initialiser in events.c omits it). */
     HUD_DrawTextEx(text, &r, size, color, black, 1.0F, 0);
@@ -668,7 +724,9 @@ static void GuideText(const char* text, float x, float y, float size,
 static const char* RefLabel(const CourseRefInput* in)
 {
     static char buf[16];
-    const char* dir = in->ly < -60   ? "Down+"
+    const char* dir = (in->ly < -60 && (in->lx > 60 || in->lx < -60))
+                          ? "Diag+"
+                      : in->ly < -60 ? "Down+"
                       : in->ly > 60  ? "Up+"
                       : in->lx > 60  ? "Fwd+"
                       : in->lx < -60 ? "Back+"
@@ -688,7 +746,9 @@ static const char* RefLabel(const CourseRefInput* in)
     return buf;
 }
 
-/* The reference script's inputs after its first mark, one box per frame. */
+/* The reference script's inputs, one box per frame: the ones placed
+ * against a mark if it has any (frames around the mark), otherwise all of
+ * it from its first input. */
 static void GuideTimeline(float y)
 {
     const CourseRefInput* ref = en.drill->reference;
@@ -697,33 +757,58 @@ static void GuideTimeline(float y)
     static const GXColor press = { 255, 211, 0, 255 };
     static const GXColor white = { 255, 255, 255, 255 };
     static const GXColor grey = { 190, 190, 190, 255 };
-    int n = GUIDE_TIMELINE_TO - GUIDE_TIMELINE_FROM + 1;
+    int js = course_Fighter(en.ctx.hd)->jump_squat;
+    int marked = 0, origin = 0, from, to;
     float box = 2.2F, gap = 0.4F;
-    float x0 = GUIDE_TEXT_X + 9.0F;
+    float x0 = GUIDE_TEXT_X + 6.0F;
+    const char* caption = en.guide.timeline_from;
     char buf[8];
     int f;
 
     if (ref == NULL) {
         return;
     }
+    for (in = ref; in->mark != COURSE_REF_END; in++) {
+        if (in->mark != 0) {
+            marked = 1;
+        }
+    }
+    if (marked) {
+        from = GUIDE_TIMELINE_FROM;
+        to = GUIDE_TIMELINE_TO;
+    } else {
+        origin = ref->frame + ref->js * js;
+        from = 0;
+        to = GUIDE_TIMELINE_SOLO - 1;
+        if (caption == NULL) {
+            caption = "frames (1 = your first input)";
+        }
+    }
     GuideText("Inputs", GUIDE_TEXT_X, y - 0.4F, 0.45F, white);
-    for (f = GUIDE_TIMELINE_FROM; f <= GUIDE_TIMELINE_TO; f++) {
-        float x = x0 + (f - GUIDE_TIMELINE_FROM) * (box + gap);
+    for (f = from; f <= to; f++) {
+        float x = x0 + (f - from) * (box + gap);
         Rect r = { x, y - box, box, box };
         GXColor color = idle;
         for (in = ref; in->mark != COURSE_REF_END; in++) {
-            if (in->mark != 0 && in->frame == f) {
+            if ((in->mark != 0) == marked &&
+                in->frame + in->js * js - origin == f)
+            {
                 color = press;
-                GuideText(RefLabel(in), x - 0.3F, y + 1.6F, 0.4F, press);
+                const char* label = RefLabel(in);
+                GuideText(label, x - (strlen(label) > 2 ? 1.0F : 0.3F),
+                          y + 1.6F, 0.4F, press);
             }
         }
         event_vars->HUD_DrawRects(&r, &color, 1);
-        sprintf(buf, "%d", f + 1);
-        GuideText(buf, x + 0.4F, y - box - 0.3F, 0.35F, grey);
+        /* Number the pressed frames, the first and every fifth: the HUD
+         * has 32 texts in all. */
+        if (color.r == press.r || f == from || (f + 1) % 5 == 0) {
+            sprintf(buf, "%d", f + 1);
+            GuideText(buf, x + 0.4F, y - box - 0.3F, 0.35F, grey);
+        }
     }
-    (void) n;
-    if (en.guide.timeline_from != NULL) {
-        GuideText(en.guide.timeline_from, x0, y - box - 2.4F, 0.38F, grey);
+    if (caption != NULL) {
+        GuideText(caption, x0, y - box - 2.0F, 0.38F, grey);
     }
 }
 
@@ -760,10 +845,33 @@ static void Guide_GX(GOBJ* gobj, int pass)
               GUIDE_TEXT_X, GUIDE_Y + 1.2F, 0.4F, grey);
 }
 
+/* Later than every fighter proc (TM-CE's own end-of-frame procs use 20). */
+#define COURSE_SAMPLE_PRIORITY 19
+
+/* End of frame: what the player's fighter ended up doing (see CourseCtx). */
+static void Sample(GOBJ* gobj)
+{
+    CourseCtx* c = &en.ctx;
+    GOBJ* hmn = Fighter_GetGObj(0);
+    FighterData* hd;
+    if (hmn == NULL || en.run != RUN_ATTEMPT) {
+        return;
+    }
+    hd = hmn->userdata;
+    if ((int) hd->state_id != c->state) {
+        c->prev_state = c->state;
+        c->state = hd->state_id;
+        c->state_frames = 0;
+    }
+    c->state_frames++;
+    c->held = hd->input.held;
+    c->down = hd->input.down;
+}
+
 static int PickScenario(void)
 {
     int fixed = Options_Main[OPT_SCENARIO].val;
-    if (en.demo == 2) {
+    if (en.demo == 2 && en.demo_scenario >= 0) {
         return en.demo_scenario; /* the pass that was just observed */
     }
     if (fixed > 0 && ScenarioUsable(fixed - 1)) {
@@ -795,8 +903,17 @@ static void Reset(void)
     if (en.demo == 0 && Options_Main[OPT_DEMO].val != DEMO_OFF &&
         en.drill->reference != NULL)
     {
-        en.demo = 1;
+        const CourseRefInput* in;
+        /* Nothing to observe if every input is placed against the start
+         * of the attempt: play it straight away. */
+        en.demo = 2;
+        for (in = en.drill->reference; in->mark != COURSE_REF_END; in++) {
+            if (in->mark != 0) {
+                en.demo = 1;
+            }
+        }
         en.demo_seed = **stc_rng_seed;
+        en.demo_scenario = -1;
     }
     if (en.demo != 0) {
         **stc_rng_seed = en.demo_seed;
@@ -833,12 +950,15 @@ static void Reset(void)
     c->timer = 0;
     c->hmn_hit = 0;
     c->cpu_hit = 0;
+    c->state = c->prev_state = -1;
+    c->state_frames = 0;
+    c->held = c->down = 0;
     en.run = RUN_ATTEMPT;
     en.attempt_frame = 0;
     for (i = 0; i < COURSE_MAX_MARKS; i++) {
         en.marks[i] = -1;
     }
-    if (en.demo == 1) {
+    if (en.demo != 0) {
         en.demo_scenario = idx;
     }
     en.has_measure = 0;
@@ -864,11 +984,21 @@ static void Reset(void)
 
 /* `def` with the value `cur` holds, if `cur` was built before or had a
  * value stored into it while still empty. */
-static EventOption MergeOption(const EventOption* cur,
-                               const EventOption* def)
+/* The drill whose options Options_Main holds, -1 before the first. */
+static int options_drill = -1;
+
+/* An option slot keeps its value when it has been set up before (or written
+ * by a test: tmce_test_SetOption names the slot) and still means the same
+ * thing: always for the common options, for a drill's own only while the
+ * drill is the same. Otherwise it takes the default. */
+static EventOption MergeOption(const EventOption* cur, const EventOption* def,
+                               int is_common)
 {
     EventOption out = *def;
-    if (cur->name != NULL || cur->val != 0) {
+    if (cur->name != NULL &&
+        (is_common || options_drill == -1 ||
+         options_drill == (int) Course_Current))
+    {
         out.val = cur->val;
     }
     return out;
@@ -893,15 +1023,20 @@ void Event_Init(GOBJ* gobj)
      * rebuild (retry keeps the player's settings), and a value stored
      * before the first build (a test's) wins over the default. */
     for (i = 0; i < OPT_COMMON_COUNT; i++, o++) {
-        Options_Main[o] = MergeOption(&Options_Main[o], &Options_Common[i]);
+        Options_Main[o] =
+            MergeOption(&Options_Main[o], &Options_Common[i], 1);
     }
     Options_Main[OPT_SCENARIO].value_num = n + 1;
+    if (Options_Main[OPT_SCENARIO].val > n) {
+        Options_Main[OPT_SCENARIO].val = 0; /* another drill's scenario */
+    }
     for (i = 0; i < en.drill->option_count && i < MAX_DRILL_OPTIONS;
          i++, o++)
     {
-        Options_Main[o] = MergeOption(&Options_Main[o],
-                                      &en.drill->options[i]);
+        Options_Main[o] =
+            MergeOption(&Options_Main[o], &en.drill->options[i], 0);
     }
+    options_drill = Course_Current;
     Options_Main[o].kind = OPTKIND_INFO;
     Options_Main[o].name = "HELP";
     Options_Main[o].desc[0] = (char*) en.drill->help[0];
@@ -920,10 +1055,12 @@ void Event_Init(GOBJ* gobj)
         en.drill->Init();
     }
 
-    /* The guide overlay draws with the HUD camera. */
+    /* The guide overlay draws with the HUD camera; the same object samples
+     * the player after the fighters' procs. */
     {
         GOBJ* guide = GObj_Create(0, 0, 0);
         GObj_AddGXLink(guide, Guide_GX, 5, 0);
+        GObj_AddProc(guide, Sample, COURSE_SAMPLE_PRIORITY);
     }
 }
 
