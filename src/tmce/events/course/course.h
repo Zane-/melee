@@ -47,6 +47,7 @@ enum CourseDrillId {
     DRILL_FOX_SHDL,
     DRILL_FOX_LEDGE_STALL,
     DRILL_FOX_ILLUSION_SHORTEN,
+    DRILL_FOX_WHIFF_PUNISH,
     DRILL_COUNT,
 };
 
@@ -115,5 +116,17 @@ typedef struct CourseInput {
     s8 cx, cy;
     u32 buttons; ///< PAD_BUTTON_* | PAD_TRIGGER_*
 } CourseInput;
+
+/// A scenario of a whiff-punish drill: an attack the CPU throws once the
+/// player has been inside its reach for its reaction time.
+typedef struct WhiffScenario {
+    float reach;              ///< the attack hits a standing player this near
+    const CourseInput* inputs; ///< the attack; frame 0 = when the CPU commits
+    s16 hit_end;              ///< script frame its last hitbox is gone after
+    s16 faf;                  ///< script frame the CPU can act again
+    s16 demo_back;            ///< script frame the demonstration goes back in
+} WhiffScenario;
+
+extern const TmRotDeck WhiffPunish_Deck;
 
 #endif

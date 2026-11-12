@@ -115,6 +115,10 @@ typedef struct CourseDrill {
     /// after Setup). For scripts that depend on the character or change
     /// from one demonstration to the next (course_DemoCount).
     const CourseRefInput* (*BuildReference)(CourseCtx* c);
+    /// The reference's marked inputs all come after their mark (frame >= 1)
+    /// and can be played in the attempt that announces it: no observing
+    /// pass.
+    int live_marks;
     /// A result does not end the attempt: it is counted and shown, and the
     /// drill starts again from phase 0 where the player stands. For
     /// technique practice, where being put back after every try breaks the
@@ -132,6 +136,7 @@ static void course_PlaceOnLedge(CourseCtx* c);
 static void course_PlaceOnPlatform(CourseCtx* c, float x, float above_y);
 static int course_Fell(CourseCtx* c);
 static int course_DemoCount(void);
+static int course_IsDemo(void);
 static int course_Leniency(int option);
 static void course_Script(CourseCtx* c, const CourseInput* in, int frame);
 static void course_Message(int color, char* fmt, const char* a, int b,
@@ -308,6 +313,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/fox_specials.inc.h"
 #include "drills/fox_pressure.inc.h"
 #include "drills/tech_ledge.inc.h"
+#include "drills/fox_neutral.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -322,6 +328,7 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_MULTISHINE] = &Drill_FoxMultishine,
     [DRILL_FOX_SHINE_GRAB] = &Drill_FoxShineGrab,
     [DRILL_FOX_NAIR_SHINE] = &Drill_FoxNairShine,
+    [DRILL_FOX_WHIFF_PUNISH] = &Drill_FoxWhiffPunish,
     [DRILL_FOX_SHDL] = &Drill_FoxShdl,
     [DRILL_TECH_SHIELD_DROP] = &Drill_TechShieldDrop,
     [DRILL_TECH_LEDGEDASH] = &Drill_TechLedgedash,
@@ -536,6 +543,12 @@ static int course_DemoCount(void)
     return en.demo_count;
 }
 
+/* The attempt is a demonstration, not the player's. */
+static int course_IsDemo(void)
+{
+    return en.demo != 0;
+}
+
 /* Frames of lateness the drill's Leniency option (its index among the
  * drill's own options) allows. */
 static int course_Leniency(int option)
@@ -628,6 +641,12 @@ static void PlayReference(CourseCtx* c)
         int base, t;
         if (in->mark == 0) {
             base = COURSE_REF_LEAD;
+        } else if (en.drill->live_marks) {
+            /* a mark of this very attempt: inputs from the frame after it */
+            if (en.marks[in->mark] < 0) {
+                continue;
+            }
+            base = en.marks[in->mark];
         } else if (en.demo == 2 && en.demo_marks[in->mark] >= 0) {
             base = en.demo_marks[in->mark];
         } else {
@@ -1194,7 +1213,7 @@ static void Reset(void)
         const CourseRefInput* in;
         en.demo = 2;
         for (in = en.ref; in->mark != COURSE_REF_END; in++) {
-            if (in->mark != 0) {
+            if (in->mark != 0 && !en.drill->live_marks) {
                 en.demo = 1;
             }
         }

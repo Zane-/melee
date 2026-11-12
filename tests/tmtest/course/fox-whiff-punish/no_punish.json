@@ -1,0 +1,40 @@
+{
+  "comment": "Bait and retreat, then do nothing: the CPU recovers.",
+  "event": "course",
+  "drill": "fox-whiff-punish",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 10,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 20,
+      "hold": 10,
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

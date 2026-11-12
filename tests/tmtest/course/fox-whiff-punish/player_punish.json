@@ -1,0 +1,67 @@
+{
+  "comment": "A player's whiff punish with CPU Reaction = Slow: dash into Marth's range, dash out as he swings, come back and jump-cancel an up smash into his recovery.",
+  "event": "course",
+  "drill": "fox-whiff-punish",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      0
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 8,
+      "hold": 11,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 19,
+      "hold": 10,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 44,
+      "hold": 20,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 64,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 65,
+      "hold": 1,
+      "cstick": [
+        0,
+        127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success"
+  }
+}

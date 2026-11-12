@@ -14,8 +14,8 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish) and all sixteen of Fox's Tech drills. Neutral, Punish
-(beyond Shine OoS) and Defense are still plans. The owner played an earlier build on
+opens after character select. Built: `fox-shine-oos` (Punish), all sixteen of Fox's Tech drills, and the first Neutral
+drill, `fox-whiff-punish`. The rest of Neutral, Punish and Defense are still plans. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
 update this file as milestones land.
@@ -188,6 +188,18 @@ Changed after the owner's first play session (2026-11-12):
   verdict, since the start position is the drill.
 - **A guide can hide the timeline** (`g->hide_timeline`) when the reference is a stick
   motion rather than button presses.
+
+- **Neutral drills** (first: `fox-whiff-punish`): the CPU reacts to the player. It commits
+  to its attack once the player has been inside the attack's reach for a reaction time,
+  which is the difficulty option. A standing whiff punish is not reactable (Marth's
+  forward smash hits on frame 10), so the drill is the bait: in, out, back in. Scenario
+  data is a `WhiffScenario` (reach, script, last hit frame, first actionable frame),
+  measured in the simulator sandbox against a standing Fox.
+- **Live marks** (`.live_marks = 1`): a reference input placed one or more frames after a
+  mark can be played in the attempt that announces the mark, so a demonstration that
+  reacts to the CPU needs no observing pass. `course_IsDemo()` lets a drill fix its
+  difficulty during a demonstration (the whiff punish demonstration is tuned for Normal
+  reaction).
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL

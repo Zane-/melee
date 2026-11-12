@@ -1,0 +1,40 @@
+{
+  "comment": "Dash in and shield the forward smash: not a whiff.",
+  "event": "course",
+  "drill": "fox-whiff-punish",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 10,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 22,
+      "hold": 80,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

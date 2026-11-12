@@ -9,6 +9,48 @@
  * OoS event, reused as the deck of fox-shine-oos. */
 extern const TmRotDeck ShineOos_Deck;
 
+/* ---- fox-whiff-punish: the attacks ----------------------------------------
+ *
+ * Reach, hit and recovery frames measured against a standing Fox in the
+ * simulator sandbox and checked against data/framedata (2026-11-12):
+ *   Marth forward smash: hits out to 34 units, hitbox frames 10-13, acts
+ *     again on 48.
+ *   Marth dash attack (8 frames of dash, then A): from 29 out to 58,
+ *     hitbox 12-15 of the attack, interruptible from 40. (Marth down tilt
+ *     was tried and dropped: 11 frames between its hitbox and its IASA
+ *     are not a realistic whiff punish.)
+ *   Sheik and Peach dash attack (8 frames of dash, then A): out to 46-47;
+ *     hitbox 6-12 (Sheik) and 6-20 (Peach) of the attack, acts again on 36.
+ * `reach` is a little inside the measured reach, so standing there is hit.
+ */
+#define WP_END { -1 }
+static const CourseInput wp_fsmash[] = { { 0, 1, 0, 0, 127, 0, 0 }, WP_END };
+static const CourseInput wp_dash_attack[] = {
+    { 0, 9, 127, 0, 0, 0, 0 },
+    { 8, 1, 127, 0, 0, 0, PAD_BUTTON_A },
+    WP_END,
+};
+
+/* demo_back: when the demonstration starts back in, tuned in the simulator
+ * so that it arrives after the hitbox and up smashes before `faf`. */
+/*                                             reach  inputs  hit_end faf back */
+static const WhiffScenario wp_marth_fsmash = { 31.0F, wp_fsmash, 13, 48, 3 };
+static const WhiffScenario wp_marth_dash = { 50.0F, wp_dash_attack, 23, 48,
+                                             9 };
+static const WhiffScenario wp_sheik_dash = { 42.0F, wp_dash_attack, 20, 44,
+                                             10 };
+static const WhiffScenario wp_peach_dash = { 42.0F, wp_dash_attack, 28, 44,
+                                             12 };
+
+static const TmRotEntry wp_entries[] = {
+    { CKIND_MARTH, 0, &wp_marth_fsmash, "Marth - Forward Smash" },
+    { CKIND_MARTH, 0, &wp_marth_dash, "Marth - Dash Attack" },
+    { CKIND_SHEIK, 0, &wp_sheik_dash, "Sheik - Dash Attack" },
+    { CKIND_PEACH, 0, &wp_peach_dash, "Peach - Dash Attack" },
+};
+
+const TmRotDeck WhiffPunish_Deck = { wp_entries, countof(wp_entries) };
+
 const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = {
         .id = "fox-shine-oos",
@@ -19,6 +61,16 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
         .deck = &ShineOos_Deck,
+    },
+    [DRILL_FOX_WHIFF_PUNISH] = {
+        .id = "fox-whiff-punish",
+        .name = "Whiff Punish",
+        .goal = "Bait an attack, make it miss, punish its recovery",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+        .deck = &WhiffPunish_Deck,
     },
     /* Tech drills, in the course's order (the hub lists by this table). */
     [DRILL_TECH_SHORT_HOP] = {

@@ -1,0 +1,47 @@
+{
+  "comment": "Run in and dash attack Marth before he has swung.",
+  "event": "course",
+  "drill": "fox-whiff-punish",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      0
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 10,
+      "hold": 14,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 24,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

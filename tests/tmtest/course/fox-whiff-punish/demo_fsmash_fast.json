@@ -1,0 +1,32 @@
+{
+  "comment": "With CPU Reaction = Fast the demonstration still runs at Normal reaction and succeeds.",
+  "event": "course",
+  "drill": "fox-whiff-punish",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}
