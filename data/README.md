@@ -180,6 +180,7 @@ seed; `grep -rn "chain grab" data/characters/` finds who chain grabs whom.
 python tools/melee_data/extract.py     # Pl*.dat (build/disc/files) -> data/framedata/*.json
 python tools/melee_data/library.py     # meleelibrary.com -> data/resources/meleelibrary.json
 python tools/melee_data/render.py      # fill generated blocks, indexes, resources/library/
+python tools/melee_data/gen_course_tables.py   # the course engine's compiled-in table
 ```
 
 `render.py` only rewrites the generated front matter keys and the three

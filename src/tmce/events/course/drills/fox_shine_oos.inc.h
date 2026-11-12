@@ -16,10 +16,10 @@
  * ftFx_MS_SpecialLwStart = 0x168). */
 #define SOOS_SHINE_FIRST 0x168
 #define SOOS_SHINE_LAST 0x171
-/* Jump squat (3 frames for Fox) then the frame 1 shine:
- * `query.py oos fox` -> "frame 4 Down B (aerial)". Falco's jump squat is 5
- * (frame 6); the verdict reports the frame either way. */
-#define SOOS_PERFECT_FRAME 4
+/* The shine's hitbox is out on its first frame (`query.py fox
+ * special_air_lw_start` -> "frames 1-1"); jump squat comes from the
+ * generated table, so the perfect frame is 4 for Fox and 6 for Falco. */
+#define SOOS_SHINE_STARTUP 1
 /* Frames after shieldstun ends in which the punish has to start. */
 #define SOOS_PUNISH_TIMEOUT 60
 #define SOOS_FOLLOWUP_TIMEOUT 90
@@ -123,6 +123,35 @@ static int soos_OosFrame(void)
     return soos.shine_frame - soos.stun_end;
 }
 
+/* The earliest out-of-shield frame the shine can be out on. */
+static int soos_PerfectFrame(CourseCtx* c)
+{
+    return course_Fighter(c->hd)->jump_squat + SOOS_SHINE_STARTUP;
+}
+
+static void soos_Guide(CourseCtx* c, CourseGuide* g)
+{
+    const CourseFighterData* me = course_Fighter(c->hd);
+    const OosScenario* sc = c->entry != NULL ? soos_Scenario(c) : NULL;
+    int n = 0;
+
+    sprintf(g->line[n++], "Punish a move that hit your shield before the");
+    sprintf(g->line[n++], "opponent can act again.");
+    sprintf(g->line[n++], "1. Hold shield and take the hit.");
+    sprintf(g->line[n++], "2. Jump the moment shieldstun ends.");
+    sprintf(g->line[n++],
+            "3. Down+B on your first airborne frame (%d after the jump).",
+            me->jump_squat);
+    sprintf(g->line[n++], "Perfect: shine on out-of-shield frame %d.",
+            soos_PerfectFrame(c));
+    if (sc != NULL) {
+        sprintf(g->line[n++], "%s leaves you %d frames to start.",
+                c->entry->name, -sc->advantage);
+    }
+    g->line_count = n;
+    g->timeline_from = "frames out of shield (1 = first frame you can act)";
+}
+
 static void soos_Setup(CourseCtx* c)
 {
     float hmn_x = -c->side * 10.0F;
@@ -155,7 +184,7 @@ static void soos_Result(CourseCtx* c, int success, char* fmt, int a, int b)
     int oos = soos.shine_frame >= 0 && soos.stun_end >= 0 ? soos_OosFrame()
                                                            : -1;
     if (oos >= 0) {
-        course_Measure(oos, SOOS_PERFECT_FRAME);
+        course_Measure(oos, soos_PerfectFrame(c));
     }
     course_Report("shield_hit", c->phase >= SOOS_PUNISH);
     course_Report("stun_end", soos.stun_end);
@@ -272,4 +301,5 @@ static const CourseDrill Drill_FoxShineOos = {
               "of shield and shine on the first frame of the jump.",
               "D-Pad left/right: change scenario. D-Pad down: reset." },
     .reference = soos_reference,
+    .Guide = soos_Guide,
 };

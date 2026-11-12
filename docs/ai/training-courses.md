@@ -12,16 +12,19 @@ select). It does not replace TM-CE's machinery: the Lab, the generic events, sav
 menu engine, messages, HUD drawing and the OSDs stay and are what courses are built from
 (`tmce-native.md`).
 
-**Status (2026-11-12): M1 is in.** The engine runs one drill (`fox-shine-oos`) and the hub
-opens after character select. The guide overlay, demonstrations, generated tables and every
-other drill are still plans. "Built" and "Planned" are marked per section; update this file
-as milestones land.
+**Status (2026-11-12): M1 and M2 are in.** The engine runs one drill (`fox-shine-oos`) with
+a guide overlay, a demonstration and generated frame data; the hub opens after character
+select. Every other drill is still a plan. "Built" and "Planned" are marked per section;
+update this file as milestones land.
 
 | Piece | State | Checked how |
 |-|-|-|
 | Engine (`src/tmce/events/course/event.c`) | Built | 9 specs in `tests/tmtest/course/fox-shine-oos/` pass in the simulator; one confirmed in Dolphin with identical numbers |
 | Drill `fox-shine-oos` | Built | same |
 | Hub (`src/tmce/events/course/hub_css.c`) | Built | `tests/sim/hub_roundtrip.py` (16 checks, simulator); rendering looked at once in Dolphin (frame dump) |
+| Reference scripts and demonstrations (engine plays the drill on the player's fighter) | Built | `demo_*.json`: all 9 scenarios graded a frame-4 success in the simulator; 2 confirmed in Dolphin |
+| Guide overlay (D-pad up) | Built | `guide_then_demo.json` in simulator and Dolphin; rendering looked at in Dolphin (frame dump) |
+| Generated frame data table (`gen/framedata.inc.h`) | Built | `tools/melee_data/gen_course_tables.py --check` |
 | Boot into the course's character select | Built (`TM_AC_BOOT_EVENT_FILE "course"`) | simulator |
 | Played by a person on a controller | **Not yet** | the owner has not tried it; the hub's input feel and text layout are unreviewed |
 
@@ -100,9 +103,32 @@ src/melee/tm/hub/                       HUB: menu after character select
 Built so far: attempt loop, re-placing reset, CPU scripts, opponent rotation, success/fail
 with a verdict message and a measured-vs-target frame count, per-scenario and per-drill
 statistics (attempts, successes, streaks, frame error), common options plus the drill's
-own, D-pad controls, JSON test report. Not built: savestate resets, weighted CPU choices
-beyond what a drill codes itself, the detector library, the timeline bar, the guide overlay,
-demonstrations, generated frame data tables.
+own, D-pad controls, JSON test report; and from M2: reference scripts with marks,
+demonstrations, the guide overlay with an input timeline, the generated frame data table.
+Not built: savestate resets, weighted CPU choices beyond what a drill codes itself, the
+detector library, a per-attempt timeline of what the player actually pressed, slow-motion
+demonstrations, guide text generated from `data/courses/` (a drill fills it in C for now).
+
+As built in M2:
+
+- **Reference script** (`CourseRefInput[]`): the player inputs that solve the drill, each
+  placed against a *mark* the drill announces with `course_Mark` (mark 0 = start of the
+  attempt). A **demonstration** (option "Demonstration", or D-pad right in the guide) runs
+  the attempt twice from the same random seed: an observing pass with only the mark-0
+  inputs, which records the frame of every mark, then the full script. The inputs go to the
+  player's engine pad, as the Lab's playback does. Demonstrations are not counted.
+- **Guide** (D-pad up): the drill's `Guide` callback fills up to eight lines; the engine
+  draws the panel, the timeline of the reference's inputs after its mark, and the controls.
+  While it is open the drill waits; closing starts a fresh attempt.
+- **Numbers**: `course_Fighter(fd)->jump_squat`, `->move[CMOVE_USMASH].hit` ... from
+  `gen/framedata.inc.h`, generated from `data/framedata/`. Regenerate with
+  `python tools/melee_data/gen_course_tables.py` after `extract.py`.
+
+Two things learned the hard way: the simulator never runs drawing code (GX callbacks), so
+anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL
+`event_vars->HUD_DrawTextEx`, which TM-CE's table leaves unset; call `HUD_DrawTextEx`
+directly); and both passes of a demonstration must start from a released pad, or the first
+button is not a fresh press in one of them.
 
 How it is laid out (differs from the first sketch below in names only):
 
@@ -245,7 +271,7 @@ Each ends with something booted in Dolphin and an automated run.
 |-|-|-|
 | **M0** | Shine OoS and rotation committed as they are; harness documented | The base the engine is extracted from |
 | **M1** (done 2026-11-12, not yet played by the owner) | Engine skeleton with attempt loop, reset, CPU scripts, grading, statistics, messages; Shine OoS re-expressed as a drill on it; hub with the four parts and Free, entered after character select | The flow and the drill shape |
-| **M2** | Guide overlay with timeline and numbers; demonstration playback; reference-script test runner for all drills | Teaching in game; the three-uses rule |
+| **M2** (done 2026-11-12, not yet played by the owner) | Guide overlay with timeline and numbers; demonstration playback; reference-script test runner for all drills | Teaching in game; the three-uses rule |
 | **M3** | Fox course: Tech complete, then Punish, Defense, Neutral (curriculum in `data/courses/fox.md`) | The recipe, end to end |
 | **M4** | Universal drills parameterised for every character; second character course (Falco or Marth) written only with the skills | That the recipe transfers |
 | later | Persistent statistics; course progress view; coach integration (`ai-coach.md` can read the same statistics) | |

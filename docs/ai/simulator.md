@@ -120,7 +120,9 @@ Known differences from the console:
 - The boot-time RNG seed (`OSGetTick`) differs from Dolphin's, so anything random before a
   test sets its seed can differ.
 - No rendering: anything that reads back from the framebuffer or depends on draw timing is
-  absent. Effects and cameras still run their logic.
+  absent. Effects and cameras still run their logic. **Drawing callbacks (GX links) never
+  run**, so code that only executes while drawing is not tested at all: the course guide
+  crashed in Dolphin on a NULL function pointer that every simulator run had passed.
 - No audio: nothing that waits for a sound to finish will ever finish.
 
 When the two disagree, Dolphin is right and the difference is a simulator bug to fix here.

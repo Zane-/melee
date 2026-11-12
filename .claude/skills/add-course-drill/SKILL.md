@@ -9,22 +9,33 @@ Architecture and milestones: `docs/ai/training-courses.md`. Spec format and stat
 `data/courses/README.md`. TM-CE services and build: `docs/ai/tmce-native.md`. Overlay rules:
 `CLAUDE.md` (no edits to vanilla functions, hooks through the hook tables, C only).
 
-**Engine status (update this when it changes): M1, 2026-11-12.** The engine runs drills and
-the hub lists them (`docs/ai/training-courses.md` says exactly what is built). One drill
-exists and is the model: `src/tmce/events/course/drills/fox_shine_oos.inc.h`. Not built
-yet, so a drill cannot use them: the guide overlay, demonstrations, generated frame data
-tables, savestate resets, the detector library. Until they exist a drill carries its guide
-as the three HELP lines and its numbers as named constants.
+**Engine status (update this when it changes): M2, 2026-11-12.** The engine runs drills
+with a guide overlay, demonstrations and generated frame data, and the hub lists them
+(`docs/ai/training-courses.md` says exactly what is built). One drill exists and is the
+model: `src/tmce/events/course/drills/fox_shine_oos.inc.h`. Not built yet, so a drill cannot
+use them: savestate resets, the detector library, guide text generated from the course file.
 
 Adding a drill touches four places:
 
 1. `course.h`: a new `DRILL_...` in `enum CourseDrillId`.
 2. `desc.c`: its `CourseDrillInfo` in `Course_Drills[]` (id as in `data/courses/`, name,
    goal, part, player characters as a `CSSID_*` mask, stage, first CPU, deck).
-3. `drills/<name>.inc.h`: options, state, `Setup`, `Think`, and the `CourseDrill`; included
-   from `event.c` and added to its `drills[]` table. Prefix every identifier (all drills
-   share one translation unit).
-4. `tests/tmtest/course/<drill-id>/*.json`.
+3. `drills/<name>.inc.h`: options, state, `Setup`, `Think`, the reference script
+   (`CourseRefInput[]` against marks the Think announces with `course_Mark`), the `Guide`
+   callback, and the `CourseDrill`; included from `event.c` and added to its `drills[]`
+   table. Prefix every identifier (all drills share one translation unit).
+4. `tests/tmtest/course/<drill-id>/*.json`: per scenario, a spec with scripted inputs and a
+   `demo_` spec with none and option 4 (Demonstration) = 2, expecting a success with
+   `"demo": 2` and `measured` equal to `target`. The `demo_` spec is the proof that the
+   reference solves the drill.
+
+Finding a reference's offsets: start from the spec's frames, run the `demo_` spec in the
+simulator, read the verdict, adjust, repeat (a build and a run take about 20 seconds). An
+input one frame early often comes out as a different action, not nothing.
+
+Numbers in `Think` and `Guide` come from `course_Fighter(c->hd)` / `course_Fighter(c->cd)`
+(jump squat, weight, per-move `hit`, `faf`, `total`, landing lag, intangibility); add a
+move to `MOVES` in `tools/melee_data/gen_course_tables.py` if it is missing and rerun it.
 
 A spec selects the drill with `"event": "course", "drill": "<drill-id>"`.
 
@@ -120,6 +131,12 @@ Every drill gets these runs (model: `tests/tmtest/shineoos/`):
 
 Tune the spec's `tune` list here; write the tuned values and how they were found back into
 the spec.
+
+**Anything drawn needs Dolphin.** The simulator skips all drawing code, so a new guide,
+HUD element or menu can crash or look wrong there without any spec noticing. Look at it
+once: a frame dump from one contained run (`tools/dolphin_harness.py` with
+`dump_frames=True` under `xvfb-run`, own process group, check `pgrep -c dolphin-emu` is 0
+afterwards; `docs/ai/testing.md`, "Process hygiene").
 
 ## 5. Update status and docs
 

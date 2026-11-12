@@ -68,6 +68,18 @@ typedef struct CourseRefInput {
     u8 trigger;  ///< analog R, 0..140
 } CourseRefInput;
 
+/* What the guide overlay shows for a drill. The drill fills the text (with
+ * numbers from the generated frame data table, not typed in); the engine
+ * adds the input timeline from the reference script and the controls. */
+#define COURSE_GUIDE_LINES 8
+#define COURSE_GUIDE_COLS 60
+typedef struct CourseGuide {
+    char line[COURSE_GUIDE_LINES][COURSE_GUIDE_COLS];
+    int line_count;
+    /// Caption of the timeline: what frame 0 of it is.
+    const char* timeline_from;
+} CourseGuide;
+
 typedef struct CourseDrill {
     /// Once per match, before the first attempt.
     void (*Init)(void);
@@ -82,6 +94,8 @@ typedef struct CourseDrill {
     const char* help[3];
     /// The inputs that solve it (see CourseRefInput), or NULL.
     const CourseRefInput* reference;
+    /// Fill the guide overlay's text for the current attempt, or NULL.
+    void (*Guide)(CourseCtx* c, CourseGuide* g);
 } CourseDrill;
 
 /* Engine services for drills. */
@@ -193,7 +207,7 @@ typedef struct Stats {
     u16 measured;
 } Stats;
 
-enum { RUN_ATTEMPT, RUN_RESULT };
+enum { RUN_ATTEMPT, RUN_RESULT, RUN_GUIDE };
 
 static struct {
     const CourseDrillInfo* info;
@@ -214,11 +228,26 @@ static struct {
     int demo_marks[COURSE_MAX_MARKS]; /* from the observing pass */
     u32 demo_seed;     /* RNG seed both passes start from */
     int demo_scenario;
+    CourseGuide guide;  /* text of the open guide (run == RUN_GUIDE) */
     char report[160]; /* extra JSON fields of the current attempt */
     int report_len;
     Stats total;
     Stats stats[MAX_SCENARIOS];
 } en;
+
+/* ---- frame data ---------------------------------------------------------- */
+
+#include "gen/framedata.inc.h"
+
+/* The player's or CPU's numbers, by the fighter in the match. */
+static const CourseFighterData* course_Fighter(FighterData* fd)
+{
+    int kind = fd->kind;
+    if (kind < 0 || kind >= (int) countof(course_fd)) {
+        kind = 0;
+    }
+    return &course_fd[kind];
+}
 
 /* ---- drills ------------------------------------------------------------- */
 
@@ -576,6 +605,161 @@ static void course_Retry(CourseCtx* c, char* fmt)
     en.result_timer = 30;
 }
 
+/* ---- guide overlay -------------------------------------------------------- */
+
+/* HUD camera units (TM-CE's hudcam): x right, y up, the screen is roughly
+ * 60 wide and 45 tall around the origin. */
+#define GUIDE_X (-25.0F)
+#define GUIDE_Y (-10.5F) /* clear of the damage display below */
+#define GUIDE_W 50.0F
+#define GUIDE_H 29.5F
+#define GUIDE_TEXT_X (GUIDE_X + 1.5F)
+#define GUIDE_LINE_H 1.95F
+#define GUIDE_TIMELINE_FROM (-2) /* frames shown around the script's mark */
+#define GUIDE_TIMELINE_TO 8
+
+static void GuideOpen(CourseCtx* c)
+{
+    memset(&en.guide, 0, sizeof(en.guide));
+    if (en.drill->Guide != NULL) {
+        en.drill->Guide(c, &en.guide);
+    } else {
+        int i;
+        for (i = 0; i < 3 && en.drill->help[i] != NULL; i++) {
+            strncpy(en.guide.line[i], en.drill->help[i],
+                    COURSE_GUIDE_COLS - 1);
+        }
+        en.guide.line_count = i;
+    }
+    en.demo = 0;
+    en.run = RUN_GUIDE;
+    SFX_PlayCommon(1);
+}
+
+/* TM-CE events.c (core unit; global). */
+void HUD_DrawTextEx(const char* text, Rect* pos, float size,
+                    GXColor text_color, GXColor border_color,
+                    float border_offset, int align);
+
+static void GuideText(const char* text, float x, float y, float size,
+                      GXColor color)
+{
+    /* w = 0: HUD_DrawTextEx anchors at the rect's centre. */
+    Rect r = { x, y, 0, 0 };
+    static const GXColor black = { 0, 0, 0, 255 };
+    /* Called directly: TM-CE leaves event_vars->HUD_DrawTextEx NULL (its
+     * table initialiser in events.c omits it). */
+    HUD_DrawTextEx(text, &r, size, color, black, 1.0F, 0);
+    {
+        /* HUD texts are made for short labels: they are squeezed to an
+         * aspect width of 80. Widen the one just drawn (the cache hands
+         * the same Text out in the same order every frame). */
+        HUDCamData* hud = event_vars->hudcam_gobj->userdata;
+        if (hud->text_cache_used > 0) {
+            Text* t = hud->text_cache[hud->text_cache_used - 1];
+            if (t != NULL) {
+                t->aspect.X = 2000;
+            }
+        }
+    }
+}
+
+/* A short name for what a reference entry presses. */
+static const char* RefLabel(const CourseRefInput* in)
+{
+    static char buf[16];
+    const char* dir = in->ly < -60   ? "Down+"
+                      : in->ly > 60  ? "Up+"
+                      : in->lx > 60  ? "Fwd+"
+                      : in->lx < -60 ? "Back+"
+                                     : "";
+    const char* btn = (in->buttons & PAD_BUTTON_A)    ? "A"
+                      : (in->buttons & PAD_BUTTON_B)  ? "B"
+                      : (in->buttons & PAD_BUTTON_X)  ? "X"
+                      : (in->buttons & PAD_BUTTON_Y)  ? "Y"
+                      : (in->buttons & PAD_TRIGGER_Z) ? "Z"
+                      : (in->buttons & PAD_TRIGGER_R) ? "R"
+                      : (in->buttons & PAD_TRIGGER_L) ? "L"
+                                                      : "";
+    sprintf(buf, "%s%s", dir, btn);
+    if (btn[0] == '\0' && dir[0] != '\0') {
+        buf[strlen(buf) - 1] = '\0'; /* a stick direction alone */
+    }
+    return buf;
+}
+
+/* The reference script's inputs after its first mark, one box per frame. */
+static void GuideTimeline(float y)
+{
+    const CourseRefInput* ref = en.drill->reference;
+    const CourseRefInput* in;
+    static const GXColor idle = { 70, 70, 80, 255 };
+    static const GXColor press = { 255, 211, 0, 255 };
+    static const GXColor white = { 255, 255, 255, 255 };
+    static const GXColor grey = { 190, 190, 190, 255 };
+    int n = GUIDE_TIMELINE_TO - GUIDE_TIMELINE_FROM + 1;
+    float box = 2.2F, gap = 0.4F;
+    float x0 = GUIDE_TEXT_X + 9.0F;
+    char buf[8];
+    int f;
+
+    if (ref == NULL) {
+        return;
+    }
+    GuideText("Inputs", GUIDE_TEXT_X, y - 0.4F, 0.45F, white);
+    for (f = GUIDE_TIMELINE_FROM; f <= GUIDE_TIMELINE_TO; f++) {
+        float x = x0 + (f - GUIDE_TIMELINE_FROM) * (box + gap);
+        Rect r = { x, y - box, box, box };
+        GXColor color = idle;
+        for (in = ref; in->mark != COURSE_REF_END; in++) {
+            if (in->mark != 0 && in->frame == f) {
+                color = press;
+                GuideText(RefLabel(in), x - 0.3F, y + 1.6F, 0.4F, press);
+            }
+        }
+        event_vars->HUD_DrawRects(&r, &color, 1);
+        sprintf(buf, "%d", f + 1);
+        GuideText(buf, x + 0.4F, y - box - 0.3F, 0.35F, grey);
+    }
+    (void) n;
+    if (en.guide.timeline_from != NULL) {
+        GuideText(en.guide.timeline_from, x0, y - box - 2.4F, 0.38F, grey);
+    }
+}
+
+static void Guide_GX(GOBJ* gobj, int pass)
+{
+    static const GXColor back = { 10, 12, 30, 225 };
+    static const GXColor edge = { 255, 211, 0, 255 };
+    static const GXColor white = { 255, 255, 255, 255 };
+    static const GXColor gold = { 255, 211, 0, 255 };
+    static const GXColor grey = { 190, 190, 190, 255 };
+    Rect panel[2] = {
+        { GUIDE_X - 0.3F, GUIDE_Y - 0.3F, GUIDE_W + 0.6F, GUIDE_H + 0.6F },
+        { GUIDE_X, GUIDE_Y, GUIDE_W, GUIDE_H },
+    };
+    GXColor colors[2];
+    float y = GUIDE_Y + GUIDE_H - 2.4F;
+    int i;
+
+    if (pass != 2 || en.run != RUN_GUIDE) {
+        return;
+    }
+    colors[0] = edge;
+    colors[1] = back;
+    event_vars->HUD_DrawRects(panel, colors, 2);
+
+    GuideText(en.info->name, GUIDE_TEXT_X, y, 0.6F, gold);
+    y -= 3.0F;
+    for (i = 0; i < en.guide.line_count; i++) {
+        GuideText(en.guide.line[i], GUIDE_TEXT_X, y, 0.4F, white);
+        y -= GUIDE_LINE_H;
+    }
+    GuideTimeline(GUIDE_Y + 7.6F);
+    GuideText("D-Pad up: close    D-Pad right: watch a demonstration",
+              GUIDE_TEXT_X, GUIDE_Y + 1.2F, 0.4F, grey);
+}
+
 static int PickScenario(void)
 {
     int fixed = Options_Main[OPT_SCENARIO].val;
@@ -735,6 +919,12 @@ void Event_Init(GOBJ* gobj)
     if (en.drill->Init != NULL) {
         en.drill->Init();
     }
+
+    /* The guide overlay draws with the HUD camera. */
+    {
+        GOBJ* guide = GObj_Create(0, 0, 0);
+        GObj_AddGXLink(guide, Guide_GX, 5, 0);
+    }
 }
 
 void Event_Think(GOBJ* event)
@@ -760,6 +950,26 @@ void Event_Think(GOBJ* event)
     if (cd != NULL) {
         cd->cpu.ai = 15; /* no CPU logic; scripts drive it */
         Fighter_ZeroCPUInputs(cd);
+    }
+
+    /* D-pad up: the guide. While it is open the drill waits; closing it
+     * starts a fresh attempt, D-pad right a demonstration first. */
+    if (en.run == RUN_GUIDE) {
+        if (hd->input.down & (HSD_BUTTON_DPAD_UP | HSD_BUTTON_DPAD_RIGHT)) {
+            if ((hd->input.down & HSD_BUTTON_DPAD_RIGHT) &&
+                en.drill->reference != NULL)
+            {
+                Options_Main[OPT_DEMO].val = DEMO_ONCE;
+            }
+            SFX_PlayCommon(0);
+            en.last_success = 0;
+            Reset();
+        }
+        return;
+    }
+    if (hd->input.down & HSD_BUTTON_DPAD_UP) {
+        GuideOpen(c);
+        return;
     }
 
     /* D-pad: cycle scenario / reset. Either also stops a demonstration. */

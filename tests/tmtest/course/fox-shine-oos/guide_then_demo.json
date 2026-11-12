@@ -1,0 +1,43 @@
+{
+  "comment": "Guide overlay: D-pad up opens it (the attempt is abandoned, nothing is counted), D-pad right closes it and plays one demonstration, which must be graded a frame-perfect success.",
+  "event": "course",
+  "drill": "fox-shine-oos",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      0,
+      2
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      6,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 20,
+      "hold": 2,
+      "buttons": [
+        "DUP"
+      ]
+    },
+    {
+      "at": 60,
+      "hold": 2,
+      "buttons": [
+        "DRIGHT"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "oos_frame": 4
+  }
+}
