@@ -11,6 +11,7 @@ the simulator is and is not.
 """
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -21,7 +22,9 @@ sys.path.insert(0, str(HERE.parent))
 import tmtest  # noqa: E402
 from sim import Sim, GuestError, ROOT  # noqa: E402
 
-OUT = ROOT / "build" / "overlay-tmtest"
+# The test build to run: build/overlay-tmtest unless OVERLAY_OUT names
+# another (each session builds into its own directory).
+OUT = ROOT / os.environ.get("OVERLAY_OUT", "build/overlay-tmtest")
 
 
 def run(spec, timeout=180, keep_log=False):

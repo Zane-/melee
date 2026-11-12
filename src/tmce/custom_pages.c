@@ -7,9 +7,11 @@
 #include "events.h"
 
 extern EventDesc ShineOos_Desc;
+extern EventDesc Course_Desc; /* events/course: the course drill engine */
 
 static EventDesc* Custom_Events[] = {
     &ShineOos_Desc,
+    &Course_Desc,
 };
 
 EventPage Custom_Page = {
