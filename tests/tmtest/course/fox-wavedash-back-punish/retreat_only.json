@@ -1,0 +1,32 @@
+{
+  "comment": "Walking away and never punishing: the CPU recovers.",
+  "event": "course",
+  "drill": "fox-wavedash-back-punish",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 200,
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

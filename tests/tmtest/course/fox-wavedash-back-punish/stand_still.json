@@ -1,0 +1,23 @@
+{
+  "comment": "Doing nothing: Falcon's nair hits.",
+  "event": "course",
+  "drill": "fox-wavedash-back-punish",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}

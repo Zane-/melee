@@ -1,0 +1,32 @@
+{
+  "comment": "Shielding it is not the drill.",
+  "event": "course",
+  "drill": "fox-wavedash-back-punish",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 400,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

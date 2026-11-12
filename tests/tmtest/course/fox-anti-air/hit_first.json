@@ -1,0 +1,43 @@
+{
+  "comment": "Running in and hitting Falcon before he jumps is not an anti-air.",
+  "event": "course",
+  "drill": "fox-anti-air",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 22,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 25,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

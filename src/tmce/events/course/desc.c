@@ -51,6 +51,97 @@ static const TmRotEntry wp_entries[] = {
 
 const TmRotDeck WhiffPunish_Deck = { wp_entries, countof(wp_entries) };
 
+/* ---- jump-in approaches ---------------------------------------------------
+ *
+ * Frame 0 is the jump input. Measured against a standing Fox in the
+ * simulator sandbox (2026-11-12); "lands" and "acts" are for the attack
+ * missing. No L-cancel: the landing lag is the window being taught.
+ *
+ * Short hops, for fox-wavedash-back-punish (scripts as in the Shine OoS
+ * deck, src/tmce/events/shineoos/desc.c, without its L-cancel):
+ *   Falcon nair from 30: hits a Fox within 36 on frame 33; lands 35, acts 54.
+ *   Falco dair from 20: within 22, frame 18-21; lands 30, acts 48.
+ *   Marth fair from 26: within 31, frame 29; lands 42, acts 57.
+ * Full hops, for fox-anti-air:
+ *   Falcon nair from 47: hits on frame 51; lands 53-61.
+ *   Falcon dair from 45: frame 51; lands 52-59.
+ *   Jigglypuff fair from 60: frame 46; lands 56-62.
+ *   Peach fair from 50: frame 52; lands 64-71.
+ */
+static const CourseInput ap_falcon_sh_nair[] = {
+    { 0, 1, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 5, 30, 127, 0, 0, 0, 0 },
+    { 20, 1, 127, 0, 0, 0, PAD_BUTTON_A },
+    WP_END,
+};
+static const CourseInput ap_falco_sh_dair[] = {
+    { 0, 1, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 6, 20, 127, 0, 0, 0, 0 },
+    { 14, 1, 127, 0, 0, -127, 0 },
+    WP_END,
+};
+static const CourseInput ap_marth_sh_fair[] = {
+    { 0, 1, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 5, 30, 127, 0, 0, 0, 0 },
+    { 24, 1, 127, 0, 127, 0, 0 },
+    WP_END,
+};
+static const CourseInput ap_falcon_fh_nair[] = {
+    { 0, 8, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 5, 45, 127, 0, 0, 0, 0 },
+    { 38, 1, 127, 0, 0, 0, PAD_BUTTON_A },
+    WP_END,
+};
+static const CourseInput ap_falcon_fh_dair[] = {
+    { 0, 8, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 5, 45, 127, 0, 0, 0, 0 },
+    { 36, 1, 127, 0, 0, -127, 0 },
+    WP_END,
+};
+static const CourseInput ap_puff_fh_fair[] = {
+    { 0, 8, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 6, 60, 127, 0, 0, 0, 0 },
+    { 40, 1, 127, 0, 127, 0, 0 },
+    WP_END,
+};
+static const CourseInput ap_peach_fh_fair[] = {
+    { 0, 8, 0, 0, 0, 0, PAD_BUTTON_X },
+    { 6, 60, 127, 0, 0, 0, 0 },
+    { 34, 1, 127, 0, 127, 0, 0 },
+    WP_END,
+};
+
+/* demo_out / demo_back tuned in the simulator: see the drills. */
+/*                                       start inputs  lands acts back out */
+static const WhiffScenario wb_falcon = { 30.0F, ap_falcon_sh_nair, 35, 54,
+                                         30, 6 };
+static const WhiffScenario wb_falco = { 20.0F, ap_falco_sh_dair, 30, 48, 22,
+                                        3 };
+static const WhiffScenario wb_marth = { 26.0F, ap_marth_sh_fair, 42, 57, 34,
+                                        6 };
+static const TmRotEntry wb_entries[] = {
+    { CKIND_FALCON, 0, &wb_falcon, "Falcon - Nair" },
+    { CKIND_FALCO, 0, &wb_falco, "Falco - Dair" },
+    { CKIND_MARTH, 0, &wb_marth, "Marth - Fair" },
+};
+const TmRotDeck WavedashBack_Deck = { wb_entries, countof(wb_entries) };
+
+static const WhiffScenario aa_falcon_nair = { 47.0F, ap_falcon_fh_nair, 61,
+                                              80, 0, 40 };
+static const WhiffScenario aa_falcon_dair = { 45.0F, ap_falcon_fh_dair, 59,
+                                              83, 0, 40 };
+static const WhiffScenario aa_puff_fair = { 60.0F, ap_puff_fh_fair, 62, 82, 0,
+                                            35 };
+static const WhiffScenario aa_peach_fair = { 50.0F, ap_peach_fh_fair, 71, 96,
+                                             0, 41 };
+static const TmRotEntry aa_entries[] = {
+    { CKIND_FALCON, 0, &aa_falcon_nair, "Falcon - Full Hop Nair" },
+    { CKIND_FALCON, 0, &aa_falcon_dair, "Falcon - Full Hop Dair" },
+    { CKIND_JIGGLYPUFF, 0, &aa_puff_fair, "Jigglypuff - Fair" },
+    { CKIND_PEACH, 0, &aa_peach_fair, "Peach - Fair" },
+};
+const TmRotDeck AntiAir_Deck = { aa_entries, countof(aa_entries) };
+
 const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = {
         .id = "fox-shine-oos",
@@ -71,6 +162,26 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
         .deck = &WhiffPunish_Deck,
+    },
+    [DRILL_FOX_WAVEDASH_BACK] = {
+        .id = "fox-wavedash-back-punish",
+        .name = "Wavedash Back Punish",
+        .goal = "Wavedash out of an approach and punish its landing",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_FALCON,
+        .deck = &WavedashBack_Deck,
+    },
+    [DRILL_FOX_ANTI_AIR] = {
+        .id = "fox-anti-air",
+        .name = "Anti-Air",
+        .goal = "Beat a jump-in with up tilt, up smash or back air",
+        .part = COURSE_NEUTRAL,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_FALCON,
+        .deck = &AntiAir_Deck,
     },
     /* Tech drills, in the course's order (the hub lists by this table). */
     [DRILL_TECH_SHORT_HOP] = {

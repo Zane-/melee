@@ -48,6 +48,8 @@ enum CourseDrillId {
     DRILL_FOX_LEDGE_STALL,
     DRILL_FOX_ILLUSION_SHORTEN,
     DRILL_FOX_WHIFF_PUNISH,
+    DRILL_FOX_WAVEDASH_BACK,
+    DRILL_FOX_ANTI_AIR,
     DRILL_COUNT,
 };
 
@@ -125,8 +127,13 @@ typedef struct WhiffScenario {
     s16 hit_end;              ///< script frame its last hitbox is gone after
     s16 faf;                  ///< script frame the CPU can act again
     s16 demo_back;            ///< script frame the demonstration goes back in
+    s16 demo_out;             ///< script frame of its first move (approaches)
 } WhiffScenario;
 
 extern const TmRotDeck WhiffPunish_Deck;
+/// Jump-in approaches, same scenario type: `reach` is the start distance,
+/// `hit_end` the landing.
+extern const TmRotDeck WavedashBack_Deck;
+extern const TmRotDeck AntiAir_Deck;
 
 #endif

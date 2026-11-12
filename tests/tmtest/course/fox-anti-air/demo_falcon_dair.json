@@ -1,0 +1,28 @@
+{
+  "comment": "Reference demonstration against scenario 2.",
+  "event": "course",
+  "drill": "fox-anti-air",
+  "hmn": "fox",
+  "cpu": "captain-falcon",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      0,
+      2
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}
