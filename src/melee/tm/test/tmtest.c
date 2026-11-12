@@ -75,6 +75,13 @@ void tm_test_OnEventModeLoad(void)
     if (!Active()) {
         return;
     }
+    /* Options first: one of them may choose what the event is about to
+     * load (a course drill: its CPU, stage and opponent deck are read from
+     * the event's description below and by match setup). */
+    for (i = 0; i < (int) c->option_count && i < TM_TEST_MAX_OPTIONS; i++) {
+        tmce_test_SetOption(c->event, c->options[i].index,
+                            c->options[i].value);
+    }
     /* Start from an empty cache, as after a CSS: earlier scenes (title,
      * menus) may have left characters in it. */
     for (i = 0; i < 8; i++) {
@@ -126,10 +133,6 @@ void tm_test_OnEventModeLoad(void)
     lbAudioAx_8002702C(4, audio);
     lbAudioAx_80027168();
 
-    for (i = 0; i < (int) c->option_count && i < TM_TEST_MAX_OPTIONS; i++) {
-        tmce_test_SetOption(c->event, c->options[i].index,
-                            c->options[i].value);
-    }
     /* Seed now as well as at match start: match setup draws random numbers
      * too (character rotation picks its preload subset). */
     *HSD_RandSeedPtr = c->seed;

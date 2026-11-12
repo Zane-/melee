@@ -620,7 +620,6 @@ static void OnScenarioChange(GOBJ* menu, int value)
 
 void Event_Exit(GOBJ* menu)
 {
-    Course_HubReturn = 1; /* back to the drill list, not just the CSS */
     stc_match->state = 3;
     Match_EndVS();
 }

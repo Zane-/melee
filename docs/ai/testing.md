@@ -39,6 +39,8 @@ hooks `OSReport`); keep tests independent of Dolphin specifics.
 }
 ```
 
+- `drill` (with `"event": "course"`): the course drill to run, by its id in
+  `data/courses/` (`"fox-shine-oos"`). Applied before the match loads.
 - `options`: `[index, value]` into the event's main menu (`Event_Menu`), applied before the
   match. Use them to pin the scenario, side and delays so a run is reproducible.
 - `inputs` (port 1): `at` = match frame; `on_enter` / `on_exit` = a fighter (`port` = slot, 0 is

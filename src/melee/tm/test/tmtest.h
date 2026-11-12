@@ -22,6 +22,9 @@
 #define TM_TEST_MAX_INPUTS 128
 #define TM_TEST_MAX_OPTIONS 16
 #define TM_TEST_NONE 0xFF
+/// Option index that, for the "course" event, selects the drill (value =
+/// CourseDrillId) instead of a menu option. A spec's "drill" key.
+#define TM_TEST_OPT_DRILL 0xFF
 
 /// When an input entry starts.
 enum TmTestTrigger {

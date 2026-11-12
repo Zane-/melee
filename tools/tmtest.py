@@ -39,6 +39,7 @@ Spec (JSON):
 import argparse
 import json
 import os
+import re
 import shutil
 import signal
 import struct
@@ -101,6 +102,23 @@ def ident(table, v, what):
     return table[key]
 
 
+def drill_index(drill):
+    """CourseDrillId of a course drill, by its id ("fox-shine-oos") or
+    number: the order of Course_Drills[] in src/tmce/events/course/desc.c
+    follows enum CourseDrillId in course.h."""
+    if isinstance(drill, int):
+        return drill
+    header = (ROOT / "src/tmce/events/course/course.h").read_text()
+    enum = re.search(r"enum CourseDrillId \{(.*?)\}", header, re.S).group(1)
+    names = re.findall(r"\b(DRILL_\w+)", enum)
+    desc = (ROOT / "src/tmce/events/course/desc.c").read_text()
+    for name, did in re.findall(r"\[(DRILL_\w+)\] = \{\s*\.id = \"([^\"]+)\"",
+                                desc):
+        if did == drill:
+            return names.index(name)
+    sys.exit(f"unknown course drill {drill!r}")
+
+
 def pack_config(spec):
     """TmTestConfig, big-endian (src/melee/tm/test/tmtest.h)."""
     ev = spec["event"].encode()[:15]
@@ -112,7 +130,10 @@ def pack_config(spec):
                       0xFF if cpu is None else cpu, spec.get("cpu_color", 0),
                       0xFFFF if stage is None else stage, spec.get("trace", 0),
                       spec.get("seed", 1), spec.get("max_frames", 600))
-    opts = spec.get("options", [])[:MAX_OPTIONS]
+    opts = list(spec.get("options", []))
+    if "drill" in spec:       # course event: which drill (option 0xFF)
+        opts.insert(0, [0xFF, drill_index(spec["drill"])])
+    opts = opts[:MAX_OPTIONS]
     out += struct.pack(">I", len(opts))
     for i in range(MAX_OPTIONS):
         idx, val = opts[i] if i < len(opts) else (0, 0)

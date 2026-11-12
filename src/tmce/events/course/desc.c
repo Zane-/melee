@@ -29,6 +29,8 @@ int Course_HubCursor;
 int Course_HubReturn;
 int Course_HubCkind = -1;
 int Course_HubColor;
+int Course_FromHub;
+int Course_ReloadCss;
 
 static EventMatchData Course_MatchData = {
     .timer = MATCH_TIMER_HIDE,
@@ -81,8 +83,54 @@ void Course_Select(int drill)
     Course_Desc.rotation = d->deck;
 }
 
-/* For native code (src/melee/tm/tmce.h): the event match's exit routing. */
-int tmce_CourseHubReturn(void)
+/* gm/gmevent.h: the event index the event mode runs. */
+void gm_801BEB74(u8 event);
+/* src/tmce/addcodes_bridge.c */
+int tmce_ac_FindEvent(const char* file, int* page, int* event);
+void tmce_ac_SetEventPage(int page);
+
+static void BackToCourse(void)
 {
-    return Course_HubReturn;
+    int page, event;
+    if (tmce_ac_FindEvent("course", &page, &event)) {
+        tmce_ac_SetEventPage(page);
+        gm_801BEB74(event);
+    }
+    Course_FromHub = 0;
+    Course_HubReturn = 1;
+}
+
+/* For native code (src/melee/tm/tmce.h, the event mode's state callbacks in
+ * src/melee/tm/css/tm_css.c): called where TM-CE would go to the main menu
+ * or on to the match. Returns 1 when the character select should open
+ * (again) instead, which is how every way out of a drill, and out of a
+ * free-practice event started from the hub, leads back to the hub. */
+int tmce_CourseRoute(int at, int page, int event)
+{
+    int is_course = GetEventDesc(page, event) == &Course_Desc;
+    switch (at) {
+    case COURSE_AT_MATCH_END:
+        if (is_course) {
+            Course_HubReturn = 1;
+            return 1;
+        }
+        if (Course_FromHub) {
+            BackToCourse();
+            return 1;
+        }
+        return 0;
+    case COURSE_AT_CSS_BACK:
+        if (!is_course && Course_FromHub) {
+            BackToCourse();
+            return 1;
+        }
+        return 0;
+    case COURSE_AT_CSS_START:
+        if (Course_ReloadCss) {
+            Course_ReloadCss = 0;
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
 }

@@ -1,6 +1,7 @@
 {
   "comment": "fox-shine-oos on the course engine. Frame-perfect shine out of shield vs Falcon - Down Tilt: hold shield, jump on the frame shieldstun ends, down-B on Fox's first airborne frame (3 later). The shine must hit on frame 4. Options: scenario fixed, CPU on the left, short delay.",
   "event": "course",
+  "drill": "fox-shine-oos",
   "hmn": "fox",
   "seed": 1,
   "max_frames": 240,

@@ -24,8 +24,12 @@ const struct TmRotDeck* tmce_GetEventRotation(int page, int event);
 
 /// @name src/tmce/events/course/desc.c
 /// @{
-/// Whether a course drill asked to return to the hub when its match ends.
-int tmce_CourseHubReturn(void);
+/// Asked by the event mode's state callbacks where TM-CE would leave to
+/// the main menu (`at` 0: an event match ended; 1: B on an event's
+/// character select) or go on to the match (2: character select
+/// confirmed). 1 = open the event's character select (again) instead: the
+/// way back to the course hub. `at` is enum CourseRouteAt in course.h.
+int tmce_CourseRoute(int at, int page, int event);
 /// @}
 
 /// @name TM-CE events.c (tmFunction table entries)

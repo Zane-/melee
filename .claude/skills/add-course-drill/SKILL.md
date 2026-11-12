@@ -26,8 +26,7 @@ Adding a drill touches four places:
    share one translation unit).
 4. `tests/tmtest/course/<drill-id>/*.json`.
 
-Known gap: test builds can only start drill 0 (see the design doc). Extend the test runner
-before testing a second drill, and say so if that blocks you.
+A spec selects the drill with `"event": "course", "drill": "<drill-id>"`.
 
 ## 0. Preconditions
 

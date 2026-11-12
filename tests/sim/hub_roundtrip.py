@@ -7,7 +7,9 @@ Needs a normal (not TM_TEST) overlay that boots into the course event (the
 default) and files/TM/hubCSS.dat on build/disc (tools/tmce_disc.py).
 Boots, picks Fox, presses START (the hub must open instead of the match),
 moves between sections, closes with B, reopens, starts the first Punish
-drill, exits the drill (the hub must reopen by itself), and starts it again.
+drill, exits the drill (the hub must reopen by itself), starts it again,
+quits with L+R+A+START (hub again), opens the Lab's character select from
+Free Practice and backs out of it to the hub.
 No Dolphin involved; see docs/ai/simulator.md.
 """
 
@@ -92,6 +94,34 @@ def main():
     check("A starts the drill again", wait(in_match))
     s.step(60)
     check("still as Fox", m.u32(PLAYER_SLOTS + 4) == CKIND_FOX)
+
+    # Quit with pause, then L+R+A+START: also back to the hub.
+    s.press("START", wait=20)
+    s.press("L", "R", "A", "START", frames=5, wait=10)
+    check("L+R+A+START returns to the character select",
+          wait(lambda: m.read(0x80479D30, 4)[3] == 0 and
+               m.u32(sym("mnCharSel_804A0BC0"))))
+    check("and the hub reopens",
+          wait(lambda: m.u8(EXITKIND) == 5, 120))
+
+    # Free Practice -> Training Lab: the Lab's own character select.
+    reads = len(s.h.reads)
+    while m.u32(sym("Course_HubPart")) != 4:
+        s.press("RIGHT", wait=10)
+    m.w32(sym("Course_HubCursor"), 0)
+    s.press("A", wait=5)
+    check("Training Lab opens the Lab's character select",
+          wait(lambda: any(r[0] == "labCSS.dat" for r in s.h.reads[reads:]),
+               400) and m.u32(sym("Course_FromHub")) == 1)
+    s.step(90)
+    reads = len(s.h.reads)
+    s.press("B", frames=40, wait=5)      # hold B: back out of the CSS
+    check("B there comes back to the course's character select",
+          wait(lambda: any(r[0] == "hubCSS.dat" for r in s.h.reads[reads:]),
+               600))
+    check("with the hub open",
+          wait(lambda: m.u8(EXITKIND) == 5, 200) and
+          m.u32(sym("Course_FromHub")) == 0)
 
     failed = [n for n, ok in checks if not ok]
     print("%d of %d checks passed" % (len(checks) - len(failed), len(checks)))

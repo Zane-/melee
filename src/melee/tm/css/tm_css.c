@@ -233,6 +233,12 @@ static void tm_css_onExitCss(GameModeState* arg0)
     int i;
 
     if (css->pending_scene_change == 2) {
+        /* Not in TM-CE: B on the character select of an event started
+         * from the course hub goes back to the hub. */
+        if (tmce_CourseRoute(1, tmce_GetEventPage(), ev->unk_535)) {
+            gm_SetNextGameModeStateId(TM_STATE_CSS);
+            return;
+        }
         gm_ChangeGameModeAfterCurrentScene(GM_MENU);
         return;
     }
@@ -256,6 +262,12 @@ static void tm_css_onExitCss(GameModeState* arg0)
     ev->x9 = -1;
     ev->xA = -1;
 
+    /* Not in TM-CE: the course hub switched to another event (the Lab):
+     * that event's own character select comes next. */
+    if (tmce_CourseRoute(2, tmce_GetEventPage(), ev->unk_535)) {
+        gm_SetNextGameModeStateId(TM_STATE_CSS);
+        return;
+    }
     if (GetIsSelectStage(tmce_GetEventPage(), ev->unk_535)) {
         gm_SetNextGameModeStateId(TM_STATE_SSS);
     }
@@ -302,10 +314,14 @@ static void tm_css_onExitVs(GameModeState* arg0)
     if (exit->match_end.outcome == OUTCOME_RETRY) {
         goto retry;
     }
-    /* Not in TM-CE: a course drill's Exit goes back to the character
-     * select, where the hub reopens (src/tmce/events/course/hub_css.c),
-     * instead of to the main menu. */
-    if (tmce_CourseHubReturn()) {
+    /* Not in TM-CE: a course drill (and a free-practice event started from
+     * the course hub) ends at the character select, where the hub reopens
+     * (src/tmce/events/course/hub_css.c), instead of at the main menu.
+     * A+B held still restarts the event, as below. */
+    if (!(exit->match_end.outcome == OUTCOME_NO_CONTEST &&
+          tm_css_IsResetHeld()) &&
+        tmce_CourseRoute(0, tmce_GetEventPage(), stage))
+    {
         gm_SetNextGameModeStateId(TM_STATE_CSS);
         return;
     }

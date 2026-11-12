@@ -21,7 +21,7 @@ as milestones land.
 |-|-|-|
 | Engine (`src/tmce/events/course/event.c`) | Built | 9 specs in `tests/tmtest/course/fox-shine-oos/` pass in the simulator; one confirmed in Dolphin with identical numbers |
 | Drill `fox-shine-oos` | Built | same |
-| Hub (`src/tmce/events/course/hub_css.c`) | Built | `tests/sim/hub_roundtrip.py` (11 checks, simulator); rendering looked at once in Dolphin (frame dump) |
+| Hub (`src/tmce/events/course/hub_css.c`) | Built | `tests/sim/hub_roundtrip.py` (16 checks, simulator); rendering looked at once in Dolphin (frame dump) |
 | Boot into the course's character select | Built (`TM_AC_BOOT_EVENT_FILE "course"`) | simulator |
 | Played by a person on a controller | **Not yet** | the owner has not tried it; the hub's input feel and text layout are unreviewed |
 
@@ -115,10 +115,9 @@ How it is laid out (differs from the first sketch below in names only):
   `drills/<name>.inc.h` (named `.h` so the build notices edits).
 - Tests: `tests/tmtest/course/<drill-id>/*.json`.
 
-Known gap: a test build can only start drill 0. `Course_Select` has to run before the match
-loads (the rotation preload reads `Course_Desc.rotation` then), and a spec's options are
-applied too late for that. Needs a small addition to the test runner when the second drill
-exists.
+Tests pick the drill with a spec's `"drill": "<id>"` (option index 0xFF, applied before the
+match loads, because `Course_Select` has to run before the rotation preload reads
+`Course_Desc.rotation`). Only exercised with drill 0 so far.
 
 One TM-CE event unit, `course`, runs every drill. A drill is data plus callbacks; it owns no
 match setup, menu, statistics or reset code of its own. The engine provides:
@@ -203,13 +202,14 @@ Its proc runs after the scene's and turns the scene's "start the match" state in
 hub; sections with left/right (or L/R), drills with up/down, A starts, B goes back to
 picking a character. It remembers the character, because this character select does not
 restore the pick when the scene comes back, and starts the match itself with that character
-(scene data and preload request). A drill's Exit returns to the character select
-(`tm_css_onExitVs`, one added branch) and the hub reopens on the same row. Free Practice
-has two rows: the Lab (starts it with the last CPU used there, through its stage select) and
-"Training Mode events" (the main menu's event list). Sections without drills say so.
+(scene data and preload request). Every way out of a drill (its Exit, L+R+A+START, the
+match ending) returns to the character select and the hub reopens on the same row; the
+event mode's state callbacks ask `tmce_CourseRoute` (desc.c) where TM-CE would go to the
+main menu. Free Practice has two rows: the Lab, which opens the Lab's own character select
+(CPU pick, stage select, recordings; B there or the Lab match ending comes back to the hub),
+and "Training Mode events" (the main menu's event list). Sections without drills say so.
 
-Not done: the Lab from the hub does not let you pick the CPU; drill rows show session
-statistics only; nothing is saved.
+Not done: drill rows show session statistics only; nothing is saved.
 
 The original plan, for reference:
 

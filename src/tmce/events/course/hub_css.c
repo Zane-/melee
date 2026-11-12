@@ -47,7 +47,7 @@ static const char* free_names[FREE_COUNT] = {
     "Training Mode events",
 };
 static const char* free_goals[FREE_COUNT] = {
-    "TM-CE's Lab. The CPU is the last one used there.",
+    "TM-CE's Lab: pick the CPU and stage next. B comes back.",
     "The event list: TM-CE's general and character events.",
 };
 
@@ -301,7 +301,11 @@ static void Hub_Confirm(void)
         Course_Select(row);
         Hub_Close(CSS_EXIT_START);
     } else if (row == FREE_LAB) {
+        /* The Lab's own character select opens next (its CPU pick, stage
+         * select and recordings); B there comes back here. */
         Hub_SwitchEvent("lab");
+        Course_FromHub = 1;
+        Course_ReloadCss = 1;
         Hub_Close(CSS_EXIT_START);
     } else {
         /* The main menu opens on the event list (boot codes). */

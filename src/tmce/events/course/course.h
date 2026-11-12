@@ -69,6 +69,18 @@ extern int Course_HubReturn;
 /// back, so the hub does.
 extern int Course_HubCkind;
 extern int Course_HubColor;
+/// Set by the hub when it starts a free-practice event (the Lab): that
+/// event's own character select opens next, and leaving it or its match
+/// comes back to the hub.
+extern int Course_FromHub;
+extern int Course_ReloadCss;
+
+/// Where the event mode asks which state follows (src/melee/tm/tmce.h).
+enum CourseRouteAt {
+    COURSE_AT_MATCH_END, ///< an event match ended (not a retry)
+    COURSE_AT_CSS_BACK,  ///< B on an event's character select
+    COURSE_AT_CSS_START, ///< an event's character select was confirmed
+};
 
 /// The drill the next match runs. Set with Course_Select before the match
 /// loads (the hub; tests): it also points Course_Desc at the drill's
