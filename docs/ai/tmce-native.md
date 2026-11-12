@@ -135,7 +135,7 @@ See "Port status" below; update it as pieces are booted.
 | OSD toggle menu (`osdmenu`: Toggle UI, 13 files) | Ported, not booted |
 | OSD core (`osdcore`: message system, FighterData.TM per-frame bookkeeping, fastfall, frame advantage, previous move instance, Generic Per Frame, IC follower check, Act OoWait). API in `src/melee/tm/osdcore/osd.h` | Ported, not booted. `Fighter_ChangeMotionState` and `ftCommon_CheckFallFast` are replaced by edited copies (hooks inside the vanilla bodies would be dead) |
 | Individual OSDs: `osdact` (act out of airborne/shield/tumble/float, 24 + 3 statics, 1 dead dropped), `osdtech` (ledge codes/GALINT, dashback, wavedash, SDI; 13), `osdmisc` (combo counter, L-cancel, powershield, jump cancel, grab breakout, boost grab, glide toss, airdodge item throw, Yoshi egg, Bowser fortress; 17, 2 dead dropped) | Ported, not booted. All of Onscreen Display/ is now covered |
-| Legacy events (`src/melee/tm/legacy`): dispatch from `tm_event_start.c`, shared library (lines 8600-12371), Multishine, Reaction | Ported, not booted. 13 events left as stubs (`legacy/events/*.c`), split into 3 batches in `legacy.h` |
+| Legacy events (`src/melee/tm/legacy`): dispatch from `tm_event_start.c`, shared library (lines 8600-12371), and all 15 events (Multishine, Reaction, Ledge Stall, Ledgetech, Ledgetech Counter, Amsah Tech, SDI Training, Combo Training, Reversal, Shield Drop, Escape Sheik, Slide Off, Waveshine SDI, Attack on Shield, Grab Mash Out) | Ported, not booted |
 | Other Additional Codes (Better Camera, Enable C Stick Always, Boot to Event Mode, ...) | Not started; owner asked for C-stick in all events, TM-CE's camera, boot into the Lab |
 | Skills for adding new events (owner request; after parity) | Not started |
 
