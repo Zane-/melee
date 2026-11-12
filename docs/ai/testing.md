@@ -80,6 +80,20 @@ Report measured numbers (frames, distances), not only pass/fail, so a failing te
 3. Keep one spec per scenario under `tests/tmtest/<event>/` with `expect`, plus a soak spec
    (long random run) for crashes. Run the folder before committing.
 
+## Process hygiene (read before changing how Dolphin is launched)
+
+Dolphin runs at unlimited speed and never exits by itself, and under `xvfb-run` it is a
+grandchild of the runner. On 2026-11-11 the runner terminated only `xvfb-run`: every run left
+a Dolphin spinning, 94 accumulated in 22 minutes, load average passed 100 and the owner's
+desktop session went down. Rules since then, enforced in `tools/tmtest.py`:
+
+- Each run is its own process group (`start_new_session=True`) and is stopped with
+  `os.killpg`, then checked: no `dolphin-emu` using `build/tmtest/user` may survive.
+- A run refuses to start if such a process already exists.
+- Never start runs in parallel or in a loop without checking `pgrep -c dolphin-emu` is 0
+  between them. Prefer the simulator (`tools/melee_sim`), which is one Python process that
+  exits when done.
+
 ## Findings so far
 
 - Fighter files must be loaded before the match creates fighters: the CSS commits its picks every

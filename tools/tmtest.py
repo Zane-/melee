@@ -40,6 +40,7 @@ import argparse
 import json
 import os
 import shutil
+import signal
 import struct
 import subprocess
 import sys
@@ -233,6 +234,49 @@ def resolve_exact(spec, timeout):
             inputs[k] = fixed
 
 
+def stale_dolphins():
+    """Pids of dolphin-emu processes using this runner's user directory."""
+    out = []
+    for d in Path("/proc").iterdir():
+        if not d.name.isdigit():
+            continue
+        try:
+            cmd = (d / "cmdline").read_bytes().split(b"\0")
+        except OSError:
+            continue
+        if cmd and cmd[0].endswith(b"dolphin-emu") and \
+                str(WORK).encode() in b" ".join(cmd):
+            out.append(int(d.name))
+    return out
+
+
+def kill_group(proc):
+    """Stop the whole process group of a run (xvfb-run, Xvfb, Dolphin) and
+    check that no Dolphin of ours survived."""
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        try:
+            os.killpg(proc.pid, sig)
+        except ProcessLookupError:
+            break
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            try:
+                os.killpg(proc.pid, 0)
+            except ProcessLookupError:
+                break
+            proc.poll()
+            time.sleep(0.05)
+        else:
+            continue
+        break
+    proc.poll()
+    for pid in stale_dolphins():
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+
+
 def run(spec, timeout=180, keep_log=False):
     dol = prepare_disc(spec)
     user, log = prepare_user()
@@ -251,8 +295,19 @@ def run(spec, timeout=180, keep_log=False):
            "-C", "Dolphin.DSP.Backend=No Audio Output",
            "-C", "Dolphin.Core.SIDevice0=6",
            "-e", str(dol)]
+    # Dolphin runs at unlimited speed and never exits by itself, and with
+    # xvfb-run it is a grandchild (xvfb-run -> Xvfb + dolphin-emu). Killing
+    # only the child leaves Dolphin spinning: on 2026-11-11 that leaked one
+    # Dolphin per run, 94 in 22 minutes, and took the desktop session down.
+    # So: its own process group, killed as a group; and refuse to start when
+    # Dolphins from earlier runs are still alive.
+    stale = stale_dolphins()
+    if stale:
+        sys.exit(f"{len(stale)} dolphin-emu process(es) from earlier test runs "
+                 f"are still running (pids {stale[:8]}...). Kill them first: "
+                 f"pkill -f 'dolphin-emu -u {WORK}'")
     proc = subprocess.Popen(cmd, env=env, stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL)
+                            stderr=subprocess.DEVNULL, start_new_session=True)
     records, other, pos = [], [], 0
     started = time.time()
     status = "timeout"
@@ -287,11 +342,7 @@ def run(spec, timeout=180, keep_log=False):
                     break
             time.sleep(0.1)
     finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            proc.kill()
+        kill_group(proc)
     result = {"status": status, "seconds": round(time.time() - started, 1),
               "records": records}
     if status != "done":
