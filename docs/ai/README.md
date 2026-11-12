@@ -12,6 +12,7 @@ Start with the root `CLAUDE.md`, then read only what the task needs.
 | [training-mode-port.md](training-mode-port.md) | You are porting anything from `../TrainingMode` |
 | [ai-coach.md](ai-coach.md) | You are working on the Claude coach link |
 | [slippi-tandem.md](slippi-tandem.md) | You are working on netplay / Slippi direct-connect training |
+| [../../data/README.md](../../data/README.md) | You need game knowledge: frame data, character tech, percents, recovery, techniques (the knowledge base under `data/`) |
 
 Skills (task recipes) are in `.claude/skills/`:
 
@@ -21,6 +22,8 @@ Skills (task recipes) are in `.claude/skills/`:
 | `find-symbol` | Go from an address, a MexTK name or a behaviour to the decomp function |
 | `add-native-code` | Add a new translation unit and hook it into vanilla code |
 | `port-tm-feature` | Port one Training Mode event, OSD or ASM injection to native C |
+| `melee-knowledge` | Look up frame data, attributes, character and technique docs; knockback and on-shield calculators |
+| `design-training-scenario` | Turn a prompt into a data-backed scenario spec (player, CPU, inputs, success conditions) |
 
 ## Keeping these docs true
 

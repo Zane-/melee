@@ -111,6 +111,9 @@ ninja
 | Put it and TM-CE's art on the extracted disc | `python tools/tmce_disc.py` → boot `build/disc/sys/main.dol` |
 | Does a DOL keep the vanilla layout? | `python tools/overlay_check.py <dol> [--patches list]` |
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
+| Game knowledge: characters, techniques, frame data, community guides | `data/README.md`, skill `melee-knowledge` |
+| Frame data lookups and knockback / on-shield calculators | `python tools/melee_data/query.py` (`--help`) |
+| Prompt to training scenario spec | skill `design-training-scenario` |
 
 ## Verification status
 
