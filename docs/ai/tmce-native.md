@@ -57,6 +57,11 @@ clang (gcc's PowerPC ABI, what TM-CE is normally built with) and MWCC. 327 struc
 offsets/sizes: only `FtScript` differs (packed; only used through a pointer). MexTK's offset
 comments are often wrong (absolute offsets inside sub-structs); trust the declarations.
 
+Bitfields: `python tools/tmce_bitfield_check.py` compares where every bitfield lands (580 in
+45 structs); only `FtScript` differs. `char` signedness: gcc's PowerPC ABI makes `char`
+unsigned, MWCC makes it signed, so TM-CE units compile with `-char unsigned` (TM-CE's tables
+store 0x80+ values in plain `char`, e.g. recovery.c's ledge ids for Big Blue).
+
 Patches to TM-CE (`src/tmce/patches/`): 0001 `event_vars` global, 0002 MWCC can't copy a const
 struct in an initializer, 0003 lab_css calls the core directly, 0004 `FtDataToID` rejects
 non-RAM pointers (stale victim pointers in inactive hitboxes; TM-CE only gets away with it

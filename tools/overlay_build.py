@@ -85,7 +85,7 @@ def tmce_cflags(debug):
     return [
         "-nowraplines", "-cwd", "source", "-proc", "gekko", "-fp", "hardware",
         "-align", "powerpc", "-nosyspath", "-enum", "int", "-nodefaults",
-        "-pragma", "cats off", "-Cpp_exceptions", "off",
+        "-pragma", "cats off", "-Cpp_exceptions", "off", "-char", "unsigned",
         "-lang=c99", "-O4,p",
         "-inline", "auto",
         "-maxerrors", "8", "-msgstyle", "gcc", "-warn", "off",

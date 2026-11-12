@@ -58,7 +58,7 @@ def build(cc_cmd, out):
     return struct.unpack(f'>{len(exprs)}I', b[:4 * len(exprs)])
 mw = ["-nowraplines","-proc","gekko","-fp","hardware","-align","powerpc","-nosyspath","-enum","int",
       "-nodefaults","-pragma","cats off","-Cpp_exceptions","off","-lang=c99","-O0","-maxerrors","3",
-      "-msgstyle","gcc","-warn","off"] + sum([['-i', i] for i in inc], [])
+      "-msgstyle","gcc","-warn","off","-char","unsigned"] + sum([['-i', i] for i in inc], [])
 a = build(cl + ['-c', '-O0', '-fno-common'], S + '/lay_clang.o')
 b = build(compiler_prefix() + ['build/compilers/GC/3.0a5.2/mwcceppc.exe'] + mw + ['-c'], S + '/lay_mw.o')
 bad = [(n, f, x, y) for (n, f, _), x, y in zip(exprs, a, b) if x != y]
