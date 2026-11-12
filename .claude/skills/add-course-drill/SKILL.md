@@ -9,13 +9,25 @@ Architecture and milestones: `docs/ai/training-courses.md`. Spec format and stat
 `data/courses/README.md`. TM-CE services and build: `docs/ai/tmce-native.md`. Overlay rules:
 `CLAUDE.md` (no edits to vanilla functions, hooks through the hook tables, C only).
 
-**Engine status (update this line when it changes): not built.** As of 2026-11-12 the course
-engine (`src/tmce/course/`) and the hub are planned (milestone M1). Until M1 lands, the
-worked example of a drill is the standalone event `src/tmce/events/shineoos/` (`event.c`,
-`desc.c`, `shineoos.h`) with `src/melee/tm/rotation/` and `tools/test_shineoos.py`. If you
-are asked for a drill before the engine exists, say so and either build the engine piece the
-drill needs first (preferred: extract it from Shine OoS) or build the drill as a standalone
-event in the same shape, so it can move onto the engine unchanged in behaviour.
+**Engine status (update this when it changes): M1, 2026-11-12.** The engine runs drills and
+the hub lists them (`docs/ai/training-courses.md` says exactly what is built). One drill
+exists and is the model: `src/tmce/events/course/drills/fox_shine_oos.inc.h`. Not built
+yet, so a drill cannot use them: the guide overlay, demonstrations, generated frame data
+tables, savestate resets, the detector library. Until they exist a drill carries its guide
+as the three HELP lines and its numbers as named constants.
+
+Adding a drill touches four places:
+
+1. `course.h`: a new `DRILL_...` in `enum CourseDrillId`.
+2. `desc.c`: its `CourseDrillInfo` in `Course_Drills[]` (id as in `data/courses/`, name,
+   goal, part, player characters as a `CSSID_*` mask, stage, first CPU, deck).
+3. `drills/<name>.inc.h`: options, state, `Setup`, `Think`, and the `CourseDrill`; included
+   from `event.c` and added to its `drills[]` table. Prefix every identifier (all drills
+   share one translation unit).
+4. `tests/tmtest/course/<drill-id>/*.json`.
+
+Known gap: test builds can only start drill 0 (see the design doc). Extend the test runner
+before testing a second drill, and say so if that blocks you.
 
 ## 0. Preconditions
 
@@ -69,9 +81,11 @@ Rules while writing:
 - **Style.** The repo's (`CLAUDE.md` rule 4) for native code; TM-CE's own style inside
   TM-CE-side files, as the existing events do.
 
-Files (planned layout): `src/tmce/course/drills/<area>/<drill>.c`, registered in the
-engine's drill list; standalone events before M1: `src/tmce/events/<name>/` plus a line in
-`src/tmce/units.txt` and an entry in `src/tmce/custom_pages.c`.
+Engine services a drill calls (`event.c`): `course_Place`, `course_Script`, `course_Phase`,
+`course_Message`, `course_Measure`, `course_Report` / `course_ReportF`, `course_Result`,
+`course_Retry`; its options are `Options_Main[OPT_COMMON_COUNT + i]`. The hub needs nothing
+per drill: it lists `Course_Drills[]`. After changing the hub or the flow, run
+`python tests/sim/hub_roundtrip.py`.
 
 ## 3. Build
 

@@ -282,6 +282,7 @@ class Machine:
             if self.pc == address:
                 self.pc = self.lr
         self.uc.hook_add(UC_HOOK_CODE, cb, begin=addr, end=addr)
+        self.uc.ctl_remove_cache(addr, addr + 4)
 
     def trace(self, name, nargs=4):
         """Log every call of a function (for debugging) into self.log."""
@@ -292,6 +293,8 @@ class Machine:
                 name, ", ".join("%X" % self.r(3 + i) for i in range(nargs)),
                 self.sym.name(self.lr)))
         self.uc.hook_add(UC_HOOK_CODE, cb, begin=addr, end=addr)
+        # code translated before the hook existed would not call it
+        self.uc.ctl_remove_cache(addr, addr + 4)
 
     def tail_call(self, func, *args):
         """From inside a hook: run a guest function next, returning to the

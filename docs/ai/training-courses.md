@@ -12,8 +12,18 @@ select). It does not replace TM-CE's machinery: the Lab, the generic events, sav
 menu engine, messages, HUD drawing and the OSDs stay and are what courses are built from
 (`tmce-native.md`).
 
-**Status: design. Nothing in "Engine" or "Hub" below exists yet.** What exists is noted as
-such. Do not read a planned interface as a fact; update this file as milestones land.
+**Status (2026-11-12): M1 is in.** The engine runs one drill (`fox-shine-oos`) and the hub
+opens after character select. The guide overlay, demonstrations, generated tables and every
+other drill are still plans. "Built" and "Planned" are marked per section; update this file
+as milestones land.
+
+| Piece | State | Checked how |
+|-|-|-|
+| Engine (`src/tmce/events/course/event.c`) | Built | 9 specs in `tests/tmtest/course/fox-shine-oos/` pass in the simulator; one confirmed in Dolphin with identical numbers |
+| Drill `fox-shine-oos` | Built | same |
+| Hub (`src/tmce/events/course/hub_css.c`) | Built | `tests/sim/hub_roundtrip.py` (11 checks, simulator); rendering looked at once in Dolphin (frame dump) |
+| Boot into the course's character select | Built (`TM_AC_BOOT_EVENT_FILE "course"`) | simulator |
+| Played by a person on a controller | **Not yet** | the owner has not tried it; the hub's input feel and text layout are unreviewed |
 
 ## What exists today (the base)
 
@@ -85,7 +95,30 @@ src/tmce/course/gen/                    generated tables (frame data, course lis
 src/melee/tm/hub/                       HUB: menu after character select
 ```
 
-### Engine (planned: `src/tmce/course/`)
+### Engine (built: `src/tmce/events/course/`; the table lists what is there and what is not)
+
+Built so far: attempt loop, re-placing reset, CPU scripts, opponent rotation, success/fail
+with a verdict message and a measured-vs-target frame count, per-scenario and per-drill
+statistics (attempts, successes, streaks, frame error), common options plus the drill's
+own, D-pad controls, JSON test report. Not built: savestate resets, weighted CPU choices
+beyond what a drill codes itself, the detector library, the timeline bar, the guide overlay,
+demonstrations, generated frame data tables.
+
+How it is laid out (differs from the first sketch below in names only):
+
+- `course.h`: `CourseDrillInfo` (what is known before the match: id, name, goal, part,
+  characters, stage, deck) and `enum CourseDrillId`.
+- `desc.c` (linked globally): `Course_Drills[]`, `Course_Desc`, `Course_Select(drill)`,
+  session statistics and hub state.
+- `event.c`: the engine, with `CourseCtx` and `CourseDrill` (Setup/Think callbacks, options,
+  help). An event unit's symbols are local, so drills are included into it:
+  `drills/<name>.inc.h` (named `.h` so the build notices edits).
+- Tests: `tests/tmtest/course/<drill-id>/*.json`.
+
+Known gap: a test build can only start drill 0. `Course_Select` has to run before the match
+loads (the rotation preload reads `Course_Desc.rotation` then), and a spec's options are
+applied too late for that. Needs a small addition to the test runner when the second drill
+exists.
 
 One TM-CE event unit, `course`, runs every drill. A drill is data plus callbacks; it owns no
 match setup, menu, statistics or reset code of its own. The engine provides:
@@ -163,7 +196,22 @@ How the demonstration is performed is the least proven part. Planned order of pr
 unverified); (b) fall back to a second copy of the player's character as a CPU, driven by
 the proven CPU script path. Milestone M2 settles this.
 
-### Hub (planned: `src/melee/tm/hub/`)
+### Hub (built: `src/tmce/events/course/hub_css.c`)
+
+As built: a css unit (`hubCSS`, art borrowed from `labCSS.dat`) loaded for the course event.
+Its proc runs after the scene's and turns the scene's "start the match" state into the open
+hub; sections with left/right (or L/R), drills with up/down, A starts, B goes back to
+picking a character. It remembers the character, because this character select does not
+restore the pick when the scene comes back, and starts the match itself with that character
+(scene data and preload request). A drill's Exit returns to the character select
+(`tm_css_onExitVs`, one added branch) and the hub reopens on the same row. Free Practice
+has two rows: the Lab (starts it with the last CPU used there, through its stage select) and
+"Training Mode events" (the main menu's event list). Sections without drills say so.
+
+Not done: the Lab from the hub does not let you pick the CPU; drill rows show session
+statistics only; nothing is saved.
+
+The original plan, for reference:
 
 The event mode's state list is already ours (`tm_css_EventStates`), so the flow change is
 local to it. Plan: the hub is a menu drawn in the character select scene once the character
@@ -196,7 +244,7 @@ Each ends with something booted in Dolphin and an automated run.
 | | Deliverable | Proves |
 |-|-|-|
 | **M0** | Shine OoS and rotation committed as they are; harness documented | The base the engine is extracted from |
-| **M1** | Engine skeleton with attempt loop, reset, CPU scripts, grading, statistics, messages; Shine OoS re-expressed as a drill on it; hub with the four parts and Free, entered after character select | The flow and the drill shape |
+| **M1** (done 2026-11-12, not yet played by the owner) | Engine skeleton with attempt loop, reset, CPU scripts, grading, statistics, messages; Shine OoS re-expressed as a drill on it; hub with the four parts and Free, entered after character select | The flow and the drill shape |
 | **M2** | Guide overlay with timeline and numbers; demonstration playback; reference-script test runner for all drills | Teaching in game; the three-uses rule |
 | **M3** | Fox course: Tech complete, then Punish, Defense, Neutral (curriculum in `data/courses/fox.md`) | The recipe, end to end |
 | **M4** | Universal drills parameterised for every character; second character course (Falco or Marth) written only with the skills | That the recipe transfers |

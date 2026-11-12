@@ -357,6 +357,18 @@ static void TestReport(CourseCtx* c, const char* result, char* fmt)
 }
 #endif
 
+static void CountDrill(int success)
+{
+    CourseStats* st = &Course_Stats[Course_Current];
+    st->attempts++;
+    if (success) {
+        st->successes++;
+    }
+    if (en.total.best_streak > st->best_streak) {
+        st->best_streak = en.total.best_streak;
+    }
+}
+
 static void Count(Stats* st, int success)
 {
     st->attempts++;
@@ -382,6 +394,7 @@ static void course_Result(CourseCtx* c, int success, char* fmt, int a, int b)
 {
     Count(&en.stats[c->scenario], success);
     Count(&en.total, success);
+    CountDrill(success);
     en.last_success = success;
 #ifdef TM_TEST
     TestReport(c, success ? "success" : "fail", fmt);
@@ -607,6 +620,7 @@ static void OnScenarioChange(GOBJ* menu, int value)
 
 void Event_Exit(GOBJ* menu)
 {
+    Course_HubReturn = 1; /* back to the drill list, not just the CSS */
     stc_match->state = 3;
     Match_EndVS();
 }

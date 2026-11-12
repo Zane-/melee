@@ -302,6 +302,13 @@ static void tm_css_onExitVs(GameModeState* arg0)
     if (exit->match_end.outcome == OUTCOME_RETRY) {
         goto retry;
     }
+    /* Not in TM-CE: a course drill's Exit goes back to the character
+     * select, where the hub reopens (src/tmce/events/course/hub_css.c),
+     * instead of to the main menu. */
+    if (tmce_CourseHubReturn()) {
+        gm_SetNextGameModeStateId(TM_STATE_CSS);
+        return;
+    }
     if (exit->match_end.outcome == OUTCOME_NO_CONTEST) {
         if (tm_css_IsResetHeld()) {
             goto retry;

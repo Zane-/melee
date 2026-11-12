@@ -10,7 +10,7 @@ includes: [universal]
 # Fox course
 
 Curriculum approved by the owner 2026-11-12 (with the Tech order below). Every drill is
-`planned`: nothing here is specified or implemented yet.
+`planned` except where the Status column says otherwise.
 Format: [`README.md`](README.md). Knowledge: [`../characters/fox.md`](../characters/fox.md).
 
 How the parts connect for Fox: **Tech** makes shine, wavedash and the aerials automatic.
@@ -20,8 +20,8 @@ grabs, tech chases, crouch-cancel punishes and being edgeguarded. **Neutral** th
 player to earn the opening against an opponent that commits, and hands over to the punish
 drill that starts from it.
 
-The existing Shine OoS event (`src/tmce/events/shineoos/`) is the prototype of
-`fox-shine-oos` and the first drill to move onto the engine.
+`fox-shine-oos` runs on the engine; it is the Shine OoS event
+(`src/tmce/events/shineoos/`) moved over, and reuses that event's scenario deck.
 
 ## Tech
 
@@ -59,7 +59,7 @@ From the three openings: a move on Fox's shield, a grab, a landed hit or shine.
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 1 | `fox-shine-oos` | Shine out of shield | Punish a shielded move with a frame 4 shine | deck: Marth, Sheik, Peach, Falcon, Falco, Jigglypuff attacks | `fox-waveshine` | `fox-waveshine-usmash` | [seed](../characters/fox.md#shine-out-of-shield-punish), [OoS](../techniques/out-of-shield.md) | planned (prototype exists) |
+| 1 | `fox-shine-oos` | Shine out of shield | Punish a shielded move with a frame 4 shine | deck: Marth, Sheik, Peach, Falcon, Falco, Jigglypuff attacks | `fox-waveshine` | `fox-waveshine-usmash` | [seed](../characters/fox.md#shine-out-of-shield-punish), [OoS](../techniques/out-of-shield.md) | implemented: `src/tmce/events/course/drills/fox_shine_oos.inc.h`; 9 specs pass in the simulator, 1 confirmed in Dolphin (2026-11-12). No full spec section or guide yet |
 | 2 | `fox-oos-choice` | Pick the out-of-shield option | Choose shine, grab, nair, up smash or wavedash by spacing and advantage | deck, mixed spacings | 1 | - | [OoS](../techniques/out-of-shield.md) | planned |
 | 3 | `fox-waveshine-usmash` | Waveshine to up smash | Shine a grounded opponent and up smash before they act | characters that slide from shine | `fox-waveshine` | - | [seed](../characters/fox.md#waveshine-to-up-smash) | planned |
 | 4 | `fox-shine-knockdown` | Shine knockdown: jab reset or tech chase | React to tech in place, tech away, tech in or no tech after shine | characters that fall from shine; random tech | 3 | - | [seed](../characters/fox.md#jab-reset-or-tech-chase-after-shine), [tech chase](../techniques/tech-chase.md) | planned |

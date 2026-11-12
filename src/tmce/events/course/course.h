@@ -49,6 +49,27 @@ typedef struct CourseDrillInfo {
 extern const CourseDrillInfo Course_Drills[DRILL_COUNT];
 extern EventDesc Course_Desc;
 
+/// Per-drill totals for this session, kept by the engine and shown in the
+/// hub. (Not saved: see "Open decisions" in docs/ai/training-courses.md.)
+typedef struct CourseStats {
+    u16 attempts;
+    u16 successes;
+    u16 best_streak;
+} CourseStats;
+extern CourseStats Course_Stats[DRILL_COUNT];
+
+/// Hub state that outlives the character select scene: the open section
+/// and row, and whether to reopen the hub when the scene comes back (set
+/// when a drill exits to it).
+extern int Course_HubPart;
+extern int Course_HubCursor;
+extern int Course_HubReturn;
+/// The character and costume the hub was last opened for (CKIND_*). The
+/// event's character select does not keep the pick when the scene comes
+/// back, so the hub does.
+extern int Course_HubCkind;
+extern int Course_HubColor;
+
 /// The drill the next match runs. Set with Course_Select before the match
 /// loads (the hub; tests): it also points Course_Desc at the drill's
 /// characters, stage and deck, which match setup reads.

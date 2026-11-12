@@ -155,6 +155,20 @@ class Gdb:
         return out
 
 
+def gdb_write(gdb, addr, data):
+    """Write guest memory through the GDB stub (game paused meanwhile)."""
+    was = gdb.running
+    gdb.pause()
+    gdb._send("M%x,%x:%s" % (addr, len(data), data.hex()))
+    r = gdb._recv_packet()
+    while r != "OK" and (r == "" or r[:1] in ("S", "T", "W", "O")):
+        r = gdb._recv_packet()
+    if r != "OK":
+        raise RuntimeError(f"write {addr:08x}: {r}")
+    if was:
+        gdb.resume()
+
+
 class Dolphin:
     def __init__(self, dol, speed=1.0, port=PORT, dump_frames=False):
         self.dol = Path(dol)
@@ -261,6 +275,9 @@ class Dolphin:
                     raise
                 self.gdb.resume()
                 time.sleep(0.2)
+
+    def write(self, addr, data):
+        gdb_write(self.gdb, addr, bytes(data))
 
     def read_u32(self, addr):
         return struct.unpack(">I", self.read(addr, 4))[0]

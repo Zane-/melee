@@ -32,3 +32,5 @@ event  slalom      slalom.c                                  wavedash.dat
 # globally, see tools/overlay_build.py).
 event  shineoos    src/tmce/events/shineoos/event.c          -
 event  course      src/tmce/events/course/event.c            -
+# The course hub (menu in the character select scene); borrows labCSS art.
+css    hubCSS      src/tmce/events/course/hub_css.c          labCSS.dat

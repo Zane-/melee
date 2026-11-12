@@ -22,6 +22,12 @@ int tmce_FighterDataSize(void);
 const struct TmRotDeck* tmce_GetEventRotation(int page, int event);
 /// @}
 
+/// @name src/tmce/events/course/desc.c
+/// @{
+/// Whether a course drill asked to return to the hub when its match ends.
+int tmce_CourseHubReturn(void);
+/// @}
+
 /// @name TM-CE events.c (tmFunction table entries)
 /// @{
 void OnSceneChange(void);

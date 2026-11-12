@@ -32,7 +32,7 @@
 #ifdef TM_AC_BOOT_EVENT
 #define TM_AC_BOOT_EVENT_FILE TM_AC_STR(TM_AC_BOOT_EVENT)
 #else
-#define TM_AC_BOOT_EVENT_FILE "lab"
+#define TM_AC_BOOT_EVENT_FILE "course"
 #endif
 
 /// @name Hook targets: ac_camera.c (Enable C Stick Always, Better Camera)
