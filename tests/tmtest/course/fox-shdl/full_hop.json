@@ -1,0 +1,36 @@
+{
+  "comment": "Full hop with two lasers is not the drill.",
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 6,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 52,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "short_hop": 0
+  }
+}

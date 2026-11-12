@@ -45,9 +45,9 @@ is the same input repeated (owner's order, 2026-11-12).
 | 11 | `universal-ledgedash` | Ledgedash | Ledge drop, jump, air dodge onto the stage with intangibility left | none | 4 | `fox-ledgedash-attack` | [ledgedash](../techniques/ledgedash.md), [seed](../characters/fox.md#ledgedash-with-intangibility) | planned |
 | 12 | `fox-jc-shine` | Frame-perfect jump-cancelled shine | Jump out of shine on the first possible frame, every time | none | 8 | `fox-multishine` | [tech](../characters/fox.md#jump-cancelled-shine) | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) |
 | 13 | `fox-multishine` | Multishine | Consecutive frame-perfect shines; count and gap shown | none, then shield | 12 | `fox-shield-pressure` | [tech](../characters/fox.md#multishine) | implemented without a shield: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). On-shield variant not built |
-| 14 | `fox-shdl` | Short hop double laser | Two lasers in one short hop, landing actionable | none | 1 | neutral part | [tech](../characters/fox.md#short-hop-double-laser) | planned |
+| 14 | `fox-shdl` | Short hop double laser | Two lasers in one short hop, landing actionable | none | 1 | neutral part | [tech](../characters/fox.md#short-hop-double-laser) | implemented: `drills/fox_specials.inc.h`; simulator and Dolphin specs pass (2026-11-12) |
 | 15 | `fox-ledge-stall` | Firefox ledge stall | Refresh ledge intangibility with the stall | none | - | defense part | [tech](../characters/fox.md#firefox-ledge-stall) | planned |
-| 16 | `fox-illusion-shorten` | Shortened Illusion | Stop Illusion at each of its lengths | none | - | `fox-recovery-mixup` | [tech](../characters/fox.md#shortened-illusion) | planned |
+| 16 | `fox-illusion-shorten` | Shortened Illusion | Stop Illusion at each of its lengths | none | - | `fox-recovery-mixup` | [tech](../characters/fox.md#shortened-illusion) | implemented on the ground, any shortening counts: `drills/fox_specials.inc.h`; simulator and Dolphin specs pass (2026-11-12). Recovery (offstage) variant not built |
 
 TM-CE already has events for some of these (wavedash, L-cancel, ledgedash, legacy
 Multishine, shield drop). Each is either re-expressed on the engine or kept as is behind the

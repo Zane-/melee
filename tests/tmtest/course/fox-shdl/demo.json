@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: two lasers from a short hop.",
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "lasers": 2
+  }
+}

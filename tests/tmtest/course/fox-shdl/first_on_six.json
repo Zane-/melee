@@ -1,0 +1,37 @@
+{
+  "comment": "First B on airborne frame 6 still leaves time for a second laser (measured in the simulator).",
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 48,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 56,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "lasers": 2,
+    "first": 6
+  }
+}

@@ -14,12 +14,13 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish) and nine of Fox's sixteen Tech drills:
+opens after character select. Built: `fox-shine-oos` (Punish) and eleven of Fox's sixteen Tech drills:
 `universal-short-hop`, `-l-cancel`, `-shffl`, `-wavedash`, `-dash-dance`, `-jc-grab`,
-`fox-waveshine`, `fox-jc-shine`, `fox-multishine`. Still to build in Tech: shield drop,
-shine-grab, aerial into shine, ledgedash, SHDL, ledge stall, shortened Illusion (the first
-four need things the engine lacks: a platform stage start, a shielding target, a ledge
-start). The other drills in `data/courses/fox.md` are still plans. "Built" and "Planned" are marked per section;
+`fox-waveshine`, `fox-jc-shine`, `fox-multishine`, `fox-shdl`, `fox-illusion-shorten`. Still
+to build in Tech, each needing something the engine lacks: `universal-shield-drop` (a
+platform stage start), `fox-shine-grab` and `fox-shffl-nair-shine` (a shielding target),
+`universal-ledgedash` and `fox-ledge-stall` (a start on the ledge). None of the drills has
+been played by a person yet. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |

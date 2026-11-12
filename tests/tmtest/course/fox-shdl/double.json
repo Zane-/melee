@@ -1,0 +1,37 @@
+{
+  "comment": "B on the first airborne frame and again 9 frames later.",
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 52,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "lasers": 2,
+    "first": 1
+  }
+}

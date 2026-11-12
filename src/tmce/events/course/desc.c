@@ -102,6 +102,24 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = -1,
     },
+    [DRILL_FOX_SHDL] = {
+        .id = "fox-shdl",
+        .name = "Short Hop Double Laser",
+        .goal = "Two lasers out of every short hop",
+        .part = COURSE_TECH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
+    [DRILL_FOX_ILLUSION_SHORTEN] = {
+        .id = "fox-illusion-shorten",
+        .name = "Shortened Illusion",
+        .goal = "Stop Fox Illusion short with a second B press",
+        .part = COURSE_TECH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = -1,
+    },
 };
 
 int Course_Current = DRILL_FOX_SHINE_OOS;

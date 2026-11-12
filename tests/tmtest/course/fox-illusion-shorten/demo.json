@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: the shortest Illusion.",
+  "event": "course",
+  "drill": "fox-illusion-shorten",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "press": 20
+  }
+}

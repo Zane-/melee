@@ -1,0 +1,29 @@
+{
+  "comment": "One B press.",
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "lasers": 1
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "comment": "B 18 frames after is ignored.",
+  "event": "course",
+  "drill": "fox-illusion-shorten",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 58,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "press": 18,
+    "dash": 4
+  }
+}

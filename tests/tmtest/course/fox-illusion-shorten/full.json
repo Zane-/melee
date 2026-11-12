@@ -1,0 +1,27 @@
+{
+  "comment": "No second press.",
+  "event": "course",
+  "drill": "fox-illusion-shorten",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "press": 0,
+    "dash": 4
+  }
+}

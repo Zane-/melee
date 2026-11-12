@@ -286,6 +286,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/tech_wavedash.inc.h"
 #include "drills/fox_shine_tech.inc.h"
 #include "drills/tech_movement.inc.h"
+#include "drills/fox_specials.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -298,6 +299,8 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_WAVESHINE] = &Drill_FoxWaveshine,
     [DRILL_FOX_JC_SHINE] = &Drill_FoxJcShine,
     [DRILL_FOX_MULTISHINE] = &Drill_FoxMultishine,
+    [DRILL_FOX_SHDL] = &Drill_FoxShdl,
+    [DRILL_FOX_ILLUSION_SHORTEN] = &Drill_FoxIllusionShorten,
 };
 
 /* ---- engine ------------------------------------------------------------- */
