@@ -27,8 +27,9 @@ extern struct {
 /// translucent pass).
 static GXColor ac_ungrabbable_color = { 0xAB, 0x27, 0xFF, 0x80 };
 
-/// Wraps the `lbColl_8000A244` call in ftDrawCommon_800805C8 that draws a
-/// fighter's hurtboxes.
+/// Stands in for the `lbColl_8000A244` call that draws a fighter's
+/// hurtboxes. ftDrawCommon_800805C8 is replaced by the hitbox area's copy
+/// (src/melee/tm/hitbox/hb_draw.c), which calls this at that point.
 ///
 /// Display Ungrabbable Hurtboxes/Main.asm (lbColl_8000A244+0x40): a
 /// vulnerable (state 0) hurtbox that is not grabbable is drawn purple.

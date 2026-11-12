@@ -83,7 +83,9 @@ word  Exception_ReportStackTrace+0xB4  0x2C1D0008  Only Show First 8 Lines of St
 
 # --- Debug drawing --------------------------------------------------------------
 # Display Ungrabbable Hurtboxes/Main.asm (lbColl_8000A244+0x40); fighters only
-call  ftDrawCommon_800805C8+0x110  tm_ac_DrawHurtbox        ungrabbable hurtboxes purple
+# The call hook that was here (ftDrawCommon_800805C8+0x110 -> tm_ac_DrawHurtbox)
+# is gone: hitbox.txt replaces ftDrawCommon_800805C8 with a copy
+# (src/melee/tm/hitbox/hb_draw.c) that calls tm_ac_DrawHurtbox at that place.
 # Collision Link Draw Order Fix [Punkline]/
 call  fn_800301D0+0xB4           tm_ac_DrawCollisionLinks   New Draw Location (+0xB8)
 word  mpLib_8005A2DC+0x10        0x60000000                 Remove Original Draw

@@ -1,0 +1,24 @@
+# TM-CE's hitbox visualizer: Additional Codes/Hitbox Visualizer/ and
+# Hide Player GFX When Hitboxes Enabled/. C: src/melee/tm/hitbox/.
+# The display itself is vanilla's per-fighter flag (x21FC b6), set by the
+# Lab's "Hitboxes" option; these only change what is drawn while it is on.
+#
+# kind     site                          target                     note
+
+# --- Hitbox Visualizer/ ---------------------------------------------------------
+# Main.asm (+0x70), Reverse Hitbox ID Order.asm (+0x4C), Color Changes Based
+# On Damage.asm (lbColl_80009F54+0x50, fighter half). Also calls
+# tm_ac_DrawHurtbox, replacing addcodes' call hook at +0x110.
+function  ftDrawCommon_800805C8         tm_hitbox_FighterDrawColl  fighter hitboxes
+# Color Changes Based On Damage.asm (lbColl_80009F54+0x50), item half
+function  lbColl_80009F54               tm_hitbox_DrawItemHit      item hitbox colours
+# Always Draw TopN For Items.asm (mpLib_DrawSnapping+0x2BC)
+call      mpLib_DrawSnapping+0x2C0      tm_hitbox_ItemTopN         item TopN cross
+# Display Chain ECBs - GObj 7.asm (mpLib_DrawSnapping+0x2E8)
+call      mpLib_8005A2DC+0xC            tm_hitbox_DrawSnapping     chain segment ECBs
+
+# --- Hide Player GFX When Hitboxes Enabled/ --------------------------------------
+# Hide GFX When Hitboxes Enabled.asm (+0x54)
+function  efSync_Spawn                  tm_hitbox_efSync_Spawn     no GFX on shown fighters/items
+# Hide OnHit GFX When Hitboxes Enabled.asm (+0x114) and ... 2.asm (+0x3C4)
+function  ftColl_8007A06C               tm_hitbox_ApplyHits        no hit sparks on shown fighters
