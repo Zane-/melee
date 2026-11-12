@@ -1,0 +1,29 @@
+{
+  "comment": "Run and Z: dash grab.",
+  "event": "course",
+  "drill": "universal-jc-grab",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 16,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 52,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

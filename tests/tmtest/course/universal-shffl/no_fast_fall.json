@@ -1,0 +1,38 @@
+{
+  "comment": "Short hop nair with L-cancel but no fast fall.",
+  "event": "course",
+  "drill": "universal-shffl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 58,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "short_hop": 1,
+    "fast_fall": 0,
+    "l_cancel": 1
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "comment": "No trigger press: full landing lag.",
+  "event": "course",
+  "drill": "universal-l-cancel",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "lag": 15
+  }
+}

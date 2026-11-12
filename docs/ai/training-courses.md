@@ -14,9 +14,12 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish) and five Tech drills,
-`universal-short-hop`, `universal-wavedash`, `fox-waveshine`, `fox-jc-shine`,
-`fox-multishine`. The other drills in `data/courses/fox.md` are still plans. "Built" and "Planned" are marked per section;
+opens after character select. Built: `fox-shine-oos` (Punish) and nine of Fox's sixteen Tech drills:
+`universal-short-hop`, `-l-cancel`, `-shffl`, `-wavedash`, `-dash-dance`, `-jc-grab`,
+`fox-waveshine`, `fox-jc-shine`, `fox-multishine`. Still to build in Tech: shield drop,
+shine-grab, aerial into shine, ledgedash, SHDL, ledge stall, shortened Illusion (the first
+four need things the engine lacks: a platform stage start, a shielding target, a ledge
+start). The other drills in `data/courses/fox.md` are still plans. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |
@@ -145,6 +148,16 @@ Added with the first Tech drills (M3):
 - **HUD text limit**: TM-CE's HUD has 32 texts per frame and the game stops when a 33rd is
   drawn. The guide stays under it (it numbers only some timeline frames) and `GuideText`
   refuses past the limit.
+
+- **Marked scripts and the landing**: a reference input may sit a negative number of
+  frames before a mark (the L-cancel demonstration presses 4 frames before the landing its
+  first pass found). Anything that changes when the mark happens (a fast fall) has to be
+  in both passes, so it goes against mark 0.
+- **One script for every character has limits.** The six `universal-` demonstrations were
+  run for all 26 characters in the simulator: four pass for all, L-cancel fails for Kirby
+  and Sheik, SHFFL for those and Mr. Game & Watch. Run that matrix for any new `universal-`
+  drill (a spec per character with option 4 = 2).
+- **The hub scrolls**: a section may hold up to 32 drills, 8 on screen.
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL

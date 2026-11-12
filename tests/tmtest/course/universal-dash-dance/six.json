@@ -1,0 +1,71 @@
+{
+  "comment": "Six dashes of 8 frames.",
+  "event": "course",
+  "drill": "universal-dash-dance",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 8,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 48,
+      "hold": 8,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 56,
+      "hold": 8,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 64,
+      "hold": 8,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 72,
+      "hold": 8,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 80,
+      "hold": 8,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 88,
+      "hold": 8,
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "dashes": 6
+  }
+}

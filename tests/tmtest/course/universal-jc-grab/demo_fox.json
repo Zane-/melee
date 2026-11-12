@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: Z one frame after the jump.",
+  "event": "course",
+  "drill": "universal-jc-grab",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "measured": 1
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "comment": "Fox short hop nair lands 21 frames after the jump press; Z 3 frames before.",
+  "event": "course",
+  "drill": "universal-l-cancel",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 58,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "lag": 7,
+    "before": 3
+  }
+}

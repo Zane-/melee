@@ -1,0 +1,37 @@
+{
+  "comment": "Z 6 frames before landing still counts.",
+  "event": "course",
+  "drill": "universal-l-cancel",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 55,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "lag": 7,
+    "before": 6
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "comment": "Reference demonstration: short hop down air, L-cancelled.",
+  "event": "course",
+  "drill": "universal-l-cancel",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "comment": "Full hop nair.",
+  "event": "course",
+  "drill": "universal-shffl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 6,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 70,
+      "hold": 5,
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "short_hop": 0
+  }
+}

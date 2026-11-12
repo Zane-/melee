@@ -285,11 +285,16 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/tech_short_hop.inc.h"
 #include "drills/tech_wavedash.inc.h"
 #include "drills/fox_shine_tech.inc.h"
+#include "drills/tech_movement.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
     [DRILL_TECH_SHORT_HOP] = &Drill_TechShortHop,
     [DRILL_TECH_WAVEDASH] = &Drill_TechWavedash,
+    [DRILL_TECH_L_CANCEL] = &Drill_TechLCancel,
+    [DRILL_TECH_SHFFL] = &Drill_TechShffl,
+    [DRILL_TECH_DASH_DANCE] = &Drill_TechDashDance,
+    [DRILL_TECH_JC_GRAB] = &Drill_TechJcGrab,
     [DRILL_FOX_WAVESHINE] = &Drill_FoxWaveshine,
     [DRILL_FOX_JC_SHINE] = &Drill_FoxJcShine,
     [DRILL_FOX_MULTISHINE] = &Drill_FoxMultishine,
@@ -666,9 +671,8 @@ static void course_Retry(CourseCtx* c, char* fmt)
 #define GUIDE_H 32.5F
 #define GUIDE_TEXT_X (GUIDE_X + 1.5F)
 #define GUIDE_LINE_H 1.9F
-#define GUIDE_TIMELINE_FROM (-2) /* frames shown around the script's mark */
-#define GUIDE_TIMELINE_TO 8
-#define GUIDE_TIMELINE_SOLO 15 /* frames shown of a script without marks */
+#define GUIDE_TIMELINE_FROM (-2) /* frames shown before a marked script */
+#define GUIDE_TIMELINE_SOLO 15  /* frames shown in all */
 
 static void GuideOpen(CourseCtx* c)
 {
@@ -739,6 +743,9 @@ static const char* RefLabel(const CourseRefInput* in)
                       : (in->buttons & PAD_TRIGGER_R) ? "R"
                       : (in->buttons & PAD_TRIGGER_L) ? "L"
                                                       : "";
+    if (btn[0] == '\0' && dir[0] == '\0' && (in->cx != 0 || in->cy != 0)) {
+        return in->cy < -60 ? "C-Down" : in->cy > 60 ? "C-Up" : "C-Side";
+    }
     sprintf(buf, "%s%s", dir, btn);
     if (btn[0] == '\0' && dir[0] != '\0') {
         buf[strlen(buf) - 1] = '\0'; /* a stick direction alone */
@@ -774,8 +781,15 @@ static void GuideTimeline(float y)
         }
     }
     if (marked) {
-        from = GUIDE_TIMELINE_FROM;
-        to = GUIDE_TIMELINE_TO;
+        /* from two frames before the earliest marked input */
+        int first = 0;
+        for (in = ref; in->mark != COURSE_REF_END; in++) {
+            if (in->mark != 0 && in->frame + in->js * js < first) {
+                first = in->frame + in->js * js;
+            }
+        }
+        from = first + GUIDE_TIMELINE_FROM;
+        to = from + GUIDE_TIMELINE_SOLO - 1;
     } else {
         origin = ref->frame + ref->js * js;
         from = 0;

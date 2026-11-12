@@ -1,0 +1,44 @@
+{
+  "comment": "Short hop, nair, fast fall from frame 14, Z before landing.",
+  "event": "course",
+  "drill": "universal-shffl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 54,
+      "hold": 5,
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 55,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 3
+  }
+}

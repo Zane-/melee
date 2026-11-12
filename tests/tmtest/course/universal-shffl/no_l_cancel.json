@@ -1,0 +1,38 @@
+{
+  "comment": "Short hop, nair, fast fall, no trigger.",
+  "event": "course",
+  "drill": "universal-shffl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 54,
+      "hold": 5,
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "fast_fall": 1,
+    "l_cancel": 0
+  }
+}

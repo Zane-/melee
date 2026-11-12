@@ -23,11 +23,11 @@ L-cancelled, Ice Climbers' desynced wavedash).
 | id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
 |-|-|-|-|-|-|
 | `universal-short-hop` | Short hop | Short hop every time; press length shown | [short hop](../techniques/short-hop.md) | - | implemented: `drills/tech_short_hop.inc.h`; simulator and Dolphin specs pass (2026-11-12). Press length shown in the verdict |
-| `universal-l-cancel` | L-cancel | L-cancel whiffed, hit and shielded aerials | [L-cancel](../techniques/l-cancel.md) | `lcancel` | planned |
-| `universal-shffl` | SHFFL | All four components with per-component feedback | [SHFFL](../techniques/shffl.md), [fast fall](../techniques/fast-fall.md) | `lcancel` | planned |
+| `universal-l-cancel` | L-cancel | L-cancel whiffed, hit and shielded aerials | [L-cancel](../techniques/l-cancel.md) | `lcancel` | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstration fails for Kirby and Sheik |
+| `universal-shffl` | SHFFL | All four components with per-component feedback | [SHFFL](../techniques/shffl.md), [fast fall](../techniques/fast-fall.md) | `lcancel` | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstration fails for Kirby, Sheik, Mr. Game & Watch |
 | `universal-wavedash` | Wavedash | Air dodge on the first airborne frame at a chosen angle | [wavedash](../techniques/wavedash.md), [waveland](../techniques/waveland.md) | `wavedash` | implemented: `drills/tech_wavedash.inc.h`; simulator and Dolphin specs pass (2026-11-12). Chosen length / angle not built |
-| `universal-dash-dance` | Dash dance and pivot | Controlled dash lengths and turnarounds | [dash dance](../techniques/dash-dance.md), [pivot](../techniques/pivot.md) | - | planned |
-| `universal-jc-grab` | Jump-cancel grab and up smash | Standing grab and up smash out of a run | [jump cancel](../techniques/jump-cancel.md) | - | planned |
+| `universal-dash-dance` | Dash dance and pivot | Controlled dash lengths and turnarounds | [dash dance](../techniques/dash-dance.md), [pivot](../techniques/pivot.md) | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters |
+| `universal-jc-grab` | Jump-cancel grab and up smash | Standing grab and up smash out of a run | [jump cancel](../techniques/jump-cancel.md) | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters |
 | `universal-ledgedash` | Ledgedash | Onto the stage with intangibility left | [ledgedash](../techniques/ledgedash.md) | `ledgedash` | planned |
 | `universal-shield-drop` | Shield drop (Axe method) | Hold the stick fully left or right in shield, roll down to the diagonal notch, drop into an aerial | [shield drop](../techniques/shield-drop.md) | legacy Shield Drop | planned |
 | `universal-powershield` | Powershield | Reflect projectiles, powershield physical hits | [powershield](../techniques/powershield.md) | `powershield` | planned |

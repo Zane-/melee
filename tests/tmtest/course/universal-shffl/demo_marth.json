@@ -1,0 +1,22 @@
+{
+  "comment": "Same with Marth.",
+  "event": "course",
+  "drill": "universal-shffl",
+  "hmn": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "short_hop": 1,
+    "fast_fall": 1,
+    "l_cancel": 1
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "comment": "Z 7 frames before landing is too early.",
+  "event": "course",
+  "drill": "universal-l-cancel",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 54,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "lag": 15,
+    "before": 7
+  }
+}

@@ -36,6 +36,7 @@ void tmce_ac_SetEventPage(int page);
 #define HUB_PROC_PRIORITY 20
 
 #define HUB_ROWS 8
+#define HUB_MAX_ROWS 32
 enum { HUB_FREE = COURSE_PART_COUNT, HUB_SECTION_COUNT };
 enum { FREE_LAB, FREE_EVENTS, FREE_COUNT };
 
@@ -81,7 +82,9 @@ static struct {
     Text* list;
     Text* desc;
     int ckind;       /* the player's character while open */
-    int rows[HUB_ROWS]; /* drill ids (or FREE_*) of the open section */
+    /* drill ids (or FREE_*) of the open section; HUB_ROWS are on screen,
+     * scrolled so that the cursor is */
+    int rows[HUB_MAX_ROWS];
     int row_count;
     int fresh;       /* opened this frame: its input is the opening press */
 } hub;
@@ -116,7 +119,8 @@ static void Hub_BuildRows(void)
             hub.rows[hub.row_count++] = i;
         }
     } else {
-        for (i = 0; i < DRILL_COUNT && hub.row_count < HUB_ROWS; i++) {
+        for (i = 0; i < DRILL_COUNT && hub.row_count < HUB_MAX_ROWS; i++)
+        {
             const CourseDrillInfo* d = &Course_Drills[i];
             if (d->part == Course_HubPart &&
                 (d->characters == 0 || (d->characters & mask) != 0))
@@ -135,35 +139,53 @@ static void Hub_BuildRows(void)
 
 static void Hub_Draw(void)
 {
-    int i;
-    Text_SetText(hub.title, 0, "%s  <  %s  >",
-                 hub.ckind >= 0 && hub.ckind < (int) countof(ckind_names)
-                     ? ckind_names[hub.ckind]
-                     : "?",
-                 section_names[Course_HubPart]);
+    int i, scroll = 0;
+    const char* name =
+        hub.ckind >= 0 && hub.ckind < (int) countof(ckind_names)
+            ? ckind_names[hub.ckind]
+            : "?";
+    if (hub.row_count > HUB_ROWS) {
+        /* Longer than the screen: keep the cursor in view and say where
+         * it is. */
+        scroll = Course_HubCursor - HUB_ROWS / 2;
+        if (scroll > hub.row_count - HUB_ROWS) {
+            scroll = hub.row_count - HUB_ROWS;
+        }
+        if (scroll < 0) {
+            scroll = 0;
+        }
+        Text_SetText(hub.title, 0, "%s  <  %s  >  %d/%d", name,
+                     section_names[Course_HubPart], Course_HubCursor + 1,
+                     hub.row_count);
+    } else {
+        Text_SetText(hub.title, 0, "%s  <  %s  >", name,
+                     section_names[Course_HubPart]);
+    }
 
     for (i = 0; i < HUB_ROWS; i++) {
-        if (i >= hub.row_count) {
-            Text_SetText(hub.list, i, i == 0 ? "No drills here yet" : "");
+        int r = scroll + i;
+        if (r >= hub.row_count) {
+            Text_SetText(hub.list, i, r == 0 ? "No drills here yet" : "");
             Text_SetColor(hub.list, i, &hub_grey);
             continue;
         }
         if (Course_HubPart == HUB_FREE) {
-            Text_SetText(hub.list, i, "%s", free_names[hub.rows[i]]);
+            Text_SetText(hub.list, i, "%s", free_names[hub.rows[r]]);
         } else {
-            const CourseDrillInfo* d = &Course_Drills[hub.rows[i]];
-            const CourseStats* st = &Course_Stats[hub.rows[i]];
+            const CourseDrillInfo* d = &Course_Drills[hub.rows[r]];
+            const CourseStats* st = &Course_Stats[hub.rows[r]];
             if (st->attempts > 0) {
-                Text_SetText(hub.list, i, "%s   %d/%d (%d%%)  best streak %d",
+                Text_SetText(hub.list, i,
+                             "%d. %s   %d/%d (%d%%)  best streak %d", r + 1,
                              d->name, st->successes, st->attempts,
                              st->successes * 100 / st->attempts,
                              st->best_streak);
             } else {
-                Text_SetText(hub.list, i, "%s", d->name);
+                Text_SetText(hub.list, i, "%d. %s", r + 1, d->name);
             }
         }
         Text_SetColor(hub.list, i,
-                      i == Course_HubCursor ? &hub_gold : &hub_white);
+                      r == Course_HubCursor ? &hub_gold : &hub_white);
     }
 
     if (hub.row_count == 0) {
