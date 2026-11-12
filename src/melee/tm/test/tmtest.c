@@ -1,5 +1,7 @@
 #include "tmtest.h"
 
+#include "rotation/tm_rotation.h"
+
 #include <melee/ft/fighter.h>
 #include <melee/gm/gmmain_lib.h>
 #include <melee/gm/types.h>
@@ -131,6 +133,7 @@ void tm_test_OnEventModeLoad(void)
     /* Seed now as well as at match start: match setup draws random numbers
      * too (character rotation picks its preload subset). */
     *HSD_RandSeedPtr = c->seed;
+    tm_rot_SetSeed(c->seed);
     state_machine[STATE_ID_OFFSET] = EVENT_MATCH_STATE;
     OSReport("TMTEST {\"boot\":\"%s\",\"hmn\":%d,\"cpu\":%d,\"seed\":%u}\n",
              c->event, c->hmn_ckind, c->cpu_ckind, c->seed);

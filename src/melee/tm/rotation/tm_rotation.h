@@ -27,10 +27,11 @@
  */
 
 /// Most different fighters preloaded at once, including the player's and
-/// any already in the game cache: what a 4-player VS match loads. A 5th
-/// overflows the preload heap ("memp_kouho" in lbmemory.c) while the files
-/// stream in (found with tools/tmtest.py soak runs). The deck's characters
-/// fill the remaining slots, a random subset if they do not all fit.
+/// any already in the game cache: what a 4-player VS match loads. Beyond
+/// that, or beyond the animation budget in rotation.c (ARAM, with
+/// Zelda/Sheik counting both), the preload heap overflows ("memp_kouho" in
+/// lbmemory.c). The deck's characters fill what is left, a random subset
+/// if they do not all fit.
 #define TM_ROT_MAX_FIGHTERS 4
 
 typedef struct TmRotEntry {
@@ -50,6 +51,11 @@ typedef struct TmRotDeck {
 /// fighter files. Sound banks do not fit all at once; each swap loads the
 /// new CPU's (and `stkind`'s). Also resets the shuffle bag.
 void tm_rot_Preload(const TmRotDeck* deck, int stkind);
+
+/// Seed the rotation's own RNG (preload subset, shuffle order) for the next
+/// tm_rot_Preload; unseeded, it seeds itself from the game's RNG. Test
+/// builds pass the test's seed so Dolphin and tools/melee_sim agree.
+void tm_rot_SetSeed(unsigned int seed);
 
 /// The deck of the current session, or NULL.
 const TmRotDeck* tm_rot_Deck(void);

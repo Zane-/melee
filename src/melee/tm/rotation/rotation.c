@@ -4,6 +4,7 @@
 #include <melee/gm/types.h>
 #include <melee/lb/lbaudio_ax.h>
 #include <melee/lb/lbdvd.h>
+#include <melee/lb/lbfile.h>
 #include <melee/lb/types.h>
 #include <melee/mn/types.h>
 #include <melee/pl/player.h>
@@ -38,6 +39,61 @@ typedef struct RotState {
 
 static RotState rot;
 
+/* The rotation's own RNG: the subset and the order depend only on its seed
+ * (tm_rot_SetSeed; tests pass theirs), not on how many random numbers the
+ * game drew while loading, which differs between Dolphin and
+ * tools/melee_sim. */
+static u32 rot_rng;
+static bool rot_seeded;
+
+void tm_rot_SetSeed(unsigned int seed)
+{
+    rot_rng = seed;
+    rot_seeded = true;
+}
+
+static int rotRandi(int max)
+{
+    rot_rng = rot_rng * 214013 + 2531011; /* HSD_Rand's LCG */
+    return max > 0 ? (int) ((rot_rng >> 16) % (u32) max) : 0;
+}
+
+/* pl/player.c's table (its type is local to player.c): internal fighter
+ * ids per character, plus the transformation partner (Zelda/Sheik). */
+typedef struct RotMapping {
+    s8 internal_id;
+    s8 extra_internal_id;
+    s8 has_transformation;
+} RotMapping;
+extern RotMapping ftMapping_list[];
+/* ft/ftdata.c: each fighter's animation file (PlXxAJ.dat), which the
+ * preload puts in heap 5 (ARAM). */
+extern char* ftData_803C23E4[];
+
+/// ARAM the preloaded fighters' animations may use. The game reports
+/// "ARAM Free Size 9 MB" at boot; a deck whose animations summed to ~9.7 MB
+/// overflowed heap 5 (memp_kouho) in tools/melee_sim. Kept below with a
+/// margin.
+#define ROT_ANIM_BUDGET (8 * 1024 * 1024 + 512 * 1024)
+
+/// Bytes of animation a character's preload brings, partner included.
+static u32 rotAnimBytes(int ckind)
+{
+    u32 size = 0;
+    int ids[2], i;
+    if (ckind < 0 || ckind >= ChKind_Max) {
+        return 0;
+    }
+    ids[0] = ftMapping_list[ckind].internal_id;
+    ids[1] = ftMapping_list[ckind].extra_internal_id;
+    for (i = 0; i < 2; i++) {
+        if (ids[i] >= 0 && ftData_803C23E4[ids[i]] != NULL) {
+            size += lbFileGetSize(ftData_803C23E4[ids[i]]);
+        }
+    }
+    return size;
+}
+
 static bool rotIsLoaded(int ckind)
 {
     int i;
@@ -64,7 +120,7 @@ static void rotShuffle(void)
     }
     /* Fisher-Yates */
     for (i = rot.bag_num - 1; i > 0; i--) {
-        int j = HSD_Randi(i + 1);
+        int j = rotRandi(i + 1);
         u8 t = rot.bag[i];
         rot.bag[i] = rot.bag[j];
         rot.bag[j] = t;
@@ -76,8 +132,8 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
     struct GameCache* gc = &lbDvd_GetPreloadCacheScene()->game_cache;
     int wanted[ROT_MAX_ENTRIES];
     int wanted_num = 0;
-    int extra_num = 0;
-    int room;
+    u32 anim;
+    int slot;
     int i, j;
 
     rot.deck = deck;
@@ -109,37 +165,50 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
         }
     }
 
-    /* Room left, counting what is already cached. */
-    room = TM_ROT_MAX_FIGHTERS - rot.loaded_num;
-    if (room < 0) {
-        room = 0;
+    if (!rot_seeded) {
+        tm_rot_SetSeed(HSD_Rand());
     }
+    rot_seeded = false; /* a test's seed applies to one match */
 
-    /* Random subset if there are more than fit (Fisher-Yates prefix). */
-    for (i = 0; i < wanted_num && i < room; i++) {
-        int k = i + HSD_Randi(wanted_num - i);
+    /* Shuffle, then take characters while they fit: at most
+     * TM_ROT_MAX_FIGHTERS fighters, and ROT_ANIM_BUDGET bytes of animation
+     * (what is already cached counts). */
+    for (i = wanted_num - 1; i > 0; i--) {
+        int k = rotRandi(i + 1);
         int t = wanted[i];
         wanted[i] = wanted[k];
         wanted[k] = t;
     }
-
-    for (i = 0; i < CACHE_ENTRIES && extra_num < wanted_num &&
-                extra_num < room;
-         i++)
-    {
-        if (gc->entries[i].char_id == ChKind_None) {
-            int ckind = wanted[extra_num++];
-            int color = 0;
-            for (j = 0; j < deck->count; j++) {
-                if (deck->entries[j].ckind == ckind) {
-                    color = deck->entries[j].color;
-                    break;
-                }
-            }
-            gc->entries[i].char_id = ckind;
-            gc->entries[i].color = color;
-            rot.loaded[rot.loaded_num++] = ckind;
+    anim = 0;
+    for (i = 0; i < rot.loaded_num; i++) {
+        anim += rotAnimBytes(rot.loaded[i]);
+    }
+    slot = 0;
+    for (j = 0; j < wanted_num && rot.loaded_num < TM_ROT_MAX_FIGHTERS; j++) {
+        int ckind = wanted[j];
+        u32 size = rotAnimBytes(ckind);
+        int color = 0, k;
+        if (anim + size > ROT_ANIM_BUDGET) {
+            continue;
         }
+        while (slot < CACHE_ENTRIES &&
+               gc->entries[slot].char_id != ChKind_None)
+        {
+            slot++;
+        }
+        if (slot >= CACHE_ENTRIES) {
+            break;
+        }
+        for (k = 0; k < deck->count; k++) {
+            if (deck->entries[k].ckind == ckind) {
+                color = deck->entries[k].color;
+                break;
+            }
+        }
+        gc->entries[slot].char_id = ckind;
+        gc->entries[slot].color = color;
+        rot.loaded[rot.loaded_num++] = ckind;
+        anim += size;
     }
     lbDvd_80018254();
 

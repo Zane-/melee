@@ -17,7 +17,7 @@ python tools/tmtest.py --no-build --json SPEC.json             # machine-readabl
 | Boot straight into the event's match: no CSS or SSS; the characters go into the preload cache the CSS would fill; the event's own CPU and stage are used unless the spec names others (FD if the event lets you pick) | `tm_test_OnEventModeLoad`, `tm_test_OnMatchEnter` (`src/melee/tm/test/tmtest.c`) |
 | Input: port 1's raw pad reading is replaced each logic frame before the game pops it (`gm_801A4D34+0xB4`), so menus, fighters and TM-CE all see real controller input | `tm_test_PadRenew` |
 | Output: `OSReport` lines `TMTEST {json}`: `boot`, `match`, trace frames (`f`, per fighter `ck st x y pct`), the event's own `result` lines, `done` | Dolphin's log (`build/tmtest/user/Logs/dolphin.log`) |
-| Dolphin: isolated user dir (`build/tmtest/user`, memory card copied from the owner's), Null video, no audio, unlimited speed, panic dialogs off; `xvfb-run` hides the window if installed | `tools/tmtest.py run()` |
+| Dolphin: isolated user dir (`build/tmtest/user`, memory card copied from the owner's), Null video, no audio, unlimited speed, panic dialogs off, inside `xvfb-run` (no window; a visible window steals the owner's desktop focus, so without xvfb-run the runner refuses unless `--window`) | `tools/tmtest.py run()` |
 
 The same test build runs in `tools/melee_sim` (another session's Unicorn-based simulator, which
 hooks `OSReport`); keep tests independent of Dolphin specifics.

@@ -77,6 +77,7 @@ STATE = {"Wait": 0x0E, "KneeBend": 0x18, "Landing": 0x2A,
          "ShineGround": 0x168, "ShineAir": 0x16D}
 
 TRIGGER = {"at": 0, "on_enter": 1, "on_exit": 2}
+WINDOW_OK = False  # --window: allow a visible Dolphin when xvfb-run is missing
 
 
 def build():
@@ -228,6 +229,10 @@ def run(spec, timeout=180, keep_log=False):
     # server (xvfb-run, package xorg-server-xvfb) hides the window if present.
     env = dict(os.environ)
     wrap = ["xvfb-run", "-a"] if shutil.which("xvfb-run") else []
+    if not wrap and not WINDOW_OK:
+        sys.exit("xvfb-run not found: a visible Dolphin window would steal the "
+                 "desktop's focus. Install xorg-server-xvfb, run specs in the "
+                 "simulator (tools/melee_sim/tmtest_sim.py), or pass --window.")
     cmd = wrap + ["dolphin-emu", "-u", str(user), "-b", "-v", "Null",
            "-C", "Dolphin.Interface.UsePanicHandlers=False",
            "-C", "Dolphin.Interface.ConfirmStop=False",
@@ -292,7 +297,11 @@ def main():
     ap.add_argument("--json", action="store_true", help="print full results as JSON")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--keep-log", action="store_true")
+    ap.add_argument("--window", action="store_true",
+                    help="allow a visible Dolphin window if xvfb-run is missing")
     args = ap.parse_args()
+    global WINDOW_OK
+    WINDOW_OK = args.window
     if not args.no_build:
         build()
     failed = 0
