@@ -1,0 +1,99 @@
+# TM-CE Additional Codes (../TrainingMode/ASM/Additional Codes/) and m-ex UCF.
+# C in src/melee/tm/addcodes/. Each entry names the .asm it replaces.
+#
+# slippi-word entries sit on Slippi's required codes with the same (or, for
+# settings defaults, Slippi's own) effect; under Slippi its codes are applied
+# after the DOL loads and win (tools/overlay_link.py).
+
+# --- Enable C Stick Always/ --------------------------------------------------
+# Enable CStick for CPU in Debug.asm: fall through the DbLevel >= 3 branch.
+word  Fighter_procInput+0xF0    0x60000000  Enable CStick for CPU in Debug
+# Spoof Debug Level as 0 for Human C Stick Inputs.asm: li r0,0 for lwz DbLevel.
+word  Fighter_procInput+0x180   0x38000000  Spoof Debug Level as 0 for Human C Stick
+# Single Player Always Returns False.asm (Slippi writes the same nop).
+slippi-word  gm_IsCurrently1PMode_inline+0x64  0x60000000  Single Player Always Returns False
+# Rotate Camera with Dpad Down and C Stick - Initiate.asm (fn_CheckCameraInfo+0x6C)
+call  db_RunEveryFrame+0x1B4    tm_ac_CheckCameraInfo     C-stick camera needs D-pad Down
+# Rotate Camera with Dpad Down and C Stick.asm (fn_80227B64+0xC)
+function  fn_80227904           tm_ac_DebugUpdateCamera   freecam rotate needs D-pad Down
+
+# --- Better Camera/ ------------------------------------------------------------
+# Slow Camera With R - Pan/Rotate/Zoom.asm
+function  fn_80227FE0           tm_ac_FreecamPosition     slow pan with R
+function  fn_802279E8           tm_ac_OrbitAroundInterest slow rotate with R
+function  fn_80227CAC           tm_ac_FreecamDolly        slow zoom with R
+# C-Stick Pans Camera.asm (Camera_8002CB0C+0x24)
+call  Camera_8002CB0C+0x38      tm_ac_PauseCamInputs      C-stick pans pause camera
+# Unrestricted Camera.asm (Camera_SetUpPauseCamera+0xE8)
+call  Camera_SetUpPauseCamera+0xE0  tm_ac_PauseCamZPosMax  unrestricted pause camera
+# SnapToOffscreenPlayers/Always Onscreen.asm (Camera_8002CDDC+0x158)
+call  Camera_8002CDDC+0x158     tm_ac_PauserOnscreen      pauser counts as on screen
+# SnapToOffscreenPlayers/Snap.asm + CStickPanOffscreen/{Right,Left,Top,Bottom}.asm
+function  Camera_8002C5B4       tm_ac_PauseCamClamp       no clamp while pauser alive; pan offscreen
+
+# --- Boot to Event Mode/ (+ boot into the Lab, TM_AC_BOOT_TO_LAB) -------------
+# Boot to Main Menu Or CSS.asm (bootOnLeave+0x78 is a Slippi Online site)
+call  bootOnLeave+0x7C          tm_ac_BootChangeMode      boot to Lab / main menu / VS CSS
+call  gm_Scene_MemCard_OnExit+0x30  tm_ac_MemCardExit     reselect Lab after save load
+# Main Menu Starts at Event Mode.asm (gm_Scene_MemCard_OnEnter+0x78)
+call  gm_Scene_MemCard_OnEnter+0x74 tm_ac_MemCardEnter    main menu cursor on Event Match
+
+# --- Engine / frame advance -------------------------------------------------
+# Force Game Loop.asm: inject, see tm_ac_ForceGameLoop for why not call/function.
+inject  gm_801A4D34+0x2E8        tm_ac_ForceGameLoop  keep the frame loop running (Lab)
+# Pad - Update During Frame Advance.asm: read pads even while the engine is paused.
+word  gm_801A4D34+0x114          0x60000000  Pad - Update During Frame Advance
+
+# --- Develop mode -------------------------------------------------------------
+word  ft_80089228+0x28           0x48000008  Allow Staling in Develop Mode
+word  fn_CheckItemAndPokemonMenu+0x6C  0x60000000  Disable Item Spawn in Develop Mode
+word  803FA258                   0x00000001  Debug Menu Codes/Debug Language is English by Default
+slippi-word  801B0A14            0x38600001  Debug Menu Codes/Exiting Debug Goes to Main Menu (Slippi: 2)
+slippi-word  8022D638            0x38000006  Debug Menu Codes/Tournament Mode Goes to Debug
+
+# --- Menus and defaults -------------------------------------------------------
+slippi-word  804DC47C            0xC0200000  Change Default Hand Position (-2.5)
+slippi-word  803D4A48            0x00340000  Default Tournament Settings/Stock Mode (Slippi: 00340102)
+slippi-word  803D4A4C            0x04000A00  Default Tournament Settings/4 Stocks
+slippi-word  803D4A50            0x08010100  Default Tournament Settings/8 Minutes
+slippi-word  803D4A60            0xFF000000  Default Tournament Settings/No Items
+slippi-word  803D4A78            0xE70000B0  Default Tournament Settings/Tournament Stages
+word  803D4A70                   0x00000000  Rumble Off/Rumble Off.asm
+word  803D4A74                   0x64000000  Music At 0% By Default
+slippi-word  802641B0            0x38000001  Faster CSS Load
+slippi-word  801C26B0            0x38000032  Stage Music = 50 50
+slippi-word  802605FC            0x38C00003  Unplugging Closes CSS Door
+word  gm_80173EEC                0x4E800020  Disable Special Records/Disable Special Messages
+word  gm_80172898                0x4E800020  Disable Special Records/Disable Trophy Messages
+word  gm_DoPauseChecksAndRoutine+0x34    0x60000000  Pause During Game Start/Check to Pause
+word  gm_DoUnpauseChecksAndRoutine+0x34  0x60000000  Pause During Game Start/Check to Unpause
+
+# --- On Crash/ (quieter OSReport, readable crash screen) ----------------------
+word  grKraid_801FE6D8+0x60      0x60000000  Disable Brinstar OSReport
+word  ftCo_8009F834+0x84C        0x60000000  Disable Effect AnimList OSReport
+word  grFourside_801F3274+0x34C  0x60000000  Disable Fourside OSReport2
+word  grFourside_801F3274+0x28C  0x60000000  Disable Fourside OSReport
+word  mpLib_8005A2DC+0x1C        0x48000030  Disable mpcoll OSReport
+word  Ground_801C39C0+0xC4       0x60000000  Disable PS OSReport
+word  grYorster_8020266C+0x3D4   0x60000000  Disable YoshisIsland OSReport
+word  fn_HSDPanicHandler+0x38    0x60000000  Dont Output Compile Date on Assert
+word  fn_OSErrorHandler+0xC8     0x60000000  Dont Output Compile Date on Invalid Read
+word  fn_80397814+0x64           0x4800020C  Enable OSReport Print to Screen
+word  Exception_ReportStackTrace+0xB4  0x2C1D0008  Only Show First 8 Lines of Stack
+
+# --- Debug drawing --------------------------------------------------------------
+# Display Ungrabbable Hurtboxes/Main.asm (lbColl_8000A244+0x40); fighters only
+call  ftDrawCommon_800805C8+0x110  tm_ac_DrawHurtbox        ungrabbable hurtboxes purple
+# Collision Link Draw Order Fix [Punkline]/
+call  fn_800301D0+0xB4           tm_ac_DrawCollisionLinks   New Draw Location (+0xB8)
+word  mpLib_8005A2DC+0x10        0x60000000                 Remove Original Draw
+
+# --- Misc ------------------------------------------------------------------------
+# Initialize Stage Data.asm (Ground_GetStageGObj+0x7C is a Slippi Recording
+# site with the same code; this zeroes at the allocation instead).
+call  Ground_GetStageGObj+0x5C   tm_ac_StageDataAlloc        zero stage data
+# On Crash/Clear Bootup OSReports.asm (main+0x2A0)
+call  main+0x2B4                 tm_ac_BootDisableItemSpawns clear boot OSReports
+call  main+0x2BC                 tm_ac_BootEnableItemSpawns  clear boot OSReports
+# Disable FoD Reflection.asm (ftDrawCommon_80081140+0xC)
+function  ftDrawCommon_80081140  tm_ac_FighterReflections    no FoD reflection with 4+ fighters

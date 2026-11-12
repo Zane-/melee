@@ -101,6 +101,7 @@ and optionally `src/tmce/<area>_*.c` (code that needs MexTK types). Areas in pro
 |-|-|
 | `ess` | `Custom Events/Event Select Screen/**`, `Custom Events/Unlock All Events/*` |
 | `css` | `Custom Events/CSS and SSS/**`, `Custom Events/Custom Event Preload Behavior/*`, `Custom Events/A+B to Reset Event/*`, `Hooks/OnCSSLoad.asm` |
+| `addcodes` | `Additional Codes/**` (except Unlock Everything: `config/GALE01/tm_hooks/unlock.txt`), `m-ex/UCF 0.84/` |
 | `misc` | `Misc/**` except `Load eventMenu.dat.asm` (done) and `On No Save.asm` (Slippi already does it) |
 | later | `Onscreen Display/**` (82), the 15 legacy events in `Custom Event Code - Rewrite.asm`, `Additional Codes/**` (pick per code; many duplicate Slippi) |
 
@@ -136,7 +137,8 @@ See "Port status" below; update it as pieces are booted.
 | OSD core (`osdcore`: message system, FighterData.TM per-frame bookkeeping, fastfall, frame advantage, previous move instance, Generic Per Frame, IC follower check, Act OoWait). API in `src/melee/tm/osdcore/osd.h` | Ported, not booted. `Fighter_ChangeMotionState` and `ftCommon_CheckFallFast` are replaced by edited copies (hooks inside the vanilla bodies would be dead) |
 | Individual OSDs: `osdact` (act out of airborne/shield/tumble/float, 24 + 3 statics, 1 dead dropped), `osdtech` (ledge codes/GALINT, dashback, wavedash, SDI; 13), `osdmisc` (combo counter, L-cancel, powershield, jump cancel, grab breakout, boost grab, glide toss, airdodge item throw, Yoshi egg, Bowser fortress; 17, 2 dead dropped) | Ported, not booted. All of Onscreen Display/ is now covered |
 | Legacy events (`src/melee/tm/legacy`): dispatch from `tm_event_start.c`, shared library (lines 8600-12371), and all 15 events (Multishine, Reaction, Ledge Stall, Ledgetech, Ledgetech Counter, Amsah Tech, SDI Training, Combo Training, Reversal, Shield Drop, Escape Sheik, Slide Off, Waveshine SDI, Attack on Shield, Grab Mash Out) | Ported, not booted |
-| Other Additional Codes (Better Camera, Enable C Stick Always, Boot to Event Mode, ...) | Not started; owner asked for C-stick in all events, TM-CE's camera, boot into the Lab |
+| Additional Codes (`addcodes`): Enable C Stick Always, Better Camera, Boot to Event Mode (extended: **boots straight into the Training Lab's CSS**; hold X at boot for VS CSS, Y for the main menu; `TM_AC_BOOT_TO_LAB` in `src/melee/tm/addcodes/addcodes.h` turns it off), Force Game Loop, develop-mode and debug-menu codes, On Crash, tournament defaults (`slippi-word`), ungrabbable hurtboxes, collision draw order, FoD reflection, and ~25 one-word codes | Ported, not booted |
+| Additional Codes not done: UCF 0.84 (needs to stand down when Slippi's UCF is present), Hitbox Visualizer, Hide Player GFX, Longer Nametags, Physics Display, Lag Reduction Prompt, Idle Screen, Display Animation Name, Neutral Respawn, a few CSS door/rumble codes, and 8 multi-instruction codes on Slippi sites (Neutral Spawn, Random CSS Music, Salty Runback, ...) | Not started |
 | Skills for adding new events (owner request; after parity) | Not started |
 
 Open questions from the area ports (check when booting):
