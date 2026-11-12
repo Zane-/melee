@@ -15,6 +15,11 @@ Hook table (--hooks), one hook per line, '#' comments allowed:
     call      SITE  TARGET  [note]   retarget the `bl` at SITE to overlay TARGET
     function  SITE  TARGET  [note]   write `b TARGET` at SITE (a function entry)
     word      SITE  VALUE   [note]   overwrite the 32-bit word at SITE
+    slippi-word SITE VALUE  [note]   same, but SITE must be a Slippi injection
+                                     whose required code makes the same change
+                                     (e.g. unlock-all). Only for plain Dolphin:
+                                     Slippi applies its codes after the DOL
+                                     loads, so its version wins under Slippi
     pointer   SITE  TARGET  [note]   store TARGET's address in the data word at SITE
     inject    SITE  TARGET  [note]   replace the instruction at SITE with a branch
                                      to a generated trampoline that calls
@@ -405,10 +410,14 @@ def main():
             seen[site] = where
             old = struct.unpack_from(">I", dol, dol_offset(h, site))[0]
             in_text = any(a <= site < b for a, b in text_ranges)
-            if site in slippi:
+            if kind == "slippi-word":
+                if site not in slippi:
+                    sys.exit(f"{where}: {site_s} ({site:08X}) is not a Slippi site; "
+                             "use `word`")
+            elif site in slippi:
                 sys.exit(f"{where}: {site_s} ({site:08X}) is patched by Slippi "
                          f"({slippi[site]})")
-            if kind == "word":
+            if kind in ("word", "slippi-word"):
                 new = int(target, 0)
             elif target not in ov:
                 sys.exit(f"{where}: {target} is not an overlay global")

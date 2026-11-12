@@ -1,0 +1,14 @@
+--- a/src/events.c	2026-11-11 18:22:57.749836748 -0800
++++ b/src/events.c	2026-11-11 18:22:57.787006472 -0800
+@@ -1505,6 +1505,11 @@
+     if (fighter_data == 0)
+         return (FighterData *)-1;
+ 
++    // native build: inactive hitboxes can hold stale victim pointers (leftover
++    // heap data); anything outside main RAM is not a fighter
++    if ((u32)fighter_data < 0x80000000 || (u32)fighter_data >= 0x81800000)
++        return (FighterData *)-1;
++
+     // ensure its a fighter
+     if (fighter_data->fighter == 0)
+         return (FighterData *)-1;

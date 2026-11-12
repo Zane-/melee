@@ -184,7 +184,11 @@ def main():
             covered = all(
                 any(p[0] <= a < p[1] for p in declared) for a in range(start, end, 4)
             )
-            hits = overlaps(slippi, start, end)
+            # slippi-word patches duplicate Slippi's own required code on
+            # purpose (tools/overlay_link.py); they are not collisions.
+            dup = [p for p in declared if p[2].startswith("slippi-word")]
+            hits = [h for h in overlaps(slippi, start, end)
+                    if not any(p[0] <= h[0] < p[1] for p in dup)]
             diffs.append(
                 {
                     "start": f"{start:08X}",
@@ -221,6 +225,8 @@ def main():
             )
 
     for p in patches:
+        if p[2].startswith("slippi-word"):
+            continue
         hits = overlaps(slippi, p[0], p[1])
         for h in hits:
             msg = f"declared patch {p[0]:08X} ({p[2]}) collides with Slippi injection {h[0]:08X}"

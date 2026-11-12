@@ -1,0 +1,34 @@
+# TM-CE Additional Codes/Unlock Everything (../TrainingMode/ASM/Additional
+# Codes/Unlock Everything/). Every site is also patched by Slippi's required
+# "General Codes" with the same effect, so these are `slippi-word` hooks: they
+# make plain Dolphin behave like Slippi, and under Slippi its codes (applied
+# after the DOL loads) win. Values: li r3,1 = 0x38600001, li r3,0 = 0x38600000.
+#
+# Not ported: Unlock All Trophies/Fill Save Data.asm, which writes all trophies
+# into the save file for good. The two trophy spoofs below cover the menus.
+
+# Unlock All Characters/
+slippi-word  gm_80164ABC+0x58         0x38600001  Spoof All Characters as Unlocked
+slippi-word  gm_IsCKindUnlocked+0xB4  0x38600001  Spoof Individual Characters as Unlocked
+
+# Unlock All Stages/
+slippi-word  gm_80164600+0x58         0x38600001  Spoof All Stages Unlocked
+slippi-word  gm_80164430+0xB8         0x38600001  Spoof Individual Stage Unlocked
+
+# Unlock All Rules/
+slippi-word  gmMainLib_8015EE44+0x8   0x38600001  Unlock Random Stage Select
+slippi-word  gmMainLib_8015EE0C+0x8   0x38600001  Unlock Score Display
+
+# Unlock All Special Messages/ (no unlock pop-ups)
+slippi-word  gmMainLib_8015D94C+0x1C  0x38600001  Special Messages 1
+slippi-word  gmMainLib_8015D984+0x54  0x38600001  Special Messages 2
+slippi-word  gm_801721EC+0xB0         0x38600000  Spoof No Pending Messages 2
+slippi-word  gm_80173754+0x5C         0x38600000  Spoof No Pending Messages
+
+# Unlock All-Star.asm, Unlock Sound Test.asm
+slippi-word  gmMainLib_8015EE90+0x8   0x38600001  Unlock All-Star
+slippi-word  gmMainLib_8015EDD4+0x8   0x38600001  Unlock Sound Test
+
+# Unlock All Trophies/ (menus only; save data untouched)
+slippi-word  un_80304470+0x80         0x38600001  Spoof All Trophies as Unlocked
+slippi-word  Toy_803048C0+0x4C        0x38600063  Have 99 of Every Trophy

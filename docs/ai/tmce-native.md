@@ -52,6 +52,21 @@ Build details (`tools/overlay_build.py`):
   anything that runs during netplay keeps its state under `tm_state`.
 - Size: ~295 KB at `0x804F0C00`; the arena starts after it.
 
+Struct layout: `python tools/tmce_layout_check.py` compares every TM-CE/MexTK struct between
+clang (gcc's PowerPC ABI, what TM-CE is normally built with) and MWCC. 327 structs, 9396
+offsets/sizes: only `FtScript` differs (packed; only used through a pointer). MexTK's offset
+comments are often wrong (absolute offsets inside sub-structs); trust the declarations.
+
+Patches to TM-CE (`src/tmce/patches/`): 0001 `event_vars` global, 0002 MWCC can't copy a const
+struct in an initializer, 0003 lab_css calls the core directly, 0004 `FtDataToID` rejects
+non-RAM pointers (stale victim pointers in inactive hitboxes; TM-CE only gets away with it
+because that memory happens to be zero in its build).
+
+`slippi-word` hooks (`config/GALE01/tm_hooks/unlock.txt`): TM-CE's Unlock Everything sits on
+Slippi's required General Codes sites with the same effect. They are applied for plain Dolphin;
+under Slippi its codes are applied after the DOL loads and win. Only that kind may touch a
+Slippi site.
+
 Known deviations from TM-CE kept on purpose:
 
 - `lab.c` rewrites one vanilla instruction at runtime (Pokémon Stadium transformation,
@@ -96,7 +111,10 @@ See "Port status" below; update it as pieces are booted.
 | Event select screen (`ess`: 24 ported, 1 no-op dropped) | Ported, not booted. L (OSD menu) needs the OSD area |
 | Event CSS/SSS flow (`css`: 21 ported, 1 no-op dropped). Event mode runs from a replacement state list (CSS → match → SSS) | Ported, not booted |
 | Misc (`misc`: 37 ported, 4 dropped: On No Save = Slippi; Boot Up Tasks = dead; nametag save and save renaming = m-ex launcher only) | Ported, not booted |
-| OSDs, legacy events, Additional Codes | Not started |
+| Unlock Everything (Additional Codes; trophies spoofed, save not filled) | Ported as `slippi-word`, not booted |
+| Boot → ESS → Lab CSS → SSS → Lab match | **Booted 2026-11-11** (plain Dolphin, Linux). Savestate bad read fixed by patch 0004 |
+| OSDs, legacy events, other Additional Codes | Not started |
+| Skills for adding new events (owner request; after parity) | Not started |
 
 Open questions from the area ports (check when booting):
 
