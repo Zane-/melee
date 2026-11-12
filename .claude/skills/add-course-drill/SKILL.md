@@ -84,11 +84,16 @@ python tools/overlay_build.py      # overlay; runs tools/overlay_check.py
 A drill never touches vanilla source. If you think it needs a new hook, that is engine work:
 `add-native-code` skill, and re-run the matching build.
 
-## 4. Prove it in Dolphin
+## 4. Prove it: simulator first, then Dolphin
 
-Every drill gets an automated run with `tools/dolphin_harness.py` (model:
-`tools/test_shineoos.py`; test builds boot straight into an event with
-`TM_DEFINES="TM_AC_BOOT_EVENT=<event> TM_TEST_BOT=1" OVERLAY_OUT=build/overlay-test`).
+Write the runs below as `tools/tmtest.py` specs under `tests/tmtest/<event>/`
+(`docs/ai/testing.md`). Develop and tune them in the simulator
+(`python tools/melee_sim/tmtest_sim.py`, `melee-sim` skill: seconds per run, no window), and
+measure `tune` values there instead of guessing. When they pass, run the same specs once in
+Dolphin (`python tools/tmtest.py`); only that run makes a drill `verified`.
+
+
+Every drill gets these runs (model: `tests/tmtest/shineoos/`):
 
 1. **Reference passes.** With the reference script as the player's inputs, every scenario
    of the deck is graded a success over repeated attempts. Report per scenario.
