@@ -1,9 +1,10 @@
 # Melee decomp — agent guide
 
 This repo is the matching decompilation of Super Smash Bros. Melee (NTSC 1.02, `GALE01`).
-This fork's goal is a **custom training build**: Training Mode (UnclePunch / TM-CE, source in
-`../TrainingMode`) ported to native C, an in-game AI coach driven by Claude, and
-tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc index.
+This fork's goal is a **custom training build**: Training Mode (TM-CE, source in
+`../TrainingMode`) ported to native C **faithfully and completely**, then custom
+character-specific drills (e.g. shine out of shield) built on it, an in-game AI coach driven by
+Claude, and tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc index.
 
 ## Facts that shape every task
 
@@ -28,39 +29,49 @@ What this means for every change:
 
 - Never edit a vanilla function to add a call, a branch or a field access. Not even behind
   `#ifdef`. Hooks go in the hook table and are applied as patches.
-- No writable statics in mod code. Mutable state is heap-allocated and reached from one root
-  pointer, so Slippi's rollback saves it.
+- Writable statics are allowed (owner decision 2026-11-11, so TM-CE's C can be used as is),
+  but they are **not** saved by Slippi's rollback. Code that runs during netplay (tandem
+  drills) keeps its mutable state on the heap under the `tm_state` root.
 - Never replace or patch at an address Slippi patches (`config/GALE01/slippi_injections.txt`).
 - `tools/overlay_check.py` must pass on any DOL meant to run.
 - `--non-matching` (freely shifted) builds are for local experiments only.
 - **No assembly (project goal, set by the owner 2026-11-11).** Mod code is C. Port TM-CE's
   assembly injections by understanding what they do and writing C against the decomp, usually
   as an edited copy of the vanilla function behind a `function` or `call` hook
-  (`src/melee/tm/tm_ess.c` replaces ~25 injections that way). Do not add `.s` files or inline
-  asm. The `inject` hook kind (a generated register-saving trampoline) is a last resort; if
+  (`src/melee/tm/tm_event_start.c` is an example). Do not add `.s` files or inline asm. The `inject` hook kind (a generated register-saving trampoline) is a last resort; if
   you think you need it, look for a `call`, `function` or `pointer` hook first and say why
   none works.
 
-The overlay toolchain works at build level: `python tools/overlay_build.py` compiles
-`src/melee/tm` and `src/melee/ai`, links them as an overlay, applies
-`config/GALE01/tm_hooks.txt` and runs the layout check, on top of a matching build. **No
-overlay DOL has been booted yet.** See the experiment table in `overlay-build.md` for what is
-proven, and "Port status" in `training-mode-port.md` for what has been ported.
+## TM-CE port (decided 2026-11-11)
+
+TM-CE's own C (`../TrainingMode/src`, ~26k lines) is compiled nearly unmodified against its
+MexTK headers and linked into the overlay; only its assembly (~300 injections) is rewritten as
+native C hooks. Small patches to TM-CE live in `src/tmce/patches/`; m-ex runtime replacements
+in `src/tmce/`. Full design, porting recipe and status: `docs/ai/tmce-native.md`. The older
+plan to reimplement TM-CE against the decomp (`training-mode-port.md`) is superseded; its
+MexTK ↔ decomp notes are still useful.
+
+`python tools/overlay_build.py` compiles native mod code and TM-CE, links the overlay, applies
+the hook tables (`config/GALE01/tm_hooks.txt` + `config/GALE01/tm_hooks/*.txt`) and runs the
+layout check, on top of a matching build. `python tools/tmce_disc.py` installs the DOL and
+TM-CE's art into `build/disc` for Dolphin. An overlay DOL has booted in Dolphin (2026-11-11,
+before the TM-CE switch); see `overlay-build.md` for what is proven.
 
 ## Build
 
 ```sh
 . .venv/bin/activate                      # ninja lives here
-python configure.py --wrapper tools/wibo_macos_wrapper.py            # matching
-python configure.py --wrapper tools/wibo_macos_wrapper.py --non-matching --map   # shifted dev build, not for netplay
+python configure.py                       # matching (Linux x86_64: no wrapper needed)
+python configure.py --wrapper tools/wibo_macos_wrapper.py            # matching, macOS
+python configure.py --non-matching --map  # shifted dev build, not for netplay
 ninja
 ```
 
-- Needs `orig/GALE01/sys/main.dol` (already extracted, git-ignored), Rosetta 2, and
-  `build/tools/wibo-macos`. The wrapper script replaces `sjiswrap.exe`, which does not load
-  under wibo on macOS.
-- Verified 2026-11-11: the matching build reproduces the retail SHA-1 on this machine in
-  about 2.5 minutes from clean.
+- Needs `orig/GALE01/sys/main.dol` (git-ignored; extract with `build/tools/dtk disc extract`).
+  macOS also needs Rosetta 2 and `build/tools/wibo-macos`; the wrapper script replaces
+  `sjiswrap.exe`, which does not load under wibo there.
+- Verified 2026-11-11: the matching build reproduces the retail SHA-1 on macOS (about 2.5 min
+  from clean) and on Linux (about 16 s). Fresh-machine setup: build-melee skill.
 - Matching success = `build/GALE01/ok` and the final line reports the SHA-1 match.
 - Output: `build/GALE01/main.dol`, `main.elf`, and `main.elf.MAP` with `--map`.
 - Details and troubleshooting: `.claude/skills/build-melee/SKILL.md`.
@@ -91,11 +102,13 @@ ninja
 | Boot → scene → frame loop, GObj, fighter, text, memory | `docs/ai/runtime.md` |
 | Overlay build design, hook kinds, experiments | `docs/ai/overlay-build.md` |
 | Shifted dev builds (experiments only) | `docs/ai/modding.md` |
-| Training Mode port plan and MexTK ↔ decomp mapping | `docs/ai/training-mode-port.md` |
+| TM-CE native port: design, porting recipe, status | `docs/ai/tmce-native.md` |
+| MexTK ↔ decomp mapping (older reimplementation plan) | `docs/ai/training-mode-port.md` |
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
 | Build the training overlay DOL | `python tools/overlay_build.py` → `build/overlay/main.dol` |
+| Put it and TM-CE's art on the extracted disc | `python tools/tmce_disc.py` → boot `build/disc/sys/main.dol` |
 | Does a DOL keep the vanilla layout? | `python tools/overlay_check.py <dol> [--patches list]` |
 | Does a TM-CE hook clash with Slippi? | `python tools/tm_slippi_collisions.py [--function NAME]` |
 

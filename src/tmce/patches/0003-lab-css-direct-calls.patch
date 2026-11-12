@@ -1,0 +1,21 @@
+--- a/src/lab_css.c	2026-11-11 17:29:39.009151579 -0800
++++ b/src/lab_css.c	2026-11-11 17:29:39.121630888 -0800
+@@ -55,8 +55,7 @@
+     // alloc image (needs to be 32 byte aligned)
+     import_data.snap.image = calloc(GXGetTexBufferSize(RESIZE_WIDTH, RESIZE_HEIGHT, 4, 0, 0)); // allocate 128 entries
+ 
+-    // HUGE HACK ALERT -- manually gets function offset of TM_GetEventDesc
+-    EventDesc *(*GetEventDesc)(int page, int event) = RTOC_PTR(TM_FUNC + (1 * 4));
++    // native build: the core is linked in, call GetEventDesc directly
+     event_desc = GetEventDesc(1, 0);
+     event_desc->stage = -1;
+     *onload_fileno = -1;
+@@ -1268,7 +1267,7 @@
+ 
+     // deobfuscate stupid melee bullshit
+     Memcard_Deobfuscate(buffer, CARD_READ_SIZE);
+-    ExportHeader *header = buffer + 0x90; // get to header (need to find a less hardcoded way of doing this)
++    ExportHeader *header = (ExportHeader *)((u8 *)buffer + 0x90); // get to header (need to find a less hardcoded way of doing this)
+ 
+     CARDClose(&card_file_info);
+     return header;

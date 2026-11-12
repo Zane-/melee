@@ -79,8 +79,8 @@ Nothing under `build/`, `orig/` or `.venv/` is in git. On a fresh checkout:
 3. `python configure.py && ninja` — on Linux x86_64 no `--wrapper` is needed; the build
    downloads its own wibo. Confirm the SHA-1 match.
 4. `python tools/overlay_build.py` — picks the wrapper for the host
-   (`tools/overlay_wrapper.py`; override with `MELEE_WRAPPER`). **Only verified on macOS so
-   far.**
+   (`tools/overlay_wrapper.py`; override with `MELEE_WRAPPER`). Verified on macOS and on
+   Linux x86_64 (CachyOS, 2026-11-11; matching build about 16 s on 16+ cores).
 
 ## Boot test
 

@@ -31,7 +31,13 @@ overlay_symbols.txt (name -> address of every overlay global), patches.txt
 Mod objects must be compiled so that nothing lands in vanilla section names:
     -prefix overlay_prefix.h -i src/melee/tm    (src/melee/tm/overlay_prefix.h)
     -sdata 0 -sdata2 0 -str reuse,readonly
-Only .tmtext and .tmrodata are accepted; writable statics are an error.
+Accepted input sections: .tmtext, .tmrodata, .tmdata, .tmbss. Writable statics
+are allowed (decided 2026-11-11) but are NOT saved by Slippi's rollback: code
+that runs during netplay keeps its state under the tm_state heap root.
+.tmbss is emitted as zero-filled data.
+
+--mex-link FILE resolves MexTK names (TM-CE code) through MexTK's melee.link,
+but only to addresses where a vanilla symbol starts.
 See docs/ai/overlay-build.md.
 """
 
@@ -49,9 +55,9 @@ MWLD = ROOT / "build" / "compilers" / "GC" / "1.3.2" / "mwldeppc.exe"
 SLIPPI = ROOT / "config" / "GALE01" / "slippi_injections.txt"
 
 # output section name -> DOL slot kind
-OVERLAY_SECTIONS = [(".tmtext", "text"), (".tmrodata", "data")]
+OVERLAY_SECTIONS = [(".tmtext", "text"), (".tmrodata", "data"),
+                    (".tmdata", "data"), (".tmbss", "data")]
 ALLOWED_INPUT = {name for name, _ in OVERLAY_SECTIONS}
-WRITABLE = {".tmdata", ".tmbss"}
 SHT_SYMTAB, SHT_NOBITS, SHF_ALLOC = 2, 8, 2
 STB_LOCAL, STB_GLOBAL = 0, 1
 STT_FUNC = 2
@@ -100,6 +106,29 @@ def inject_trampoline(at, target, displaced, resume, branch):
     ]
     c.append(branch(at + 4 * len(c), resume, False))
     return c
+
+
+# EABI register save/restore helpers. Compilers with a C99 mode (GC 3.0+, used
+# for the TM-CE units) call _savegpr_N/_restgpr_N/_savefpr_N/_restfpr_N in
+# prologues and epilogues; vanilla Melee never does, so its DOL has none.
+# Same sequences as src/Runtime/eabi_save_restore.s, generated here so the
+# overlay needs no assembly source. r11 points just past the save area.
+RUNTIME_KINDS = [  # (name prefix, opcode, slot size)
+    ("_savegpr_", 0x90000000, 4), ("_restgpr_", 0x80000000, 4),  # stw / lwz
+    ("_savefpr_", 0xD8000000, 8), ("_restfpr_", 0xC8000000, 8),  # stfd / lfd
+]
+
+
+def runtime_helpers(base):
+    """Returns (machine words, {symbol: address}) for the block at base."""
+    words, syms = [], {}
+    for prefix, op, size in RUNTIME_KINDS:
+        for n in range(14, 32):
+            syms[f"{prefix}{n}"] = base + 4 * len(words)
+            off = -size * (32 - n)
+            words.append(op | (n << 21) | (11 << 16) | (off & 0xFFFF))
+        words.append(0x4E800020)  # blr
+    return words, syms
 
 
 def dol_offset(h, addr):
@@ -159,9 +188,12 @@ def main():
     ap.add_argument("--base-elf", type=Path, default=ROOT / "build/GALE01/main.elf")
     ap.add_argument("--base-dol", type=Path, default=ROOT / "build/GALE01/main.dol")
     ap.add_argument("--origin", type=lambda x: int(x, 0), default=0x804F0C00)
-    ap.add_argument("--hooks", type=Path, help="hook table (see module docstring)")
+    ap.add_argument("--hooks", type=Path, action="append", default=[],
+                    help="hook table (see module docstring); may be repeated")
     ap.add_argument("--symbols", type=Path,
                     help="extra absolute symbols for the overlay, lines of NAME ADDRESS")
+    ap.add_argument("--mex-link", type=Path,
+                    help="MexTK melee.link (ADDRESS:NAME lines) for TM-CE code")
     ap.add_argument("--keep", nargs="*", default=None,
                     help="symbols to force-keep (default: all overlay globals)")
     args = ap.parse_args()
@@ -173,12 +205,7 @@ def main():
     for path in args.objects:
         obj = Elf(path)
         for s in obj.sections:
-            if s["size"] and s["name"] in WRITABLE:
-                errors.append(
-                    f"{path}: has writable static data ({s['name']}, 0x{s['size']:X} "
-                    f"bytes). Overlay state must be heap-allocated; make tables const."
-                )
-            elif s["flags"] & SHF_ALLOC and s["size"] and s["name"] not in ALLOWED_INPUT:
+            if s["flags"] & SHF_ALLOC and s["size"] and s["name"] not in ALLOWED_INPUT:
                 errors.append(
                     f"{path}: section {s['name']} (0x{s['size']:X} bytes) is not an "
                     f"overlay section; compile with the overlay prefix and -sdata 0 -sdata2 0 -str reuse,readonly"
@@ -219,22 +246,50 @@ def main():
     if clash:
         sys.exit("extra symbols clash with existing ones: " + ", ".join(clash))
     globals_.update(extra)
+    mex = {}
+    if args.mex_link:
+        starts = {val for name, val, sz, bind, typ, shndx in base.symbols
+                  if name and shndx != 0}
+        for line in args.mex_link.read_text().splitlines():
+            addr, sep, name = line.strip().partition(":")
+            if sep:
+                mex[name.strip()] = (int(addr, 16), int(addr, 16) in starts)
     resolved, missing = {}, []
+    runtime_words = []
+    link_origin = args.origin
+    if any(n.startswith(tuple(k[0] for k in RUNTIME_KINDS)) for n in undefined):
+        runtime_words, rt_syms = runtime_helpers(args.origin)
+        link_origin = (args.origin + 4 * len(runtime_words) + 0x1F) & ~0x1F
+        for name in list(undefined):
+            if name in rt_syms:
+                resolved[name] = rt_syms[name]
+                undefined.discard(name)
     for name in sorted(undefined):
         if name in globals_:
             resolved[name] = globals_[name]
+            if name in mex and mex[name][0] != globals_[name]:
+                errors.append(f"{name}: melee.link says {mex[name][0]:08X}, "
+                              f"vanilla has it at {globals_[name]:08X}")
+        elif name in mex or (name.startswith("mex__") and name[5:] in mex):
+            addr, is_start = mex[name[5:] if name.startswith("mex__") else name]
+            if not is_start:
+                missing.append(f"{name} (melee.link {addr:08X} is not a vanilla "
+                               "symbol; m-ex code? reimplement it in src/tmce)")
+            resolved[name] = addr
         elif name in locals_ and len(locals_[name]) == 1:
             resolved[name] = next(iter(locals_[name]))  # unique vanilla static
         else:
             why = "ambiguous static" if name in locals_ else "not in vanilla"
             missing.append(f"{name} ({why})")
+    if errors:
+        sys.exit("\n".join(errors))
     if missing:
         sys.exit("unresolved overlay references: " + ", ".join(missing))
     # 3. Linker script.
     keep = args.keep if args.keep is not None else sorted(defined)
     if not keep:
         sys.exit("overlay defines no global symbols")
-    lcf = ["MEMORY", "{", f"    overlay : origin = 0x{args.origin:08X}", "}", "",
+    lcf = ["MEMORY", "{", f"    overlay : origin = 0x{link_origin:08X}", "}", "",
            "SECTIONS", "{", "    GROUP:", "    {"]
     lcf += [f"        {name} ALIGN(0x20):{{}}" for name, _ in OVERLAY_SECTIONS]
     lcf += ["    } > overlay", ""]
@@ -280,12 +335,15 @@ def main():
         dol.extend(data)
         placed.append((name, addr, len(data)))
 
+    if runtime_words:
+        append_section(".tmrt", "text", args.origin,
+                       struct.pack(f">{len(runtime_words)}I", *runtime_words))
     for s in linked.sections:
         if s["name"] not in kinds or not s["size"]:
             continue
-        if s["type"] == SHT_NOBITS:
-            sys.exit(f"{s['name']} is uninitialised data; overlay state must be on the heap")
-        append_section(s["name"], kinds[s["name"]], s["addr"], linked.section_data(s))
+        data = (bytes(s["size"]) if s["type"] == SHT_NOBITS
+                else linked.section_data(s))
+        append_section(s["name"], kinds[s["name"]], s["addr"], data)
     if not placed:
         sys.exit("overlay link produced no sections (everything dead-stripped?)")
 
@@ -330,11 +388,12 @@ def main():
             return 0x48000000 | (d & 0x03FFFFFC) | (1 if link else 0)
 
         seen = {}
-        for ln, line in enumerate(args.hooks.read_text().splitlines(), 1):
+        hook_lines = [(f"{hp}:{ln}", line) for hp in args.hooks
+                      for ln, line in enumerate(hp.read_text().splitlines(), 1)]
+        for where, line in hook_lines:
             line = line.split("#")[0].strip()
             if not line:
                 continue
-            where = f"{args.hooks}:{ln}"
             parts = line.split(None, 3)
             if len(parts) < 3:
                 sys.exit(f"{where}: expected KIND SITE TARGET [note]")
@@ -342,8 +401,8 @@ def main():
             note = parts[3] if len(parts) > 3 else ""
             site = vanilla(site_s)
             if site in seen:
-                sys.exit(f"{where}: {site_s} already hooked at line {seen[site]}")
-            seen[site] = ln
+                sys.exit(f"{where}: {site_s} already hooked at {seen[site]}")
+            seen[site] = where
             old = struct.unpack_from(">I", dol, dol_offset(h, site))[0]
             in_text = any(a <= site < b for a, b in text_ranges)
             if site in slippi:

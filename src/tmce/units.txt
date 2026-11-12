@@ -1,0 +1,29 @@
+# TM-CE C build units, mirroring the mex_build lines in ../TrainingMode/build.sh.
+#
+#   KIND   NAME        SOURCES...                                ART
+#
+# core   Linked as one group; its globals stay global (TM-CE's eventMenu.dat).
+# event  One event file. Only the evFunction exports (MexTK/evFunction.txt)
+#        stay global, renamed tmce_<NAME>_<export>; everything else is made
+#        local, because every event defines the same names.
+# css    Same, with the cssFunction exports (MexTK/cssFunction.txt).
+#
+# ART is the art-only archive from ../TrainingMode/dats/ that TM-CE merges the
+# code into. tools/tmce_disc.py copies it to files/TM/<NAME>.dat, where
+# MEX_LoadRelArchive (src/tmce/mex_runtime.c) loads it. "-" for none.
+
+core   eventMenu   events.c menu.c osds.c savestate_v1.c      eventMenu.dat
+css    labCSS      lab_css.c                                 labCSS.dat
+event  lab         lab.c                                     lab.dat
+event  lcancel     lcancel.c                                 -
+event  ledgedash   ledgedash.c                               -
+event  wavedash    wavedash.c                                wavedash.dat
+event  powershield powershield.c                             -
+event  dthrowknee  dthrowknee.c                              -
+event  edgeguard   edgeguard.c                               -
+event  fc          fc.c                                      -
+event  sweetspot   sweetspot.c                               -
+event  laserland   laserland.c                               -
+event  eggs        eggs.c                                    -
+event  techchase   techchase.c                               -
+event  slalom      slalom.c                                  wavedash.dat

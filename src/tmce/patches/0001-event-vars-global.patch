@@ -1,0 +1,13 @@
+--- a/src/events.h	2026-11-11 17:29:39.008884365 -0800
++++ b/src/events.h	2026-11-11 17:29:39.046271162 -0800
+@@ -281,7 +281,9 @@
+     void (*HUD_DrawActionLogKey)(char **action_names, GXColor *action_colors, int action_count);
+     void (*HUD_DrawInfoPanel)(const char **label, const char **info, int count);
+ } EventVars;
+-#define event_vars_ptr_loc ((EventVars**)0x803d7054)
++/* native build: a global, not the last word of gmResultScoreTableInit */
++extern EventVars *tmce_event_vars;
++#define event_vars_ptr_loc (&tmce_event_vars)
+ #define event_vars (*event_vars_ptr_loc)
+ 
+ // Function prototypes

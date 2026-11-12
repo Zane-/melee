@@ -1,0 +1,76 @@
+--- a/src/lab.h	2026-11-11 17:29:39.009092352 -0800
++++ b/src/lab.h	2026-11-11 17:29:39.086390481 -0800
+@@ -2412,7 +2412,13 @@
+     },
+ 
+     // swapped between LabOptions_CPU_MoveCPU and LabOptions_CPU_FinishMoveCPU
+-    LabOptions_CPU_MoveCPU,
++    /* inline copy of LabOptions_CPU_MoveCPU: MWCC cannot copy a const struct in an initializer */
++    {
++        .kind = OPTKIND_FUNC,
++        .name = "Move CPU",
++        .desc = {"Manually set the CPU's position."},
++        .OnSelect = Lab_StartMoveCPU,
++    },
+ 
+     {
+         .kind = OPTKIND_STRING,
+@@ -3044,7 +3050,14 @@
+ 
+ static EventOption LabOptions_Record[OPTREC_COUNT] = {
+     // swapped between Record_Save and Record_Load
+-    Record_Save,
++    /* inline copy of Record_Save: MWCC cannot copy a const struct in an initializer */
++    {
++        .kind = OPTKIND_FUNC,
++        .name = "Save Positions",
++        .desc = {"Save the current fighter positions",
++                 "as the initial positions."},
++        .OnSelect = Record_InitState,
++    },
+ 
+     {
+         .kind = OPTKIND_STRING,
+--- a/src/techchase.c	2026-11-11 17:29:39.009461260 -0800
++++ b/src/techchase.c	2026-11-11 17:29:39.087020664 -0800
+@@ -142,8 +142,20 @@
+         .desc = {"Change how fast the game engine runs."},
+         .values = Options_GameSpeedText,
+     },
+-    Option_MoveCPU,
+-    Option_MoveHMN,
++    /* inline copy of Option_MoveCPU: MWCC cannot copy a const struct in an initializer */
++    {
++        .kind = OPTKIND_FUNC,
++        .name = "Move CPU",
++        .desc = {"Manually set the CPU's position.", "Press A to change direction."},
++        .OnSelect = StartMoveCPU,
++    },
++    /* inline copy of Option_MoveHMN: MWCC cannot copy a const struct in an initializer */
++    {
++        .kind = OPTKIND_FUNC,
++        .name = "Move HMN",
++        .desc = {"Manually set the HMN's position.", "Press A to change direction."},
++        .OnSelect = StartMoveHMN,
++    },
+     {
+         .kind = OPTKIND_STRING,
+         .name = "Camera Mode",
+@@ -152,7 +164,16 @@
+         .value_num = countof(Options_CamMode),
+         .OnChange = ChangeCam
+     },
+-    Option_MoveCam,
++    /* inline copy of Option_MoveCam: MWCC cannot copy a const struct in an initializer */
++    {
++        .kind = OPTKIND_FUNC,
++        .name = "Set Custom Camera",
++        .desc = {"Adjust the custom camera's behavior.",
++                 "Use C-Stick while holding",
++                 "A/B/Y to pan, rotate and zoom, respectively."},
++        .OnSelect = StartMoveCam,
++        .disable = true
++    },
+     {
+         .kind = OPTKIND_FUNC,
+         .name = "Exit",
