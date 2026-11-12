@@ -1,0 +1,71 @@
+{
+  "comment": "Two shine-grabs in a row: the reset comes while Fox still holds Marth from the first, and the second attempt must work the same (the grab is released by the reset).",
+  "event": "course",
+  "drill": "fox-shine-grab",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 46,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 47,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    },
+    {
+      "at": 160,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 166,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 167,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 8
+  }
+}

@@ -40,12 +40,104 @@ static int mv_WasLCancelled(CourseCtx* c, int landing_state, int frames)
 /* Latest and earliest frames before landing a trigger press counts. */
 #define MV_LCANCEL_WINDOW 6
 #define MV_AIR_TIMEOUT 150
-/* When the demonstrations start their aerial, in frames from the landing. */
-#define MV_REF_AERIAL_AT (-10)
+
+
+/* ---- the demonstration for L-cancel and SHFFL --------------------------- */
+
+/* Built for the character and the aerial: jump, the aerial, fast fall, the
+ * trigger press. The landing is predicted from the hop speed, gravity and
+ * fast-fall speed (the game's own recursion: y += v, v -= gravity), so no
+ * scouting hop is needed; the simulator's traces put the landing one or two
+ * frames after the predicted height crosses zero, and the L-cancel window
+ * (7 frames) absorbs that. The aerial is timed to be a few frames past its
+ * first hit when the fighter lands: started at takeoff, many aerials end
+ * in the air or autocancel (Marth's neutral air, most slow down airs).
+ * Each demonstration shows the next aerial: neutral, forward, back, up,
+ * down. */
+#define MV_REF_START 10       /* script frame of the jump press */
+#define MV_REF_TAP_FROM 4     /* first airborne frame with a stick-down tap */
+#define MV_REF_TAP_EVERY 3
+#define MV_REF_PAST_HIT 4     /* aerial frames past its first hit at landing */
+#define MV_REF_PRESS_BEFORE 2 /* trigger this long before the height is 0 */
+#define MV_REF_MAX 40
+
+static CourseRefInput mv_ref[MV_REF_MAX];
+
+static int mv_IsTap(int k)
+{
+    return k >= MV_REF_TAP_FROM &&
+           (k - MV_REF_TAP_FROM) % MV_REF_TAP_EVERY == 0;
+}
+
+static const CourseRefInput* mv_BuildAerialReference(CourseCtx* c)
+{
+    static const CourseRefInput aerial_input[5] = {
+        { 0, 0, 1, 0, 0, 0, 0, PAD_BUTTON_A, 0, 0 }, /* neutral */
+        { 0, 0, 1, 0, 0, 127, 0, 0, 0, 0 },          /* forward */
+        { 0, 0, 1, 0, 0, -127, 0, 0, 0, 0 },         /* back */
+        { 0, 0, 1, 0, 0, 0, 127, 0, 0, 0 },          /* up */
+        { 0, 0, 1, 0, 0, 0, -127, 0, 0, 0 },         /* down */
+    };
+    static const CourseRefInput end = { COURSE_REF_END };
+    FighterData* hd = c->hd;
+    const CourseFighterData* me = course_Fighter(hd);
+    int which = (course_DemoCount() + 4) % 5; /* the first one: neutral */
+    const CourseMoveData* m = &me->move[CMOVE_NAIR + which];
+    /* script frame of airborne frame 1 */
+    int air0 = MV_REF_START + me->jump_squat;
+    float v = me->hop_v, y = 0;
+    int fast = 0, cross, aerial, k, n = 0;
+
+    for (cross = 1; cross < 200; cross++) {
+        if (!fast && v < 0 && mv_IsTap(cross)) {
+            v = -hd->attr.fastfall_velocity;
+            fast = 1;
+        }
+        y += v;
+        if (y < 0) {
+            break;
+        }
+        v -= hd->attr.gravity;
+        if (v < -hd->attr.terminal_velocity && !fast) {
+            v = -hd->attr.terminal_velocity;
+        }
+    }
+    aerial = cross - (m->hit + MV_REF_PAST_HIT);
+    if (aerial < 1) {
+        aerial = 1;
+    }
+
+    memset(mv_ref, 0, sizeof(mv_ref));
+    mv_ref[n] = aerial_input[0];
+    mv_ref[n].buttons = PAD_BUTTON_X;
+    mv_ref[n++].frame = MV_REF_START;
+    mv_ref[n] = aerial_input[which];
+    mv_ref[n++].frame = air0 + aerial - 1;
+    for (k = MV_REF_TAP_FROM; k <= cross && n < MV_REF_MAX - 4; k++) {
+        /* no tap on the aerial's frame: down with A is a down air */
+        if (mv_IsTap(k) && k != aerial) {
+            mv_ref[n].ly = -127;
+            mv_ref[n].hold = 1;
+            mv_ref[n++].frame = air0 + k - 1;
+        }
+    }
+    /* Two presses five frames apart: for some characters (Mario, Luigi,
+     * Peach, Zelda...) the landing comes up to six frames after the
+     * prediction, past the first press's window. A press too early costs
+     * nothing, and the second lands in the landing lag when the first was
+     * right. */
+    mv_ref[n].buttons = PAD_TRIGGER_Z;
+    mv_ref[n].hold = 1;
+    mv_ref[n++].frame = air0 + cross - 1 - MV_REF_PRESS_BEFORE;
+    mv_ref[n].buttons = PAD_TRIGGER_Z;
+    mv_ref[n].hold = 1;
+    mv_ref[n++].frame = air0 + cross - 1 - MV_REF_PRESS_BEFORE + 5;
+    mv_ref[n] = end;
+    return mv_ref;
+}
 
 /* ---- universal-l-cancel --------------------------------------------------- */
 
-enum { LC_MARK_LAND = 1 };
 enum { LC_WAIT, LC_AIR, LC_LAND };
 
 static struct {
@@ -55,29 +147,6 @@ static struct {
     int land_state;
     int lag;         /* frames of landing so far */
 } lc;
-
-/* A stick-down tap every third frame from 6 frames after takeoff: the
- * first one after the top of the hop is the fast fall, whatever the
- * character's hop lasts. In both passes, so the landing is the same. */
-#define SF_TAP(n) { 0, 16 + 3 * (n), 1, 0, -127, 0, 0, 0, 0, 1 }
-
-/* Short hop and fast fall in both passes; the observing pass finds the
- * landing, and the second pass puts an up air (C-stick) 10 frames and the
- * trigger 4 frames before it. The aerial is timed against the landing
- * because no aerial started at takeoff is still out when every character
- * lands, and up air because most down airs autocancel that close to their
- * start. Checked for all 26 characters in the simulator (2026-11-12):
- * this demonstration fails for Kirby and Sheik (and the SHFFL one for
- * Mr. Game & Watch, whose up air cannot be L-cancelled); they need their
- * own aerial when their courses are built. */
-static const CourseRefInput lc_reference[] = {
-    { 0, 10, 1, 0, 0, 0, 0, PAD_BUTTON_X, 0, 0 },
-    SF_TAP(0),  SF_TAP(1),  SF_TAP(2),  SF_TAP(3),  SF_TAP(4),  SF_TAP(5),
-    SF_TAP(6),  SF_TAP(7),  SF_TAP(8),  SF_TAP(9),  SF_TAP(10), SF_TAP(11),
-    { LC_MARK_LAND, MV_REF_AERIAL_AT, 1, 0, 0, 0, 127, 0, 0, 0 },
-    { LC_MARK_LAND, -4, 1, 0, 0, 0, 0, PAD_TRIGGER_Z, 0, 0 },
-    { COURSE_REF_END },
-};
 
 static void lc_Setup(CourseCtx* c)
 {
@@ -97,20 +166,12 @@ static void lc_Guide(CourseCtx* c, CourseGuide* g)
     sprintf(g->line[n++], "The press counts in the last 7 frames of the");
     sprintf(g->line[n++], "fall. Jump, attack late, press as you land.");
     g->line_count = n;
-    g->timeline_from = "frames before the landing (1 = you land)";
 }
 
 static void lc_Think(CourseCtx* c)
 {
     switch (c->phase) {
     case LC_WAIT:
-        if (c->state == ASID_LANDING) {
-            /* a jump without an attack (the demonstration's first pass
-             * does this to find the landing) */
-            course_Mark(c, LC_MARK_LAND);
-            course_Result(c, 0, "No aerial attack", 0, 0);
-            break;
-        }
         if (mv_IsAerial(c->state)) {
             course_Phase(c, LC_AIR);
             lc.air_frame = 0;
@@ -124,16 +185,20 @@ static void lc_Think(CourseCtx* c)
             lc.press_frame = lc.air_frame;
         }
         if (mv_IsAerialLanding(c->state)) {
-            course_Mark(c, LC_MARK_LAND);
             course_Phase(c, LC_LAND);
             lc.land_frame = lc.air_frame;
             lc.land_state = c->state;
             lc.lag = 1;
         } else if (!mv_IsAerial(c->state)) {
-            course_Result(c, 0, "Landed after the attack\nattack later", 0,
-                          0);
+            if (c->state == ASID_LANDING) {
+                course_Result(c, 0, "No landing lag to cancel\n"
+                                    "attack later in the jump",
+                              0, 0);
+            } else {
+                course_Phase(c, LC_WAIT); /* the aerial ended in the air */
+            }
         } else if (lc.air_frame > MV_AIR_TIMEOUT) {
-            course_Result(c, 0, "Did not land", 0, 0);
+            course_Phase(c, LC_WAIT);
         }
         break;
 
@@ -178,18 +243,18 @@ static void lc_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_TechLCancel = {
+    .flow = 1,
     .Setup = lc_Setup,
     .Think = lc_Think,
     .help = { "L-cancel: jump, attack in the air, and press L, R",
               "or Z just before you land.",
               "D-Pad up: guide. D-Pad down: reset." },
-    .reference = lc_reference,
+    .BuildReference = mv_BuildAerialReference,
     .Guide = lc_Guide,
 };
 
 /* ---- universal-shffl ------------------------------------------------------ */
 
-enum { SF_MARK_LAND = 1 };
 enum { SF_WAIT, SF_SQUAT, SF_AIR, SF_LAND };
 
 static struct {
@@ -202,16 +267,6 @@ static struct {
     int land_state;
     int lag;
 } sf;
-
-/* As lc_reference. */
-static const CourseRefInput sf_reference[] = {
-    { 0, 10, 1, 0, 0, 0, 0, PAD_BUTTON_X, 0, 0 },
-    SF_TAP(0),  SF_TAP(1),  SF_TAP(2),  SF_TAP(3),  SF_TAP(4),  SF_TAP(5),
-    SF_TAP(6),  SF_TAP(7),  SF_TAP(8),  SF_TAP(9),  SF_TAP(10), SF_TAP(11),
-    { SF_MARK_LAND, MV_REF_AERIAL_AT, 1, 0, 0, 0, 127, 0, 0, 0 },
-    { SF_MARK_LAND, -4, 1, 0, 0, 0, 0, PAD_TRIGGER_Z, 0, 0 },
-    { COURSE_REF_END },
-};
 
 static void sf_Setup(CourseCtx* c)
 {
@@ -233,7 +288,6 @@ static void sf_Guide(CourseCtx* c, CourseGuide* g)
     sprintf(g->line[n++], "4. L-cancel: L, R or Z in the last 7 frames.");
     sprintf(g->line[n++], "The verdict names the first part you missed.");
     g->line_count = n;
-    g->timeline_from = "frames before the landing (1 = you land)";
 }
 
 static void sf_Think(CourseCtx* c)
@@ -268,21 +322,20 @@ static void sf_Think(CourseCtx* c)
         if (mv_IsAerial(c->state)) {
             sf.aerial = 1;
         } else if (mv_IsAerialLanding(c->state)) {
-            course_Mark(c, SF_MARK_LAND);
             course_Phase(c, SF_LAND);
             sf.land_frame = sf.frame;
             sf.land_state = c->state;
             sf.lag = 1;
         } else if (c->state == ASID_LANDING || c->state == ASID_WAIT) {
-            course_Mark(c, SF_MARK_LAND);
             if (sf.aerial) {
-                course_Result(c, 0, "Landed after the attack\nattack later",
+                course_Result(c, 0, "No landing lag to cancel\n"
+                                    "attack later in the jump",
                               0, 0);
             } else {
-                course_Result(c, 0, "No aerial attack", 0, 0);
+                course_Phase(c, SF_WAIT); /* a plain jump: ignore */
             }
         } else if (sf.frame > MV_AIR_TIMEOUT) {
-            course_Result(c, 0, "Did not land", 0, 0);
+            course_Phase(c, SF_WAIT);
         }
         break;
 
@@ -325,12 +378,13 @@ static void sf_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_TechShffl = {
+    .flow = 1,
     .Setup = sf_Setup,
     .Think = sf_Think,
     .help = { "SHFFL: short hop, aerial attack, tap down to fast",
               "fall, L-cancel the landing.",
               "D-Pad up: guide. D-Pad down: reset." },
-    .reference = sf_reference,
+    .BuildReference = mv_BuildAerialReference,
     .Guide = sf_Guide,
 };
 
@@ -435,18 +489,23 @@ static void dd_Think(CourseCtx* c)
             }
         } else if (c->state == ASID_TURN) {
             /* the frame between two dashes */
+        } else if (c->state == ASID_RUN && dd.dashes < 2) {
+            course_Phase(c, DD_WAIT); /* just running */
         } else if (c->state == ASID_RUN) {
             dd_Fail(c, "Ran after %d of %d dashes\nturn sooner");
         } else if (c->state == ASID_WAIT && ++dd.idle <= 2) {
             /* a dash that ran out: allowed for a moment */
-        } else {
+        } else if (dd.dashes >= 2) {
             dd_Fail(c, "Stopped after %d of %d dashes");
+        } else {
+            course_Phase(c, DD_WAIT); /* one dash is not a dance */
         }
         break;
     }
 }
 
 static const CourseDrill Drill_TechDashDance = {
+    .flow = 1,
     .Setup = dd_Setup,
     .Think = dd_Think,
     .options = dd_options,
@@ -515,9 +574,10 @@ static void jg_Think(CourseCtx* c)
             jg.squat_frames = 1;
         } else if (c->state == ASID_CATCHDASH) {
             course_Result(c, 0, "Dash grab\njump first, then Z", 0, 0);
-        } else if (c->state == ASID_CATCH) {
-            course_Result(c, 0, "Standing grab without a run\ndash first", 0,
-                          0);
+        } else if (c->state != ASID_DASH && c->state != ASID_RUN &&
+                   c->state != ASID_TURN && c->state != ASID_CATCHDASH)
+        {
+            course_Phase(c, JG_WAIT); /* did something else */
         } else if (c->state == ASID_WAIT) {
             course_Phase(c, JG_WAIT);
         }
@@ -540,6 +600,7 @@ static void jg_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_TechJcGrab = {
+    .flow = 1,
     .Setup = jg_Setup,
     .Think = jg_Think,
     .help = { "JC grab: while running, jump and press Z during",

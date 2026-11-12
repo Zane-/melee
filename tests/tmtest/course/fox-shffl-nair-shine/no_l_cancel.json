@@ -1,0 +1,45 @@
+{
+  "comment": "No trigger press: the shine input falls in the landing lag.",
+  "event": "course",
+  "drill": "fox-shffl-nair-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 74,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

@@ -125,7 +125,7 @@ static void jcs_Think(CourseCtx* c)
                 course_Result(c, 0, "Too early: frame %d\nwant frame %d",
                               jcs.first_press, FST_JC_FRAME);
             } else {
-                course_Result(c, 0, "No jump out of shine", 0, 0);
+                course_Phase(c, JCS_WAIT); /* a shine alone: ignore */
             }
         }
         break;
@@ -133,6 +133,7 @@ static void jcs_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_FoxJcShine = {
+    .flow = 1,
     .Setup = jcs_Setup,
     .Think = jcs_Think,
     .options = jcs_options,
@@ -260,6 +261,7 @@ static void wsh_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_FoxWaveshine = {
+    .flow = 1,
     .Setup = wsh_Setup,
     .Think = wsh_Think,
     .options = wsh_options,
@@ -419,6 +421,7 @@ static void msh_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_FoxMultishine = {
+    .flow = 1,
     .Setup = msh_Setup,
     .Think = msh_Think,
     .options = msh_options,

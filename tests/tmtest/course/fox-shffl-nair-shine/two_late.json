@@ -1,0 +1,53 @@
+{
+  "comment": "Shine 2 frames late: inside the default leniency.",
+  "event": "course",
+  "drill": "fox-shffl-nair-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 76,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 62,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 2
+  }
+}

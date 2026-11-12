@@ -37,7 +37,7 @@ static void shop_Guide(CourseCtx* c, CourseGuide* g)
             me->jump_squat);
     sprintf(g->line[n++], "within %d frames of pressing it.",
             me->jump_squat - 1);
-    sprintf(g->line[n++], "Tap the button; do not push it.");
+    sprintf(g->line[n++], "Tap the button. Do not hold it down.");
     g->line_count = n;
 }
 
@@ -80,6 +80,7 @@ static void shop_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_TechShortHop = {
+    .flow = 1,
     .Setup = shop_Setup,
     .Think = shop_Think,
     .help = { "Short hop: tap X or Y and let go before you leave",

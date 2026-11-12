@@ -1,0 +1,45 @@
+{
+  "comment": "Jump on frame 6 is ignored (shine hitlag).",
+  "event": "course",
+  "drill": "fox-shine-grab",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 45,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 46,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

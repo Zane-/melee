@@ -52,6 +52,7 @@ typedef struct CourseCtx {
     int state_frames; ///< frames in `state` (1 = entered that frame)
     int held;         ///< buttons held that frame
     int down;         ///< buttons pressed that frame
+    int cpu_state;    ///< the CPU's action state, sampled the same way
 } CourseCtx;
 
 /* The inputs that solve a drill, relative to marks: moments of an attempt
@@ -108,6 +109,15 @@ typedef struct CourseDrill {
     const CourseRefInput* reference;
     /// Fill the guide overlay's text for the current attempt, or NULL.
     void (*Guide)(CourseCtx* c, CourseGuide* g);
+    /// Instead of `reference`: build the script for this attempt (called
+    /// after Setup). For scripts that depend on the character or change
+    /// from one demonstration to the next (course_DemoCount).
+    const CourseRefInput* (*BuildReference)(CourseCtx* c);
+    /// A result does not end the attempt: it is counted and shown, and the
+    /// drill starts again from phase 0 where the player stands. For
+    /// technique practice, where being put back after every try breaks the
+    /// rhythm. D-pad down still resets.
+    int flow;
 } CourseDrill;
 
 /* Engine services for drills. */
@@ -115,6 +125,8 @@ static void course_Phase(CourseCtx* c, int phase);
 static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
                          int cpu_faces_away, float cpu_percent);
 static void course_PlaceSolo(CourseCtx* c, float x);
+static void course_CpuShield(CourseCtx* c);
+static int course_DemoCount(void);
 static int course_Leniency(int option);
 static void course_Script(CourseCtx* c, const CourseInput* in, int frame);
 static void course_Message(int color, char* fmt, const char* a, int b,
@@ -256,6 +268,8 @@ static struct {
     int demo_marks[COURSE_MAX_MARKS]; /* from the observing pass */
     u32 demo_seed;     /* RNG seed both passes start from */
     int demo_scenario;
+    int demo_count;    /* demonstrations started so far */
+    const CourseRefInput* ref; /* this attempt's reference script, or NULL */
     CourseGuide guide;  /* text of the open guide (run == RUN_GUIDE) */
     char report[160]; /* extra JSON fields of the current attempt */
     int report_len;
@@ -287,6 +301,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/fox_shine_tech.inc.h"
 #include "drills/tech_movement.inc.h"
 #include "drills/fox_specials.inc.h"
+#include "drills/fox_pressure.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -299,6 +314,8 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_WAVESHINE] = &Drill_FoxWaveshine,
     [DRILL_FOX_JC_SHINE] = &Drill_FoxJcShine,
     [DRILL_FOX_MULTISHINE] = &Drill_FoxMultishine,
+    [DRILL_FOX_SHINE_GRAB] = &Drill_FoxShineGrab,
+    [DRILL_FOX_NAIR_SHINE] = &Drill_FoxNairShine,
     [DRILL_FOX_SHDL] = &Drill_FoxShdl,
     [DRILL_FOX_ILLUSION_SHORTEN] = &Drill_FoxIllusionShorten,
 };
@@ -360,9 +377,25 @@ static void PutOnGround(GOBJ* ft, float x)
     Fighter_SetGrounded(ft_data);
 }
 
+/* Let go of whoever this fighter holds, and of it if it is held, the
+ * way the game ends a grab (ftCo_800DC920). Without this a reset in the
+ * middle of a grab leaves the two linked: the victim was put in the floor
+ * and the next grab did not take (seen on Shine OoS, 2026-11-12). */
+static void ReleaseGrab(GOBJ* ft)
+{
+    FighterData* fd = ft->userdata;
+    if (fd->grab.victim != NULL) {
+        Fighter_BreakGrab(ft, fd->grab.victim);
+    }
+    if (fd->grab.attacker != NULL) {
+        Fighter_BreakGrab(fd->grab.attacker, ft);
+    }
+}
+
 static void ResetFighter(GOBJ* ft, float x, float facing, float percent)
 {
     FighterData* fd = ft->userdata;
+    ReleaseGrab(ft);
     fd->facing_direction = facing;
     fd->phys.self_vel.X = 0;
     fd->phys.self_vel.Y = 0;
@@ -387,11 +420,30 @@ static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
     Match_CorrectCamera();
 }
 
-/* Drills without an opponent: the player standing at x, facing right. */
+/* Drills without an opponent: the player standing at x, facing right.
+ * Reference scripts' positive stick X is then forward. */
 static void course_PlaceSolo(CourseCtx* c, float x)
 {
+    c->side = 1.0F;
+    c->toward = -1.0F;
     ResetFighter(Fighter_GetGObj(0), x, 1.0F, 0);
     Match_CorrectCamera();
+}
+
+/* A target that shields: call every frame of the attempt. The CPU holds
+ * full shield and the shield never shrinks. */
+#define COURSE_SHIELD_FULL 60.0F
+static void course_CpuShield(CourseCtx* c)
+{
+    c->cd->cpu.held |= PAD_TRIGGER_R;
+    c->cd->shield.health = COURSE_SHIELD_FULL;
+}
+
+/* How many demonstrations have started, this one included: lets a built
+ * reference show something different each time. */
+static int course_DemoCount(void)
+{
+    return en.demo_count;
 }
 
 /* Frames of lateness the drill's Leniency option (its index among the
@@ -466,8 +518,12 @@ static void SetPlayerPad(FighterData* hd, int lx, int ly, int cx, int cy,
 /* During a demonstration the player's pad is the reference script. */
 static void PlayReference(CourseCtx* c)
 {
-    const CourseRefInput* in = en.drill->reference;
+    const CourseRefInput* in = en.ref;
     int lx = 0, ly = 0, cx = 0, cy = 0, buttons = 0, trigger = 0;
+
+    if (in == NULL) {
+        return;
+    }
 
     /* Both passes must start from the same pad state: whatever was held
      * when the attempt began (by the player, or by the pass before) is let
@@ -648,6 +704,19 @@ static void course_Result(CourseCtx* c, int success, char* fmt, int a, int b)
     event_vars->Message_Display(MSG_KIND, MSG_QUEUE,
                                 success ? MSGCOLOR_GREEN : MSGCOLOR_RED, fmt,
                                 a, b);
+    if (en.drill->flow) {
+        /* Counted; carry on from where the player is. */
+        int i;
+        c->phase = 0;
+        c->timer = 0;
+        for (i = 0; i < COURSE_MAX_MARKS; i++) {
+            en.marks[i] = -1;
+        }
+        en.has_measure = 0;
+        en.report[0] = '\0';
+        en.report_len = 0;
+        return;
+    }
     en.run = RUN_RESULT;
     en.result_timer = reset_delay_frames[Options_Main[OPT_RESET_DELAY].val];
 }
@@ -663,6 +732,10 @@ static void course_Retry(CourseCtx* c, char* fmt)
     en.run = RUN_RESULT;
     en.result_timer = 30;
 }
+
+/* The statistics card option (see OnStatsCard). */
+static int stats_card = 1;
+static const char* opt_off_on[] = { "Off", "On" };
 
 /* ---- guide overlay -------------------------------------------------------- */
 
@@ -761,7 +834,7 @@ static const char* RefLabel(const CourseRefInput* in)
  * it from its first input. */
 static void GuideTimeline(float y)
 {
-    const CourseRefInput* ref = en.drill->reference;
+    const CourseRefInput* ref = en.ref;
     const CourseRefInput* in;
     static const GXColor idle = { 70, 70, 80, 255 };
     static const GXColor press = { 255, 211, 0, 255 };
@@ -829,6 +902,36 @@ static void GuideTimeline(float y)
     }
 }
 
+/* The drill's success rate, top left, while playing. */
+#define CARD_X (-29.0F)
+#define CARD_Y 16.0F
+#define CARD_W 22.0F
+#define CARD_H 6.6F
+static void StatsCard(void)
+{
+    static const GXColor back = { 10, 12, 30, 170 };
+    static const GXColor white = { 255, 255, 255, 255 };
+    static const GXColor gold = { 255, 211, 0, 255 };
+    static const GXColor grey = { 190, 190, 190, 255 };
+    static char rate[40], streak[40];
+    const Stats* st = &en.total;
+    Rect r = { CARD_X, CARD_Y, CARD_W, CARD_H };
+    GXColor color = back;
+
+    event_vars->HUD_DrawRects(&r, &color, 1);
+    GuideText(en.info->name, CARD_X + 0.8F, CARD_Y + CARD_H - 1.6F, 0.4F,
+              gold);
+    if (st->attempts > 0) {
+        sprintf(rate, "%d / %d   %d%%", st->successes, st->attempts,
+                st->successes * 100 / st->attempts);
+    } else {
+        sprintf(rate, "0 / 0");
+    }
+    GuideText(rate, CARD_X + 0.8F, CARD_Y + CARD_H - 3.8F, 0.5F, white);
+    sprintf(streak, "Streak %d   Best %d", st->streak, st->best_streak);
+    GuideText(streak, CARD_X + 0.8F, CARD_Y + CARD_H - 5.7F, 0.38F, grey);
+}
+
 static void Guide_GX(GOBJ* gobj, int pass)
 {
     static const GXColor back = { 10, 12, 30, 225 };
@@ -844,7 +947,13 @@ static void Guide_GX(GOBJ* gobj, int pass)
     float y = GUIDE_Y + GUIDE_H - 2.4F;
     int i;
 
-    if (pass != 2 || en.run != RUN_GUIDE) {
+    if (pass != 2) {
+        return;
+    }
+    if (en.run != RUN_GUIDE) {
+        if (stats_card) {
+            StatsCard();
+        }
         return;
     }
     colors[0] = edge;
@@ -883,6 +992,10 @@ static void Sample(GOBJ* gobj)
     c->state_frames++;
     c->held = hd->input.held;
     c->down = hd->input.down;
+    if (Fighter_GetGObj(1) != NULL) {
+        FighterData* cd = Fighter_GetGObj(1)->userdata;
+        c->cpu_state = cd->state_id;
+    }
 }
 
 static int PickScenario(void)
@@ -908,6 +1021,11 @@ static int PickScenario(void)
     }
 }
 
+static int HasReference(void)
+{
+    return en.drill->reference != NULL || en.drill->BuildReference != NULL;
+}
+
 static void Reset(void)
 {
     CourseCtx* c = &en.ctx;
@@ -918,17 +1036,10 @@ static void Reset(void)
 
     /* A demonstration is two attempts from the same random numbers. */
     if (en.demo == 0 && Options_Main[OPT_DEMO].val != DEMO_OFF &&
-        en.drill->reference != NULL)
+        HasReference())
     {
-        const CourseRefInput* in;
-        /* Nothing to observe if every input is placed against the start
-         * of the attempt: play it straight away. */
-        en.demo = 2;
-        for (in = en.drill->reference; in->mark != COURSE_REF_END; in++) {
-            if (in->mark != 0) {
-                en.demo = 1;
-            }
-        }
+        en.demo = 1; /* or 2 at once, decided below when the script is known */
+        en.demo_count++;
         en.demo_seed = **stc_rng_seed;
         en.demo_scenario = -1;
     }
@@ -970,6 +1081,7 @@ static void Reset(void)
     c->state = c->prev_state = -1;
     c->state_frames = 0;
     c->held = c->down = 0;
+    c->cpu_state = -1;
     en.run = RUN_ATTEMPT;
     en.attempt_frame = 0;
     for (i = 0; i < COURSE_MAX_MARKS; i++) {
@@ -983,6 +1095,20 @@ static void Reset(void)
     en.report_len = 0;
 
     en.drill->Setup(c);
+
+    en.ref = en.drill->BuildReference != NULL ? en.drill->BuildReference(c)
+                                              : en.drill->reference;
+    if (en.demo == 1) {
+        /* Nothing to observe if every input is placed against the start
+         * of the attempt: play it straight away. */
+        const CourseRefInput* in;
+        en.demo = 2;
+        for (in = en.ref; in->mark != COURSE_REF_END; in++) {
+            if (in->mark != 0) {
+                en.demo = 1;
+            }
+        }
+    }
 
     en.hmn_percent = c->hd->dmg.percent;
     en.cpu_percent = c->cd != NULL ? c->cd->dmg.percent : 0;
@@ -1001,6 +1127,26 @@ static void Reset(void)
 
 /* `def` with the value `cur` holds, if `cur` was built before or had a
  * value stored into it while still empty. */
+/* The statistics card: kept here, not in its menu slot, because the slot
+ * comes after the drill's own options and so moves from drill to drill. */
+
+static void OnStatsCard(GOBJ* menu, int value)
+{
+    stats_card = value;
+}
+
+static void GuideOpen(CourseCtx* c);
+void EventMenu_ExitMenu(GOBJ* gobj); /* TM-CE menu.c */
+
+/* A on Help: leave the menu and open the guide. */
+static void OnHelp(GOBJ* menu)
+{
+    EventMenu_ExitMenu(menu);
+    if (en.run != RUN_GUIDE) {
+        GuideOpen(&en.ctx);
+    }
+}
+
 /* The drill whose options Options_Main holds, -1 before the first. */
 static int options_drill = -1;
 
@@ -1054,14 +1200,30 @@ void Event_Init(GOBJ* gobj)
             MergeOption(&Options_Main[o], &en.drill->options[i], 0);
     }
     options_drill = Course_Current;
-    Options_Main[o].kind = OPTKIND_INFO;
-    Options_Main[o].name = "HELP";
+    Options_Main[o].kind = OPTKIND_STRING;
+    Options_Main[o].name = "Stats Card";
+    Options_Main[o].desc[0] = "Show your success rate on screen.";
+    Options_Main[o].desc[1] = NULL;
+    Options_Main[o].desc[2] = NULL;
+    Options_Main[o].values = opt_off_on;
+    Options_Main[o].value_num = countof(opt_off_on);
+    Options_Main[o].val = stats_card;
+    Options_Main[o].OnChange = OnStatsCard;
+    Options_Main[o].OnSelect = NULL;
+    o++;
+    Options_Main[o].kind = OPTKIND_FUNC;
+    Options_Main[o].name = "Help";
+    Options_Main[o].OnChange = NULL;
+    Options_Main[o].OnSelect = OnHelp;
     Options_Main[o].desc[0] = (char*) en.drill->help[0];
     Options_Main[o].desc[1] = (char*) en.drill->help[1];
     Options_Main[o].desc[2] = (char*) en.drill->help[2];
     o++;
     Options_Main[o].kind = OPTKIND_FUNC;
     Options_Main[o].name = "Exit";
+    Options_Main[o].OnChange = NULL;
+    Options_Main[o].desc[1] = NULL;
+    Options_Main[o].desc[2] = NULL;
     Options_Main[o].desc[0] = "Return to the drill list.";
     Options_Main[o].OnSelect = Event_Exit;
     o++;
@@ -1110,8 +1272,7 @@ void Event_Think(GOBJ* event)
      * starts a fresh attempt, D-pad right a demonstration first. */
     if (en.run == RUN_GUIDE) {
         if (hd->input.down & (HSD_BUTTON_DPAD_UP | HSD_BUTTON_DPAD_RIGHT)) {
-            if ((hd->input.down & HSD_BUTTON_DPAD_RIGHT) &&
-                en.drill->reference != NULL)
+            if ((hd->input.down & HSD_BUTTON_DPAD_RIGHT) && HasReference())
             {
                 Options_Main[OPT_DEMO].val = DEMO_ONCE;
             }

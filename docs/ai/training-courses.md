@@ -14,13 +14,10 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish) and eleven of Fox's sixteen Tech drills:
-`universal-short-hop`, `-l-cancel`, `-shffl`, `-wavedash`, `-dash-dance`, `-jc-grab`,
-`fox-waveshine`, `fox-jc-shine`, `fox-multishine`, `fox-shdl`, `fox-illusion-shorten`. Still
-to build in Tech, each needing something the engine lacks: `universal-shield-drop` (a
-platform stage start), `fox-shine-grab` and `fox-shffl-nair-shine` (a shielding target),
-`universal-ledgedash` and `fox-ledge-stall` (a start on the ledge). None of the drills has
-been played by a person yet. "Built" and "Planned" are marked per section;
+opens after character select. Built: `fox-shine-oos` (Punish) and thirteen of Fox's sixteen Tech drills. Still to build
+in Tech: `universal-shield-drop` (needs a platform stage start), `universal-ledgedash` and
+`fox-ledge-stall` (need a start on the ledge). The owner played the build on 2026-11-12;
+the changes asked for then are in (below). "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |
@@ -159,6 +156,29 @@ Added with the first Tech drills (M3):
   and Sheik, SHFFL for those and Mr. Game & Watch. Run that matrix for any new `universal-`
   drill (a spec per character with option 4 = 2).
 - **The hub scrolls**: a section may hold up to 32 drills, 8 on screen.
+
+Changed after the owner's first play session (2026-11-12):
+
+- **Flow** (`.flow = 1` on the drill): a verdict is counted and shown and the drill starts
+  again from phase 0 where the player stands; no re-placing. All solo Tech drills and
+  aerial-into-shine use it. Consequences for a drill: something that is not an attempt (a
+  plain jump in the wavedash drill) gives no verdict, it just returns to phase 0; and a
+  condition tested in phase 0 must be true for one frame only (`c->state_frames == 1`), or
+  it fires every frame.
+- **Stats card**: success rate, streak and best streak, top left, while playing. Menu
+  option "Stats Card", on by default.
+- **Help** in the menu (not "HELP"): A closes the menu and opens the guide.
+- **Built reference scripts** (`BuildReference`): the L-cancel and SHFFL demonstrations
+  are built per attempt from the character's hop, gravity and fast-fall speed, so there is
+  no scouting hop, and each demonstration shows the next aerial (`course_DemoCount`). In
+  the simulator 171 of 175 such demonstrations over all 26 characters succeed; the four
+  that do not are single aerials of Kirby, Luigi and Zelda.
+- **Shielding target**: `course_CpuShield(c)` every frame; `c->cpu_state` is sampled like
+  the player's.
+- **Resets release grabs** (`ReleaseGrab`): a reset during a grab used to leave the two
+  fighters linked (victim in the floor, next grab not taking).
+- **Text**: the game's font has no semicolon; it is dropped silently. Apostrophes,
+  colons, parentheses, `+ - / = %` are fine.
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL

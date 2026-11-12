@@ -1,0 +1,78 @@
+{
+  "comment": "Menu: START, down to Help (after the 5 common options and Stats Card), A. That closes the menu and opens the guide; D-pad right there plays a demonstration, which is the proof the guide was open.",
+  "event": "course",
+  "drill": "universal-short-hop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 2,
+      "buttons": [
+        "START"
+      ]
+    },
+    {
+      "at": 60,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 68,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 76,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 84,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 92,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 100,
+      "hold": 2,
+      "buttons": [
+        "DDOWN"
+      ]
+    },
+    {
+      "at": 120,
+      "hold": 2,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 160,
+      "hold": 2,
+      "buttons": [
+        "DRIGHT"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

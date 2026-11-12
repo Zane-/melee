@@ -130,8 +130,7 @@ static void shdl_Think(CourseCtx* c)
                                     "airborne frame %d, B again",
                               shdl.first_laser, 0);
             } else {
-                course_Result(c, 0, "No laser\nB as you leave the ground", 0,
-                              0);
+                course_Phase(c, SHDL_WAIT); /* a plain jump: ignore */
             }
         }
         break;
@@ -140,6 +139,7 @@ static void shdl_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_FoxShdl = {
+    .flow = 1,
     .Setup = shdl_Setup,
     .Think = shdl_Think,
     .help = { "Short hop double laser: short hop, B as you leave",
@@ -189,7 +189,7 @@ static void ill_Guide(CourseCtx* c, CourseGuide* g)
     sprintf(g->line[n++], "The earlier in that window, the shorter.");
     sprintf(g->line[n++], "Earlier than that, the press is ignored.");
     g->line_count = n;
-    g->timeline_from = "frames (1 = side+B; the timeline ends at 15)";
+    g->timeline_from = "frames (1 = side+B, the second B comes after 15)";
 }
 
 static void ill_Think(CourseCtx* c)
@@ -207,8 +207,8 @@ static void ill_Think(CourseCtx* c)
             ill.frame = 1;
             ill.press = 0;
             ill.dash = 0;
-        } else if (c->state >= FSP_ILLUSION_AIR_FIRST &&
-                   c->state <= FSP_ILLUSION_AIR_LAST)
+        } else if (c->state == FSP_ILLUSION_AIR_FIRST &&
+                   c->state_frames == 1)
         {
             course_Result(c, 0, "Use it on the ground here", 0, 0);
         }
@@ -265,6 +265,7 @@ static void ill_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_FoxIllusionShorten = {
+    .flow = 1,
     .Setup = ill_Setup,
     .Think = ill_Think,
     .help = { "Shortened Illusion: side+B, then B again as the",

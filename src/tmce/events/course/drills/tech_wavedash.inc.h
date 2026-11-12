@@ -89,11 +89,11 @@ static void wd_Think(CourseCtx* c)
         } else if (c->state == ASID_JUMPF || c->state == ASID_JUMPB) {
             wd.jump_frames++;
             if (wd.jump_frames > WD_JUMP_TIMEOUT) {
-                course_Result(c, 0, "No air dodge\nR as you leave the ground",
-                              0, 0);
+                /* a plain jump: not an attempt */
+                course_Phase(c, WD_WAIT);
             }
         } else {
-            course_Result(c, 0, "Not a wavedash", 0, 0);
+            course_Phase(c, WD_WAIT); /* an aerial, a special...: ignore */
         }
         break;
 
@@ -138,6 +138,7 @@ static void wd_Think(CourseCtx* c)
 }
 
 static const CourseDrill Drill_TechWavedash = {
+    .flow = 1,
     .Setup = wd_Setup,
     .Think = wd_Think,
     .options = wd_options,

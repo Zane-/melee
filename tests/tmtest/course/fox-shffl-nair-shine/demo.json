@@ -1,0 +1,27 @@
+{
+  "comment": "Reference demonstration: L-cancelled nair on shield, shine at once.",
+  "event": "course",
+  "drill": "fox-shffl-nair-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "measured": 0,
+    "on_shield": 1,
+    "l_cancel": 1
+  }
+}

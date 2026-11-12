@@ -1,0 +1,55 @@
+{
+  "comment": "Short hop nair on shield, Z 22 and down-B 34 frames after the jump press (found by a sweep in the simulator).",
+  "event": "course",
+  "drill": "fox-shffl-nair-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    },
+    {
+      "at": 74,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 62,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 0,
+    "l_cancel": 1,
+    "on_shield": 1
+  }
+}

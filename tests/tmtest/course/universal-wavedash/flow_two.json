@@ -1,0 +1,53 @@
+{
+  "comment": "Flow: Tech drills do not reset after a verdict. Two wavedashes 70 frames apart are both graded, and the second starts where the first slid to.",
+  "event": "course",
+  "drill": "universal-wavedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 43,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        90,
+        -90
+      ]
+    },
+    {
+      "at": 110,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 113,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        90,
+        -90
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "measured": 1
+  }
+}

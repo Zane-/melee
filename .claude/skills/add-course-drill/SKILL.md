@@ -44,6 +44,9 @@ Rules that cost a debugging round each:
 - A guide has at most 8 lines, and the whole panel at most 32 texts.
 - Measure the technique's frames in the simulator sandbox first (`melee-sim` skill) and
   write them in the drill's header comment with the date.
+- Technique drills set `.flow = 1` (no reset after a verdict): give no verdict for
+  things that are not attempts, and guard phase-0 conditions with `c->state_frames == 1`.
+- No semicolons in on-screen text (the font drops them).
 - Add failing specs too (too early, too late, strict leniency), not only the success.
 
 Numbers in `Think` and `Guide` come from `course_Fighter(c->hd)` / `course_Fighter(c->cd)`
