@@ -14,10 +14,10 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: `fox-shine-oos` (Punish) and thirteen of Fox's sixteen Tech drills. Still to build
-in Tech: `universal-shield-drop` (needs a platform stage start), `universal-ledgedash` and
-`fox-ledge-stall` (need a start on the ledge). The owner played the build on 2026-11-12;
-the changes asked for then are in (below). "Built" and "Planned" are marked per section;
+opens after character select. Built: `fox-shine-oos` (Punish) and all sixteen of Fox's Tech drills. Neutral, Punish
+(beyond Shine OoS) and Defense are still plans. The owner played an earlier build on
+2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
+drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |
@@ -179,6 +179,15 @@ Changed after the owner's first play session (2026-11-12):
   fighters linked (victim in the floor, next grab not taking).
 - **Text**: the game's font has no semicolon; it is dropped silently. Apostrophes,
   colons, parentheses, `+ - / = %` are fine.
+
+- **Starts other than the floor**: `course_PlaceOnLedge(c)` (the stage's left ledge, fresh
+  intangibility; TM-CE's ledge search and placement, copied into `ledge.inc.h`) and
+  `course_PlaceOnPlatform(c, x, above_y)` (whatever is straight below that point). A
+  drill's stage is `.stage` in its info (shield drop uses Battlefield). `course_Fell(c)`
+  says the player died or dropped far below the stage. These drills reset after every
+  verdict, since the start position is the drill.
+- **A guide can hide the timeline** (`g->hide_timeline`) when the reference is a stick
+  motion rather than button presses.
 
 Things learned the hard way: the simulator never runs drawing code (GX callbacks), so
 anything drawn has to be looked at in Dolphin once (the guide crashed there on a NULL

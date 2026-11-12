@@ -1,0 +1,34 @@
+{
+  "comment": "Up-B 5 frames after the drop misses the ledge.",
+  "event": "course",
+  "drill": "fox-ledge-stall",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 8,
+      "hold": 1,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 13,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "stalls": 0
+  }
+}

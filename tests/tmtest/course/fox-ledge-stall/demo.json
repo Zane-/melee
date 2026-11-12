@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration: one stall.",
+  "event": "course",
+  "drill": "fox-ledge-stall",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "stalls": 1
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "comment": "Dropping 16 frames after the grab leaves nothing.",
+  "event": "course",
+  "drill": "universal-ledgedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 16,
+      "hold": 1,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 17,
+      "hold": 3,
+      "buttons": [
+        "X"
+      ],
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 20,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        110,
+        -65
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "galint": 0
+  }
+}

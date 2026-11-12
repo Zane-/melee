@@ -1,0 +1,21 @@
+{
+  "comment": "Reference demonstration: on stage with intangibility left.",
+  "event": "course",
+  "drill": "universal-ledgedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "galint": 8,
+    "total": 15
+  }
+}

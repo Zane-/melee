@@ -1,0 +1,22 @@
+{
+  "comment": "Letting go without a jump.",
+  "event": "course",
+  "drill": "universal-ledgedash",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 8,
+      "hold": 1,
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

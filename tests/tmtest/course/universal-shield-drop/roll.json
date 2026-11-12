@@ -1,0 +1,30 @@
+{
+  "comment": "A fast push sideways in shield is a roll.",
+  "event": "course",
+  "drill": "universal-shield-drop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 300,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    },
+    {
+      "at": 20,
+      "hold": 10,
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

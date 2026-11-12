@@ -1,0 +1,46 @@
+{
+  "comment": "Y -89 is a spot dodge.",
+  "event": "course",
+  "drill": "universal-shield-drop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 300,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    },
+    {
+      "at": 20,
+      "hold": 10,
+      "stick": [
+        50,
+        0
+      ]
+    },
+    {
+      "at": 30,
+      "hold": 10,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 40,
+      "hold": 6,
+      "stick": [
+        90,
+        -89
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

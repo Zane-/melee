@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration on Battlefield's left platform: drop and aerial.",
+  "event": "course",
+  "drill": "universal-shield-drop",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "aerial": 3
+  }
+}

@@ -91,6 +91,8 @@ typedef struct CourseGuide {
     int line_count;
     /// Caption of the timeline: what frame 0 of it is.
     const char* timeline_from;
+    /// No timeline: the reference is a stick motion, not button presses.
+    int hide_timeline;
 } CourseGuide;
 
 typedef struct CourseDrill {
@@ -126,6 +128,9 @@ static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
                          int cpu_faces_away, float cpu_percent);
 static void course_PlaceSolo(CourseCtx* c, float x);
 static void course_CpuShield(CourseCtx* c);
+static void course_PlaceOnLedge(CourseCtx* c);
+static void course_PlaceOnPlatform(CourseCtx* c, float x, float above_y);
+static int course_Fell(CourseCtx* c);
 static int course_DemoCount(void);
 static int course_Leniency(int option);
 static void course_Script(CourseCtx* c, const CourseInput* in, int frame);
@@ -302,6 +307,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/tech_movement.inc.h"
 #include "drills/fox_specials.inc.h"
 #include "drills/fox_pressure.inc.h"
+#include "drills/tech_ledge.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -317,6 +323,9 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_GRAB] = &Drill_FoxShineGrab,
     [DRILL_FOX_NAIR_SHINE] = &Drill_FoxNairShine,
     [DRILL_FOX_SHDL] = &Drill_FoxShdl,
+    [DRILL_TECH_SHIELD_DROP] = &Drill_TechShieldDrop,
+    [DRILL_TECH_LEDGEDASH] = &Drill_TechLedgedash,
+    [DRILL_FOX_LEDGE_STALL] = &Drill_FoxLedgeStall,
     [DRILL_FOX_ILLUSION_SHORTEN] = &Drill_FoxIllusionShorten,
 };
 
@@ -428,6 +437,87 @@ static void course_PlaceSolo(CourseCtx* c, float x)
     c->toward = -1.0F;
     ResetFighter(Fighter_GetGObj(0), x, 1.0F, 0);
     Match_CorrectCamera();
+}
+
+#include "ledge.inc.h"
+
+/* The player hanging on the stage's left ledge, as after a fresh grab
+ * (full ledge intangibility). Positive stick X in a reference script is
+ * toward the stage. The placement is TM-CE's (ledgedash.c
+ * Fighter_PlaceOnLedge). */
+static void course_PlaceOnLedge(CourseCtx* c)
+{
+    GOBJ* hmn = Fighter_GetGObj(0);
+    FighterData* hd = hmn->userdata;
+    FtCliffCatch* ft_state = (void*) &hd->state_var;
+    float ledge_dir;
+    int line = course_LedgeFind(-1, 0, &ledge_dir);
+
+    c->side = 1.0F;
+    c->toward = -1.0F;
+    if (line == -1) {
+        return;
+    }
+    ReleaseGrab(hmn);
+    hd->phys.self_vel.X = 0;
+    hd->phys.self_vel.Y = 0;
+    hd->flags.used_tether = 0;
+    Fighter_EnterSleep(hmn, 0);
+    Fighter_EnterRebirth(hmn);
+    hd->facing_direction = ledge_dir;
+    ft_state->ledge_index = line;
+    Fighter_EnterCliffWait(hmn);
+    ft_state->timer = 0;
+    Fighter_SetAirborne(hd);
+    Fighter_EnableCollUpdate(hd);
+    Coll_CheckLedge(&hd->coll_data);
+    Fighter_MoveToCliff(hmn);
+    course_UpdatePosition(hmn);
+    Fighter_ApplyIntang(hmn, (*stc_ftcommon)->cliff_invuln_time + 1);
+    hd->dmg.percent = 0;
+    Fighter_SetHUDDamage(hd->ply, 0);
+    Fighter_UpdateCameraBox(hmn);
+    Match_CorrectCamera();
+}
+
+/* The player standing on the floor or platform found straight below
+ * (x, above_y), facing right. */
+static void course_PlaceOnPlatform(CourseCtx* c, float x, float above_y)
+{
+    GOBJ* hmn = Fighter_GetGObj(0);
+    FighterData* hd = hmn->userdata;
+    Vec3 pos, angle;
+    int index, kind;
+
+    c->side = 1.0F;
+    c->toward = -1.0F;
+    ResetFighter(hmn, x, 1.0F, 0);
+    if (GrColl_RaycastGround(&pos, &index, &kind, &angle, -1, -1, -1, 0, x,
+                             above_y, x, above_y - 60.0F, 0))
+    {
+        JOBJ* jobj = hmn->hsd_object;
+        hd->coll_data.ground_index = index;
+        hd->phys.pos = pos;
+        hd->coll_data.topN_Curr = pos;
+        hd->coll_data.topN_CurrCorrect = pos;
+        hd->coll_data.topN_Prev = pos;
+        hd->coll_data.topN_Proj = pos;
+        jobj->trans = pos;
+        JOBJ_SetMtxDirtySub(jobj);
+        Fighter_SetPosition(hd->ply, hd->flags.ms, &hd->phys.pos);
+        EnvironmentCollision_WaitLanding(hmn);
+        Fighter_SetGrounded(hd);
+        Fighter_EnterWait(hmn);
+        Fighter_UpdateCameraBox(hmn);
+    }
+    Match_CorrectCamera();
+}
+
+/* The player is dead or far below the stage. */
+static int course_Fell(CourseCtx* c)
+{
+    return c->hd->state_id <= ASID_DEADUPFALLHITCAMERAICE ||
+           c->hd->phys.pos.Y < -70.0F;
 }
 
 /* A target that shields: call every frame of the attempt. The CPU holds
@@ -848,7 +938,7 @@ static void GuideTimeline(float y)
     char buf[8];
     int f;
 
-    if (ref == NULL) {
+    if (ref == NULL || en.guide.hide_timeline) {
         return;
     }
     for (in = ref; in->mark != COURSE_REF_END; in++) {
