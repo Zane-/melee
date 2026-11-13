@@ -16,9 +16,10 @@
 void host_CARDInit(void);
 #define CARDInit() host_CARDInit()
 
-/* The console's GXSetArray has no size or byte order. */
-void host_GXSetArray(GXAttr attr, const void* data, u8 stride);
-#define GXSetArray(attr, data, stride) host_GXSetArray(attr, data, stride)
+/* The console's GXSetArray has no size or byte order; files upstream has
+   adapted pass Aurora's five arguments. Either way nothing is drawn. */
+void host_GXSetArray(GXAttr attr, const void* data, ...);
+#define GXSetArray(...) host_GXSetArray(__VA_ARGS__)
 
 void PADSetSamplingRate(u32 msec);
 s32 CARDFormatAsync(s32 chan, CARDCallback callback);
@@ -32,6 +33,10 @@ void GXInitFogAdjTable(GXFogAdjTable* table, u16 width,
 /* For source patches (tools/native_build.py, PATCHES). */
 void* host_dat_element(void* native, int n, unsigned console_size);
 void* host_script_target(const void* word);
+
+/* Where a square root is stored and read back (source patches): the
+   vanilla code names a stack slot outside its own variables. */
+static volatile f32 host_scratch_f32;
 
 /* A 16- or 32-bit value in a script word, which is in disc order. */
 static inline u16 host_be_u16(const void* word, int index)

@@ -32,7 +32,8 @@ ItCmd it_803F22A8[16] = {
     it_802798D4, it_8027990C, it_80279958, it_802799A8,
 };
 
-typedef struct itAnimlistCmdUnk {
+/// A script word, as it is on the disc.
+typedef struct PPC_LAYOUT itAnimlistCmdUnk {
     u16 x0_b0 : 6;
     u16 opcode : 8;
     u16 x0_b14 : 2;

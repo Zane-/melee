@@ -109,6 +109,18 @@ class SimSide:
                 "air": int(f.airborne), "percent": f.percent,
                 "hitlag": f.hitlag, "hitstun": f.hitstun,
                 "shield": f.shield, "gvel": f._f32(0xEC)})
+        # Items: the game's item list (process link 9), as control.c walks
+        # it. Offsets: src/melee/it/types.h.
+        out["items"] = []
+        gobj = m.u32(m.u32(m.sym.addr("HSD_GObjPLinkHead")) + 9 * 4)
+        while gobj:
+            ip = m.u32(gobj + 0x2C)
+            if ip:
+                out["items"].append({
+                    "kind": m.u32(ip + 0x10), "state": m.u32(ip + 0x24),
+                    "x": m.f32(ip + 0x4C), "y": m.f32(ip + 0x50),
+                    "vx": m.f32(ip + 0x40), "vy": m.f32(ip + 0x44)})
+            gobj = m.u32(gobj + 8)
         return out
 
 
@@ -175,10 +187,26 @@ def f32(v):
     return struct.unpack("f", struct.pack("f", v))[0]
 
 
+def close(va, vb, exact):
+    if va != va and vb != vb:
+        return True  # both not a number
+    if exact or TOLERANCE == 0:
+        return va == vb
+    return abs(va - vb) <= TOLERANCE * max(1.0, abs(va), abs(vb))
+
+
 def differences(a, b):
     out = []
     if a["rng"] != b["rng"]:
         out.append("rng %d / %d" % (a["rng"], b["rng"]))
+    ia, ib = a.get("items", []), b.get("items", [])
+    if len(ia) != len(ib):
+        out.append("items %d / %d" % (len(ia), len(ib)))
+    for n, (xa, xb) in enumerate(zip(ia, ib)):
+        for k in ("kind", "state", "x", "y", "vx", "vy"):
+            if not close(f32(xa[k]), f32(xb[k]), k in ("kind", "state")):
+                out.append("item %d (kind %d) %s %r / %r" % (
+                    n, xa["kind"], k, xa[k], xb[k]))
     for i in range(2):
         fa, fb = a["p"][i], b["p"][i]
         if (fa is None) != (fb is None):
@@ -188,12 +216,7 @@ def differences(a, b):
         if fa is None:
             continue
         for k in FIELDS:
-            va, vb = f32(fa[k]), f32(fb[k])
-            if k in EXACT or TOLERANCE == 0:
-                same = va == vb
-            else:
-                same = abs(va - vb) <= TOLERANCE * max(1.0, abs(va), abs(vb))
-            if not same:
+            if not close(f32(fa[k]), f32(fb[k]), k in EXACT):
                 out.append("P%d %s %r / %r" % (i + 1, k, fa[k], fb[k]))
     return out
 

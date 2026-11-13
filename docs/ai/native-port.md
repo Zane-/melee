@@ -33,7 +33,8 @@ python tools/melee_native/compare.py --tolerance 1e-4 --random 3     # against t
 | Host layer | `src/host/` | The console underneath the game, at the level of SDK functions: `os.c` (reports, emulated time, interrupts as queued completions, alarms, the arena at the console's addresses), `dvd.c` (the disc is `build/disc/files`), `hw.c` (audio RAM, pads, video timing, the few graphics answers the game uses), `archive.c` (the loader on the readers), `particles.c`, `match.c`, `control.c`, `debug.c`, `cuts.c` |
 | Build | `tools/native_build.py` | Runs the preset, compiles the vanilla files upstream leaves out, the host layer, Aurora's C matrix functions and the SDK's own heap allocator, generates a stub for every SDK function still missing (222), links |
 | Driver | `tools/melee_native/native.py` | `Native`: `step`, `pad`, `match`, `fighter`, `state`, over the line protocol of `src/host/control.c` |
-| Comparison | `tools/melee_native/compare.py`, `rngdiff.py` | The same match and inputs in the Python simulator and natively, compared every frame; which code drew random numbers differently |
+| Comparison | `tools/melee_native/compare.py`, `survey.py`, `rngdiff.py` | The same match and inputs in the Python simulator and natively, compared every frame; the same over 19 matchups; which code drew random numbers differently |
+| Sanitizer | `tools/native_build.py --asan`, `tools/melee_native/asan.py` | The game under AddressSanitizer, and its reports reduced to distinct places in the source |
 | Crash traces | `tools/native_run.sh` | Runs the game and turns a crash backtrace into function names and lines |
 
 One-time setup (the readers' tool and type table come from the flake):
@@ -73,19 +74,19 @@ Python simulator; the host's version of that function is the frame boundary.
 
 Checked 2026-11-12 with `compare.py`: the retail PowerPC code in the Python simulator
 (`simulator.md`, itself checked against Dolphin) against the native build, same match,
-same seed, same inputs, every frame: the random seed and, for both fighters, state,
-animation frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield.
+same seed, same inputs, every frame: the random seed; for both fighters, state,
+animation frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield; and
+every item's kind, state, position and speed.
 
-- **Fox against Marth on Final Destination:** a scripted exchange (run, jab, up smash,
-  jump, forward air, shine, shield, forward smash on shield; 520 frames) and eight runs of
-  random inputs (900 frames each, with lasers, grabs, a KO and respawn) are identical in
-  every state, frame counter, hitlag and hitstun value and random number.
-- **Eleven of eighteen other matchups** tried with random inputs for 600 frames were
-  identical in the same sense, across Final Destination, Battlefield, Dream Land, Yoshi's
-  Story and Fountain of Dreams. The other seven are the differences listed below.
+- **`tools/melee_native/survey.py`**: 19 matchups (26 of the characters, the six
+  tournament stages), random inputs, 600 frames. With two runs each, **17 matchups are
+  identical in both runs** in every state, frame counter, hitlag and hitstun value, item
+  and random number. The other two are in the table below.
 - **Positions, speeds, damage and shield agree to rounding, not to the bit**
-  (`--tolerance 1e-4`). Without the tolerance the first difference comes after 130 to 200
-  frames, in the last bit of a speed.
+  (`--tolerance 1e-4`, the survey's default). Without the tolerance the first difference
+  comes after 130 to 200 frames, in the last bit of a speed.
+- **`tools/melee_native/asan.py`** (the AddressSanitizer build) reports no bad access in
+  an idle match, and none in gameplay code over 15 of the survey's runs.
 - Speed: about 9,500 frames a second in active play unoptimised, 15,600 with `--opt 1`
   (the Python simulator: 50 to 160), driven from Python.
 
@@ -93,13 +94,12 @@ Known differences, none investigated to the end:
 
 | Where | What |
 |-|-|
-| Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
-| Peach | Her fall animation does not wrap at its end (frame 8 where the console has 1) |
+| Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), `__frsqrte` is an exact reciprocal square root (as in the simulator, unlike hardware), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
+| Sheik's chain | The chain item is in a different state from frame 212 of one run (`falco`/`sheik`, run 1) |
 | Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
-| Pokémon Stadium | The random sequence differs from frame 85 |
-| Samus against Pikachu | Differs at frame 572 (state and random sequence) |
-| Ice Climbers; Kirby or Yoshi | Assert while the match loads |
+| Ice Climbers | The partner diverges in one run (run 2, frame 183: a solo side special where the console has the pair's). Her inputs come from the CPU code, which nothing here compares |
 | Big Blue, Venom | Three flag unions there are read through pointers and were left as they were |
+| CPU players | Not compared: both players are driven by pads in every run |
 | Menus, other modes | Only the memory card prompt and the debug VS match have run |
 | `--draw` | Asserts in the first frame (a position out of range) |
 | Audio | Sound files are loaded with their headers in host order; nothing plays, nothing was checked |
@@ -115,14 +115,20 @@ for it:
    bytes. `src/host/archive.c` gives every lookup the type the schema records for that
    symbol name. Where the types are wrong or missing, fix the annotation in the header
    (`DAT_COUNT`, `DAT_EXTENT`, `DAT_BIND`, a struct instead of `UNK_T`) and regenerate:
-   done for a fighter's costume texture indices (`ftData_x8_x8`) and the revival platform
-   (`ftLoadCommonData::x20`).
+   done for a fighter's costume texture indices, the revival platform, the table of bones
+   a character leaves out, the item throw table, the shake tables and the refraction
+   parameters. A stage file's other language version (`GrPs.usd`) uses the schema entry
+   of the `.dat`. An archive ends when its buffer is parsed again, as on the console,
+   where it is that buffer.
 2. **Bit and byte order in code.** A flags word written as a number and read as
    bit-fields, or copied from file data as an integer. `PPC_LAYOUT`
    (`src/Runtime/platform.h`) marks a struct or union to keep the console's layout (gcc's
    `scalar_storage_order`; nothing for the console's compiler, so the matching build is
    unchanged). 23 unions carry it. The address of a scalar member of such a type cannot be
-   taken, which is why three were left out.
+   taken, which is why three were left out. When the readers load such a type they keep
+   the file's bytes. Where one word has an integer view and a bit-field view in two
+   structs, the bit-field view gets a little-endian layout under `TARGET_PC`
+   (`ftData_80085FD4_ret`).
 3. **Data that is code.** Command scripts (fighter actions, items, colour animations)
    stay in disc order and are read through bit-field structs: `PPC_LAYOUT_BEGIN`/`END`
    around those types. Their goto targets are file offsets, resolved by
@@ -132,9 +138,11 @@ for it:
 4. **The file's memory layout.** "The nth animation joint after this one" for stage
    models: `host_dat_element` finds the neighbour through the archive.
 5. **The DOL's memory layout.** Globals addressed through their neighbours (a table as
-   "what follows this other table", a struct laid over three globals). Each is named
-   instead. A static search found five more candidates outside fighter code; a build
-   with AddressSanitizer would find the ones that run.
+   "what follows this other table", a struct laid over three globals): in fighter data,
+   particles, the camera, trophies, the sound bank table. Each is named instead. The
+   same goes for the stack: square roots stored to a slot outside the function's
+   variables, a rotation read as four floats into a variable of three. The
+   AddressSanitizer build finds the ones that run.
 6. **Floating point.** SSE instead of x87, multiply-add fusing when optimising; see the
    differences above.
 
@@ -153,6 +161,17 @@ python tools/melee_native/rngdiff.py 252        # who drew random numbers in fra
 tools/native_run.sh --match 12,2,32 --frames 400   # a crash, with names
 ```
 
+```sh
+python tools/native_build.py --asan             # build/native-asan/melee_headless
+python tools/melee_native/asan.py --match 2,9,32 --frames 600   # distinct bad accesses
+python tools/melee_native/survey.py --runs 2    # the regression test (about 4 minutes)
+```
+
+The sanitizer run comes first: a read past the end of converted archive data is an array
+whose count the readers were not told (`heap-buffer-overflow`), and a read or write past
+a global or a stack variable is code that depends on the console's memory layout. Both
+show up there with the source line, long before they change a fighter's state.
+
 A difference in the random sequence usually means code that ran on one side only:
 `rngdiff.py` names it. A crash or assert in the native build usually means data that was
 not converted (kind 1 or 3) or a global addressed through another (kind 5): `gdb` works
@@ -170,8 +189,9 @@ that would be.
 
 ## Next steps
 
-1. Work through the known differences, starting with the ones that affect every match
-   (Peach's animation wrap suggests a flag still read in host order).
+1. Work through the known differences; compare CPU players and more of the game's
+   state (the Ice Climbers' partner shows that two pad-driven fighters are not all of
+   it).
 2. Exact floating point: the console's paired-single routines and C library in C, and a
    full-precision trace from Dolphin as the reference.
 3. Hooks for the native target, so TM-CE, the course engine and the drill specs

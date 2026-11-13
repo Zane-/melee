@@ -14,6 +14,7 @@ fighter() reads a player's fighter. The process speaks the line protocol of
 src/host/control.c.
 """
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -36,6 +37,13 @@ CHARACTERS = {
 STAGES = {"fountain-of-dreams": 0x02, "pokemon-stadium": 0x03,
           "yoshis-story": 0x08, "dream-land": 0x1C, "battlefield": 0x1F,
           "final-destination": 0x20}
+
+
+def _json(text):
+    # C prints nan and inf; JSON's spelling is NaN and Infinity.
+    text = re.sub(r"-?nan", "NaN", text)
+    text = re.sub(r"(-?)inf", r"\1Infinity", text)
+    return json.loads(text)
 
 
 class NativeError(RuntimeError):
@@ -98,11 +106,12 @@ class Native:
             1 if p2_human else 0, seed))
 
     def state(self):
-        """Frame, random seed and both fighters (None before they exist)."""
-        return json.loads(self._cmd("state"))
+        """Frame, random seed, both fighters (None before they exist) and
+        the items."""
+        return _json(self._cmd("state"))
 
     def fighter(self, i):
-        return json.loads(self._cmd("fighter %d" % i))
+        return _json(self._cmd("fighter %d" % i))
 
     def seed(self, value):
         self._cmd("seed %d" % value)

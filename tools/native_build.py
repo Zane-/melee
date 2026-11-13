@@ -76,6 +76,9 @@ VANILLA = {
     ],
     # Relocating a copied archive is loading it again (src/host/archive.c).
     "melee/lb/lbarchive.c": ["-DlbArchiveRelocate=lbArchiveRelocate_vanilla"],
+    # It copies a sound header table onto itself, shifted down: the
+    # console's memcpy copies forwards, which is what memmove does here.
+    "sysdolphin/baselib/synth.c": ["-Dmemcpy=memmove"],
     # Random draws can be logged with their callers (src/host/debug.c).
     "sysdolphin/baselib/random.c": [
         "-DHSD_Rand=HSD_Rand_vanilla", "-DHSD_Randf=HSD_Randf_vanilla",
@@ -128,6 +131,50 @@ PATCHES = {
         ("(ftData_UnkCountStruct*) "
          "((u8*) CostumeListsForeachCharacter + 5940);",
          "ftData_UnkIntPairs;"),
+        ("((ft_8045993C_t*) &list[Ft_Kind_Max])[i]", "ft_8045993C[i]", 3),
+    ],
+    # The trophy tables, addressed from the struct that precedes them.
+    "melee/ty/toy.c": [
+        ("    base = (u8*) &_Toy_804A26B8;\n    save_data = "
+         "gmMainLib_GetTrophyFlags();",
+         "    base = (u8*) Toy_804A284C - 0x194;\n    save_data = "
+         "gmMainLib_GetTrophyFlags();"),
+        ("memzero(&userData->x194, 0x25A);", "memzero(Toy_804A284C, 0x25A);"),
+    ],
+    # A sound bank's end address, stored "32 entries past" one table: in
+    # the table that follows it.
+    "sysdolphin/baselib/synth.c": [
+        ("HSD_Synth_804C2AE0[bank_id + 0x80 / 4] = (void*) offset;",
+         "hsd_SynthSFXBank[bank_id] = (int) offset;"),
+    ],
+    # The camera's descriptor, addressed from a struct laid over the
+    # globals before it.
+    "melee/cm/camera.c": [
+        ("(struct CameraStaticData*) &cm_803BCB18;",
+         "(struct CameraStaticData*) ((u8*) &cm_803BCB64 - "
+         "offsetof(struct CameraStaticData, desc));"),
+    ],
+    # An image descriptor, addressed from a struct laid over the globals
+    # before it.
+    "melee/lb/lbrefract.c": [
+        ("data->imagedesc0;", "imagedesc0;"),
+    ],
+    # A rotation read as four floats into a variable of three.
+    "melee/lb/lb_020A.c": [
+        ("    Vec3 rot;\n    Quaternion rot2;",
+         "    struct { Vec3 v; f32 w; } rot_;\n#define rot rot_.v\n"
+         "    Quaternion rot2;"),
+    ],
+    # Square roots stored to, and read back from, a stack slot outside the
+    # function's own variables (where the original's temporary was).
+    "melee/ft/ft_0899.c": [
+        ("((volatile f32*) &sp1C)[-1]", "host_scratch_f32", 2),
+    ],
+    "melee/it/kinds/itlinkhookshot.c": [
+        ("*(&y + 6)", "y", 2),
+    ],
+    "melee/lb/lbcollision.c": [
+        ("sqrtf_store(n1, sqrt_tmp - 1)", "sqrtf_store(n1, &sqrt_tmp[0])"),
     ],
     # Item script words read through casts: they are in disc order.
     "melee/it/itanimlist.c": [
@@ -191,7 +238,8 @@ def cmake(flags):
     if not (OUT / "build.ninja").exists() or not stamp.exists() or \
             stamp.read_text() != cflags:
         env = dict(os.environ, AURORA_SRC=str(AURORA))
-        r = run(["cmake", "--preset", "native", "-DMELEE_DAT_READERS=ON",
+        r = run(["cmake", "--preset", "native", "-B", OUT,
+                 "-DMELEE_DAT_READERS=ON",
                  f"-DMELEE_DAT={MELEE_DAT}", f"-DCMAKE_C_FLAGS={cflags}"],
                 env=env, capture_output=True, text=True)
         if r.returncode:
@@ -249,6 +297,8 @@ def link(objs, out, capture=False):
             OUT / "dat-readers/libdat_native.a"]
     cmd = ["gcc", "-m32", "-no-pie", "-rdynamic", "-o", out, *objs,
            "-Wl,--start-group", *libs, "-Wl,--end-group", "-lm"]
+    if "native-asan" in str(OUT):
+        cmd.append("-fsanitize=address")
     return run(cmd, capture_output=True, text=True)
 
 
@@ -293,11 +343,21 @@ def main():
                     choices=["fast", "on", "off"],
                     help="fusing of multiply-add (default fast; it only "
                          "happens when optimising)")
+    ap.add_argument("--asan", action="store_true",
+                    help="build build/native-asan/melee_headless with "
+                         "AddressSanitizer: reads past the end of converted "
+                         "archive data and of globals are reported "
+                         "(tools/native_asan.sh runs it)")
     ap.add_argument("--no-cmake", action="store_true",
                     help="reuse libmelee.a as it is")
     args = ap.parse_args()
 
+    global OUT, OBJ
     flags = BASE_FLAGS + [f"-O{args.opt}", f"-ffp-contract={args.contract}"]
+    if args.asan:
+        OUT = ROOT / "build" / "native-asan"
+        OBJ = OUT / "host"
+        flags += ["-fsanitize=address", "-fsanitize-recover=address"]
     if args.opt == "1":
         # The pass that fuses multiply-adds is otherwise an -O2 pass.
         flags.append("-fexpensive-optimizations")

@@ -11,6 +11,8 @@
 
 #include <Runtime/platform.h>
 
+#include <dat_macros.h>
+
 #include <sysdolphin/baselib/forward.h>
 
 /* 0222A4 */ void lbRefract_800222A4(void);
@@ -34,7 +36,8 @@
 
 struct refract_data_t {
     u8 x0;
-    f32* x4;
+    /// Two per texture (#lbRefract_80021CE8).
+    f32* x4 DAT_COUNT(x0 * 2);
 };
 
 #endif

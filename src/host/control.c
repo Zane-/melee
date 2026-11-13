@@ -26,6 +26,7 @@
 #include <melee/ft/fighter.h>
 #include <melee/ft/inlines.h>
 #include <melee/ft/types.h>
+#include <melee/it/types.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
 #include <sysdolphin/baselib/random.h>
@@ -53,6 +54,27 @@ void host_fighter_json(int slot, char* out, size_t size)
              fp->dmg.x1830_percent, fp->dmg.x195c_hitlag_frames,
              fp->x221C_b6 ? *(float*) &fp->mv : 0.0F, fp->shield_health,
              fp->gr_vel);
+}
+
+/// Every item, in the order of the game's item list.
+static void print_items(void)
+{
+    int first = 1;
+    printf("[");
+    for (HSD_GObj* gobj = HSD_GObjPLinkHead[9]; gobj != NULL;
+         gobj = gobj->next)
+    {
+        Item* ip = gobj->user_data;
+        if (ip == NULL) {
+            continue;
+        }
+        printf("%s{\"kind\":%d,\"state\":%d,\"x\":%.9g,\"y\":%.9g,"
+               "\"vx\":%.9g,\"vy\":%.9g}",
+               first ? "" : ",", (int) ip->kind, (int) ip->msid, ip->pos.x,
+               ip->pos.y, ip->x40_vel.x, ip->x40_vel.y);
+        first = 0;
+    }
+    printf("]");
 }
 
 static void command(char* line)
@@ -99,8 +121,10 @@ static void command(char* line)
         char a[512], b[512];
         host_fighter_json(0, a, sizeof a);
         host_fighter_json(1, b, sizeof b);
-        printf("@ {\"frame\":%u,\"rng\":%u,\"p\":[%s,%s]}\n", host.frame,
-               (unsigned) *HSD_RandSeedPtr, a, b);
+        printf("@ {\"frame\":%u,\"rng\":%u,\"p\":[%s,%s],\"items\":",
+               host.frame, (unsigned) *HSD_RandSeedPtr, a, b);
+        print_items();
+        printf("}\n");
     } else if (strcmp(cmd, "rng") == 0) {
         host_rng_print();
     } else if (strcmp(cmd, "fighter") == 0) {
