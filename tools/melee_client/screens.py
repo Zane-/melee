@@ -401,7 +401,7 @@ def drill_rail(c, d, course, about):
         '<div id="last" class="sqs3">%s</div>'
         '<div class="stats two"><div class="stat"><div id="tries" class="n">'
         '0</div><div class="l">tries</div></div><div class="stat"><div '
-        'id="rate" class="n">-</div><div class="l">yes</div></div><div '
+        'id="rate" class="n">-</div><div class="l">success</div></div><div '
         'class="stat"><div id="best" class="n">0</div><div class="l">best '
         'run</div></div></div>'
         '<div class="grow"/><div class="hints"><div class="hintrow">%s'

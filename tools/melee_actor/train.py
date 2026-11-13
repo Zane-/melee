@@ -29,13 +29,13 @@ from melee_actor import scenario as scn  # noqa: E402
 def verdict(result):
     """One line for the person who just tried."""
     if result["success"]:
-        return "yes"
+        return "success"
     missed = [c for c in result["checks"] if not c["passed"]]
     words = {"target_hit": "you did not hit them",
              "not_hit": "you were hit",
              "target_not_hit": "they were hit",
              "hit": "you were not hit"}
-    return "no: " + "; ".join(
+    return "failure: " + "; ".join(
         words.get(c["expect"], c["expect"] + " did not hold")
         for c in missed)
 

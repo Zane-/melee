@@ -79,6 +79,7 @@ class Client:
         self.top = [0, 0, 0, 0]       # the first row shown, per part
         self.back = "chars"           # where free play returns to
         self.person = None            # tests: called before every frame
+        self.results = None           # the attempts of the drill last left
         self.opponent, self.stage = opponent, stage
         self.roster = characters.roster()
         self.screen = None
@@ -366,19 +367,20 @@ class Client:
                                                       c["expect"])
                               for c in result["checks"]) or "done"
         else:
-            words = words[4:] if words.startswith("no: ") else words
+            words = words.split(": ", 1)[-1]
         best = run = 0
         for r in results:
             run = run + 1 if r else 0
             best = max(best, run)
         shown = results[-10:]
         for ident, text in (
-                ("n", len(results)), ("verdict", "Yes" if ok else "No"),
+                ("n", len(results)),
+                ("verdict", "Success" if ok else "Failure"),
                 ("count", "%d OF %d" % (sum(shown), len(shown))),
                 ("tries", len(results)),
                 ("rate", "%d%%" % round(100.0 * sum(results) /
                                         len(results))),
-                ("best", best), ("bword", "Yes" if ok else "No"),
+                ("best", best), ("bword", "Success" if ok else "Failure"),
                 ("bmsg", screens.esc(words))):
             self.w.ui("text %s %s" % (ident, text))
         self.put("checks", screens.check_rows(result["checks"]))

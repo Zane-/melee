@@ -233,8 +233,8 @@ python tools/melee_actor/train.py data/scenarios/shield-grab-dash-attack.json [-
 ```
 
 The first loop with a person in it: the scenario's opponent script plays port 2, the
-person plays port 1, each attempt gets a verdict ("yes", or "no: you did not hit them;
-you were hit") and the situation is put back. The same scenario files, the same judge
+person plays port 1, each attempt gets a verdict ("success", or "failure: you did not hit
+them; you were hit") and the situation is put back. The same scenario files, the same judge
 (`success`), the same opponent steps as the scripted runs: `Session(scenario,
 game=window, person=port)` leaves the player's stand-in script out.
 
@@ -249,8 +249,8 @@ What differs from a scripted run, and why:
   ImGui, which could draw it over the game; not done.
 
 `tests/actor/train.py` (7 checks) is three people made of key presses on the virtual
-display: one stands still (hit: no), one shields and does nothing (not hit, no punish:
-no), one shields, grabs when the hit has landed and hits (yes). **No person has used
+display: one stands still (hit: failure), one shields and does nothing (not hit, no
+punish: failure), one shields, grabs when the hit has landed and hits (success). **No person has used
 it.**
 
 ### The client: its own menus (2026-11-13, off screen only)
@@ -283,7 +283,7 @@ reads the pad and tells the host what to show.
 | Character select | 26 characters; the card shows three style words, weight, fall speed, jump squat | `data/characters/<id>.md` |
 | Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; free play; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
 | A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
-| A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict, and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
+| A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
 | Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
 
 **Which drills play.** A drill plays in this client when a scenario file names it:

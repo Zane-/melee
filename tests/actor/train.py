@@ -7,8 +7,8 @@ doing.
 
 Three people try data/scenarios/shield-grab-dash-attack.json: one who
 stands still, one who shields and then does nothing, and one who shields,
-grabs when the hit has landed on the shield and hits. Only the last gets a
-yes. Then the same through tools/melee_actor/train.py's own loop.
+grabs when the hit has landed on the shield and hits. Only the last
+succeeds. Then the same through tools/melee_actor/train.py's own loop.
 """
 import os
 import sys
@@ -106,7 +106,7 @@ def main():
                                   say=said.append)
             person.done()
             w.pace(False)
-            check("train.py's loop: two attempts, both yes, and a count",
+            check("train.py's loop: two attempts, both a success, and a count",
                   [r["success"] for r in results] == [True, True] and
                   said[-1] == "2 of 2" and said[0] == sc["name"],
                   "; ".join(said[2:]))

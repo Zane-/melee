@@ -126,13 +126,17 @@ def main():
 
         c.person = person
         w.key("x")
-        frames(1)          # the drill runs inside this frame, until left
+        for _ in range(20):    # the drill runs inside one of these frames,
+            c.frame()          # the one that sees the press, until left
+            if c.results is not None:
+                break
+        w.key("x", False)
         w.key("Return", False)
         c.person = None
         w.pace(False)
         frames(6)
         saved = courses.Progress(save).drill(DRILL)
-        check("the drill judges each attempt: yes, yes, no",
+        check("the drill judges each attempt: success, success, failure",
               c.results == [True, True, False], str(c.results))
         check("leaving comes back to the same row of the list",
               c.screen == "list" and c.row[c.part] == row)

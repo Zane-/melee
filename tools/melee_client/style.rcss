@@ -229,7 +229,7 @@ span { display: inline; }
 
 .rail .body { top: 132dp; height: 568dp; }
 .try { margin-top: 12dp; padding: 12dp 14dp; background-color: #1D2430; }
-.verdict { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 60dp; line-height: 0.95em; text-transform: uppercase; }
+.verdict { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 56dp; line-height: 0.95em; text-transform: uppercase; }
 .chk { display: flex; flex-direction: row; align-items: center; padding: 7dp 0dp; border-top: 1dp #4A5361; font-size: 15dp; font-weight: 600; }
 .chk .box { width: 12dp; height: 12dp; border-color: #F3F6FA; }
 .chk .box.on { background-color: #F3F6FA; }
