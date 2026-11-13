@@ -121,6 +121,26 @@ def main():
     n = frames_until(s, JUMP_SQUAT, 8)
     check("back on the standard profile: Y jumps", n is not None)
 
+    # --- Slippi online ------------------------------------------------------
+    # Slippi runs online matches in game mode 8 and supplies the pads itself;
+    # there nothing may be remapped or held back. The mode number is the
+    # first byte of the game's state machine.
+    settle(s)
+    mode_at = s.m.sym.addr("state_machine")
+    mode = s.m.u8(mode_at)
+    s.m.w8(ctl + PORT_PROFILE + 0, 1)             # Y is special in profile 1
+    s.m.w8(ctl + DELAY, 6)
+    s.m.w8(mode_at, 8)
+    for _ in range(12):
+        s.step()
+    s.pad(0, ["Y"])
+    n = frames_until(s, JUMP_SQUAT, 8)
+    check("in Slippi's online game mode the pad is left alone: Y jumps, "
+          "with no delay", n == base, "%s frames (no delay: %s)" % (n, base))
+    s.m.w8(mode_at, mode)
+    s.m.w8(ctl + PORT_PROFILE + 0, 0)
+    s.m.w8(ctl + DELAY, 0)
+
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     sys.exit(0 if all(checks) else 1)
 

@@ -18,9 +18,9 @@
  * - **Input delay** holds every pad back a number of frames, the way a
  *   netplay client does, so that offline practice feels like online play.
  *
- * Not rollback state: none of this may run during Slippi netplay, where
- * Slippi itself supplies each frame's inputs. Both default to "off"
- * (standard layout, no delay).
+ * Not rollback state, so none of this runs during a Slippi online match
+ * (game mode 8, which Slippi uses for nothing else): there Slippi supplies
+ * each frame's inputs. Both default to "off" (standard layout, no delay).
  */
 
 /// The most frames a pad can be held back.

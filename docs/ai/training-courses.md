@@ -376,7 +376,10 @@ text, so it has no art of its own on disc.
 - **Controls page** (`src/melee/tm/controls/` underneath). Rows with a value: A or R
   moves to the next value, L to the previous one.
   - Left: input delay (0 to 10 frames, every pad, in a match only), and the layout each
-    port plays with.
+    port plays with. Neither delay nor layouts touch the pads in a Slippi online match
+    (game mode 8): Slippi supplies the pads there and re-runs frames, and state that is
+    not rolled back would desync it. Checked in the simulator by setting that mode, not
+    on Slippi.
   - Right: one button layout at a time ("Edit" chooses which of 7), a row per button (A,
     B, X, Y, Z, L, R, D-pad) saying what it does: Attack, Special, Jump, Shield, Grab,
     Taunt, Nothing. A layout exists once one of its buttons has been changed. Layout 0

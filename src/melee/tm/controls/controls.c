@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 #include <dolphin/pad.h>
+#include <melee/gm/forward.h>
+#include <melee/gm/gm_1A3F.h>
 #include <melee/gm/gmmain_lib.h>
 #include <melee/gm/types.h>
 #include <melee/pl/forward.h>
@@ -202,6 +204,16 @@ static void ResolveProfiles(void)
     }
 }
 
+/// Slippi runs its online matches in this otherwise unused game mode (its
+/// SCENE_ONLINE_* are all minors of major 8, slippi-ssbm-asm Online/Online.s,
+/// read 2026-11-13). There its Dolphin supplies every frame's pads and runs
+/// frames again on a rollback: rewriting or delaying them here, from state
+/// that is not rolled back, would desync the match.
+static bool Online(void)
+{
+    return gm_GetCurrentGameMode() == GM_HANYU_CSS;
+}
+
 void tm_ctl_OnStartMelee(void)
 {
     ring_count = 0;
@@ -216,7 +228,7 @@ void tm_ctl_OnSceneChange(void)
 
 bool tm_ctl_TapJump(int port)
 {
-    if (!in_match || port < 0 || port >= 4) {
+    if (!in_match || Online() || port < 0 || port >= 4) {
         return true;
     }
     return tm_ctl.profiles[active_profile[port]].tap_jump;
@@ -275,7 +287,7 @@ void tm_ctl_PadRenewMaster(void)
 {
     PadLibData* lib = &HSD_PadLibData;
 
-    if (in_match && lib->qcount != 0) {
+    if (in_match && !Online() && lib->qcount != 0) {
         PADStatus* head = &lib->queue->stat[lib->qread * 4];
         int delay = tm_ctl.delay;
         int i;
