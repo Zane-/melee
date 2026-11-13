@@ -1,5 +1,7 @@
 #include "ess.h"
 
+#include <string.h>
+
 #include <dolphin/gx.h>
 #include <dolphin/pad.h>
 #include <melee/gm/gm_1601.h>
@@ -299,7 +301,7 @@ static inline void essQuad(f32 x0, f32 y0, f32 x1, f32 y1, u32 color)
 
 /// HelpGX: draws the QR code on pass 2, with whatever vertex format the
 /// previous drawing on this link left set (as TM-CE does): XY f32, color.
-static void essHelpDraw(HSD_GObj* gobj, int pass)
+static void essHelpDraw(HSD_GObj* gobj, intptr_t pass)
 {
     const f32 x_min = 210.0F;
     const f32 y_min = 50.0F;

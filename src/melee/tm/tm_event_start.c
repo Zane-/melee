@@ -2,7 +2,7 @@
 
 #include "tmce.h"
 #include "legacy/legacy.h"
-#include "rotation/tm_rotation.h"
+#include "rotation/tm_rotation.h" // relative to this file's directory
 #ifdef TM_TEST
 #include "test/tmtest.h"
 #endif

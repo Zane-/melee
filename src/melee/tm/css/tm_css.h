@@ -4,6 +4,7 @@
 #include <Runtime/platform.h>
 
 #include <melee/gm/forward.h>
+#include <melee/gm/types.h> // GameModeState is used as an array element
 #include <sysdolphin/baselib/forward.h>
 
 /**

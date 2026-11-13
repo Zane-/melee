@@ -1,6 +1,6 @@
 #include "tmtest.h"
 
-#include "rotation/tm_rotation.h"
+#include "../rotation/tm_rotation.h"
 
 #include <melee/ft/fighter.h>
 #include <melee/gm/gmmain_lib.h>

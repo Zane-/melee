@@ -23,20 +23,44 @@ project's normal workflow yet.
 
 ## Probe (2026-11-12)
 
-Without Nix, on this machine (gcc with `-m32`, cmake, Aurora's source fetched at the
-pinned revision for its headers):
+Everything upstream's native preset is meant to produce builds here.
 
 ```sh
-export AURORA_SRC=<aurora checkout>
-cmake --preset native
-ninja -C build/native -k 0
+# once: Nix (Arch package `nix`, daemon running, flakes enabled in ~/.config/nix/nix.conf)
+nix build .#melee-dwarf -o build/nix/dwarf        # PowerPC build with DWARF: melee.elf
+nix build .#melee-dat   -o build/nix/melee-dat    # the archive tool
+build/nix/melee-dat/bin/melee-dat types export -o build/GALE01/dat/types.bin \
+    --dwarf build/nix/dwarf/melee.elf
+
+export AURORA_SRC=<aurora checkout at the revision in flake.nix>
+cmake --preset native -DMELEE_DAT_READERS=ON \
+    -DMELEE_DAT=$PWD/build/nix/melee-dat/bin/melee-dat
+ninja -C build/native                              # libmelee.a and the readers
+
+# the readers alone, with their tests on the game's files
+cmake -S tools/dat-cli/native -B build/native-readers -G Ninja \
+    -DMELEE_DAT=$PWD/build/nix/melee-dat/bin/melee-dat \
+    -DCMAKE_TOOLCHAIN_FILE=$PWD/tools/dat-cli/native/toolchains/i686.cmake
+ninja -C build/native-readers && ctest --test-dir build/native-readers
 ```
 
-- **1,015 of 1,020 source files compile** for 32-bit Linux, in about 2 seconds of wall
-  time. The five that fail are all ours (`src/melee/tm/`: `tm_css.c`, `tm_css_screen.c`,
-  `ess.c`, `tmtest.c`, `tm_fighter.c`), for include paths and prototypes that only the
-  GameCube build exercises. Every original game file that upstream includes compiles.
-- The objects define 26,163 symbols and need **409 from outside**:
+Do not enter the flake's dev shells (`nix develop`) in this checkout: their shell hook
+runs `./configure.py` and installs pre-commit hooks, which would replace this fork's build
+configuration. The packages above are enough.
+
+Results:
+
+- **All 1,020 source files compile for 32-bit Linux** (gcc `-m32`), in about 2 seconds of
+  wall time, into `build/native/libmelee.a`. At first 1,015 did: the five failures were
+  all ours (`src/melee/tm/`), for a missing include, an include path, a prototype
+  declared before its struct, and a draw callback's parameter type. Fixed; the matching
+  build, the overlay and the specs are unaffected.
+- **The archive readers build and pass their tests**: schema for 2,374 types, 18,438
+  roots in 7,050 archives, "0 members without a native place"; 6 of 6 tests, including the
+  end-to-end walk of `orig/GALE01/files` on a little-endian host.
+- **The PowerPC DWARF build succeeds** with our mod files in it (after the same fixes).
+- The game objects define about 26,000 symbols and need **409 from outside** (counted
+  before the readers were linked in):
 
   | Group | Count | Who would provide it |
   |-|-|-|
@@ -54,16 +78,15 @@ ninja -C build/native -k 0
 
 ## Not established
 
-- **Nothing was linked or run.** The build makes object files; there is no executable.
-- **Archives.** The readers need the DWARF build and the `melee-dat` tool, a chain the Nix
-  dev shell sets up (clang 22, newlib headers). Not attempted without Nix.
+- **Nothing was linked into a program or run.** There are libraries, no executable, no
+  main loop.
 - **Whether Aurora itself builds for 32-bit Linux** and how complete its GX is for
-  this game.
+  this game. Only its headers were used.
 - **Exactness.** x86 floating point against the GameCube's paired singles: the drill
   specs (`tests/tmtest/course/`, 230 of them, each with numbers from the PowerPC build)
   are the test for it once something runs.
-- **Our mod code on the native target.** Five native files fail to compile; TM-CE's own
-  sources (MexTK headers) were not in this build at all.
+- **TM-CE's own sources** (MexTK headers) were not in this build; only our native
+  `src/melee/tm/` files were.
 
 ## Why it matters, and what it does not replace
 
@@ -76,9 +99,10 @@ ninja -C build/native -k 0
 
 ## Next steps
 
-1. Nix dev shell (`nix develop`), then the `ppc-dwarf` build, `melee-dat`, the generated
-   readers and their tests, as upstream intends.
-2. A headless link: the 1,015 objects plus C versions of the simulator's SDK
-   replacements, booting to a match with no window. Then run the drill specs on it.
-3. Our five files, then TM-CE and the course engine, on the native target.
+1. (done) The toolchain: DWARF build, `melee-dat`, generated readers and their tests,
+   `libmelee.a`.
+2. A headless link: `libmelee.a` plus C versions of the simulator's SDK replacements and
+   the 13 excluded files' functions, booting to a match with no window. Then run the
+   drill specs on it.
+3. TM-CE and the course engine on the native target.
 4. Only then graphics (Aurora), audio and input for a playable build.
