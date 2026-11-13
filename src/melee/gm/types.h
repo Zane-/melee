@@ -22,9 +22,9 @@
 #define GM_NAMETAG_BANK_SIZE 19
 
 /// @deprecated Replace with inline bitfields
-typedef union UnkFlagStruct {
+typedef union PPC_LAYOUT UnkFlagStruct {
     u8 byte;
-    struct UnkFlagStruct_x0 {
+    struct PPC_LAYOUT UnkFlagStruct_x0 {
         u8 b0 : 1;
         u8 b1 : 1;
         u8 b2 : 1;
@@ -540,8 +540,8 @@ struct MatchPlayerData {
     u8 pkind;  ///< ::Gm_PKind
     s8 ckind;  ///< ::CharacterKind
     s8 ftkind; ///< ::FighterKind
-    union MatchPlayerData_x3 {
-        struct MatchPlayerData_x3_x0 {
+    union PPC_LAYOUT MatchPlayerData_x3 {
+        struct PPC_LAYOUT MatchPlayerData_x3_x0 {
             u8 x3_b0 : 6;
             u8 x3_b6 : 1;
             u8 x3_b7 : 1;

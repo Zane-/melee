@@ -286,8 +286,8 @@ typedef struct itDosei_ItemVars {
 
 typedef struct itHeart_ItemVars {
     s32 xDD4_heal;
-    union itHeart_ItemVars_xDD8 {
-        struct itHeart_ItemVars_xDD8_x0 {
+    union PPC_LAYOUT itHeart_ItemVars_xDD8 {
+        struct PPC_LAYOUT itHeart_ItemVars_xDD8_x0 {
             s8 b0 : 1;
             u8 b1 : 1;
             u8 b2 : 1;
@@ -307,8 +307,8 @@ typedef struct itHeart_ItemVars {
 
 typedef struct HeartContainerAttr {
     s32 x0_heal; // [100]
-    union HeartContainerAttr_x4 {
-        struct HeartContainerAttr_x4_bits {
+    union PPC_LAYOUT HeartContainerAttr_x4 {
+        struct PPC_LAYOUT HeartContainerAttr_x4_bits {
             u8 b0 : 1;
             u8 b1 : 1;
             u8 b2 : 1;
@@ -1231,8 +1231,8 @@ typedef struct itMarilAttributes {
 
 typedef struct itMaril_ItemVars {
     u8 pad[0x60];
-    union itMaril_ItemVars_x60 {
-        struct itMaril_ItemVars_x60_x0 {
+    union PPC_LAYOUT itMaril_ItemVars_x60 {
+        struct PPC_LAYOUT itMaril_ItemVars_x60_x0 {
             u8 x0 : 1;
             u8 x1 : 1;
             u8 x2 : 1;

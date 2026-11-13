@@ -293,9 +293,9 @@ union ftCommon_MotionVars {
         /* fp+234C */ float xC;
         /* fp+2350 */ float x10;
         /* fp+2354 */ bool x14;
-        union ftCommon_MotionVars_thrownkirby_x18 {
+        union PPC_LAYOUT ftCommon_MotionVars_thrownkirby_x18 {
             u8 x18;
-            struct ftCommon_MotionVars_thrownkirby_x18_x0 {
+            struct PPC_LAYOUT ftCommon_MotionVars_thrownkirby_x18_x0 {
                 /* fp+2358:0 */ u8 x18_b0 : 1;
                 /* fp+2358:1 */ u8 x18_b1 : 1;
                 /* fp+2358:2 */ u8 x18_b2 : 1;

@@ -237,9 +237,9 @@ struct pl_StaleMoveTableExt_t {
     /* +DC4 */ int xDC4;
     /* +DC8 */ int xDC8;
     /* +DCC */ int xDCC;
-    /* +DD0 */ union pl_StaleMoveTableExt_t_xDD0 {
+    /* +DD0 */ union PPC_LAYOUT pl_StaleMoveTableExt_t_xDD0 {
         u8 xDD0_value;
-        struct pl_StaleMoveTableExt_t_xDD0_x0 {
+        struct PPC_LAYOUT pl_StaleMoveTableExt_t_xDD0_x0 {
             u8 bit0 : 1;
             u8 bit1 : 1;
             u8 bit2 : 1;
@@ -250,9 +250,9 @@ struct pl_StaleMoveTableExt_t {
             u8 bit7 : 1;
         } x0;
     } xDD0;
-    /* +DD1 */ union pl_StaleMoveTableExt_t_xDD1 {
+    /* +DD1 */ union PPC_LAYOUT pl_StaleMoveTableExt_t_xDD1 {
         u8 xDD1_value;
-        struct pl_StaleMoveTableExt_t_xDD1_x0 {
+        struct PPC_LAYOUT pl_StaleMoveTableExt_t_xDD1_x0 {
             u8 bit0 : 1;
             u8 bit1 : 1;
             u8 bit2 : 1;

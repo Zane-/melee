@@ -75,7 +75,7 @@ typedef struct HostMatch {
     int ckind[4]; ///< CharacterKind, or -1 for an empty slot
     int human[4]; ///< a human (reads its pad) or a CPU
     int stage;    ///< stage id as in the match rules (0x20: FD)
-    int stocks;
+    unsigned seed; ///< the game's random seed as the match is set up
 } HostMatch;
 
 extern HostMatch host_match;

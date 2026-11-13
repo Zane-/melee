@@ -857,8 +857,8 @@ typedef struct ftData_x30 {
 } ftData_x30;
 
 typedef struct _ThrowFlags {
-    union _ThrowFlags_x0 {
-        struct _ThrowFlags_x0_x0 {
+    union PPC_LAYOUT _ThrowFlags_x0 {
+        struct PPC_LAYOUT _ThrowFlags_x0_x0 {
             u8 b0 : 1;
             u8 b1 : 1;
             u8 b2 : 1;
@@ -1099,8 +1099,8 @@ struct ftData {
 struct FighterBone {
     /* +0 */ HSD_JObj* joint;
     /* +4 */ HSD_JObj* x4_jobj2; ///< used for interpolation
-    union FighterBone_x8 {
-        struct FighterBone_x8_x0 {
+    union PPC_LAYOUT FighterBone_x8 {
+        struct PPC_LAYOUT FighterBone_x8_x0 {
             /* +8:0 */ u8 flags_b0 : 1;
             /* +8:1 */ u8 flags_b1 : 1;
             /* +8:2 */ u8 flags_b2 : 1;
@@ -1118,14 +1118,14 @@ struct FighterBone {
             /* +9:6 */ u8 flags2_b6 : 1;
             /* +9:7 */ u8 flags2_b7 : 1;
         } x0;
-        struct FighterBone_x8_x0_1 {
+        struct PPC_LAYOUT FighterBone_x8_x0_1 {
             u8 hi;
             u8 lo;
         } x0_1;
         u16 flags8;
     } x8;
-    union FighterBone_xC {
-        struct FighterBone_xC_x0 {
+    union PPC_LAYOUT FighterBone_xC {
+        struct PPC_LAYOUT FighterBone_xC_x0 {
             /* +C */ u8 xC;
             /* +D */ u8 xD : 7;
         } x0;
@@ -1183,12 +1183,12 @@ struct MotionState {
 
     enum_t x4_flags;
 
-    union MotionState_x8 {
+    union PPC_LAYOUT MotionState_x8 {
         /// @todo Try to match without this being a @c union.
         u32 _;
-        struct MotionState_x8_x0 {
+        struct PPC_LAYOUT MotionState_x8_x0 {
             u8 move_id : 8;
-            struct MotionState_x8_x0_x1 {
+            struct PPC_LAYOUT MotionState_x8_x0_x1 {
                 u8 x9_b0 : 1;
                 u8 x9_b1 : 1;
                 u8 x9_b2 : 1;
@@ -1224,8 +1224,8 @@ struct Fighter_DemoStrings {
 };
 
 /// @todo Rename this and its members; investigate using it elsewhere.
-/* fp+2070 */ union Struct2070 {
-    /* fp+2070 */ struct Struct2070_x0 {
+/* fp+2070 */ union PPC_LAYOUT Struct2070 {
+    /* fp+2070 */ struct PPC_LAYOUT Struct2070_x0 {
         /* fp+2070 */ s8 x2070;
         /* fp+2071:0 */ u8 x2071_b0_3 : 4;
         /* fp+2071:4 */ u8 x2071_b4 : 1;
@@ -1255,9 +1255,9 @@ struct Struct207C {
 /* fp+2074 */ struct Struct2074 {
     /* fp+2074 */ S32Vec2 x2074_vec;
     /* fp+207C */ struct Struct207C x207C;
-    /* fp+2084 */ union Struct2074_x10 {
+    /* fp+2084 */ union PPC_LAYOUT Struct2074_x10 {
         u32 x2084;
-        struct Struct2074_x10_x0 {
+        struct PPC_LAYOUT Struct2074_x10_x0 {
             u8 x2084_b0 : 1;
             u8 x2084_b1 : 1;
             u8 x2084_b2 : 1;
@@ -1546,8 +1546,8 @@ struct Fighter {
     /*  fp+588 */ HSD_LObj* x588;
     /*  fp+58C */ u32 x58C;
     /*  fp+590 */ FigaTree* x590;
-    /*  fp+594 */ union Fighter_x594 {
-        struct Fighter_x594_x0 {
+    /*  fp+594 */ union PPC_LAYOUT Fighter_x594 {
+        struct PPC_LAYOUT Fighter_x594_x0 {
             /* fp+594:0 */ u8 x594_b0 : 1;
             /* fp+594:1 */ u8 x594_b1_loop : 1;
             /* fp+594:2 */ u8 x594_b2 : 1;
@@ -1556,12 +1556,12 @@ struct Fighter {
             /* fp+594:5 */ u8 x594_b5 : 1;
             /* fp+594:6 */ u8 x594_b6 : 1;
             /* fp+594:7 */ u8 x594_b7 : 1;
-            /* fp+596 */ struct Fighter_x594_x0_x596_bits {
+            /* fp+596 */ struct PPC_LAYOUT Fighter_x594_x0_x596_bits {
                 /* fp+596:0 */ u8 x0 : 7;
                 /* fp+596:7 */ u16 x7 : 3;
             } x596_bits;
         } x0;
-        struct Fighter_x594_x0_1 {
+        struct PPC_LAYOUT Fighter_x594_x0_1 {
             u32 x594_pad : 10;
             u32 x594_bits : 13;
             u32 x594_pad2 : 3;
@@ -1887,9 +1887,9 @@ struct Fighter {
     /* fp+21FC */ UnkFlagStruct x21FC_flag;
     /* fp+21FC */ u8 filler_x21FC[0x2200 - 0x21FD];
     /* fp+2200 */ u32 cmd_vars[4];
-    /* fp+2210 */ union Fighter_x2210 {
+    /* fp+2210 */ union PPC_LAYOUT Fighter_x2210 {
         u32 throw_flags;
-        struct Fighter_x2210_x0 {
+        struct PPC_LAYOUT Fighter_x2210_x0 {
             u8 throw_flags_b0 : 1;
             u8 throw_flags_b1 : 1;
             u8 throw_flags_b2 : 1;

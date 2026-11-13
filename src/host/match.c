@@ -19,17 +19,21 @@
 #include <melee/lb/lbcardgame.h>
 #include <melee/mn/types.h>
 #include <melee/pl/forward.h>
+#include <sysdolphin/baselib/random.h>
 
 HostMatch host_match = {
     .ckind = { 2, 9, -1, -1 }, /* Fox, Marth */
     .human = { 1, 1, 0, 0 },
     .stage = 0x20, /* Final Destination */
-    .stocks = 99,
+    .seed = 1,
 };
 
 static int requested;
 static int installed;
 
+/// What the game's own state does (onEnterDebugVs, gmvsmode.c): a time
+/// match with no items between two humans. Only the characters, the stage,
+/// whether player 2 is a CPU and the random seed are the host's.
 static void on_enter(GameModeState* state)
 {
     StartMeleeData* start = gm_GetGameModeStateEnterData(state);
@@ -38,25 +42,22 @@ static void on_enter(GameModeState* state)
     start->rules.stkind = host_match.stage;
     start->rules.item_freq = -1;
     start->rules.sd_penalty = -1;
-    start->rules.match_kind = MatchKind_Stock;
-    start->rules.is_stock = 1;
+    start->rules.match_kind = MatchKind_Time;
     for (int i = 0; i < GM_MAX_PLAYERS; i++) {
         PlayerInitData* p = &start->players[i];
         gm_SetupPlayerDefaults(p);
-        p->stocks = (s8) host_match.stocks;
+        p->stocks = 0;
         p->cpu_kind = 4;
         p->rumble_enabled = 0;
         if (i < 4 && host_match.ckind[i] >= 0) {
             p->ckind = (s8) host_match.ckind[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
-            p->cpu_level = 1;
-        } else {
-            p->slot_type = Gm_PKind_NA;
         }
     }
     gm_LoadAnnouncer();
-    host_log("match: %d vs %d on stage %d", host_match.ckind[0],
-             host_match.ckind[1], host_match.stage);
+    *HSD_RandSeedPtr = host_match.seed;
+    host_log("match: %d vs %d on stage %d, seed %u", host_match.ckind[0],
+             host_match.ckind[1], host_match.stage, host_match.seed);
 }
 
 static GameModeState states[] = {

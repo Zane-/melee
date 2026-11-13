@@ -393,8 +393,8 @@ typedef struct grZakoGenerator_Data {
 } grZakoGenerator_Data;
 
 struct grCorneria_GroundVars {
-    union grCorneria_GroundVars_xC4 {
-        struct grCorneria_GroundVars_xC4_flags {
+    union PPC_LAYOUT grCorneria_GroundVars_xC4 {
+        struct PPC_LAYOUT grCorneria_GroundVars_xC4_flags {
             u8 b0 : 1;
             u8 b1 : 1;
             u8 b2 : 1;
@@ -402,8 +402,8 @@ struct grCorneria_GroundVars {
         u8 value;
     } xC4;
     u8 xC5;
-    union grCorneria_GroundVars_xC6 {
-        struct grCorneria_GroundVars_xC6_flags {
+    union PPC_LAYOUT grCorneria_GroundVars_xC6 {
+        struct PPC_LAYOUT grCorneria_GroundVars_xC6_flags {
             u8 b0 : 1;
         } flags;
         u8 value;
@@ -445,8 +445,8 @@ struct grCorneria_GroundVars {
 
 /// Ground vars shared by Corneria and Venom's Arwing stage articles.
 struct grStarFox_GroundVars {
-    /* +0 gp+C4 */ union grStarFox_GroundVars_xC4 {
-        struct grStarFox_GroundVars_xC4_flags {
+    /* +0 gp+C4 */ union PPC_LAYOUT grStarFox_GroundVars_xC4 {
+        struct PPC_LAYOUT grStarFox_GroundVars_xC4_flags {
             u8 b0 : 1;
         } flags;
         u8 value;
@@ -470,8 +470,8 @@ struct grStarFox_GroundVars {
 /// Overlaps grCorneria_GroundVars in the u union but interprets
 /// fields differently: pointers/integers instead of floats.
 struct grCorneria_GroundVars2 {
-    /* 0x00 gp+C4 */ union grCorneria_GroundVars2_xC4 {
-        struct grCorneria_GroundVars2_xC4_flags {
+    /* 0x00 gp+C4 */ union PPC_LAYOUT grCorneria_GroundVars2_xC4 {
+        struct PPC_LAYOUT grCorneria_GroundVars2_xC4_flags {
             u8 b0 : 1;
         } flags;
         u8 value;
@@ -1195,8 +1195,8 @@ struct grGreens_BlockVars {
 ASSERT_SIZE(struct grGreens_BlockVars, 0x20);
 
 struct grGreens_GroundVars {
-    /*  +0 gp+C4 */ union grGreens_GroundVars_x0_flags {
-        struct grGreens_GroundVars_x0_flags_x0 {
+    /*  +0 gp+C4 */ union PPC_LAYOUT grGreens_GroundVars_x0_flags {
+        struct PPC_LAYOUT grGreens_GroundVars_x0_flags_x0 {
             u8 b0 : 1;
             u8 b1 : 1;
             u8 b2 : 1;

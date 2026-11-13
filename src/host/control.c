@@ -7,8 +7,10 @@
  *   step [N]                      run N frames (default 1): "@ frame F"
  *   pad P BUTTONS LX LY CX CY L R hold a controller state (BUTTONS in hex,
  *                                 sticks -127..127, triggers 0..255)
- *   match C1 C2 STAGE [H2]        start a match: character kinds, stage
- *                                 id, whether player 2 is a human
+ *   match C1 C2 STAGE [H2] [SEED] start a match: character kinds, stage
+ *                                 id, whether player 2 is a human, the
+ *                                 random seed it is set up with
+ *   state                         frame, random seed and both fighters
  *   fighter I                     one line of JSON about player I's fighter
  *   seed N                        set the game's random seed
  *   r ADDR LEN / w ADDR HEX       read or write memory
@@ -81,7 +83,9 @@ static void command(char* line)
         printf("@ ok\n");
     } else if (strcmp(cmd, "match") == 0) {
         int c1 = 2, c2 = 9, stage = 0x20, h2 = 1;
-        sscanf(line, "%d %d %d %d", &c1, &c2, &stage, &h2);
+        unsigned seed = 1;
+        sscanf(line, "%d %d %d %d %u", &c1, &c2, &stage, &h2, &seed);
+        host_match.seed = seed;
         host_match.ckind[0] = c1;
         host_match.ckind[1] = c2;
         host_match.stage = stage;
@@ -89,6 +93,12 @@ static void command(char* line)
         host.pads[1].connected = 1;
         host_match_start();
         printf("@ ok\n");
+    } else if (strcmp(cmd, "state") == 0) {
+        char a[512], b[512];
+        host_fighter_json(0, a, sizeof a);
+        host_fighter_json(1, b, sizeof b);
+        printf("@ {\"frame\":%u,\"rng\":%u,\"p\":[%s,%s]}\n", host.frame,
+               (unsigned) *HSD_RandSeedPtr, a, b);
     } else if (strcmp(cmd, "fighter") == 0) {
         char buf[512];
         int i = 0;
