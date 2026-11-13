@@ -53,8 +53,8 @@ void host_log(const char* fmt, ...);
 _Noreturn void host_fatal(const char* fmt, ...);
 void host_backtrace(void);
 
-/// Queue a completion callback, delivered like an interrupt: at once if
-/// interrupts are enabled, else when the game enables them again.
+/// Queue a completion callback, delivered like an interrupt: the next time
+/// the game enables interrupts, idles, or ends a frame.
 void host_post(void (*func)(intptr_t, intptr_t), intptr_t a, intptr_t b);
 /// Deliver everything queued, if interrupts are enabled.
 void host_deliver(void);

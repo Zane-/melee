@@ -1,108 +1,180 @@
-# Native build for Linux: probe
+# Native build for Linux
 
-Asked by the owner 2026-11-12, after the Melee Actor research showed that a full-size
-instructable model cannot run on a GameCube (`melee-actor.md`). A native build removes
-that ceiling. This file records what a first probe found. Nothing here is built into the
-project's normal workflow yet.
+The game compiled for 32-bit x86 Linux and run as an ordinary process, with no emulator
+and no window. Asked for by the owner on 2026-11-12, after the Melee Actor research
+showed that a full-size instructable model cannot run on a GameCube (`melee-actor.md`).
 
-## What upstream already has
-
-`doldecomp/melee`, which this repository is forked from, is working toward it:
-
-- `CMakePresets.json` has a `native` preset: "32-bit host build against aurora". 32-bit
-  because the game's code assumes 4-byte pointers (`cmake/i686-gcc.cmake`). Aurora
-  (`github:r-burns/aurora`, pinned in `flake.nix`) reimplements the GameCube's GX, VI and
-  PAD libraries for PC.
-- `cmake/MeleeConfig.cmake` builds all of `src/melee` and `src/sysdolphin` with
-  `TARGET_PC`, leaving out 13 files (memory card, THP video, debug console, fog table,
-  fonts read from the DOL, `pobj.c`, `video.c`). Its own comment calls it a smoke test.
-- `tools/dat-cli/native`: generated readers that load the game's big-endian `.dat`
-  archives into host types, whatever the host's byte order and pointer size (upstream
-  commits of October 2026). They are generated from the types of a PowerPC DWARF build
-  (`ppc-dwarf` preset, clang, newlib headers).
-
-## Probe (2026-11-12)
-
-Everything upstream's native preset is meant to produce builds here.
+Status, 2026-11-12: **it boots, starts a match without menus, and plays the same game as
+the console's code, frame for frame, in most of what was tested.** It is the vanilla game
+only: no overlay, no TM-CE, no courses. Nothing is drawn or heard.
 
 ```sh
-# once: Nix (Arch package `nix`, daemon running, flakes enabled in ~/.config/nix/nix.conf)
-nix build .#melee-dwarf -o build/nix/dwarf        # PowerPC build with DWARF: melee.elf
+. .venv/bin/activate
+python tools/native_build.py                    # build/native/melee_headless (about 10 s)
+build/native/melee_headless --match 2,9,32 --frames 600 --trace 60   # Fox, Marth, FD
+python tools/melee_native/compare.py --tolerance 1e-4 --random 3     # against the simulator
+```
+
+## What it is not, and what it does not replace
+
+- **Not the overlay build.** Slippi netplay is against people running Dolphin, and only an
+  address-preserving DOL can join them (`slippi-tandem.md`). The training build stays an
+  overlay on the retail image. The native build is a second target for the same source.
+- **Not yet a place to run drills.** Hooks are post-link patches to the DOL; none of them
+  exist here. TM-CE's own sources (MexTK headers) have never been compiled for it.
+- **Not exact to the last bit.** See "How close it is".
+
+## Pieces
+
+| Piece | Where | What it does |
+|-|-|-|
+| The game | `build/native/libmelee.a` | Upstream's `native` CMake preset: all of `src/melee` and `src/sysdolphin` with `TARGET_PC`, against Aurora's SDK headers |
+| Archive readers | `tools/dat-cli/native` (upstream), generated into `build/native/dat-readers` | Turn a big-endian `.dat` archive into host objects of the game's own types, from a schema taken from a PowerPC DWARF build |
+| Host layer | `src/host/` | The console underneath the game, at the level of SDK functions: `os.c` (reports, emulated time, interrupts as queued completions, alarms, the arena at the console's addresses), `dvd.c` (the disc is `build/disc/files`), `hw.c` (audio RAM, pads, video timing, the few graphics answers the game uses), `archive.c` (the loader on the readers), `particles.c`, `match.c`, `control.c`, `debug.c`, `cuts.c` |
+| Build | `tools/native_build.py` | Runs the preset, compiles the vanilla files upstream leaves out, the host layer, Aurora's C matrix functions and the SDK's own heap allocator, generates a stub for every SDK function still missing (222), links |
+| Driver | `tools/melee_native/native.py` | `Native`: `step`, `pad`, `match`, `fighter`, `state`, over the line protocol of `src/host/control.c` |
+| Comparison | `tools/melee_native/compare.py`, `rngdiff.py` | The same match and inputs in the Python simulator and natively, compared every frame; which code drew random numbers differently |
+| Crash traces | `tools/native_run.sh` | Runs the game and turns a crash backtrace into function names and lines |
+
+One-time setup (the readers' tool and type table come from the flake):
+
+```sh
+# Nix: Arch package `nix`, daemon running, flakes enabled in ~/.config/nix/nix.conf
+nix build .#melee-dwarf -o build/nix/dwarf        # PowerPC build with DWARF (8 s)
 nix build .#melee-dat   -o build/nix/melee-dat    # the archive tool
 build/nix/melee-dat/bin/melee-dat types export -o build/GALE01/dat/types.bin \
     --dwarf build/nix/dwarf/melee.elf
-
-export AURORA_SRC=<aurora checkout at the revision in flake.nix>
-cmake --preset native -DMELEE_DAT_READERS=ON \
-    -DMELEE_DAT=$PWD/build/nix/melee-dat/bin/melee-dat
-ninja -C build/native                              # libmelee.a and the readers
-
-# the readers alone, with their tests on the game's files
-cmake -S tools/dat-cli/native -B build/native-readers -G Ninja \
-    -DMELEE_DAT=$PWD/build/nix/melee-dat/bin/melee-dat \
-    -DCMAKE_TOOLCHAIN_FILE=$PWD/tools/dat-cli/native/toolchains/i686.cmake
-ninja -C build/native-readers && ctest --test-dir build/native-readers
+# Aurora's headers: github:r-burns/aurora at the revision in flake.lock, in build/deps/aurora
 ```
 
+Repeat the first and third after changing a `DAT_*` annotation or an archive type.
 Do not enter the flake's dev shells (`nix develop`) in this checkout: their shell hook
-runs `./configure.py` and installs pre-commit hooks, which would replace this fork's build
-configuration. The packages above are enough.
+runs `./configure.py` and installs pre-commit hooks.
 
-Results:
+`melee_headless` options: `--match P1,P2,STAGE` (character kinds and the stage id of the
+match rules), `--frames N`, `--trace N`, `--control` (commands on stdin, see
+`control.c`), `--draw` (run the draw pass into the no-op graphics), `-v` (the game's own
+reports), `--stubs` (which stubbed SDK functions were called), `--disc DIR`.
+`native_build.py --opt 1` builds optimised (50 s). `--opt 2` crashed while a match loaded
+when last tried, before one cause of such crashes was fixed; not retried.
 
-- **All 1,020 source files compile for 32-bit Linux** (gcc `-m32`), in about 2 seconds of
-  wall time, into `build/native/libmelee.a`. At first 1,015 did: the five failures were
-  all ours (`src/melee/tm/`), for a missing include, an include path, a prototype
-  declared before its struct, and a draw callback's parameter type. Fixed; the matching
-  build, the overlay and the specs are unaffected.
-- **The archive readers build and pass their tests**: schema for 2,374 types, 18,438
-  roots in 7,050 archives, "0 members without a native place"; 6 of 6 tests, including the
-  end-to-end walk of `orig/GALE01/files` on a little-endian host.
-- **The PowerPC DWARF build succeeds** with our mod files in it (after the same fixes).
-- The game objects define about 26,000 symbols and need **409 from outside** (counted
-  before the readers were linked in):
+## How a match starts
 
-  | Group | Count | Who would provide it |
-  |-|-|-|
-  | GX | 93 | Aurora (or stubs, headless) |
-  | AX, AI (audio) | 39 | to write, or stub |
-  | OS | 27 | to write: arena, alarms, time, interrupts as no-ops |
-  | MTX / VEC | 21 | Aurora or a few lines each |
-  | CARD | 13 | stub: no card |
-  | DVD, AR, PAD, VI | 20 | file reads from the extracted disc; pad from the host |
-  | HSD and game functions from the 13 excluded files | about 80 | port those files |
-  | libc math and the rest | about 110 | libm; TM-CE glue our files expect |
+The game has a developers' mode that starts a match with no menus, `GM_DEBUG_VS`
+(`gmvsmode.c`). `src/host/match.c` gives that mode a state table of its own at run time
+(the mode table is data) and enters it through the game's mode override, the function the
+game calls between scenes (its memory card prompts use it). `compare.py` does the same to
+the retail code in the simulator, so both sides run the same setup.
 
-  That list is nearly the list of SDK objects the Python simulator already replaces
-  (`tools/melee_sim/hle.py`): the same boundary, drawn by someone else.
+One frame is one call of the scene loop's wait for a pad sample (`lb_80019894`), as in the
+Python simulator; the host's version of that function is the frame boundary.
 
-## Not established
+## How close it is
 
-- **Nothing was linked into a program or run.** There are libraries, no executable, no
-  main loop.
-- **Whether Aurora itself builds for 32-bit Linux** and how complete its GX is for
-  this game. Only its headers were used.
-- **Exactness.** x86 floating point against the GameCube's paired singles: the drill
-  specs (`tests/tmtest/course/`, 230 of them, each with numbers from the PowerPC build)
-  are the test for it once something runs.
-- **TM-CE's own sources** (MexTK headers) were not in this build; only our native
-  `src/melee/tm/` files were.
+Checked 2026-11-12 with `compare.py`: the retail PowerPC code in the Python simulator
+(`simulator.md`, itself checked against Dolphin) against the native build, same match,
+same seed, same inputs, every frame: the random seed and, for both fighters, state,
+animation frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield.
 
-## Why it matters, and what it does not replace
+- **Fox against Marth on Final Destination:** a scripted exchange (run, jab, up smash,
+  jump, forward air, shine, shield, forward smash on shield; 520 frames) and eight runs of
+  random inputs (900 frames each, with lasers, grabs, a KO and respawn) are identical in
+  every state, frame counter, hitlag and hitstun value and random number.
+- **Eleven of eighteen other matchups** tried with random inputs for 600 frames were
+  identical in the same sense, across Final Destination, Battlefield, Dream Land, Yoshi's
+  Story and Fountain of Dreams. The other seven are the differences listed below.
+- **Positions, speeds, damage and shield agree to rounding, not to the bit**
+  (`--tolerance 1e-4`). Without the tolerance the first difference comes after 130 to 200
+  frames, in the last bit of a speed.
+- Speed: about 9,500 frames a second in active play unoptimised, 15,600 with `--opt 1`
+  (the Python simulator: 50 to 160), driven from Python.
 
-- A native process has no 24 MB and no 486 MHz: a Phillip-sized policy, or an
-  instructable one, can run in the game's own process.
-- A native headless core would replace the PowerPC interpreter under the simulator
-  (about 100 frames a second) with compiled code, which is what training needs.
-- It does **not** replace the overlay build: Slippi netplay is against people running
-  Dolphin, and only an address-preserving DOL can join them (`slippi-tandem.md`).
+Known differences, none investigated to the end:
+
+| Where | What |
+|-|-|
+| Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
+| Peach | Her fall animation does not wrap at its end (frame 8 where the console has 1) |
+| Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
+| Pokémon Stadium | The random sequence differs from frame 85 |
+| Samus against Pikachu | Differs at frame 572 (state and random sequence) |
+| Ice Climbers; Kirby or Yoshi | Assert while the match loads |
+| Big Blue, Venom | Three flag unions there are read through pointers and were left as they were |
+| Menus, other modes | Only the memory card prompt and the debug VS match have run |
+| `--draw` | Asserts in the first frame (a position out of range) |
+| Audio | Sound files are loaded with their headers in host order; nothing plays, nothing was checked |
+
+## What made it work: six kinds of dependence on the console
+
+The source matches the retail binary on the console's compiler. On another machine it
+depends on things that compiler and machine provided. Each kind met so far, and the tool
+for it:
+
+1. **Data from archives.** Upstream's loader converted only symbols looked up with a type
+   (`HSD_ArchiveGetPublicAs`, 70 places); the other 190 load sites got raw big-endian
+   bytes. `src/host/archive.c` gives every lookup the type the schema records for that
+   symbol name. Where the types are wrong or missing, fix the annotation in the header
+   (`DAT_COUNT`, `DAT_EXTENT`, `DAT_BIND`, a struct instead of `UNK_T`) and regenerate:
+   done for a fighter's costume texture indices (`ftData_x8_x8`) and the revival platform
+   (`ftLoadCommonData::x20`).
+2. **Bit and byte order in code.** A flags word written as a number and read as
+   bit-fields, or copied from file data as an integer. `PPC_LAYOUT`
+   (`src/Runtime/platform.h`) marks a struct or union to keep the console's layout (gcc's
+   `scalar_storage_order`; nothing for the console's compiler, so the matching build is
+   unchanged). 23 unions carry it. The address of a scalar member of such a type cannot be
+   taken, which is why three were left out.
+3. **Data that is code.** Command scripts (fighter actions, items, colour animations)
+   stay in disc order and are read through bit-field structs: `PPC_LAYOUT_BEGIN`/`END`
+   around those types. Their goto targets are file offsets, resolved by
+   `host_script_target`. Particle banks are converted in place by `particles.c` for the
+   game's own locate code; their byte code is read in disc order. Sound files are words,
+   swapped at the disc boundary (`dvd.c`).
+4. **The file's memory layout.** "The nth animation joint after this one" for stage
+   models: `host_dat_element` finds the neighbour through the archive.
+5. **The DOL's memory layout.** Globals addressed through their neighbours (a table as
+   "what follows this other table", a struct laid over three globals). Each is named
+   instead. A static search found five more candidates outside fighter code; a build
+   with AddressSanitizer would find the ones that run.
+6. **Floating point.** SSE instead of x87, multiply-add fusing when optimising; see the
+   differences above.
+
+**Vanilla functions are not edited for any of this** (the rule in `CLAUDE.md`). Type
+markers and annotations go in headers and expand to nothing in the matching build. Where
+an expression inside a function has to differ, `tools/native_build.py` applies a source
+patch to a copy of the file at build time (`PATCHES`: exact text, checked to occur the
+expected number of times) or builds the file with one function renamed so `src/host/`
+can supply it (`VANILLA`: the native counterpart of the overlay's `function` hook).
+
+## Finding the next difference
+
+```sh
+python tools/melee_native/compare.py --p1 peach --p2 fox --random 2 --tolerance 1e-4 --show 3
+python tools/melee_native/rngdiff.py 252        # who drew random numbers in frame 252
+tools/native_run.sh --match 12,2,32 --frames 400   # a crash, with names
+```
+
+A difference in the random sequence usually means code that ran on one side only:
+`rngdiff.py` names it. A crash or assert in the native build usually means data that was
+not converted (kind 1 or 3) or a global addressed through another (kind 5): `gdb` works
+on `melee_headless` (`break file.c:line`, `watch -l`), with `--control < file` for input.
+
+## What upstream has
+
+`doldecomp/melee` is working toward a native build: the `native` preset ("32-bit host
+build against aurora"; its own comment calls it a smoke test), the generated readers
+(October 2026), and Aurora (`github:r-burns/aurora`), which reimplements GX, VI and PAD
+for PC. At the fork point (2026-11-04) it compiled but had never been linked into a
+program; everything under "What made it work" was found here. Nothing here has been
+offered upstream; its rules (no AI-chosen names, no AI-written PR text) apply to anything
+that would be.
 
 ## Next steps
 
-1. (done) The toolchain: DWARF build, `melee-dat`, generated readers and their tests,
-   `libmelee.a`.
-2. A headless link: `libmelee.a` plus C versions of the simulator's SDK replacements and
-   the 13 excluded files' functions, booting to a match with no window. Then run the
-   drill specs on it.
-3. TM-CE and the course engine on the native target.
-4. Only then graphics (Aurora), audio and input for a playable build.
+1. Work through the known differences, starting with the ones that affect every match
+   (Peach's animation wrap suggests a flag still read in host order).
+2. Exact floating point: the console's paired-single routines and C library in C, and a
+   full-precision trace from Dolphin as the reference.
+3. Hooks for the native target, so TM-CE, the course engine and the drill specs
+   (`tests/tmtest/course/`, 230 with numbers from the PowerPC build) run on it.
+4. Graphics, audio and input (Aurora, if it builds for 32-bit Linux) for a playable
+   build.

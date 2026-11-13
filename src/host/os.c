@@ -195,7 +195,9 @@ void host_post(void (*func)(intptr_t, intptr_t), intptr_t a, intptr_t b)
     }
     pending[(pending_head + pending_count++) % MAX_PENDING] =
         (Pending){ func, a, b };
-    host_deliver();
+    /* Not delivered here: like the simulator, a completion arrives the next
+       time the game enables interrupts, idles or ends a frame, never inside
+       the call that started the work. */
 }
 
 BOOL OSDisableInterrupts(void)

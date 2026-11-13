@@ -122,6 +122,8 @@ ninja
 | Plan a course / specify a drill / implement a drill | skills `plan-character-course`, `design-training-scenario`, `add-course-drill` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/` |
+| The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |
+| Does the native build play the same game as the console's code? | `python tools/melee_native/compare.py` (`--random N`, `--tolerance`) |
 
 ## Verification status
 
