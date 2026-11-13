@@ -338,7 +338,8 @@ def compile_one(job):
                 Path(d).exists() and Path(d).stat().st_mtime <= newest
                 for d in deps):
             return None
-    cmd = ["gcc", *extra, "-MMD", "-MF", str(dep), "-c", str(src), "-o",
+    cc = "g++" if str(src).endswith(".cpp") else "gcc"
+    cmd = [cc, *extra, "-MMD", "-MF", str(dep), "-c", str(src), "-o",
            str(obj)]
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     if r.returncode:
@@ -521,6 +522,15 @@ def main():
             extra = [f for f in common if f != "-Dbool=int"] + [
                 f"-I{AURORA32}/_deps/sdl-src/include"]
         jobs.append((src, OBJ / (src.stem + ".o"), extra))
+    if WINDOW:
+        # The client's interface: C++, against RmlUi and the patched Aurora
+        # that tools/aurora32/build.sh builds.
+        jobs.append((ROOT / "src/host/ui.cpp", OBJ / "ui.o", [
+            "-m32", "-std=c++20", "-g", "-O1", "-fno-pie", "-w",
+            "-DHOST_WINDOW", "-DAURORA_ENABLE_RMLUI", "-DRMLUI_STATIC_LIB",
+            f"-I{AURORA32.parent}/aurora-src/include",
+            f"-I{AURORA32}/_deps/rmlui-src/Include",
+            f"-I{AURORA32}/_deps/sdl-src/include"]))
     for name in AURORA_C:
         jobs.append((AURORA / "lib/dolphin/mtx" / name,
                      OBJ / "aurora" / (name + ".o"),

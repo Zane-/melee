@@ -253,6 +253,50 @@ display: one stands still (hit: no), one shields and does nothing (not hit, no p
 no), one shields, grabs when the hit has landed and hits (yes). **No person has used
 it.**
 
+### The client: its own menus (2026-11-13, off screen only)
+
+```sh
+tools/aurora32/build.sh && python tools/native_build.py --window   # once: RmlUi is now part of it
+python tools/melee_client/client.py [--input keyboard]             # a 1280 by 720 window
+```
+
+The native build's own interface, in the look of the design canvas (the owner's decisions
+on it are in the project memory `ui-mockups-canvas`): a main menu, a character select and
+the column beside a match. 16:9, with the game's picture kept four by three at the left.
+**It has only been run on a virtual display.**
+
+| Piece | Where |
+|-|-|
+| RmlUi (an HTML-and-CSS-like UI library that Aurora carries as an option), built 32-bit | `tools/aurora32/build.sh` |
+| Aurora drew that layer only over the game's picture, and centred the picture. A patch makes it cover the window with the picture at the left (`aurora_set_ui_full_window`) | `tools/aurora32/aurora-0001-ui-full-window.patch` |
+| The host loads a document and changes it by element id: `ui load|class|text|attr|hide|show|font` on the control pipe. It knows nothing about menus | `src/host/ui.cpp` |
+| `pads`: what a live port's person holds. `capture`: the game gets a pad at rest meanwhile, so a press meant for a menu does not also reach the game underneath | `src/host/window.c` |
+| The screens as markup, the look, the roster (names and traits from `data/characters/`, course sizes from `data/courses/`), the flow | `tools/melee_client/` (`screens.py`, `style.rcss`, `characters.py`, `client.py`) |
+| The typefaces (Barlow, Barlow Condensed, IBM Plex Mono; Open Font License), fetched once into `build/ui/fonts/` | `tools/melee_client/fonts.py` |
+
+The flow lives in Python, like the trainer: the client steps the game a frame at a time,
+reads the pad and tells the host what to show. What works: moving over the main menu's
+panels; Train opens the character select; A starts free play as that character against a
+standing Marth, with the pad given to the game; holding START comes back; another
+character can be played after. `tests/client/menu.py` (15 checks) does all of that with
+key presses on the virtual display; `--shots DIR` saves a picture of each screen.
+
+Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the course hub,
+drills, nicknames and layouts (the header shows placeholders), character art (two letters
+and a colour of the client's choosing stand in), panel icons, sound.
+
+What RmlUi is not, learned on the way: no CSS grid and no `clip-path` (layouts are flex
+rows and columns; a slanted edge is a skewed element); no outline (a focus ring is an
+element of its own); no built-in styles at all (`div` has to be told it is a block); text
+straight inside a flex row is not drawn (it gets an element); an inherited italic applies
+to a face that has none (set `font-style: normal` with the mono face); a style sheet
+named by a path starting with a slash is looked for below RmlUi's own root (the client
+copies it beside the document).
+
+Known: the match left behind when coming back to the menu keeps running unseen (and will
+end on its timer); starting the next one from wherever the game then is has only been
+tried from inside a match.
+
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
@@ -267,9 +311,11 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 (draws, paced, a port played from the keyboard; all off screen) | A window, sound and a controller. Done: Aurora linked in, six stages drawn, the console's speed, live ports, `play.py`. Next: **the owner runs `play.py`** (first time on a real display and with a real controller), then sound, then the adapter read directly | a person plays a match |
 | N7 (begun, off screen: `train.py`) | The trainer with a person in it. Done: a scenario's opponent against a live port, a verdict per attempt in the terminal. Next: the verdict and the guide on the game's screen, statistics over a session, choosing what to practise next | the owner trains against an actor |
+| N8 (begun, off screen: `client.py`) | The client: the interface of the design canvas, natively. Done: main menu, character select, the column beside a match. Next: the course hub and drill list from `data/courses/`, a drill running under it (`train.py`'s loop with the verdict in the column and on the banner), the done mark, then Controls | the owner picks a character and trains a drill without a terminal |
 
-N6 gated N7 and is now far enough for it. What both wait for is the owner running
-`play.py` or `train.py`: nothing here has been on a real display or had a real controller.
+N6 gated N7 and is now far enough for it. What all of it waits for is the owner running
+`client.py`, `play.py` or `train.py`: nothing here has been on a real display or had a
+real controller.
 
 ## The first drill-shaped thing: one situation, three ways to play it
 

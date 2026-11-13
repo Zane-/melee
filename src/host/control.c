@@ -24,6 +24,9 @@
  *   state                         frame, random seed and both fighters
  *   rng                           callers of the last frame's random draws
  *   fp SLOT                       address of a fighter's data, for "r"
+ *   ui ...                        the client's interface (ui.cpp)
+ *   pads                          what the live ports' people are holding
+ *   capture 0|1                   keep those presses from the game (menus)
  *   fighter I                     one line of JSON about player I's fighter
  *   seed N                        set the game's random seed
  *   r ADDR LEN / w ADDR HEX       read or write memory
@@ -424,6 +427,36 @@ static void command(char* line)
             ((uint8_t*) (uintptr_t) addr)[i / 2] = (uint8_t) byte;
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "ui") == 0 || strcmp(cmd, "pads") == 0 ||
+               strcmp(cmd, "capture") == 0)
+    {
+#ifdef HOST_WINDOW
+        if (cmd[0] == 'u') {
+            const char* why = host_ui_command(line);
+            if (why != NULL) {
+                printf("@ error %s\n", why);
+            } else {
+                printf("@ ok\n");
+            }
+        } else if (cmd[0] == 'p') {
+            /* what the people at the live ports hold: "BUTTONS LX LY CX CY
+               L R" for each of the four ports */
+            printf("@");
+            for (int p = 0; p < 4; p++) {
+                const HostPad* pad = host_window_seen(p);
+                printf(" %x %d %d %d %d %d %d", pad->buttons, pad->lx,
+                       pad->ly, pad->cx, pad->cy, pad->lt, pad->rt);
+            }
+            printf("\n");
+        } else {
+            int on = 1;
+            sscanf(line, "%d", &on);
+            host_window_capture(on);
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "live") == 0 || strcmp(cmd, "pace") == 0) {
 #ifdef HOST_WINDOW
         if (cmd[0] == 'l') {

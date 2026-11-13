@@ -1,0 +1,150 @@
+/* The client's look, for RmlUi (which has no built-in styles: every element
+   kind used is given its display here). Written for a 1280 by 720 window in
+   dp; src/host/ui.cpp scales dp with the window's height.
+
+   One slant (12 degrees) for every panel; text inside a slanted panel sits
+   in an element slanted back (.in, .un). No CSS grid and no clip-path in
+   RmlUi: layouts are flex rows and columns, and a focus ring is an element
+   of its own (.ring) laid over its panel. */
+
+body {
+    display: block;
+    width: 1280dp;
+    height: 720dp;
+    font-family: "Barlow";
+    font-weight: 500;
+    font-size: 16dp;
+    color: #12161C;
+}
+body.paper { background-color: #E9EDF2; }
+div { display: block; }
+span { display: inline; }
+
+.disp { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; text-transform: uppercase; }
+.mono { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; }
+.row { display: flex; flex-direction: row; }
+.col { display: flex; flex-direction: column; }
+.grow { flex: 1; }
+.un { transform: skewX(12deg); }
+
+/* ---- header, ruler, footer -------------------------------------------- */
+
+.header { position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 84dp; display: flex; flex-direction: row; }
+.plate { margin-left: -14dp; padding: 0dp 40dp 0dp 62dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; }
+.title { transform: skewX(12deg); font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 46dp; text-transform: uppercase; letter-spacing: 1dp; }
+.title .dim { color: #A9B4C2; }
+.stripe { width: 14dp; margin-left: 8dp; transform: skewX(-12deg); }
+.who { display: flex; flex-direction: row; align-items: center; padding-right: 48dp; font-weight: 600; font-size: 15dp; }
+.who .port { font-family: "IBM Plex Mono"; font-style: normal; font-size: 13dp; color: #4A5361; margin-right: 10dp; }
+.who .nick { background-color: #12161C; color: #F3F6FA; padding: 5dp 12dp; border-radius: 4dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; margin-right: 10dp; }
+.who .layout { color: #4A5361; }
+.tag { padding: 4dp 18dp; border: 1dp #12161C; transform: skewX(-12deg); margin-right: 12dp; }
+.tag .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; text-transform: uppercase; letter-spacing: 1dp; }
+
+.ruler { position: absolute; left: 0dp; top: 84dp; width: 1280dp; height: 12dp; display: flex; flex-direction: row; }
+.tick { flex: 1; height: 6dp; margin-top: 6dp; border-left: 1dp #8A94A3; }
+.tick.ten { height: 12dp; margin-top: 0dp; border-left: 2dp #12161C; }
+
+.footer { position: absolute; left: 0dp; top: 640dp; width: 1280dp; height: 80dp; box-sizing: border-box; padding: 0dp 48dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
+.footer .tab { width: 14dp; height: 40dp; margin-right: 16dp; transform: skewX(-12deg); background-color: #F3F6FA; }
+.footer .desc { font-size: 20dp; }
+.hint { display: flex; flex-direction: row; align-items: center; margin-left: 22dp; font-size: 16dp; font-weight: 600; }
+.key { width: 24dp; height: 24dp; border: 2dp #F3F6FA; border-radius: 14dp; margin-right: 8dp; text-align: center; line-height: 24dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 14dp; }
+.key.dark { border-color: #12161C; }
+.key.wide { width: auto; padding: 0dp 8dp; border-radius: 4dp; }
+
+/* ---- panels ----------------------------------------------------------- */
+
+.tile { position: relative; display: flex; flex-direction: column; }
+.ring { position: absolute; left: -10dp; top: -10dp; right: -10dp; bottom: -10dp; border: 4dp #12161C; display: none; }
+.focus .ring { display: block; }
+.in { flex: 1; transform: skewX(12deg); display: flex; flex-direction: column; justify-content: space-between; }
+.idx { font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; }
+.soon { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 12dp; padding: 2dp 7dp; border: 1dp #12161C; }
+.big { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; text-transform: uppercase; line-height: 0.9em; }
+.sub { font-weight: 500; margin-top: 6dp; }
+
+.ink { background-color: #12161C; color: #F3F6FA; }
+.tech { background-color: #1F49C9; color: #FFFFFF; }
+.punish { background-color: #F0643C; color: #12161C; }
+.defense { background-color: #22B8A0; color: #12161C; }
+.neutral { background-color: #F5BE1B; color: #12161C; }
+.lab { background-color: #5B3FD6; color: #FFFFFF; }
+.events { background-color: #FF5C93; color: #12161C; }
+.slate { background-color: #2B3340; color: #F3F6FA; }
+.white { background-color: #FFFFFF; color: #12161C; }
+.lab .soon, .slate .soon, .ink .soon { border-color: #F3F6FA; }
+
+/* ---- main menu -------------------------------------------------------- */
+
+.mosaic { position: absolute; left: 76dp; top: 120dp; width: 1128dp; height: 496dp; display: flex; flex-direction: row; transform: skewX(-12deg); }
+.mosaic .gap { width: 16dp; height: 16dp; }
+#train { width: 556dp; }
+#train .in { padding: 22dp 64dp 18dp 64dp; }
+#train .big { font-size: 148dp; }
+#train .sub { font-size: 20dp; margin-top: 10dp; }
+.last { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 15dp; color: #D5DCE5; }
+.last .mark { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; padding: 3dp 9dp; margin-right: 10dp; color: #12161C; }
+.bands { height: 72dp; display: flex; flex-direction: row; }
+.band { flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.band .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 25dp; text-transform: uppercase; letter-spacing: 1dp; }
+.right { width: 556dp; display: flex; flex-direction: column; }
+#lab { height: 204dp; }
+#lab .in { padding: 18dp 40dp; }
+#lab .big { font-size: 76dp; }
+#lab .sub { font-size: 17dp; }
+.lower { height: 276dp; display: flex; flex-direction: row; }
+#events { width: 270dp; }
+#events .in { padding: 18dp 44dp; }
+#events .big { font-size: 54dp; }
+#events .sub { font-size: 16dp; margin-top: 8dp; }
+.small { width: 270dp; display: flex; flex-direction: column; }
+#versus, #controls { height: 130dp; }
+#versus .in, #controls .in { padding: 12dp 30dp; }
+#versus .big, #controls .big { font-size: 40dp; }
+#versus .sub, #controls .sub { font-size: 14dp; }
+#controls { border: 1dp #C9D1DB; }
+
+/* ---- character select -------------------------------------------------- */
+
+.roster { position: absolute; left: 54dp; top: 120dp; width: 770dp; height: 496dp; display: flex; flex-direction: row; flex-wrap: wrap; }
+.char { position: relative; width: 98dp; height: 114dp; margin: 0dp 10dp 10dp 0dp; border: 1dp #12161C; transform: skewX(-12deg); display: flex; flex-direction: column; }
+.char .in { justify-content: center; align-items: center; }
+.char .mono2 { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 44dp; line-height: 0.95em; }
+.char .name { font-family: "Barlow Condensed"; font-weight: 700; font-size: 14dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+.char .ring { left: -8dp; top: -8dp; right: -8dp; bottom: -8dp; border-width: 5dp; }
+.course { height: 8dp; display: flex; flex-direction: row; border-top: 1dp #12161C; }
+.course div { flex: 1; }
+
+.card { position: absolute; left: 844dp; top: 120dp; width: 388dp; height: 496dp; background-color: #12161C; color: #F3F6FA; overflow: hidden; }
+.card .top { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 104dp; }
+.card .slant { position: absolute; left: 0dp; top: 70dp; width: 388dp; height: 60dp; transform: skewY(-5deg); }
+.card .head { position: absolute; left: 26dp; top: 16dp; width: 340dp; }
+.tags { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; }
+.who2 { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; text-transform: uppercase; line-height: 0.95em; white-space: nowrap; }
+.card .body { position: absolute; left: 26dp; top: 150dp; width: 336dp; height: 326dp; display: flex; flex-direction: column; }
+.stats { display: flex; flex-direction: row; }
+.stat { flex: 1; }
+.stat .n { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 40dp; line-height: 1em; }
+.stat .l { font-size: 13dp; color: #A9B4C2; }
+.about { margin-top: 12dp; padding-top: 12dp; border-top: 1dp #4A5361; font-size: 15dp; line-height: 1.35em; color: #D5DCE5; }
+.parts { margin-top: 10dp; display: flex; flex-direction: row; flex-wrap: wrap; font-size: 16dp; font-weight: 600; }
+.part { width: 168dp; height: 26dp; display: flex; flex-direction: row; align-items: center; }
+.part .sq { width: 14dp; height: 14dp; margin-right: 10dp; transform: skewX(-12deg); }
+.part .cnt { font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; color: #A9B4C2; margin-left: 8dp; }
+.as { display: flex; flex-direction: row; align-items: center; font-size: 15dp; margin-bottom: 12dp; }
+.as .l { color: #A9B4C2; }
+.go { height: 54dp; background-color: #F3F6FA; color: #12161C; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.go .un { display: flex; flex-direction: row; align-items: center; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 27dp; text-transform: uppercase; letter-spacing: 1dp; }
+
+/* ---- in a match: the column beside the game ---------------------------- */
+
+.rail { position: absolute; left: 960dp; top: 0dp; width: 320dp; height: 720dp; background-color: #12161C; color: #F3F6FA; overflow: hidden; }
+.rail .top { position: absolute; left: 0dp; top: 0dp; width: 320dp; height: 92dp; }
+.rail .slant { position: absolute; left: 0dp; top: 62dp; width: 320dp; height: 52dp; transform: skewY(-5deg); }
+.rail .head { position: absolute; left: 24dp; top: 18dp; width: 280dp; }
+.rail .body { position: absolute; left: 24dp; top: 140dp; width: 272dp; height: 560dp; display: flex; flex-direction: column; }
+.rail .line { font-size: 15dp; line-height: 1.35em; color: #D5DCE5; }
+.rail .hints { display: flex; flex-direction: column; font-size: 14dp; font-weight: 600; }
+.rail .hintrow { display: flex; flex-direction: row; align-items: center; margin-top: 8dp; }
+.rail .key.wide { margin-right: 10dp; }

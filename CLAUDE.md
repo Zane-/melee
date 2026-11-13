@@ -13,9 +13,10 @@ index and `docs/ai/training-courses.md` for the course architecture and its stat
 want to build in direct AI integration and the actor system to build AI-driven training".
 The overlay build below is what can be played today and stays correct, but scripts,
 policies and models that drive the game are built against the native build first:
-`docs/ai/native-ai.md`. Its window variant draws, runs at the console's speed and reads
-a controller or the keyboard (`python tools/melee_native/play.py`), but that has only
-been checked on a virtual display, it has no sound, and no drills run on it yet.
+`docs/ai/native-ai.md`. Its window variant draws, runs at the console's speed, reads a
+controller or the keyboard and has menus of its own (`python tools/melee_client/client.py`),
+but that has only been checked on a virtual display, it has no sound, and no course
+drills run on it yet.
 
 ## Facts that shape every task
 
@@ -137,6 +138,7 @@ ninja
 | Claude writes a scenario from an instruction and tests it (needs API credentials; never run yet) | `python tools/melee_actor/author.py "..."`; "Claude writing scenarios" in `docs/ai/native-ai.md` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
+| The native client: its own main menu and character select, 16:9 with the game at 4:3 | `python tools/melee_client/client.py`; `tools/melee_client/`, `src/host/ui.cpp`; `tests/client/menu.py --shots DIR`; "The client" in `docs/ai/native-ai.md` |
 | Train against a scenario yourself on the native build (verdicts in the terminal) | `python tools/melee_actor/train.py data/scenarios/FILE.json`; `tests/actor/train.py` |
 | Play the native build yourself (a window on your desktop; no sound yet) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
 | A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |

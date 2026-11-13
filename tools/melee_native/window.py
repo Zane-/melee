@@ -65,13 +65,16 @@ def leftovers():
 
 class Window(Native):
     def __init__(self, gpu=False, size=(800, 600), verbose=False,
-                 timeout=120, state_dir=None, real=False, vsync=False):
+                 timeout=120, state_dir=None, real=False, vsync=False,
+                 window=(640, 480)):
         if not EXE.exists():
             raise NativeError("no window build: run tools/aurora32/build.sh "
                               "and tools/native_build.py --window")
         self.x = None
         self.display = None
         self._xlib = None
+        self.window = tuple(window)   # the game's window, in pixels
+        size = (max(size[0], window[0] + 40), max(size[1], window[1] + 40))
         if real:
             # the desktop this was started from, and its GPU
             env = dict(os.environ)
@@ -85,6 +88,7 @@ class Window(Native):
                 env["LIBGL_ALWAYS_SOFTWARE"] = "1"
         if vsync:
             env["MELEE_VSYNC"] = "1"
+        env["MELEE_WINDOW_SIZE"] = "%dx%d" % self.window
         try:
             super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
                              env=env)
@@ -140,6 +144,30 @@ class Window(Native):
         as fast as the machine goes."""
         self._cmd("pace %d" % (1 if on else 0))
 
+    # ---- the client's interface (src/host/ui.cpp) ---------------------------
+
+    def ui(self, command):
+        """One command to the interface: "load PATH", "class ID NAME 1",
+        "text ID RML", "hide", "show", "font PATH", "attr ID NAME VALUE"."""
+        self._cmd("ui " + command)
+
+    def capture(self, on=True):
+        """Keep the live ports' presses from the game (a menu is up)."""
+        self._cmd("capture %d" % (1 if on else 0))
+
+    def pads(self):
+        """What the people at the live ports are holding, whether or not
+        the game sees it: four dicts of buttons (a bit mask), lx, ly, cx,
+        cy (-127..127), lt, rt (0..255)."""
+        words = self._cmd("pads").split()
+        out = []
+        for i in range(4):
+            w = words[i * 7:i * 7 + 7]
+            out.append(dict(buttons=int(w[0], 16), lx=int(w[1]),
+                            ly=int(w[2]), cx=int(w[3]), cy=int(w[4]),
+                            lt=int(w[5]), rt=int(w[6])))
+        return out
+
     def key(self, name, down=True):
         """Press or release a key on the virtual display, by its X name
         ("Right", "x", "Return", "Shift_L"). For tests."""
@@ -181,9 +209,10 @@ class Window(Native):
             raise NativeError("shot() is for the virtual display only")
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        # the game's window is 640 by 480 at the corner of the screen
+        # the game's window is at the corner of the screen
         r = subprocess.run(["import", "-display", self.display, "-window",
-                            "root", "-crop", "640x480+0+0", "+repage",
+                            "root", "-crop", "%dx%d+0+0" % self.window,
+                            "+repage",
                             str(path)], capture_output=True,
                            text=True, timeout=30)
         if r.returncode:

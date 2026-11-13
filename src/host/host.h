@@ -106,6 +106,13 @@ extern uint32_t host_dat_generation;
 /// running at the console's speed instead of as fast as it goes.
 const char* host_window_live(int port, const char* source);
 void host_window_pace(int on);
+void host_window_capture(int on);
+const HostPad* host_window_seen(int port);
+
+/// The client's interface (ui.cpp): documents drawn over the window.
+void host_ui_init(void);
+void host_ui_frame(void);
+const char* host_ui_command(const char* line);
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 

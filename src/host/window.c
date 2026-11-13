@@ -46,8 +46,12 @@ static void on_log(AuroraLogLevel level, const char* module,
 
 void host_window_init(void)
 {
+    /* MELEE_WINDOW_SIZE=1280x720: the client's window. The game's picture
+       keeps its four-by-three shape in it (the viewport policy below). */
     static char name[] = "melee";
     char* argv[] = { name, NULL };
+    int width = 640, height = 480;
+    const char* wanted = getenv("MELEE_WINDOW_SIZE");
     AuroraConfig config = {
         .appName = "Melee",
         .logCallback = on_log,
@@ -98,7 +102,16 @@ void host_window_init(void)
         const char* v = getenv("MELEE_VSYNC");
         config.vsync = v != NULL && *v != '\0' && *v != '0';
     }
+    if (wanted != NULL && sscanf(wanted, "%dx%d", &width, &height) == 2 &&
+        width >= 320 && height >= 240)
+    {
+        config.windowWidth = (uint32_t) width;
+        config.windowHeight = (uint32_t) height;
+    }
     aurora_initialize(1, argv, &config);
+    /* the game's picture keeps its shape in a window of another shape */
+    AuroraSetViewportPolicy(AURORA_VIEWPORT_FIT);
+    host_ui_init();
     started = 1;
 }
 
@@ -199,6 +212,23 @@ enum {
 
 static int live[4];
 static int paced;
+
+/// What each live port's person is holding, whether or not the game is
+/// allowed to see it: while a menu is up ("capture") the game gets a pad at
+/// rest, so that a press meant for the menu does not also reach whatever
+/// the game is showing underneath.
+static HostPad seen[4];
+static int captured;
+
+void host_window_capture(int on)
+{
+    captured = on;
+}
+
+const HostPad* host_window_seen(int port)
+{
+    return &seen[port & 3];
+}
 
 /// "off", "auto" (the first controller, or the keyboard if there is none),
 /// "keyboard", "pad" or "padN" (the Nth controller, from 0).
@@ -365,14 +395,19 @@ static void read_live(void)
         } else if (how >= LIVE_GAMEPAD) {
             g = nth_gamepad(how - LIVE_GAMEPAD);
         }
-        if (g != NULL) {
-            read_gamepad(g, &host.pads[port]);
-        } else if (how == LIVE_AUTO || how == LIVE_KEYBOARD) {
-            read_keyboard(&host.pads[port]);
-        } else {
-            HostPad none = { 0 };
-            none.connected = 1; /* its controller is not there: neutral */
-            host.pads[port] = none;
+        {
+            HostPad now = { 0 };
+            HostPad rest = { 0 };
+
+            if (g != NULL) {
+                read_gamepad(g, &now);
+            } else if (how == LIVE_AUTO || how == LIVE_KEYBOARD) {
+                read_keyboard(&now);
+            } /* else its controller is not there: neutral */
+            now.connected = 1;
+            rest.connected = 1;
+            seen[port] = now;
+            host.pads[port] = captured ? rest : now;
         }
     }
 }
@@ -466,6 +501,7 @@ void host_window_frame(void)
         }
     }
     read_live();
+    host_ui_frame();
     in_frame = aurora_begin_frame();
     t2 = now_ms();
     if (last != 0) {
