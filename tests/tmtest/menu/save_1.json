@@ -1,100 +1,20 @@
 {
- "boot": true,
- "max_frames": 900,
- "shots": [
-  330,
-  590,
-  700
- ],
- "inputs": [
-  {
-   "at": 360,
-   "stick": [
-    0,
-    -127
-   ],
-   "hold": 3
-  },
-  {
-   "at": 385,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 410,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 430,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 450,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 470,
-   "stick": [
-    127,
-    0
-   ],
-   "hold": 3
-  },
-  {
-   "at": 490,
-   "stick": [
-    0,
-    -127
-   ],
-   "hold": 3
-  },
-  {
-   "at": 510,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 530,
-   "stick": [
-    -127,
-    0
-   ],
-   "hold": 3
-  },
-  {
-   "at": 550,
-   "stick": [
-    0,
-    -127
-   ],
-   "hold": 3
-  },
-  {
-   "at": 570,
-   "buttons": [
-    "A"
-   ],
-   "hold": 2
-  },
-  {
-   "at": 600,
-   "buttons": [
-    "B"
-   ],
-   "hold": 2
-  }
- ]
+  "boot": true,
+  "max_frames": 900,
+  "shots": [330, 590, 700],
+  "inputs": [
+    {"at": 360, "stick": [0, -127], "hold": 3},
+    {"at": 372, "stick": [127, 0], "hold": 3},
+    {"at": 385, "buttons": ["A"], "hold": 2},
+    {"at": 410, "buttons": ["A"], "hold": 2},
+    {"at": 430, "buttons": ["A"], "hold": 2},
+    {"at": 450, "buttons": ["A"], "hold": 2},
+    {"at": 470, "stick": [127, 0], "hold": 3},
+    {"at": 490, "stick": [0, -127], "hold": 3},
+    {"at": 510, "buttons": ["A"], "hold": 2},
+    {"at": 530, "stick": [-127, 0], "hold": 3},
+    {"at": 550, "stick": [0, -127], "hold": 3},
+    {"at": 570, "buttons": ["A"], "hold": 2},
+    {"at": 600, "buttons": ["B"], "hold": 2}
+  ]
 }

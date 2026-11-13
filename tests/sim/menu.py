@@ -13,7 +13,7 @@ from machine import GuestError, ROOT     # noqa: E402
 
 OUT = ROOT / "build/overlay-tmtest"
 GS_MENU, GS_CSS, GS_OURS = 1, 8, 10      # GameSceneKind
-GM_MENU, GM_EVENT = 1, 43                # GameModeKind
+GM_MENU, GM_VS, GM_EVENT = 1, 2, 43      # GameModeKind
 
 checks = []
 
@@ -84,7 +84,8 @@ def main():
               "mode %d scene %d" % (m.mode(), m.scene()))
 
         # --- Controls: input delay ----------------------------------------
-        m.tap(stick=(0, -1))                 # Train -> Controls
+        m.tap(stick=(0, -1))                 # Train -> Versus
+        m.tap(stick=(1, 0))                  # -> Controls
         m.tap(buttons=["A"])
         check("Controls opens a page of the same scene",
               m.scene() == GS_OURS)
@@ -192,6 +193,7 @@ def main():
 
         m2 = Menu()
         m2.tap(stick=(0, -1))                # Controls, with no nicknames
+        m2.tap(stick=(1, 0))
         m2.tap(buttons=["A"])
         for _ in range(5):
             m2.tap(stick=(0, -1))            # ... -> Nicknames
@@ -206,6 +208,17 @@ def main():
               "original menus",
               m2.mode() == GM_MENU and m2.scene() == GS_MENU,
               "mode %d scene %d" % (m2.mode(), m2.scene()))
+
+        m3 = Menu()
+        m3.tap(stick=(0, -1))                # Versus
+        m3.tap(buttons=["A"], wait=200)
+        check("Versus goes to the Versus character select",
+              m3.mode() == GM_VS and m3.scene() == GS_CSS,
+              "mode %d scene %d" % (m3.mode(), m3.scene()))
+        m3.back_from_css()
+        check("and B there comes back to the main menu",
+              m3.scene() == GS_OURS, "mode %d scene %d" % (m3.mode(),
+                                                          m3.scene()))
     except GuestError as e:
         check("the game kept running", False, str(e)[:300])
 

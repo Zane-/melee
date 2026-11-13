@@ -470,7 +470,7 @@ def run(kind, seed, frames, stage, codes, counts):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=5)
-    ap.add_argument("--frames", type=int, default=2400)
+    ap.add_argument("--frames", type=int, default=2700)
     ap.add_argument("--stage", default="battlefield")
     args = ap.parse_args()
     if not INI.exists():

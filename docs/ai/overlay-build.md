@@ -157,3 +157,40 @@ Re-run both tools and regenerate `slippi_injections.txt` whenever Slippi updates
 | 5 | Root pointer slot inside a saved range | **Chosen, not exercised:** `0x804D646C` (see "Where mod state lives") |
 | 6 | Replacing a function that uses its file's `static`s | Mostly answered by experiment 2: the overlay can reference uniquely named vanilla statics directly. Ambiguous names remain a gap |
 | 8 | One-command overlay build | **Done** as `tools/overlay_build.py` (outside ninja). It refuses to run unless `build/GALE01/main.dol` has the retail SHA-1 |
+
+## Memory: what the overlay takes, and from where (2026-11-13)
+
+The game carves three fixed heaps out of the arena (`lbHeap_803BA380`,
+`src/melee/lb/lbheap.c`) and the **scene heap** (models, objects, everything
+`HSD_MemAlloc` gives out) is what is left between them:
+
+```
+arena low ─ boot allocations ─ [Stay 5.2 MB] [scene heap] [match file cache 6.6 MB] ─ arena high
+```
+
+Raising the arena low past the overlay therefore shrank exactly the scene heap, by the
+overlay's size (0.58 MB of 6.1). The Versus character select needs more than what was left
+and asserted in `HSD_MemAlloc`, in Dolphin and in the simulator.
+
+`overlay_link.py` (step 8) now makes the **match file cache** smaller by the overlay's
+footprint instead (one data word, `lbHeap_803BA380+0x2C`; not a Slippi site), so the scene
+heap is its vanilla size again. Shrinking "Stay" instead does not work: the boot preload
+fills it. Slippi saves the scene heap by the bounds the game keeps (`slippi-tandem.md`), so
+the boundary may move.
+
+The cost. The cache holds a match's stage and fighter files; vanilla sizes it for the
+largest case. Measured in use at match start, in the simulator, of 6.00 MB:
+
+| Match | In use |
+|-|-|
+| Fox, Marth, Battlefield | 1.99 MB |
+| Ice Climbers, Donkey Kong, Dream Land | 2.49 MB |
+| Peach, Roy, Fountain of Dreams | 3.18 MB |
+| Peach, Roy, Pokemon Stadium | 5.07 MB |
+
+Pokemon Stadium is about 3.1 MB by itself (its transformations) and the heaviest fighters
+about 1 MB each, so every two-player match fits, and every four-player match on the other
+stages should (the largest other stage file is 2.3 MB). **Four players on Pokemon Stadium
+with heavy characters would need up to 6.6 MB and will not fit**: the load asserts
+(`memp_kouho` in `lbmemory.c`), there is no fallback. Not tried. Getting that back means
+making the overlay smaller or not resident.

@@ -5,6 +5,7 @@
   "shots": [520, 660, 830],
   "inputs": [
     {"at": 360, "stick": [0, -127], "hold": 3},
+    {"at": 372, "stick": [127, 0], "hold": 3},
     {"at": 385, "buttons": ["A"], "hold": 2},
     {"at": 410, "stick": [127, 0], "hold": 3},
     {"at": 430, "stick": [0, -127], "hold": 3},

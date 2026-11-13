@@ -47,6 +47,7 @@ typedef enum Action {
     Act_Train,
     Act_Lab,
     Act_Events,
+    Act_Versus,
     Act_Controls,
     Act_Names,
     Act_Back,
@@ -91,8 +92,6 @@ static const GXColor palette[4] = {
     { 86, 96, 132, 255 },
 };
 
-/* No Versus panel yet: the vanilla Versus character select runs out of
-   memory in the overlay build (docs/ai/training-courses.md, "Main menu"). */
 static const Item main_items[] = {
     { "Train", "Pick a character and work through its course.", 40, 84, 330,
       190, Act_Train, 0, 0, 1.35F },
@@ -100,7 +99,9 @@ static const Item main_items[] = {
       90, Act_Lab, 1, 0, 0.9F },
     { "Events", "Training Mode's own events, page by page.", 386, 184, 214,
       90, Act_Events, 1, 0, 0.9F },
-    { "Controls", "Input delay and button layouts.", 40, 290, 560, 92,
+    { "Versus", "A match, two to four players.", 40, 290, 272, 92,
+      Act_Versus, 2, 0, 0.9F },
+    { "Controls", "Input delay and button layouts.", 328, 290, 272, 92,
       Act_Controls, 3, 0, 0.9F },
 };
 
@@ -658,6 +659,10 @@ static void Confirm(void)
         break;
     case Act_Events:
         gm_SetNextGameModeStateId(TM_MENU_STATE_VANILLA);
+        Leave();
+        break;
+    case Act_Versus:
+        gm_ChangeGameModeAfterCurrentScene(GM_VS);
         Leave();
         break;
     case Act_Controls:

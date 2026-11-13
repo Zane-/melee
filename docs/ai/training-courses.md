@@ -52,6 +52,7 @@ boot ─► MAIN MENU ─► Train ─► character select ─► HUB ─► dri
           │
           ├─ Lab       the Lab's own character select
           ├─ Events    Training Mode's event list (the original menus)
+          ├─ Versus    the original Versus character select
           └─ Controls  input delay, button layouts, which nickname uses which
 ```
 
@@ -398,16 +399,16 @@ Not there yet: turning tap jump off (`tm_ctl_TapJump` exists; no hook uses it an
 edits it), naming a layout, stick and trigger settings, making nicknames from this menu,
 an options page, online.
 
-**No Versus panel**, because the vanilla Versus character select runs out of memory in
-the overlay build: `HSD_MemAlloc` asserts while it loads, also when booting straight to
-it (X held at boot), in Dolphin and in the simulator. The main heap is what is left of
-the arena after the game's fixed heaps, and the overlay's code and data (565 KB) come out
-of it; shrinking the persistent heap by that much instead makes the preload assert
-(`memp_kouho`). Open.
+**Versus** leads to the original Versus character select. Until 2026-11-13 it could not:
+that screen ran out of memory in the overlay build, also when booting straight to it,
+because the overlay's code and data (0.58 MB) came out of the scene heap. The linker now
+takes them out of the match file cache instead ("Memory" in `overlay-build.md`), which
+costs one case: a four-player match on Pokemon Stadium with heavy characters may not fit.
+A Versus match itself has not been started from here in a test.
 
-Checked: `tests/sim/menu.py` (22 checks: where each panel leads, every kind of row, the
+Checked: `tests/sim/menu.py` (24 checks: where each panel leads, every kind of row, the
 save round trip in memory) and in Dolphin: pictures of each page
-(`tests/tmtest/menu/boot.json`, `controls.json`), and the settings surviving a restart
+(`tests/tmtest/menu/boot.json`, `controls.json`, `versus.json`), and the settings surviving a restart
 (`save_1.json` changes them, `save_2.json` starts again on the same card and shows them).
 
 ### Hub (built: `src/tmce/events/course/hub_css.c`)

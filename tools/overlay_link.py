@@ -75,6 +75,13 @@ ARENA_SITES = [
 ]
 
 
+# Where the arena starts on a retail disc (_stack_addr), and the size of the
+# game's match file cache: the third entry of lbHeap_803BA380 (heap "AllM",
+# src/melee/lb/lbheap.c), address of its size word and the vanilla value.
+RETAIL_ARENA_LO = 0x804EEC00
+FILE_CACHE_SIZE = (0x803BA3AC, 0x0064B400)
+
+
 INJECT_FRAME = 0x110
 
 
@@ -472,6 +479,24 @@ def main():
         words = [(old[0] & 0xFFFF0000) | hi, (old[1] & 0xFFFF0000) | (new_lo & 0xFFFF)]
         patches.append((site, words, f"arena low -> {new_lo:08X}"))
 
+    # 8. Give the scene heap back what the overlay takes. The game carves
+    # three fixed heaps out of the arena (lbHeap_803BA380) and the scene
+    # heap is what is left between them, so raising the arena low shrinks
+    # exactly that one: the Versus character select then runs out of memory
+    # (it needs between 5.6 and 6.1 MB; vanilla leaves 6.1). The match file
+    # cache at the top of the arena is sized for the largest four-player
+    # match on the largest stage; it is made smaller by the overlay's
+    # footprint instead. Slippi saves the scene heap by the bounds the game
+    # keeps, so the boundary may move.
+    site, vanilla = FILE_CACHE_SIZE
+    have = struct.unpack_from(">I", dol, dol_offset(h, site))[0]
+    if have != vanilla:
+        sys.exit(f"file cache size at {site:08X}: expected {vanilla:08X}, "
+                 f"found {have:08X}")
+    cache = (vanilla - (new_lo - RETAIL_ARENA_LO)) & ~0x1F
+    patches.append((site, [cache],
+                    f"match file cache {vanilla:#x} -> {cache:#x}"))
+
     dol[:0xE4] = struct.pack(">57I", *h)
     for site, words, note in patches:
         struct.pack_into(f">{len(words)}I", dol, dol_offset(h, site), *words)
@@ -494,6 +519,7 @@ def main():
     print(f"overlay end {end:08X} ({end - args.origin} bytes), "
           f"{len(resolved)} vanilla refs, {len(syms)} overlay globals")
     print(f"arena low raised to {new_lo:08X}, {len(patches)} patch sites")
+    print(f"match file cache {vanilla / 1e6:.2f} -> {cache / 1e6:.2f} MB")
     print(f"wrote {out / 'main.dol'}")
 
 
