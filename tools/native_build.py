@@ -65,11 +65,36 @@ VANILLA = {
         "-DHSD_VICopyXFBAsync=HSD_VICopyXFBAsync_vanilla",
         "-DHSD_VIWaitXFBFlush=HSD_VIWaitXFBFlush_vanilla",
     ],
+    # The draw pass is optional (--draw): src/host/cuts.c.
+    "sysdolphin/baselib/gobj.c": [
+        "-DHSD_GObj_80390FC0=HSD_GObj_80390FC0_vanilla",
+    ],
     # Headless: no particles (src/host/cuts.c).
     "sysdolphin/baselib/particle.c": [
         "-DpsInitDataBankLocate=psInitDataBankLocate_vanilla",
         "-DpsInitDataBankLoad=psInitDataBankLoad_vanilla",
         "-DpsInitDataBank=psInitDataBank_vanilla",
+    ],
+}
+
+# Source patches: exact text replaced in a copy of a vanilla file before it
+# is compiled here (the file in the repository is not touched). For the few
+# places where the game's code depends on how the console lays data out in
+# memory and no function boundary separates that from the rest. A patch
+# whose text is no longer found stops the build.
+PATCHES = {
+    # A script's goto and subroutine targets are offsets in the file.
+    "melee/lb/lbcommand.c": [
+        ("info->x8.u = info->x8.u->Command_05.ptr;",
+         "info->x8.u = host_script_target(info->x8.u);"),
+        ("info->x8.u = info->x8.u->Command_07.ptr;",
+         "info->x8.u = host_script_target(info->x8.u);"),
+    ],
+    # The nth animation joint of a stage model: the next n in the file.
+    "melee/gr/granime.c": [
+        ("aj = &aj[arg2];", "aj = host_dat_element(aj, arg2, 0x14);"),
+        ("mj = &mj[arg2];", "mj = host_dat_element(mj, arg2, 0xC);"),
+        ("sj = &sj[arg2];", "sj = host_dat_element(sj, arg2, 0xC);"),
     ],
 }
 
@@ -212,11 +237,26 @@ def main():
 
     common = flags + DEFINES + includes()
     jobs = []
+    shim = ["-include", str(ROOT / "src/host/shim.h")]
     for rel, extra in VANILLA.items():
         jobs.append((ROOT / "src" / rel,
                      OBJ / "vanilla" / (rel.replace("/", "_") + ".o"),
-                     common + ["-include", str(ROOT / "src/host/shim.h")]
-                     + extra))
+                     common + shim + extra))
+    for rel, patches in PATCHES.items():
+        text = (ROOT / "src" / rel).read_text()
+        for old, new in patches:
+            if text.count(old) != 1:
+                sys.exit(f"patch for {rel}: expected exactly one "
+                         f"{old!r}, found {text.count(old)}")
+            text = text.replace(old, new)
+        copy = OBJ / "patched" / rel
+        copy.parent.mkdir(parents=True, exist_ok=True)
+        if not copy.exists() or copy.read_text() != text:
+            copy.write_text(text)
+        jobs.append((copy, OBJ / "patched" / (rel.replace("/", "_") + ".o"),
+                     common + shim
+                     + ["-iquote", str((ROOT / "src" / rel).parent)]
+                     + VANILLA.get(rel, [])))
     for src in sorted((ROOT / "src/host").glob("*.c")):
         jobs.append((src, OBJ / (src.stem + ".o"), common))
     for name in AURORA_C:

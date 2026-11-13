@@ -692,9 +692,15 @@ typedef struct ftData_x44_t {
     float ledge_snap_height;
 } ftData_x44_t;
 
+/// One costume's row of #ftData_x8_x8::xC: #ftData_x8_x8::x8 texture
+/// indices (#ftAnim_80070200).
+typedef u16* ftData_x8_x8_xC_t DAT_COUNT(ftData_x8_x8::x8);
+
 struct ftData_x8_x8 {
     /*  +8 */ u32 x8;
-    /*  +C */ u16** xC;
+    /// A row per costume, the default's (0) where an entry is NULL.
+    /*  +C */ ftData_x8_x8_xC_t* xC DAT_EXTENT
+        DAT_BIND(ftData_x8_x8::x8, x8);
 };
 
 /// A visibility lookup for each model of #FtPartsDesc.
@@ -2119,7 +2125,7 @@ struct Fighter {
 };
 ASSERT_SIZE(struct Fighter, 0x23EC);
 
-struct gmScriptEventDefault {
+struct PPC_LAYOUT gmScriptEventDefault {
     u32 opcode : 6;
     u32 value1 : 26;
 };

@@ -541,6 +541,9 @@ struct lbColl_8000A10C_arg0_t {
     Vec3 x14;
 };
 
+/// The words of a command script, as they are on the disc.
+PPC_LAYOUT_BEGIN
+
 struct Command_00 {
     u32 code : 6;
     u32 value : 26;
@@ -1010,6 +1013,8 @@ union CmdUnion {
     struct wind_fx_2 wind_fx_2;
     struct wind_fx_3 wind_fx_3;
 };
+
+PPC_LAYOUT_END
 
 struct CommandInfo {
     f32 timer;       // 0x00

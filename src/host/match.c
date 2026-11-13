@@ -40,13 +40,13 @@ static void on_enter(GameModeState* state)
     start->rules.sd_penalty = -1;
     start->rules.match_kind = MatchKind_Stock;
     start->rules.is_stock = 1;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < GM_MAX_PLAYERS; i++) {
         PlayerInitData* p = &start->players[i];
         gm_SetupPlayerDefaults(p);
         p->stocks = (s8) host_match.stocks;
         p->cpu_kind = 4;
         p->rumble_enabled = 0;
-        if (host_match.ckind[i] >= 0) {
+        if (i < 4 && host_match.ckind[i] >= 0) {
             p->ckind = (s8) host_match.ckind[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
             p->cpu_level = 1;

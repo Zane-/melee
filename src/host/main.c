@@ -112,7 +112,8 @@ static void usage(void)
             "  --match      start a match at frame 30: character kinds and "
             "stage id\n"
             "  --trace N    print both fighters every N frames\n"
-            "  --control    obey commands on stdin (see control.c)\n");
+            "  --control    obey commands on stdin (see control.c)\n"
+            "  --draw       run the draw pass too (graphics are no-ops)\n");
     exit(1);
 }
 
@@ -129,6 +130,8 @@ int main(int argc, char** argv)
             host.verbose = 1;
         } else if (strcmp(argv[i], "--stubs") == 0) {
             report_stubs = 1;
+        } else if (strcmp(argv[i], "--draw") == 0) {
+            host.draw = 1;
         } else if (strcmp(argv[i], "--control") == 0) {
             host_control_enabled = 1;
         } else if (strcmp(argv[i], "--match") == 0 && i + 1 < argc) {

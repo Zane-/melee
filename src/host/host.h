@@ -34,6 +34,7 @@ typedef struct HostPad {
 typedef struct HostState {
     const char* disc_root; ///< directory holding the disc's `files/`
     int verbose;           ///< print the game's own reports
+    int draw;              ///< run the draw pass (into no-op graphics)
     uint32_t frame;        ///< video frames since boot
     int64_t ticks;         ///< emulated time
     int int_enabled;       ///< emulated interrupt enable

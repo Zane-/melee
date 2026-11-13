@@ -29,4 +29,8 @@ void GXInitFogAdjTable(GXFogAdjTable* table, u16 width,
 #define VIPadFrameBufferWidth(width) ((u16) (((u16) (width) + 15) & ~15))
 #endif
 
+/* For source patches (tools/native_build.py, PATCHES). */
+void* host_dat_element(void* native, int n, unsigned console_size);
+void* host_script_target(const void* word);
+
 #endif

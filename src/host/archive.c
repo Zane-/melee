@@ -308,3 +308,60 @@ void HSD_ArchiveLocateExtern(HSD_Archive* archive, const char* name,
         dat_link_extern(archive->native_data, name, address);
     }
 }
+
+/* --- the file's own layout ------------------------------------------------
+ * The readers give every object its own place. Where the game steps from
+ * one object to "the nth after it" (animation joints of a stage model are
+ * indexed that way), the neighbour is found through the archive: where the
+ * object is in the file, n console-sized elements on, and the native object
+ * for that place.
+ */
+void* host_dat_element(void* native, int n, uint32_t console_size)
+{
+    if (native == NULL || n == 0) {
+        return native;
+    }
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        if (a == NULL) {
+            continue;
+        }
+        for (size_t k = 0; k < a->natives.cap; k++) {
+            uint64_t key = a->natives.keys[k];
+            uint64_t there;
+            if (key == UINT64_MAX ||
+                a->natives.values[k] != (uintptr_t) native)
+            {
+                continue;
+            }
+            if (map_get(&a->natives,
+                        key2((uint32_t) (key >> 32) + n * console_size,
+                             (uint32_t) key),
+                        &there))
+            {
+                return (void*) (uintptr_t) there;
+            }
+            host_fatal("element %d after offset %x of %s was never read", n,
+                       (uint32_t) (key >> 32), open_archives[i].file);
+        }
+    }
+    host_fatal("host_dat_element: %p is not an archive object", native);
+}
+
+/// The script a goto or subroutine command jumps to. In the archive's data
+/// the command's second word is still an offset into that data (the
+/// readers leave scripts as they are on the disc); `word` is its address.
+/// A script that is not from an archive holds a pointer already.
+void* host_script_target(const void* word)
+{
+    const uint8_t* at = word;
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        if (a != NULL && at >= a->archive->data &&
+            at < a->archive->data + a->archive->size)
+        {
+            return a->archive->data + be32(at);
+        }
+    }
+    return *(void* const*) word;
+}

@@ -42,3 +42,18 @@ void psInitDataBank(int bank, int* cmd_bank, int* tex_bank, unsigned* ref,
     (void) ref;
     (void) form_bank;
 }
+
+/* --- the draw pass ---------------------------------------------------------
+ * HSD_GObj_80390FC0 runs every object's draw callback. Graphics calls are
+ * no-ops, so it costs little, and with --draw it runs, which exercises code
+ * that only executes while drawing. Without it the pass is skipped, as in
+ * the Python simulator.
+ */
+void HSD_GObj_80390FC0_vanilla(void);
+
+void HSD_GObj_80390FC0(void)
+{
+    if (host.draw) {
+        HSD_GObj_80390FC0_vanilla();
+    }
+}

@@ -124,10 +124,18 @@ typedef bool (*Predicate)(void);
 /// most significant bit and byte first, on hosts that are not big-endian.
 /// The address of a scalar member of such a type cannot be taken.
 /// Expands to nothing for the console's own compiler.
+///
+/// #PPC_LAYOUT_BEGIN and #PPC_LAYOUT_END give it to every struct and union
+/// defined between them: for types that describe data read straight from
+/// the disc, such as the words of a command script.
 #if defined(TARGET_PC) && defined(__GNUC__) && !defined(__clang__)
 #define PPC_LAYOUT __attribute__((scalar_storage_order("big-endian")))
+#define PPC_LAYOUT_BEGIN _Pragma("scalar_storage_order big-endian")
+#define PPC_LAYOUT_END _Pragma("scalar_storage_order default")
 #else
 #define PPC_LAYOUT
+#define PPC_LAYOUT_BEGIN
+#define PPC_LAYOUT_END
 #endif
 
 #if defined(MUST_MATCH) || defined(LINT)
