@@ -13,6 +13,10 @@ getting it right. The unit an AI-driven drill is made of.
       "success": ["target_hit", "not_hit"]
     }
 
+- `drill` (optional): the course drill this scenario is (an id of
+  data/courses/<character>.md). The native client lists a course's drills and
+  plays the ones a scenario names (tools/melee_client/courses.py).
+- `about`: what to do, in a sentence or two, for the person playing it.
 - `setup`: placements (Native.place), applied in order after the match is up.
 - `opponent`, `player`: each a port and either a `script` (Melee Actor steps,
   actor.py) or a `policy` (a slippi-ai model's name, policy.py). A script

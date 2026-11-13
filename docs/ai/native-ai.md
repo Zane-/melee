@@ -275,15 +275,39 @@ the column beside a match. 16:9, with the game's picture kept four by three at t
 | The typefaces (Barlow, Barlow Condensed, IBM Plex Mono; Open Font License), fetched once into `build/ui/fonts/` | `tools/melee_client/fonts.py` |
 
 The flow lives in Python, like the trainer: the client steps the game a frame at a time,
-reads the pad and tells the host what to show. What works: moving over the main menu's
-panels; Train opens the character select; A starts free play as that character against a
-standing Marth, with the pad given to the game; holding START comes back; another
-character can be played after. `tests/client/menu.py` (15 checks) does all of that with
-key presses on the virtual display; `--shots DIR` saves a picture of each screen.
+reads the pad and tells the host what to show.
 
-Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the course hub,
-drills, nicknames and layouts (the header shows placeholders), character art (two letters
-and a colour of the client's choosing stand in), panel icons, sound.
+| Screen | What it does | From |
+|-|-|-|
+| Main menu | Five panels; Train goes on, the other four say "not yet" | `screens.main_menu` |
+| Character select | 26 characters; the card shows three style words, weight, fall speed, jump squat | `data/characters/<id>.md` |
+| Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; free play; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
+| A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
+| A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict, and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
+| Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
+
+**Which drills play.** A drill plays in this client when a scenario file names it:
+`"drill": "<course drill id>"` in `data/scenarios/*.json`. Two do, both in Fox's Neutral
+part: `fox-shield-then-punish` (the shield grab) and `fox-whiff-punish`. The other 44 of
+Fox's drills are listed with everything the course file says about them and "Not in this
+client yet" where Start would be. **No Tech, Punish or Defense drill plays**: Tech drills
+judge the player's own inputs frame by frame, which the scenario judge (hit or not hit)
+cannot do.
+
+What the player has done is kept in `save/client.json` (ignored by git): per drill the
+done mark, tries, successes and best run, and the last drill played.
+
+Tests, with key presses on the virtual display: `tests/client/menu.py` (15 checks: the
+menu, the roster, free play and back) and `tests/client/course.py` (16 checks: hub, list,
+a drill that is not built, the shield grab played three times by a stand-in who shields,
+grabs and hits twice and stands still once, the numbers and the done mark kept on disk,
+where you left off, free play from the hub). `--shots DIR` saves a picture of each
+screen.
+
+Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the guide and
+the demonstration, a judge for Tech drills, nicknames and layouts (the header shows
+placeholders), character art (two letters and a colour of the client's choosing stand
+in), panel icons, sound.
 
 What RmlUi is not, learned on the way: no CSS grid and no `clip-path` (layouts are flex
 rows and columns; a slanted edge is a skewed element); no outline (a focus ring is an
@@ -296,6 +320,8 @@ copies it beside the document).
 Known: the match left behind when coming back to the menu keeps running unseen (and will
 end on its timer); starting the next one from wherever the game then is has only been
 tried from inside a match.
+A drill is started with A, and A held on into the drill would be a grab out of shield:
+the first try waits (up to a second and a half) for the buttons to be let go.
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
@@ -311,7 +337,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 (draws, paced, a port played from the keyboard; all off screen) | A window, sound and a controller. Done: Aurora linked in, six stages drawn, the console's speed, live ports, `play.py`. Next: **the owner runs `play.py`** (first time on a real display and with a real controller), then sound, then the adapter read directly | a person plays a match |
 | N7 (begun, off screen: `train.py`) | The trainer with a person in it. Done: a scenario's opponent against a live port, a verdict per attempt in the terminal. Next: the verdict and the guide on the game's screen, statistics over a session, choosing what to practise next | the owner trains against an actor |
-| N8 (begun, off screen: `client.py`) | The client: the interface of the design canvas, natively. Done: main menu, character select, the column beside a match. Next: the course hub and drill list from `data/courses/`, a drill running under it (`train.py`'s loop with the verdict in the column and on the banner), the done mark, then Controls | the owner picks a character and trains a drill without a terminal |
+| N8 (off screen: `client.py`) | The client: the interface of the design canvas, natively. Done: main menu, character select, course hub, drill list with the done mark, a drill with its verdict, free play. Next: drills that play (a judge for Tech drills first: Tech is where the course starts and none of its 16 play), the guide, Controls | the owner picks a character and trains a drill without a terminal |
 
 N6 gated N7 and is now far enough for it. What all of it waits for is the owner running
 `client.py`, `play.py` or `train.py`: nothing here has been on a real display or had a

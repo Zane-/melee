@@ -204,3 +204,212 @@ def match_rail(c, opponent, stage):
             key("HOLD START", wide=True)))
     return page("Free play", '<div class="rail">%s<div class="body">%s</div>'
                 '</div>' % (head, body), paper=False)
+
+
+# ---- the course hub -----------------------------------------------------------
+
+def hub(c, course, here, progress, left):
+    """`here`: ids of the drills that play in this client. `left`: the
+    drill last played, if it is one of this course's."""
+    from courses import ABOUT, PARTS
+    slabs = []
+    for i, part in enumerate(PARTS):
+        drills = course["parts"][part]
+        done = sum(progress.done(d["id"]) for d in drills)
+        plays = sum(d["id"] in here for d in drills)
+        nxt = next((d for d in drills if not progress.done(d["id"])), None)
+        squares = "".join('<div class="sq%s"/>' % (
+            " on" if progress.done(d["id"]) else "") for d in drills)
+        slabs.append(
+            '<div id="p%d" class="tile slab %s"><div class="ring"/>'
+            '<div class="in"><div class="row"><div class="idx">0%d</div>'
+            '<div class="grow"/>%s</div><div><div class="big">%s</div>'
+            '<div class="q">%s</div><div class="d">%s</div></div><div>'
+            '<div class="sqs">%s</div><div class="cnt2">%d of %d done · %d '
+            'play here</div><div class="cnt2">Next: %s</div></div></div>'
+            '</div>' % (
+                i, PART_CLASS[part], i + 1,
+                '<div class="first">START HERE</div>' if i == 0 else "",
+                part, esc(ABOUT[part][0]), esc(ABOUT[part][1]), squares,
+                done, len(drills), plays,
+                esc(nxt["name"]) if nxt else "all done"))
+    if left:
+        tail = (
+            '<div class="tile ink grow"><div class="in leftoff"><div>'
+            '<div class="lbl">WHERE YOU LEFT OFF</div><div class="big">%s'
+            '</div><div class="row"><div class="sq2" style="background-color:'
+            ' %s"/><div>%s · drill %d of %d</div></div></div>'
+            '<div class="go small"><div class="un">%s<div>Continue</div>'
+            '</div></div></div></div>' % (
+                esc(left["name"]), PART_COLOR[left["part"]], left["part"],
+                left["number"], len(course["parts"][left["part"]]),
+                key("X", dark=True)))
+    else:
+        tail = ('<div class="tile ink grow"><div class="in leftoff"><div>'
+                '<div class="lbl">THE COURSE</div><div class="sum">%s</div>'
+                '</div></div></div>' % esc(course["summary"]))
+    body = (
+        header(["Train", c["name"] + "'s course"],
+               tag=(c["name"], c["color"], c["fg"])) +
+        '<div class="hub"><div class="slabs">' +
+        '<div class="gap"/>'.join(slabs) + '</div><div class="gap"/>'
+        '<div class="hubrow"><div id="free" class="tile lab"><div class='
+        '"ring"/><div class="in"><div class="lbl">FREE PRACTICE</div><div>'
+        '<div class="big">Free play</div><div class="sub">Against a standing'
+        ' opponent.</div></div></div></div><div class="gap"/>' + tail +
+        '</div></div>' +
+        footer("", [("A", "Open"), ("B", "Character")],
+               tab=PART_COLOR["Tech"]))
+    return page("Course hub", body)
+
+
+# ---- a part's drills ------------------------------------------------------------
+
+ROWS = 8
+
+
+def _percent(d):
+    return "%d%%" % round(100.0 * d["yes"] / d["tries"]) if d["tries"] \
+        else "-"
+
+
+def list_rows(course, part, here, progress, at, top):
+    """The rows in view: `at` is the drill in focus, `top` the first row
+    shown."""
+    out = []
+    for i, d in enumerate(course["parts"][part][top:top + ROWS], top):
+        p = progress.drill(d["id"])
+        out.append(
+            '<div class="r%s"><div class="c-n"><div class="cap" style='
+            '"background-color: %s"/><div class="num">%d</div></div>'
+            '<div class="c-name"><div class="nm">%s</div><div class="gl">%s'
+            '</div></div><div class="c-t">%s</div><div class="c-t">%s</div>'
+            '<div class="c-b">%s</div><div class="c-h">%s</div><div class='
+            '"c-d"><div class="box%s"/><div>%s</div></div></div>' % (
+                " on" if i == at else "",
+                PART_COLOR[part] if i == at else "#00000000", d["number"],
+                esc(d["name"]), esc(d["goal"]),
+                p["tries"] if p["tries"] else "-", _percent(p),
+                p["best"] if p["tries"] else "-",
+                '<div class="plays">PLAYS</div>' if d["id"] in here else "",
+                " on" if p["done"] else "", "done" if p["done"] else ""))
+    return "".join(out)
+
+
+def list_detail(course, d, here, progress):
+    from courses import refer
+    part = d["part"]
+    total = len(course["parts"][part])
+    size = 52 if len(d["name"]) <= 12 else 38 if len(d["name"]) <= 20 else 28
+    fg = "#FFFFFF" if part == "Tech" else "#12161C"
+    facts = []
+    for label, words in (("Opponent", [d["cpu"]] if d["cpu"] not in
+                          ("", "-") else []),
+                         ("Builds on", refer(course, d, d["requires"])),
+                         ("Leads to", refer(course, d, d["leads"]))):
+        if words:
+            facts.append('<div class="fact"><div class="fl">%s</div>'
+                         '<div class="fv">%s</div></div>' % (
+                             label, esc(", ".join(words))))
+    done = progress.done(d["id"])
+    plays = d["id"] in here
+    return (
+        '<div class="top" style="background-color: %s"/><div class="slant" '
+        'style="background-color: %s"/><div class="head" style="color: %s">'
+        '<div class="tags">%s · DRILL %d OF %d</div><div class="dname" '
+        'style="font-size: %ddp">%s</div></div><div class="body"><div '
+        'class="goal">%s</div>%s<div class="grow"/><div class="donebtn%s">'
+        '<div class="box%s"/><div>%s</div><div class="grow"/>%s</div>'
+        '<div class="go%s"><div class="un">%s<div>%s</div></div></div></div>'
+        % (PART_COLOR[part], PART_COLOR[part], fg, part.upper(),
+           d["number"], total, size, esc(d["name"]), esc(d["goal"]),
+           "".join(facts), " on" if done else "", " on" if done else "",
+           "Done. Press again to undo" if done else "Mark as done",
+           key("Y", dark=done), "" if plays else " off",
+           key("A", dark=True), "Start" if plays else "Not in this client "
+           "yet"))
+
+
+def drill_list(c, course, part, here, progress, at, top):
+    from courses import PARTS
+    drills = course["parts"][part]
+    tabs = "".join(
+        '<div class="ptab %s%s"><div class="un">%s · %d</div></div>' % (
+            PART_CLASS[p], " on" if p == part else "", p,
+            len(course["parts"][p])) for p in PARTS)
+    body = (
+        header(["Train", c["name"], part],
+               tag=(c["name"], c["color"], c["fg"])) +
+        '<div class="tabs">' + key("L", dark=True, wide=True) + tabs +
+        key("R", dark=True, wide=True) + '</div>'
+        '<div class="listhead"><div class="c-n"><div class="cap"/><div>#'
+        '</div></div><div class="c-name">DRILL</div><div class="c-t">TRIES'
+        '</div><div class="c-t">SUCCESS</div><div class="c-b">BEST</div>'
+        '<div class="c-h">HERE</div><div class="c-d"><div>DONE</div></div>'
+        '</div>'
+        '<div id="rows" class="rows">' +
+        list_rows(course, part, here, progress, at, top) + '</div>'
+        '<div id="detail" class="card detail">' +
+        list_detail(course, drills[at], here, progress) + '</div>' +
+        footer(drills[at]["goal"], [("A", "Start"), ("Y", "Done"),
+                                    ("B", "Back")], tab=PART_COLOR[part]))
+    return page("Drills", body)
+
+
+# ---- a drill running --------------------------------------------------------------
+
+CHECK_WORDS = {"target_hit": "You hit them", "not_hit": "You were not hit",
+               "target_not_hit": "They were not hit", "hit": "You were hit"}
+
+
+def check_rows(checks):
+    return "".join(
+        '<div class="chk"><div class="box%s"/><div>%s</div><div class="grow"/>'
+        '<div class="yn">%s</div></div>' % (
+            " on" if ch["passed"] else "",
+            esc(CHECK_WORDS.get(ch["expect"], ch["expect"])),
+            "YES" if ch["passed"] else "NO") for ch in checks)
+
+
+def last_squares(results):
+    """The last ten attempts, oldest first."""
+    shown = results[-10:]
+    return "".join('<div class="sq3%s"/>' % (" on" if ok else "")
+                   for ok in shown) + "".join(
+        '<div class="sq3 none"/>' for _ in range(10 - len(shown)))
+
+
+def drill_rail(c, d, course, about):
+    part = d["part"]
+    total = len(course["parts"][part])
+    fg = "#FFFFFF" if part == "Tech" else "#12161C"
+    size = 40 if len(d["name"]) <= 12 else 32 if len(d["name"]) <= 20 else 24
+    head = ('<div class="top" style="background-color: %s"/><div class='
+            '"slant" style="background-color: %s"/><div class="head" style='
+            '"color: %s"><div class="tags">%s · %d OF %d</div><div class='
+            '"dname" style="font-size: %ddp">%s</div></div>' % (
+                PART_COLOR[part], PART_COLOR[part], fg, part.upper(),
+                d["number"], total, size, esc(d["name"])))
+    body = (
+        '<div class="line">%s</div>'
+        '<div class="try"><div class="row"><div class="lbl">THIS TRY</div>'
+        '<div class="grow"/><div id="n" class="lbl">0</div></div>'
+        '<div id="verdict" class="verdict">Go</div>'
+        '<div id="checks"/></div>'
+        '<div class="row lastrow"><div class="lbl">LAST 10</div>'
+        '<div class="grow"/><div id="count" class="lbl">0 OF 0</div></div>'
+        '<div id="last" class="sqs3">%s</div>'
+        '<div class="stats two"><div class="stat"><div id="tries" class="n">'
+        '0</div><div class="l">tries</div></div><div class="stat"><div '
+        'id="rate" class="n">-</div><div class="l">yes</div></div><div '
+        'class="stat"><div id="best" class="n">0</div><div class="l">best '
+        'run</div></div></div>'
+        '<div class="grow"/><div class="hints"><div class="hintrow">%s'
+        '<div>Back to the list</div></div></div>' % (
+            esc(about), last_squares([]), key("HOLD START", wide=True)))
+    banner = ('<div class="bannerwrap"><div id="banner" class="banner">'
+              '<div class="chip"><div id="bword" class="un">YES</div></div>'
+              '<div class="msg"><div id="bmsg" class="un">.</div></div></div>'
+              '</div>')
+    return page("Drill", banner + '<div class="rail">%s<div class="body">%s'
+                '</div></div>' % (head, body), paper=False)

@@ -9,10 +9,13 @@ the left and a column beside it says what is going on. Your controller (or
 the keyboard: tools/melee_native/play.py has the keys) drives the menus
 and then the fighter.
 
-What is here: the main menu, the character select (26 characters, their
-traits from data/characters/), and free play as the chosen character
-against a standing Marth. Hold START to come back to the menu. What is
-not: Lab, Events, Versus, Controls, courses and drills, sound.
+What is here: the main menu; the character select (26 characters, their
+traits from data/characters/); for a character with a course, the hub with
+its four parts and each part's drills from data/courses/, which you can
+mark as done; the drills that have a scenario (data/scenarios/) running
+against you with a verdict for every attempt; free play against a standing
+Marth. Hold START to come back. What is not: Lab, Events, Versus,
+Controls, most drills, the guide, sound.
 
 Needs tools/aurora32/build.sh (with RmlUi) and tools/native_build.py
 --window. --offscreen runs it on a virtual display, which is how it is
@@ -29,13 +32,19 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
 
+sys.path.insert(0, str(ROOT / "tools"))
+
 import characters  # noqa: E402
+import courses  # noqa: E402
 import fonts  # noqa: E402
 import screens  # noqa: E402
 import window  # noqa: E402
-from native import CHARACTERS, NativeError  # noqa: E402
+from native import NativeError  # noqa: E402
+from melee_actor import scenario as scn  # noqa: E402
+from melee_actor import train  # noqa: E402
 
-A, B, START = 0x100, 0x200, 0x1000
+A, B, X, Y, START = 0x100, 0x200, 0x400, 0x800, 0x1000
+L, R = 0x40, 0x20
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = 7
@@ -50,11 +59,26 @@ MAIN_MOVES = {
 }
 
 
+class Leave(Exception):
+    """The player asked to leave what is running."""
+
+
 class Client:
     def __init__(self, game, port=0, source="auto", opponent="marth",
-                 stage="final-destination"):
+                 stage="final-destination", save=None):
         self.w = game
         self.port = port
+        self.source = source
+        self.progress = courses.Progress(save or courses.SAVE)
+        self.here = courses.scenarios()   # drill id -> scenario file
+        self.course = None            # of the character being trained
+        self.c = None                 # that character
+        self.hub_at = "p0"            # the hub panel in focus
+        self.part = 0                 # the part whose drills are listed
+        self.row = [0, 0, 0, 0]       # the drill in focus, per part
+        self.top = [0, 0, 0, 0]       # the first row shown, per part
+        self.back = "chars"           # where free play returns to
+        self.person = None            # tests: called before every frame
         self.opponent, self.stage = opponent, stage
         self.roster = characters.roster()
         self.screen = None
@@ -86,6 +110,13 @@ class Client:
 
     def say(self, text):
         self.w.ui("text desc " + screens.esc(text))
+
+    def put(self, ident, rml):
+        """Replace an element's content (through a file: a list of rows is
+        longer than a control line)."""
+        path = OUT / ("part-%s.rml" % ident)
+        path.write_text(rml)
+        self.w.ui("file %s %s" % (ident, path))
 
     def show_main(self):
         self.screen = "main"
@@ -179,20 +210,236 @@ class Client:
         if pressed & B:
             self.show_main()
         elif pressed & A:
-            self.play(self.roster[self.at])
+            c = self.roster[self.at]
+            if courses.load(c["id"]):
+                self.show_hub()
+            else:
+                self.back = "chars"
+                self.play(c)
+
+    # ---- the course hub -----------------------------------------------------------
+
+    def left_off(self):
+        """The drill last played, if it is one of this course's."""
+        last = self.progress.data.get("last")
+        if last and last.get("character") == self.c["id"]:
+            return self.course["by_id"].get(last.get("drill"))
+        return None
+
+    def hub_about(self):
+        if self.hub_at == "free":
+            return "Free play against a standing opponent. Nothing is judged."
+        part = courses.PARTS[int(self.hub_at[1])]
+        return "%s: %s Every part is open from the start." % (
+            part, courses.ABOUT[part][2])
+
+    def show_hub(self):
+        self.screen = "hub"
+        self.w.capture(True)
+        c = self.roster[self.at]
+        if self.c is not c:
+            self.c, self.course = c, courses.load(c["id"])
+            self.hub_at, self.part = "p0", 0
+            self.row, self.top = [0, 0, 0, 0], [0, 0, 0, 0]
+        self.last = c
+        self.load("hub", screens.hub(c, self.course, self.here,
+                                     self.progress, self.left_off()))
+        self.w.ui("class %s focus 1" % self.hub_at)
+        self.hub_tab()
+
+    def hub_tab(self):
+        self.say(self.hub_about())
+        color = screens.PART_COLOR[courses.PARTS[int(self.hub_at[1])]] \
+            if self.hub_at != "free" else "#5B3FD6"
+        self.w.ui("attr tab style background-color: %s" % color)
+
+    def on_hub(self, pressed, moves):
+        at = self.hub_at
+        if at == "free":
+            if moves & UP:
+                at = "p%d" % self.part
+        else:
+            i = int(at[1])
+            if moves & LEFT and i > 0:
+                at = "p%d" % (i - 1)
+            if moves & RIGHT and i < 3:
+                at = "p%d" % (i + 1)
+            if moves & DOWN:
+                self.part, at = i, "free"
+        if at != self.hub_at:
+            self.w.ui("class %s focus 0" % self.hub_at)
+            self.hub_at = at
+            self.w.ui("class %s focus 1" % at)
+            self.hub_tab()
+        left = self.left_off()
+        if pressed & B:
+            self.show_characters()
+        elif pressed & A and self.hub_at == "free":
+            self.back = "hub"
+            self.play(self.c)
+        elif pressed & A:
+            self.part = int(self.hub_at[1])
+            self.show_list()
+        elif pressed & X and left:
+            self.part = courses.PARTS.index(left["part"])
+            self.focus_row(self.course["parts"][left["part"]].index(left))
+            self.show_list()
+
+    # ---- a part's drills ------------------------------------------------------------
+
+    def drills(self):
+        return self.course["parts"][courses.PARTS[self.part]]
+
+    def focus_row(self, at):
+        """Put the focus on a row, scrolling so it is in view."""
+        top = self.top[self.part]
+        if at < top:
+            top = at
+        if at >= top + screens.ROWS:
+            top = at - screens.ROWS + 1
+        self.row[self.part], self.top[self.part] = at, top
+
+    def show_list(self):
+        self.screen = "list"
+        self.w.capture(True)
+        part = courses.PARTS[self.part]
+        self.load("drills", screens.drill_list(
+            self.c, self.course, part, self.here, self.progress,
+            self.row[self.part], self.top[self.part]))
+
+    def refresh_list(self):
+        part = courses.PARTS[self.part]
+        d = self.drills()[self.row[self.part]]
+        self.put("rows", screens.list_rows(
+            self.course, part, self.here, self.progress,
+            self.row[self.part], self.top[self.part]))
+        self.put("detail", screens.list_detail(self.course, d, self.here,
+                                               self.progress))
+        self.say(d["goal"])
+
+    def on_list(self, pressed, moves):
+        at, n = self.row[self.part], len(self.drills())
+        if moves & UP and at > 0:
+            at -= 1
+        if moves & DOWN and at < n - 1:
+            at += 1
+        turn = 0
+        if (pressed & L or moves & LEFT) and self.part > 0:
+            turn = -1
+        if (pressed & R or moves & RIGHT) and self.part < 3:
+            turn = 1
+        d = self.drills()[self.row[self.part]]
+        if turn:
+            self.part += turn
+            self.show_list()
+        elif at != self.row[self.part]:
+            self.focus_row(at)
+            self.refresh_list()
+        elif pressed & Y:
+            self.progress.toggle(d["id"])
+            self.refresh_list()
+        elif pressed & B:
+            self.show_hub()
+        elif pressed & A:
+            if d["id"] in self.here:
+                self.drill(d)
+            else:
+                self.say("%s is not built for the native client yet." %
+                         d["name"])
+
+    # ---- a drill ----------------------------------------------------------------------
+
+    def drill_frame(self, game, frame):
+        """Before every frame of a drill: the way out, and (in tests) the
+        stand-in for the player."""
+        self.read()
+        if self.start_held >= 40:
+            raise Leave()
+        if self.person is not None:
+            self.person(game, frame)
+
+    def show_result(self, result, results):
+        ok = bool(result["success"])
+        words = train.verdict(result)
+        if ok:
+            words = "; ".join(screens.CHECK_WORDS.get(c["expect"],
+                                                      c["expect"])
+                              for c in result["checks"]) or "done"
+        else:
+            words = words[4:] if words.startswith("no: ") else words
+        best = run = 0
+        for r in results:
+            run = run + 1 if r else 0
+            best = max(best, run)
+        shown = results[-10:]
+        for ident, text in (
+                ("n", len(results)), ("verdict", "Yes" if ok else "No"),
+                ("count", "%d OF %d" % (sum(shown), len(shown))),
+                ("tries", len(results)),
+                ("rate", "%d%%" % round(100.0 * sum(results) /
+                                        len(results))),
+                ("best", best), ("bword", "Yes" if ok else "No"),
+                ("bmsg", screens.esc(words))):
+            self.w.ui("text %s %s" % (ident, text))
+        self.put("checks", screens.check_rows(result["checks"]))
+        self.put("last", screens.last_squares(results))
+        self.w.ui("class banner on 1")
+
+    def drill(self, d):
+        """Run a drill until the player leaves it: the scenario's opponent
+        against them, a verdict for each attempt."""
+        sc = scn.load(str(self.here[d["id"]]))
+        self.say("Loading %s." % d["name"])
+        self.w.step()
+        # the game sets the match up with its own presses, at full speed
+        self.w.live(self.port, "off")
+        self.w.pace(False)
+        try:
+            session = scn.Session(sc, game=self.w, person=self.port)
+        finally:
+            self.w.live(self.port, self.source)
+            self.w.pace(True)
+        # The A that started the drill is still down, and A in shield is
+        # a grab: wait for the buttons to be let go before the first try.
+        for _ in range(90):
+            self.w.step()
+            if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
+                break
+        self.screen = "drill"
+        self.start_held = 0
+        self.load("drill", screens.drill_rail(
+            self.c, d, self.course, sc.get("about", d["goal"])))
+        self.w.capture(False)
+        results = []
+        first = random.randrange(1 << 20)
+        try:
+            while True:
+                result = session.run(jitter=3.0, run=first + len(results),
+                                     each_frame=self.drill_frame)
+                results.append(bool(result["success"]))
+                self.show_result(result, results)
+                for _ in range(75):
+                    self.drill_frame(self.w, -1)
+                    self.w.step()
+                self.w.ui("class banner on 0")
+        except Leave:
+            pass
+        self.progress.record(d["id"], self.c["id"], results)
+        self.results = results
+        self.show_list()
+
+    # ---- free play --------------------------------------------------------------------
 
     def play(self, c):
         """Free play as this character."""
         self.say("Loading %s." % c["name"])
-        self.w.match(c["id"], self.opponent, self.stage,
-                     seed=random.randrange(1, 1 << 30))
-        for _ in range(900):
-            self.w.step()
-            if self.w.fighter(0).fp and self.w.fighter(1).fp and \
-                    self.w.fighter(0).ckind == CHARACTERS[c["id"]]:
-                break
-        else:
-            raise NativeError("the match never started")
+        self.w.step()
+        self.w.pace(False)
+        try:
+            self.w.start(c["id"], self.opponent, self.stage,
+                         seed=random.randrange(1, 1 << 30), settle=False)
+        finally:
+            self.w.pace(True)
         self.last = c
         self.screen = "match"
         self.start_held = 0
@@ -203,7 +450,10 @@ class Client:
 
     def on_match(self, pressed, moves):
         if self.start_held >= 40:
-            self.show_characters()
+            if self.back == "hub":
+                self.show_hub()
+            else:
+                self.show_characters()
 
     def run(self, frames=0):
         while not frames or self.frames < frames:

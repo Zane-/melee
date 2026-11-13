@@ -245,7 +245,15 @@ class Native:
         boot, ask for the match, wait for the fighters, and (settle) for
         them to land from their entrance and the countdown to end."""
         self.step(30)
+        # A match may already be running: its fighters go before the new
+        # ones come, and "both fighters exist" must mean the new ones.
+        had = bool(self.fighter(0).fp)
         self.match(p1, p2, stage, seed, p2_human)
+        if had:
+            for _ in range(300):
+                self.step()
+                if not self.fighter(0).fp:
+                    break
         for _ in range(600):
             self.step()
             if self.fighter(0).fp and self.fighter(1).fp:

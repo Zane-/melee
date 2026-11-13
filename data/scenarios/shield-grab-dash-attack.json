@@ -1,4 +1,5 @@
 {
+  "drill": "fox-shield-then-punish",
   "name": "Shield the dash attack, grab out of shield",
   "about": "Marth runs in with a dash attack. Hold your shield, and as soon as the hit has landed on it, grab: he cannot do anything for 20 more frames.",
   "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,

@@ -14,6 +14,7 @@
  *   ui hide | ui show       the current document
  *   ui class ID NAME 0|1    take a class off an element, or put it on
  *   ui text ID RML...       replace an element's content
+ *   ui file ID PATH         the same, the content read from a file
  *   ui attr ID NAME VALUE   set an attribute
  *
  * Documents are written for a 1280 by 720 window in `dp` units; the scale
@@ -26,6 +27,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <set>
 #include <string>
 
 extern "C" {
@@ -95,8 +97,17 @@ const char* host_ui_command(const char* line)
         return "no interface: Aurora has no RmlUi context";
     }
     if (verb == "font") {
-        return Rml::LoadFontFace(rest(line)) ? nullptr
-                                             : "that font did not load";
+        /* once each: a second client on the same game asks again */
+        static std::set<std::string> loaded;
+        std::string path = rest(line);
+        if (loaded.count(path) != 0) {
+            return nullptr;
+        }
+        if (!Rml::LoadFontFace(path)) {
+            return "that font did not load";
+        }
+        loaded.insert(path);
+        return nullptr;
     }
     if (verb == "load") {
         Rml::ElementDocument* next = context->LoadDocument(rest(line));
@@ -135,12 +146,29 @@ const char* host_ui_command(const char* line)
         element->SetInnerRML(rest(line));
         return nullptr;
     }
+    if (verb == "file") {
+        /* as "text", from a file: a control line is too short for a list */
+        std::string path = rest(line);
+        std::string text;
+        char buffer[4096];
+        size_t n;
+        FILE* f = fopen(path.c_str(), "rb");
+        if (f == nullptr) {
+            return "that file did not open";
+        }
+        while ((n = fread(buffer, 1, sizeof buffer, f)) > 0) {
+            text.append(buffer, n);
+        }
+        fclose(f);
+        element->SetInnerRML(text);
+        return nullptr;
+    }
     if (verb == "attr") {
         std::string name = word(line);
         element->SetAttribute(name, rest(line));
         return nullptr;
     }
-    return "ui: font, load, hide, show, class, text or attr";
+    return "ui: font, load, hide, show, class, text, file or attr";
 }
 
 #endif

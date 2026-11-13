@@ -1,0 +1,106 @@
+{
+  "drill": "fox-whiff-punish",
+  "name": "Punish a whiffed forward smash",
+  "about": "Marth swings a forward smash from too far away. Stay out of it, then run in and punish before he can act again: he will shield, jab or roll next.",
+  "p1": "fox",
+  "p2": "marth",
+  "stage": "final-destination",
+  "seed": 1,
+  "setup": [
+    {
+      "place": 0,
+      "x": -30,
+      "facing": 1
+    },
+    {
+      "place": 1,
+      "x": 12,
+      "facing": -1,
+      "percent": 30
+    }
+  ],
+  "opponent": {
+    "port": 1,
+    "script": [
+      {
+        "do": "wait",
+        "frames": 40
+      },
+      {
+        "do": "attack",
+        "move": "fsmash"
+      },
+      {
+        "choose": [
+          [
+            {
+              "do": "hold",
+              "frames": 90,
+              "buttons": [
+                "R"
+              ]
+            }
+          ],
+          [
+            {
+              "do": "attack",
+              "move": "jab"
+            },
+            {
+              "do": "attack",
+              "move": "jab"
+            }
+          ],
+          [
+            {
+              "do": "hold",
+              "frames": 4,
+              "buttons": [
+                "R"
+              ]
+            },
+            {
+              "do": "hold",
+              "frames": 30,
+              "buttons": [
+                "R"
+              ],
+              "stick": [
+                "away",
+                0
+              ]
+            }
+          ]
+        ],
+        "weights": [
+          2,
+          1,
+          1
+        ]
+      }
+    ]
+  },
+  "player": {
+    "port": 0,
+    "script": [
+      {
+        "do": "wait",
+        "until": "target_swung"
+      },
+      {
+        "do": "rush",
+        "move": "grab"
+      },
+      {
+        "do": "throw",
+        "direction": "up"
+      }
+    ]
+  },
+  "frames": 400,
+  "after": 10,
+  "success": [
+    "target_hit",
+    "not_hit"
+  ]
+}

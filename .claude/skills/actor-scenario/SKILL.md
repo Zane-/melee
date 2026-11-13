@@ -107,3 +107,14 @@ do not run it on the owner's desktop: use `--offscreen`, or `tests/actor/train.p
 plays it with key presses on a virtual display. A scenario meant for a person needs an
 `about` line (what to do, in a sentence) and an opponent script that lasts as long as the
 attempt should: the attempt ends when that script does.
+
+## As a drill of a course in the native client
+
+The client (`python tools/melee_client/client.py`) lists a character's course from
+`data/courses/<id>.md` and plays a drill when a scenario names it: add
+`"drill": "<course drill id>"` to the scenario file in `data/scenarios/` (the id column of
+the course's plan table). It then appears with "PLAYS" in that part's list and runs under
+the client's own column and banner. Check it with nobody at the controls first
+(`Session(scenario, game=window, person=0)` for ten varied attempts: every attempt should
+end and none should count as a success) and then with `tests/client/course.py` as the
+pattern for a stand-in player.
