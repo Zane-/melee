@@ -121,6 +121,7 @@ ninja
 | Course curricula and drill specs | `data/courses/` (`README.md` for the format) |
 | Plan a course / specify a drill / implement a drill | skills `plan-character-course`, `design-training-scenario`, `add-course-drill` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
+| Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/` |
 
 ## Verification status
 
