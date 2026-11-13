@@ -457,6 +457,11 @@ class Fighter:
     def invulnerable(self):
         return self._u32(0x1988) != 0 or self._u32(0x198C) != 0
 
+    @property
+    def hitbox(self):
+        """One of its attack's hitboxes is out this frame."""
+        return any(self._u32(0x914 + i * 0x138) != 0 for i in range(4))
+
     def summary(self):
         x, y = self.pos
         return "P%d state %3d f%-4g pos (%7.2f, %6.2f) %s %5.1f%%" % (

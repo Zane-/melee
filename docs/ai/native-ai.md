@@ -38,6 +38,7 @@ not built.
 | A frame per exchange: `tick` sets the pads, runs frames, returns the state (both fighters: state, frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield, kind, jumps used, invulnerable, stocks; items; the random seed) | `src/host/control.c`, `Native.step` | `tests/native/env.py` |
 | Placing fighters: `Native.place()` | `src/host/setup.c` | `tests/native/place.py`: on Final Destination and on Battlefield's platforms, in the air, refused where there is no floor |
 | Snapshots: `Native.snapshot()` / `restore()` / `drop()` | `control.c` (below) | `tests/native/env.py`: the same inputs from a snapshot give the same game, in any order of restores, and the same as a fresh process |
+| Scenarios: a situation, an opponent's script or policy, a stand-in player, what counts as success; many runs from one set-up, each moved about | `tools/melee_actor/scenario.py`, `run.py` | `tests/actor/scenarios.py`: a whiff punish that waits for the swing to be spent (40 of 40 runs moved by up to 2 units, 0.9 s), and the same situation entered too early, which gets the player hit |
 | The Melee Actor, unchanged, on either the native build or the simulator | `tools/melee_actor/actor.py` | `tests/actor/uptilt.py` (4 of 4 on both) |
 | slippi-ai policies as players, on either | `tools/melee_actor/policy.py` | `tests/actor/policy_match.py` |
 
@@ -104,13 +105,29 @@ Where a person can train **today** is still the overlay build on Dolphin
 |-|-|-|
 | N1 (done) | The interface above; actor and policies on it | the three tests |
 | N2 (placement done) | Setting up a situation from a command instead of from play. `Native.place(port, x, y, facing, air, percent)`: standing on whatever floor is at or below the point, or falling from it; not holding or held, no speed, a full shield (`src/host/setup.c`, the course engine's placement on the game's own functions). Stocks, items and the rest of a match's rules: not yet | `tests/native/place.py`, 11 checks |
-| N3 | The actor's step library (`melee-actor.md`, A2) and "react when", developed here at 8,900 frames a second; script files and a runner with a verdict as JSON (A3) | one test per step; a drill's player-side test rewritten as a script |
-| N4 | A trainer process: a scenario (setup, the opponent's script or policy, what counts as success), run against a stand-in player, retried from a snapshot, scored | two scenarios from `data/courses/` run end to end, headless |
+| N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`. Not done: every step beyond approach, face, attack, wait, hold (shield, jumps and aerials, dash dance, wavedash, reacting to being attacked, branches) | one scenario per step |
+| N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 | Claude in the loop: turns an instruction into a scenario or a script, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop | an instruction in words becomes a script that passes |
 | N6 | A window, sound and a controller | a person plays a match |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
 N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.
+
+## What the first scenario shows, and does not
+
+`tests/actor/scenarios/whiff_punish.json`: Marth forward smashes from 42 units away, the
+stand-in Fox waits until the hitbox has come out and gone (`target_swung`: 54 frames in,
+found from the game, not counted), runs in and up smashes. `too_early.json` is the same
+with the wait ending when the swing starts: Fox runs into the sword.
+
+- Moved by up to 8 units either way, 36 of 40 runs still pass. In the other four the two
+  started within about 35 units, where the tip of the sword reaches: the situation was not
+  a whiff any more. The runner found that; nobody looked it up.
+- **It is not yet a fair punish.** The stand-in's up smash lands 70 frames after the smash
+  began; Marth could act again after about 47. It lands because the opponent's script has
+  nothing after the smash. `approach` walks its last 18 units, which is most of the delay.
+  A drill needs an opponent that shields or moves when it can, and steps fast enough to
+  beat it. That is what N3 is for.
 
 ## Not verified
 

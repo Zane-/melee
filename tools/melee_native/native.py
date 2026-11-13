@@ -81,6 +81,8 @@ class Fighter:
     jumps_used = property(lambda s: s.d["jumps"])
     invulnerable = property(lambda s: bool(s.d["invuln"]))
     stocks = property(lambda s: s.d["stocks"])
+    # one of its attack's hitboxes is out this frame
+    hitbox = property(lambda s: bool(s.d["hitbox"]))
 
     def summary(self):
         if not self.fp:

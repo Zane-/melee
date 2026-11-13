@@ -220,8 +220,8 @@ naive ones just went 0 for 5.
 | Step | What | Proof |
 |-|-|-|
 | A1 (done) | Reference actor on the simulator: approach, face, attack, wait, hold; expectations | `tests/sim/actor_uptilt.py`, 4 of 4 |
-| A2 | Step library: dash dance, wavedash, short hop aerial with L-cancel, shield and out-of-shield, grab and throw, tech and DI answers, "react when" (a condition that interrupts the current step), branches | one simulator test per step |
-| A3 | Script files and a runner (`tests/actor/*.json`, both sides scripted, expectations), a CLI, and a skill for writing them | a drill's player-side tests rewritten as actor scripts |
+| A2 | Step library: dash dance, wavedash, short hop aerial with L-cancel, shield and out-of-shield, grab and throw, tech and DI answers, "react when" (a condition that interrupts the current step), branches. Developed on the native build since 2026-11-13 | one scenario per step |
+| A3 (first version, 2026-11-13) | Scenario files with both sides scripted and a verdict (`tools/melee_actor/scenario.py`, `run.py`, `tests/actor/scenarios/`), on the native build; steps are generators so two actors run at once; skill `actor-scenario` | `tests/actor/scenarios.py`. Still to do: a drill's player-side tests rewritten as actor scripts |
 | A4 | The C interpreter in the course engine; convert the first drills (whiff punish, tech chase, edgeguard) | same scripts, same simulator, Python and C traces agree; Dolphin once |
 | A5 (bridge done) | slippi-ai in the simulator (option A): the bridge exists; a `play` step in scripts does not | `tests/sim/policy_match.py` (two policies play a minute); `tests/sim/actor_vs_policy.py` (the naive up tilt script: 0 of 5) |
 | A6 | Live bridge (option B) | a person plays a round against it in our build |

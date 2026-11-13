@@ -218,7 +218,8 @@ void host_fighter_json(int slot, char* out, size_t size)
              "\"y\":%.9g,\"vx\":%.9g,\"vy\":%.9g,\"facing\":%.9g,"
              "\"air\":%d,\"percent\":%.9g,\"hitlag\":%.9g,"
              "\"hitstun\":%.9g,\"shield\":%.9g,\"gvel\":%.9g,"
-             "\"kind\":%d,\"jumps\":%d,\"invuln\":%d,\"stocks\":%d}",
+             "\"kind\":%d,\"jumps\":%d,\"invuln\":%d,\"stocks\":%d,"
+             "\"hitbox\":%d}",
              (int) Player_GetPlayerCharacter(slot), (int) fp->motion_id,
              fp->cur_anim_frame, fp->cur_pos.x, fp->cur_pos.y, fp->self_vel.x,
              fp->self_vel.y, fp->facing_dir, (int) fp->ground_or_air,
@@ -226,7 +227,13 @@ void host_fighter_json(int slot, char* out, size_t size)
              fp->x221C_b6 ? *(float*) &fp->mv : 0.0F, fp->shield_health,
              fp->gr_vel, (int) fp->kind, (int) fp->x1968_jumpsUsed,
              (fp->x1988 != 0 || fp->x198C != 0) ? 1 : 0,
-             (int) Player_GetStocks(slot));
+             (int) Player_GetStocks(slot),
+             (fp->x914[0].state != HitCapsule_Disabled ||
+              fp->x914[1].state != HitCapsule_Disabled ||
+              fp->x914[2].state != HitCapsule_Disabled ||
+              fp->x914[3].state != HitCapsule_Disabled)
+                 ? 1
+                 : 0);
 }
 
 /// Every item, in the order of the game's item list.

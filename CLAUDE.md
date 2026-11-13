@@ -132,6 +132,7 @@ ninja
 | Course architecture: hub, drill engine, milestones | `docs/ai/training-courses.md` |
 | Course curricula and drill specs | `data/courses/` (`README.md` for the format) |
 | Plan a course / specify a drill / implement a drill | skills `plan-character-course`, `design-training-scenario`, `add-course-drill` |
+| A scenario on the native build: both sides scripted or a policy, a verdict over many runs | `python tools/melee_actor/run.py FILE --runs N --jitter X`; skill `actor-scenario` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |

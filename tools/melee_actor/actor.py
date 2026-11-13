@@ -8,20 +8,28 @@ the difference from the frame scripts of the course drills
 (src/tmce/events/course): those say "press A on frame 20", this says what
 is to be achieved.
 
-This file is the reference implementation, running on the headless
-simulator (tools/melee_sim). Design, the in-game twin and how learned
-policies (slippi-ai) fit in: docs/ai/melee-actor.md.
+This file is the reference implementation. It runs on the native build
+(tools/melee_native, where it is developed: docs/ai/native-ai.md) and on the
+headless simulator (tools/melee_sim); both give it the same `pad`, `step`
+and `fighter`. Design and how learned policies (slippi-ai) fit in:
+docs/ai/melee-actor.md.
 
-    import sys; sys.path.insert(0, "tools/melee_sim"); sys.path.insert(0, "tools")
-    from sim import Sim
+    import sys; sys.path.insert(0, "tools/melee_native"); sys.path.insert(0, "tools")
+    from native import Native
     from melee_actor.actor import Actor
-    s = Sim.match("lab", "fox", "marth", free=True)
-    result = Actor(s, port=1, target=0).run([
-        {"do": "approach", "range": 12},
-        {"do": "face"},
-        {"do": "attack", "move": "utilt"},
-        {"expect": "target_hit"},
-    ])
+    with Native() as n:
+        n.start("fox", "marth")
+        result = Actor(n, port=1, target=0).run([
+            {"do": "approach", "range": 12},
+            {"do": "face"},
+            {"do": "attack", "move": "utilt"},
+            {"expect": "target_hit"},
+        ])
+
+A step is a generator: it looks at the game, yields the pad for one frame,
+and is resumed after that frame has run. So two actors, one per fighter, can
+be advanced in turn by one loop (`run_together`), which is how a scenario
+plays an opponent's script against a player's (scenario.py).
 """
 
 # Action states the actor reasons about (src/melee/ft/kinds/ftCommon/forward.h,
@@ -33,6 +41,8 @@ RUN = 21
 KNEEBEND = 24
 SQUAT_FIRST, SQUAT_LAST = 39, 41
 LANDING = 42
+ATTACK_FIRST, ATTACK_LAST = 44, 74     # jab 1 .. down air
+CATCH_FIRST, CATCH_LAST = 212, 215     # grab, dash grab and their misses
 
 # One-frame inputs for moves. `toward` is replaced by the direction of the
 # target (+1 / -1) when the input is built.
@@ -105,13 +115,11 @@ class Actor:
 
     # ---- one frame ----------------------------------------------------------
 
-    def tick(self, **pad):
-        """Hold `pad` for one frame (nothing = neutral) and advance."""
-        if self.other is not None:
-            self.other(self.sim, self.frame)
-        self.sim.pad(self.port, **pad)
-        self.sim.step()
-        self.frame += 1
+    @staticmethod
+    def pad(**pad):
+        """What a step yields: the pad to hold for one frame (nothing =
+        neutral)."""
+        return pad
 
     def _input(self, move):
         t = self.toward()
@@ -134,19 +142,19 @@ class Actor:
             me, dist = self.me(), abs(self.dx())
             if dist <= range and dist >= range - tolerance and \
                     self.grounded_idle(me):
-                self.tick()
+                yield {}
                 return dict(distance=round(abs(self.dx()), 1))
             going_off = abs(me.pos[0] + self.toward() * 4) > self.limit
             if me.airborne or (going_off and dist > range):
-                self.tick()                                  # wait at the edge
+                yield {}                                  # wait at the edge
             elif dist > range + 18:
-                self.tick(stick=(self.toward(), 0))          # run
+                yield dict(stick=(self.toward(), 0))          # run
             elif dist > range:
-                self.tick(stick=(self.toward() * 0.45, 0))   # walk the rest
+                yield dict(stick=(self.toward() * 0.45, 0))   # walk the rest
             elif dist < range - tolerance:
-                self.tick(stick=(-self.toward() * 0.45, 0))  # too close
+                yield dict(stick=(-self.toward() * 0.45, 0))  # too close
             else:
-                self.tick()                                  # slide to a stop
+                yield {}                                  # slide to a stop
         raise StepFailed("never got within %.0f of the target" % range)
 
     def do_face(self, timeout=60, **_):
@@ -155,8 +163,8 @@ class Actor:
             me = self.me()
             if me.facing == self.toward() and self.grounded_idle(me):
                 return {}
-            self.tick(stick=(self.toward() * 0.3, 0))
-            self.tick()
+            yield dict(stick=(self.toward() * 0.3, 0))
+            yield {}
         raise StepFailed("could not turn to face the target")
 
     def do_attack(self, move, timeout=120, **_):
@@ -168,8 +176,8 @@ class Actor:
         pad = self._input(move)
         if move.endswith("tilt"):
             for _ in _frames(TILT_SETTLE):
-                self.tick(stick=pad["stick"])
-        self.tick(**pad)
+                yield dict(stick=pad["stick"])
+        yield dict(pad)
         states = []
         for _ in _frames(timeout):
             me = self.me()
@@ -180,21 +188,34 @@ class Actor:
                     (states and me.state == WAIT and self.frame > 2 and
                      len(states) > 1):
                 break
-            self.tick()
+            yield {}
         return dict(states=states,
                     damage=round(self.them().percent - before, 1))
 
     def do_wait(self, frames=None, until=None, timeout=600, **_):
         """Wait a number of frames, or until a condition holds:
-        "target_grounded", "target_airborne", "in_range:<units>"."""
+        "target_grounded", "target_airborne", "target_idle",
+        "target_attacking", "target_swung" (its hitbox came out and went),
+        "target_frame:<n>", "in_range:<units>"."""
         if frames is not None:
             for _ in _frames(frames):
-                self.tick()
+                yield {}
             return {}
+        if until == "target_swung":
+            # the target's hitbox has been out and is gone again: the swing
+            # is spent, what is left of the move is its ending
+            out = False
+            for n in _frames(timeout):
+                now = self.them().hitbox
+                if out and not now:
+                    return dict(waited=n)
+                out = out or now
+                yield {}
+            raise StepFailed("waited %d frames for a swing" % timeout)
         for _ in _frames(timeout):
             if self._condition(until):
                 return {}
-            self.tick()
+            yield {}
         raise StepFailed("waited %d frames for %s" % (timeout, until))
 
     def do_hold(self, frames, buttons=(), stick=(0, 0), **_):
@@ -203,7 +224,7 @@ class Actor:
             kw = dict(buttons=list(buttons), stick=tuple(stick))
             if "R" in buttons:
                 kw["r"] = 1.0
-            self.tick(**kw)
+            yield kw
         return {}
 
     def _condition(self, text):
@@ -214,6 +235,14 @@ class Actor:
             return them.airborne
         if text and text.startswith("in_range:"):
             return abs(self.dx()) <= float(text.split(":")[1])
+        if text == "target_attacking":
+            return ATTACK_FIRST <= them.state <= ATTACK_LAST or \
+                CATCH_FIRST <= them.state <= CATCH_LAST or them.state >= 341
+        if text == "target_idle":
+            return self.grounded_idle(them)
+        if text and text.startswith("target_frame:"):
+            # the target's animation has reached this frame
+            return them.state_frame >= float(text.split(":")[1])
         raise StepFailed("unknown condition %r" % text)
 
     # ---- expectations -------------------------------------------------------
@@ -227,6 +256,14 @@ class Actor:
         if what == "target_not_hit":
             return them.percent == since["percent"], \
                 "target at %.0f%%" % them.percent
+        if what == "not_hit":
+            me = self.me()
+            return me.percent == since["own"], \
+                "at %.0f%% (was %.0f%%)" % (me.percent, since["own"])
+        if what == "hit":
+            me = self.me()
+            return me.percent > since["own"], \
+                "at %.0f%% (was %.0f%%)" % (me.percent, since["own"])
         if what.startswith("in_range:"):
             d = abs(self.dx())
             return d <= float(what.split(":")[1]), "distance %.1f" % d
@@ -234,9 +271,10 @@ class Actor:
 
     # ---- running a script ---------------------------------------------------
 
-    def run(self, script):
-        """Execute `script`. Returns {"success", "frames", "steps": [...]}."""
-        since = dict(percent=self.them().percent)
+    def steps(self, script):
+        """A generator over `script`: yields each frame's pad, and returns
+        {"success", "frames", "steps": [...]} when the script is over."""
+        since = dict(percent=self.them().percent, own=self.me().percent)
         ok = True
         for step in script:
             entry = dict(step=step, at=self.frame)
@@ -250,15 +288,67 @@ class Actor:
                     if handler is None:
                         raise StepFailed("unknown step %r" % step["do"])
                     args = {k: v for k, v in step.items() if k != "do"}
-                    entry.update(handler(**args))
+                    gen = handler(**args)
+                    try:
+                        pad = next(gen)
+                        while True:
+                            yield pad
+                            self.frame += 1
+                            pad = next(gen)
+                    except StopIteration as done:
+                        entry.update(done.value or {})
             except StepFailed as e:
                 entry.update(failed=str(e))
                 ok = False
                 self.log.append(entry)
                 break
             self.log.append(entry)
-        self.sim.pad(self.port)
         return dict(success=ok, frames=self.frame, steps=self.log)
+
+    def run(self, script):
+        """Execute `script` alone (anything else moving is driven by
+        `other`). Returns what steps() returns."""
+        gen = self.steps(script)
+        try:
+            while True:
+                pad = next(gen)
+                if self.other is not None:
+                    self.other(self.sim, self.frame)
+                self.sim.pad(self.port, **pad)
+                self.sim.step()
+        except StopIteration as done:
+            self.sim.pad(self.port)
+            return done.value
+
+
+def run_together(sim, pairs, frames=1200, after=0):
+    """Run several actors' scripts at once: `pairs` is [(actor, script)].
+    Each frame every unfinished script gives its fighter's pad, then the
+    game runs one frame. Stops when all are done (plus `after` frames, for
+    what the last input still causes) or after `frames`. Returns their
+    results in order; a script still running at the end gets
+    success=False and "unfinished"."""
+    gens = [actor.steps(script) for actor, script in pairs]
+    results = [None] * len(pairs)
+    for _ in range(int(frames)):
+        for i, (actor, _script) in enumerate(pairs):
+            if results[i] is None:
+                try:
+                    sim.pad(actor.port, **next(gens[i]))
+                except StopIteration as done:
+                    results[i] = done.value
+                    sim.pad(actor.port)
+        if all(r is not None for r in results):
+            break
+        sim.step()
+    for _ in range(int(after)):
+        sim.step()
+    for i, (actor, _script) in enumerate(pairs):
+        if results[i] is None:
+            sim.pad(actor.port)
+            results[i] = dict(success=False, frames=actor.frame,
+                              steps=actor.log, unfinished=True)
+    return results
 
 
 def _frames(n):
