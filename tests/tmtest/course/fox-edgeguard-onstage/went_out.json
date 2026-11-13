@@ -1,0 +1,97 @@
+{
+  "event": "course",
+  "drill": "fox-edgeguard-onstage",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 4,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 7,
+      "hold": 8,
+      "buttons": [
+        "X"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 15,
+      "hold": 15,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 30,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 35,
+      "hold": 2,
+      "buttons": [
+        "X"
+      ],
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 37,
+      "hold": 40,
+      "stick": [
+        127,
+        0
+      ]
+    },
+    {
+      "at": 77,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        90,
+        90
+      ]
+    },
+    {
+      "at": 78,
+      "hold": 80,
+      "stick": [
+        90,
+        90
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "left_stage": 1
+  },
+  "comment": "The same shine spike in the Edgeguard drill: the stock counts, and the verdict notes that the player left the stage."
+}

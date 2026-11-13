@@ -1,0 +1,20 @@
+{
+  "comment": "Doing nothing against the high recovery: Marth makes it back.",
+  "event": "course",
+  "drill": "fox-edgeguard-onstage",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail",
+    "choice": 0
+  }
+}

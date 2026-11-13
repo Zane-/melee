@@ -1,0 +1,23 @@
+{
+  "comment": "Letting go and falling.",
+  "event": "course",
+  "drill": "fox-ledgedash-attack",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [],
+  "inputs": [
+    {
+      "at": 8,
+      "hold": 1,
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

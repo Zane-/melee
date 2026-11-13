@@ -1,0 +1,23 @@
+{
+  "comment": "Rolling up from the ledge: Marth turns and hits the end of the roll.",
+  "event": "course",
+  "drill": "fox-ledgedash-attack",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [],
+  "inputs": [
+    {
+      "at": 8,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

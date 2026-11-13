@@ -15,11 +15,12 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
 opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and nine of
-eleven Punish drills. and five of eleven Defense drills (tech, crouch cancel, survival DI, escape the tech
-chase, shine out of combos). Still plans: the two offstage Punish drills (shine spike,
-edgeguard from the stage) and six Defense drills (SDI, Marth's chain grab, shield
-pressure, wall tech, recovery, getting off the ledge), which need a CPU that combos,
-pressures, edgeguards or recovers. None of the Neutral or new Punish
+eleven Punish drills. and six of eleven Defense drills (tech, crouch cancel, survival DI, escape the tech
+chase, shine out of combos, getting off the ledge). Still plans: the two offstage Punish
+drills (shine spike, edgeguard from the stage) and five Defense drills (SDI, Marth's chain
+grab, shield pressure, wall tech, recovery), which need a CPU that combos, pressures,
+edgeguards or recovers. The chain grab was tried: a Marth that stands under the falling
+player never lands the regrab, he has to space and pivot. None of the Neutral or new Punish
 drills has been played by a person. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;

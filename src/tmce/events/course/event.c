@@ -133,6 +133,11 @@ static void course_Place(CourseCtx* c, float hmn_x, float cpu_x,
 static void course_PlaceSolo(CourseCtx* c, float x);
 static void course_CpuShield(CourseCtx* c);
 static void course_PlaceOnLedge(CourseCtx* c);
+static void course_PlaceCpu(CourseCtx* c, float x, float facing,
+                            float percent);
+static int course_LedgePos(Vec3* pos);
+static void course_PlaceInAir(GOBJ* ft, float x, float y, float facing,
+                              float percent);
 static void course_PlaceOnPlatform(CourseCtx* c, float x, float above_y);
 static int course_Fell(CourseCtx* c);
 static int course_DemoCount(void);
@@ -319,6 +324,8 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/fox_punish_throws.inc.h"
 #include "drills/fox_punish_confirms.inc.h"
 #include "drills/defense.inc.h"
+#include "drills/defense_escapes.inc.h"
+#include "drills/punish_offstage.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -346,6 +353,9 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_DEF_DI_SURVIVAL] = &Drill_DefDiSurvival,
     [DRILL_DEF_TECH_CHASE] = &Drill_DefTechChase,
     [DRILL_DEF_COMBO_SHINE] = &Drill_DefComboShine,
+    [DRILL_FOX_SHINE_SPIKE] = &Drill_FoxShineSpike,
+    [DRILL_FOX_EDGEGUARD] = &Drill_FoxEdgeguard,
+    [DRILL_DEF_LEDGE_ATTACK] = &Drill_DefLedgeAttack,
     [DRILL_FOX_WHIFF_PUNISH] = &Drill_FoxWhiffPunish,
     [DRILL_FOX_WAVEDASH_BACK] = &Drill_FoxWavedashBack,
     [DRILL_FOX_ANTI_AIR] = &Drill_FoxAntiAir,
@@ -509,6 +519,50 @@ static void course_PlaceOnLedge(CourseCtx* c)
     hd->dmg.percent = 0;
     Fighter_SetHUDDamage(hd->ply, 0);
     Fighter_UpdateCameraBox(hmn);
+    Match_CorrectCamera();
+}
+
+/* Where the stage's left ledge is. Returns 0 if it has none. */
+static int course_LedgePos(Vec3* pos)
+{
+    float ledge_dir;
+    int line = course_LedgeFind(-1, 0, &ledge_dir);
+    if (line == -1) {
+        return 0;
+    }
+    GrColl_GetGroundLineEndLeft(line, pos);
+    return 1;
+}
+
+/* A fighter falling at (x, y), with its double jump: for starts off the
+ * stage. As TM-CE's ledgedash event places a falling player. */
+static void course_PlaceInAir(GOBJ* ft, float x, float y, float facing,
+                              float percent)
+{
+    FighterData* fd = ft->userdata;
+    ReleaseGrab(ft);
+    Fighter_EnterSleep(ft, 0);
+    Fighter_EnterRebirth(ft);
+    fd->facing_direction = facing;
+    fd->phys.self_vel.X = 0;
+    fd->phys.self_vel.Y = 0;
+    fd->phys.pos.X = x;
+    fd->phys.pos.Y = y;
+    course_UpdatePosition(ft);
+    Fighter_EnterFall(ft);
+    fd->jump.jumps_used = 1;
+    fd->dmg.percent = percent;
+    Fighter_SetHUDDamage(fd->ply, (u16) percent);
+    Fighter_UpdateCameraBox(ft);
+    Match_CorrectCamera();
+}
+
+/* The CPU standing on the main floor at x, after one of the placements
+ * above that only place the player. */
+static void course_PlaceCpu(CourseCtx* c, float x, float facing,
+                            float percent)
+{
+    ResetFighter(Fighter_GetGObj(1), x, facing, percent);
     Match_CorrectCamera();
 }
 
@@ -713,9 +767,34 @@ static void ReportAppend(const char* key, const char* value)
     /* No snprintf in the game: format into a buffer that fits any key
      * and value used here, then copy if there is room. */
     char buf[64];
+    char* old;
     int n;
     if (strlen(key) + strlen(value) + 5 > sizeof(buf)) {
         return;
+    }
+    /* A key reported again replaces its earlier value: drills that report
+     * every frame used to fill the buffer with copies, and the fields
+     * reported last were dropped. */
+    n = sprintf(buf, ",\"%s\":", key);
+    old = NULL;
+    {
+        /* find `buf` in the report (no strstr among the game's symbols) */
+        int i, j;
+        for (i = 0; i + n <= en.report_len && old == NULL; i++) {
+            for (j = 0; j < n && en.report[i + j] == buf[j]; j++) {
+            }
+            if (j == n) {
+                old = en.report + i;
+            }
+        }
+    }
+    if (old != NULL) {
+        char* next = old + 1;
+        while (*next != '\0' && *next != ',') {
+            next++;
+        }
+        memmove(old, next, strlen(next) + 1);
+        en.report_len = strlen(en.report);
     }
     n = sprintf(buf, ",\"%s\":%s", key, value);
     if (n > 0 && en.report_len + n < (int) sizeof(en.report)) {
