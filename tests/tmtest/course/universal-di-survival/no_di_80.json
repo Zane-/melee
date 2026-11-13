@@ -1,0 +1,23 @@
+{
+  "comment": "At 80% Fox survives without DI.",
+  "event": "course",
+  "drill": "universal-di-survival",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      80
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success"
+  }
+}

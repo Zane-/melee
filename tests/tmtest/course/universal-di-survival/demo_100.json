@@ -1,0 +1,28 @@
+{
+  "comment": "At 100% even DI does not save Fox from the up smash.",
+  "event": "course",
+  "drill": "universal-di-survival",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      100
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail",
+    "demo": 2
+  }
+}

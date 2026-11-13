@@ -1,0 +1,19 @@
+{
+  "comment": "Doing nothing: caught on the ground.",
+  "event": "course",
+  "drill": "fox-escape-techchase",
+  "hmn": "fox",
+  "cpu": "sheik",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "comment": "Demonstration with Tech fixed to Away.",
+  "event": "course",
+  "drill": "universal-tech",
+  "hmn": "fox",
+  "cpu": "sheik",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2,
+    "ask": 1,
+    "did": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "comment": "Doing nothing: the forward smash hits.",
+  "event": "course",
+  "drill": "fox-combo-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}

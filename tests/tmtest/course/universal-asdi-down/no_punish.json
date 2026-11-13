@@ -1,0 +1,29 @@
+{
+  "comment": "Crouching and never hitting back.",
+  "event": "course",
+  "drill": "universal-asdi-down",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 400,
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "crouched": 1
+  }
+}

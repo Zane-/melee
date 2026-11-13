@@ -15,8 +15,11 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
 opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and nine of
-eleven Punish drills. Still plans: the two offstage Punish drills (shine spike, edgeguard
-from the stage), which need a CPU that recovers, and all of Defense. None of the Neutral or new Punish
+eleven Punish drills. and five of eleven Defense drills (tech, crouch cancel, survival DI, escape the tech
+chase, shine out of combos). Still plans: the two offstage Punish drills (shine spike,
+edgeguard from the stage) and six Defense drills (SDI, Marth's chain grab, shield
+pressure, wall tech, recovery, getting off the ledge), which need a CPU that combos,
+pressures, edgeguards or recovers. None of the Neutral or new Punish
 drills has been played by a person. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
@@ -228,6 +231,12 @@ Changed after the owner's first play session (2026-11-12):
   it lands (5 frames after the hit for Falco), with the stick held for the direction. A
   press 2 frames after the hit, inside the hitlag, did nothing. The shine knocks down
   Falco and Fox but only slides Captain Falcon.
+- **Defense drills** (`drills/defense.inc.h`): the CPU attacks. `tg_Setup` / `tg_Advance`
+  make it grab and throw the standing player; the throw's own damage and animation are
+  not the drill, which starts when the player leaves the THROWN states. The player's
+  percent is set with `df_SetPercent` after `course_Place`. A player who dies (survival
+  DI) is put back by the normal reset. "Free" after a grounded hit means out of hitstun
+  and past the 4 landing frames that follow it.
 - **A standing dummy makes kill moves trivial**: the kill confirm drill requires the
   opener to be a grab, shine, up tilt or dash attack.
 

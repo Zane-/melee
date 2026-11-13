@@ -1,0 +1,35 @@
+{
+  "comment": "A shine 10 frames after being free, Gap = Medium (8): it hits Marth but is too slow.",
+  "event": "course",
+  "drill": "fox-combo-shine",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 700,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 57,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

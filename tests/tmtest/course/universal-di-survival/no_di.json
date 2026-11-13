@@ -1,0 +1,19 @@
+{
+  "comment": "No DI at the default percent: dies.",
+  "event": "course",
+  "drill": "universal-di-survival",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}
