@@ -8,8 +8,9 @@ fighters actually are. The same layer lets an agent test things by instruction (
 the player") instead of by frame.
 
 This file is the research and the design. Status: a reference implementation and a proof
-exist on the simulator (`tools/melee_actor/actor.py`, `tests/sim/actor_uptilt.py`);
-nothing is in the game yet, and no learned model has been run.
+exist on the simulator (`tools/melee_actor/actor.py`, `tests/sim/actor_uptilt.py`), and
+trained slippi-ai policies play in the simulator (`tools/melee_actor/policy.py`). Nothing
+is in the game yet.
 
 ## What it is
 
@@ -43,7 +44,7 @@ killed the actor until it was given the stage's width.
 
 | Runtime | State | For |
 |-|-|-|
-| Python on the simulator (`tools/melee_actor/`) | reference implementation: 5 steps, 3 expectations | developing steps; agent-run tests in seconds; the player's side of a drill test |
+| Python on the simulator (`tools/melee_actor/`) | reference implementation: 5 steps, 3 expectations; a trained policy can be the other fighter | developing steps; agent-run tests in seconds; the player's side of a drill test |
 | C in the overlay, inside the course engine | **not built** | the CPU in drills, on console and Slippi with nothing running beside the game |
 | Python beside Dolphin, through libmelee | **not built** | the only place a learned policy can run live |
 
@@ -123,6 +124,29 @@ a source of realistic play around the parts the actor scripts.
 | B. Live, beside Dolphin, through libmelee | Slippi Dolphin running our overlay build; port 2 as a pipe controller instead of a CPU; libmelee seeing our event matches as "in game" | The only way a person plays against it. Three unknowns, none checked: whether Slippi broadcasts frames during a TM-CE event match; whether libmelee's Gecko codes collide with our hooks (the same question `tools/tm_slippi_collisions.py` answers for Slippi's own); how its menu handling copes with a build that boots into our hub |
 | C. Inside the game | - | Not possible: a neural policy does not fit a GameCube's 24 MB and CPU |
 
+**Option A, tried (2026-11-12).** The owner already had a slippi-ai checkout with its JAX
+environment and 137 trained checkpoints (`~/Games/Melee/slippi-ai`, commit of 2026-09-23;
+`deployed_models/`: per-matchup policies such as `fox_d18_vs_marth_v3.1`, `d18` / `d21` =
+frames of delay). `tools/melee_actor/policy.py` fills `types.Game` from simulator memory,
+steps the checkpoint through slippi-ai's own `build_delayed_agent`, and writes the decoded
+controller to `Sim.pad`. Nothing was installed: the script runs under slippi-ai's
+interpreter and adds the project's packages to the path (both are Python 3.14).
+
+- `tests/sim/policy_match.py`: Fox and Marth, each a policy, on Final Destination. It
+  worked on the first run. Over 3600 frames each took a stock; Fox used 67 different
+  action states and Marth 59; there are grabs and throws, wavedashes, a ledge hang with
+  Marth recovering under it. 46 frames per second with both policies on the GPU (an RTX
+  3090), against about 100 for the simulator alone.
+- `tests/sim/actor_vs_policy.py`: the "up tilt the target" script of the proof above
+  against that Fox, five tries. **0 of 5.** Marth walks up, stops, turns and swings at a
+  Fox that is no longer there, and takes up to 47% doing it. This is the point of having
+  the policy: a script that passes against stand-ins says little about a real opponent.
+
+What the bridge leaves out, so far without visible harm: projectiles and items are not
+passed to the policy (it does not see lasers); jumps left assumes two for everyone but
+Kirby and Jigglypuff; only Final Destination's stage number has been used; Nana is always
+absent.
+
 **Recommendation.** Build the actor first: it is what makes scenarios less rigid, it is
 instructable, deterministic, and runs in the game itself. Then try option A as an
 experiment, as one more step type, `{"do": "play", "policy": "...", "until": ...}`: the
@@ -145,12 +169,14 @@ idea as actor steps, one level up, and its chain list is a good checklist for ou
 | A2 | Step library: dash dance, wavedash, short hop aerial with L-cancel, shield and out-of-shield, grab and throw, tech and DI answers, "react when" (a condition that interrupts the current step), branches | one simulator test per step |
 | A3 | Script files and a runner (`tests/actor/*.json`, both sides scripted, expectations), a CLI, and a skill for writing them | a drill's player-side tests rewritten as actor scripts |
 | A4 | The C interpreter in the course engine; convert the first drills (whiff punish, tech chase, edgeguard) | same scripts, same simulator, Python and C traces agree; Dolphin once |
-| A5 | slippi-ai in the simulator (option A) as a `play` step | a policy-driven Fox plays a stock against the vanilla CPU headless |
+| A5 (bridge done) | slippi-ai in the simulator (option A): the bridge exists; a `play` step in scripts does not | `tests/sim/policy_match.py` (two policies play a minute); `tests/sim/actor_vs_policy.py` (the naive up tilt script: 0 of 5) |
 | A6 | Live bridge (option B) | a person plays a round against it in our build |
 
 ## Not verified
 
-- Anything about slippi-ai beyond reading its source: no model was downloaded or run.
+- slippi-ai live in Dolphin (option B): only the simulator bridge has been run.
+- That the policies play as well in our simulator as in Dolphin. They fight and take
+  stocks; nobody has compared the two, and the bridge omits projectiles.
 - That Slippi Dolphin broadcasts frame data during our event matches (option B).
 - That libmelee's Gecko codes are compatible with the overlay's hooks.
 - The actor on any stage but Final Destination, with any actor but Marth, and against a
