@@ -202,6 +202,16 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
     },
+    [DRILL_FOX_SHINE_KNOCKDOWN] = {
+        .id = "fox-shine-knockdown",
+        .name = "Shine Knockdown: Tech Chase",
+        .goal = "Cover the tech or missed tech after a shine",
+        .part = COURSE_PUNISH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_FALCO,
+        .deck = &FastFaller_Deck,
+    },
     [DRILL_FOX_UTHROW_UAIR] = {
         .id = "fox-uthrow-uair",
         .name = "Up Throw Up Air",
@@ -221,6 +231,15 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_FALCO,
         .deck = &FastFaller_Deck,
+    },
+    [DRILL_FOX_AERIAL_CONFIRM] = {
+        .id = "fox-aerial-confirm",
+        .name = "Aerial Hit Confirm",
+        .goal = "Follow a landed aerial before they escape or grab",
+        .part = COURSE_PUNISH,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
     },
     [DRILL_FOX_SHIELD_PRESSURE] = {
         .id = "fox-shield-pressure",

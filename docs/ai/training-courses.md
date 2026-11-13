@@ -14,10 +14,9 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and seven of
-eleven Punish drills (Shine OoS, OoS choice, waveshine up smash, up throw up air, chain
-grab, shield pressure, kill confirms). Still plans: shine knockdown, aerial confirm, shine
-spike, edgeguard from the stage, and all of Defense. None of the Neutral or new Punish
+opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and nine of
+eleven Punish drills. Still plans: the two offstage Punish drills (shine spike, edgeguard
+from the stage), which need a CPU that recovers, and all of Defense. None of the Neutral or new Punish
 drills has been played by a person. The owner played an earlier build on
 2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
 drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
@@ -225,6 +224,10 @@ Changed after the owner's first play session (2026-11-12):
   first free frame cannot be up-aired out of up throw as Marth at any percent from 60 to
   130, so that drill works on reaction; and a CPU left holding its DI direction after
   hitstun walked off the stage and "died", so DI is applied only while it is stuck.
+- **A CPU that techs** (shine knockdown): one R press after the shine's hitlag and before
+  it lands (5 frames after the hit for Falco), with the stick held for the direction. A
+  press 2 frames after the hit, inside the hitlag, did nothing. The shine knocks down
+  Falco and Fox but only slides Captain Falcon.
 - **A standing dummy makes kill moves trivial**: the kill confirm drill requires the
   opener to be a grab, shine, up tilt or dash attack.
 

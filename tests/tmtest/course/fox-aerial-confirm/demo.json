@@ -1,0 +1,24 @@
+{
+  "comment": "Reference demonstration: standing (nair, shine) then crouching (dair, shine).",
+  "event": "course",
+  "drill": "fox-aerial-confirm",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 1200,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}

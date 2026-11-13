@@ -1,0 +1,40 @@
+{
+  "comment": "Shine and nothing else against CPU Tech option 1: no punish.",
+  "event": "course",
+  "drill": "fox-shine-knockdown",
+  "hmn": "fox",
+  "cpu": "falco",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 20,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "choice": 0
+  }
+}

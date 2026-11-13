@@ -1,0 +1,77 @@
+{
+  "event": "course",
+  "drill": "fox-shine-knockdown",
+  "hmn": "fox",
+  "cpu": "falco",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 20,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        0,
+        -127
+      ]
+    },
+    {
+      "at": 27,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 30,
+      "hold": 2,
+      "buttons": [
+        "R"
+      ],
+      "r": 255,
+      "stick": [
+        -127,
+        -40
+      ]
+    },
+    {
+      "at": 41,
+      "hold": 6,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 47,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success"
+  },
+  "comment": "Falco techs in place: jump out of the shine, wavedash after him and dash attack the end of the tech."
+}

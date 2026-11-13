@@ -1,0 +1,47 @@
+{
+  "comment": "A neutral air on standing Marth and nothing after: he jumps away.",
+  "event": "course",
+  "drill": "fox-aerial-confirm",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 9,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 14,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 17,
+      "hold": 1,
+      "buttons": [
+        "A"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "crouch": 0
+  }
+}

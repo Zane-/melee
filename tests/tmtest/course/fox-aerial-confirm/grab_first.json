@@ -1,0 +1,43 @@
+{
+  "comment": "Opening with a grab is not this drill.",
+  "event": "course",
+  "drill": "fox-aerial-confirm",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 600,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 5,
+      "hold": 16,
+      "stick": [
+        -127,
+        0
+      ]
+    },
+    {
+      "at": 21,
+      "hold": 1,
+      "buttons": [
+        "Z"
+      ],
+      "stick": [
+        -127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}
