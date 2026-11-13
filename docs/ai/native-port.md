@@ -98,10 +98,11 @@ Known differences, none investigated to the end:
 
 | Where | What |
 |-|-|
+| Samus against Captain Falcon | 4 of 5 random runs of 1,500 frames identical (2026-11-13); the fifth differs at frame 527 in the last bit of an animation frame counter (1.9166666 / 1.91666675) |
 | Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), `__frsqrte` is an exact reciprocal square root (as in the simulator, unlike hardware), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
 | Sheik's chain | The chain item is in a different state from frame 212 of one run (`falco`/`sheik`, run 1) |
 | Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
-| Ice Climbers | The partner diverges in one run (run 2, frame 183: a solo side special where the console has the pair's). Her inputs come from the CPU code, which nothing here compares. Still so after the 2026-11-13 fixes to that code (kind 7 below); four other runs of 1,500 frames are identical |
+| Ice Climbers | **The most regular difference left.** The side special is the solo one on the console where the native build does the pair's, or the reverse (states 343/344, 345/346): `ftNn_Init_80123954` asks whether the partner is close and free, so the partner was already somewhere else, and the partner is not compared (`compare.py` reads the two ports' first fighters only). Measured 2026-11-13, random inputs, 1,500 frames: against Marth 4 of 5 runs identical (run 2 differs at frame 183, as before); Ice Climbers against Ice Climbers **0 of 5** (frames 183 to 1,113). Her inputs come from the CPU code, where the console's behaviour depends on register contents in places (kind 7 below). Next: compare the partner too (`fighter 4` here; the simulator needs the same) to find her first differing frame |
 | Big Blue, Venom | Three flag unions there are read through pointers and were left as they were |
 | CPU players | Not compared: both players are driven by pads in every run |
 | Menus, other modes | Only the memory card prompt and the debug VS match have run |
