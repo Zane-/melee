@@ -11,6 +11,8 @@
  */
 #include "osdact.h"
 
+#include "../ucf/ucf.h"
+
 #include <melee/ft/ft_0DF0.h>
 #include <melee/ft/ft_0DF1.h>
 #include <melee/ft/ft_0CDD.h>
@@ -197,9 +199,9 @@ void tm_osdact_Guard_IASA(Fighter_GObj* gobj)
         --fp->mv.co.guard.x1C;
     }
 
-    r = ftCo_8009515C(gobj) || ftCo_8009980C(gobj) ||
+    r = ftCo_8009515C(gobj) || tm_ucf_8009980C(gobj) ||
         ftCo_8009917C(gobj) || ftCo_Catch_CheckInput(gobj) ||
-        ftCo_800CB024(gobj) || ftCo_8009A080(gobj);
+        ftCo_800CB024(gobj) || tm_ucf_8009A080(gobj);
     tmce_osdact_OoShield(r, gobj);
 }
 
@@ -221,7 +223,7 @@ void tm_osdact_GuardOff_IASA(Fighter_GObj* gobj)
     {
         r = true;
     } else {
-        r = ftCo_8009980C(gobj) || ftCo_800CB024(gobj);
+        r = tm_ucf_8009980C(gobj) || ftCo_800CB024(gobj);
     }
     tmce_osdact_OoShield(r, gobj);
 }
@@ -274,7 +276,7 @@ void tm_osdact_DamageWaitIasa(Fighter_GObj* gobj)
              ftCo_AttackS3_CheckInput(gobj) ||
              ftCo_AttackHi3_CheckInput(gobj) ||
              ftCo_AttackLw3_CheckInput(gobj) ||
-             ftCo_Attack1_CheckInput(gobj) || ftCo_80099794(gobj) ||
+             ftCo_Attack1_CheckInput(gobj) || tm_ucf_80099794(gobj) ||
              ftCo_80091A4C(gobj) || ftFx_AppealS_CheckInput(gobj) ||
              ftCo_800DE9D8(gobj) || ftCo_Jump_CheckInput(gobj) ||
              ftCo_Dash_CheckInput(gobj) || ftCo_800D5FB0(gobj) ||

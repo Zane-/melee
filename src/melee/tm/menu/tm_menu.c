@@ -1,6 +1,7 @@
 #include "tm_menu.h"
 
 #include "../controls/controls.h"
+#include "../ucf/ucf.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -54,6 +55,7 @@ typedef enum Action {
     Act_Port,    ///< value: the layout port `arg` plays with
     Act_Bind,    ///< value: what input `arg` does in the layout being edited
     Act_Name,    ///< value: the layout nickname row `arg` carries
+    Act_Ucf,     ///< value (fixed): whose UCF is running
     Act_Count
 } Action;
 
@@ -129,6 +131,8 @@ static const Item controls_items[] = {
       LEFT_W, ROW_H, Act_Port, 3, 3, ROW_TEXT },
     { "Nicknames", "Give a nickname its own layout.", LEFT_X, ROW(7), LEFT_W,
       ROW_H, Act_Names, 1, 0, ROW_TEXT },
+    { "UCF 0.84", "Universal Controller Fix: always on. Slippi brings its own.",
+      LEFT_X, ROW(8), LEFT_W, ROW_H, Act_Ucf, 3, 0, ROW_TEXT },
     { "Back", "Return to the main menu.", LEFT_X, ROW(10), LEFT_W, ROW_H,
       Act_Back, 3, 0, ROW_TEXT },
     { "Edit", "The layout the buttons on this side belong to.",
@@ -404,6 +408,9 @@ static bool ValueText(const Item* it, char* out)
     case Act_Bind:
         sprintf(out, "%s",
                 action_names[tm_ctl.profiles[menu.layout].map[it->arg]]);
+        return true;
+    case Act_Ucf:
+        sprintf(out, "%s", tm_ucf_Active() ? "built in" : "Slippi's");
         return true;
     case Act_Name:
         if (tm_ctl.name_profile[menu.name_slot[it->arg]] == 0) {

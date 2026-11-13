@@ -10,6 +10,8 @@
  */
 #include "osdtech.h"
 
+#include "../ucf/ucf.h"
+
 /* tm_osdtech_PreHitlagCallback recomputes vanilla's SDI stick magnitude;
  * vanilla rounds each multiply and the add separately (no fused madd). */
 #pragma fp_contract off
@@ -213,4 +215,6 @@ void tm_osdtech_PreHitlagCallback(Fighter_GObj* gobj)
         float yy = y * y;
         tmce_osdtech_SdiHitlag(fp, xx + yy, min * min);
     }
+    /* Last, so the display above sees the vanilla callback. */
+    tm_ucf_PreHitlag(gobj);
 }

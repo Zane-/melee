@@ -31,6 +31,10 @@ def run(spec, timeout=180, keep_log=False, shots_dir=None):
     started = time.time()
     s = Sim(dol=OUT / "main.dol", overlay_map=OUT / "overlay.map")
     s.m.write(s.m.sym.addr("tm_test_config"), tmtest.pack_config(spec))
+    if os.environ.get("TM_UCF_OFF"):
+        # the build without its UCF (src/melee/tm/ucf/), to tell whether a
+        # spec's result depends on it
+        s.m.w8(s.m.sym.addr("tm_ucf_off"), 1)
     records, other, seen = [], [], 0
     status = "timeout"
     budget = spec.get("max_frames", 600) + 3000

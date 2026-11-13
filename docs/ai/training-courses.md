@@ -380,6 +380,7 @@ text, so it has no art of its own on disc.
     B, X, Y, Z, L, R, D-pad) saying what it does: Attack, Special, Jump, Shield, Grab,
     Taunt, Nothing. A layout exists once one of its buttons has been changed. Layout 0
     ("Standard") cannot be changed.
+  - A row says whose UCF is running: "built in" (`ucf.md`) or "Slippi's".
   - **Nicknames**: a row per nickname in the game's name list; each can carry a layout,
     which then wins over the port's when that nickname is chosen on a character select.
     Nicknames are still made on the character select screen, as in the original game.

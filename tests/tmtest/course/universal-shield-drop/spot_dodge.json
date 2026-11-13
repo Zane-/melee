@@ -1,5 +1,5 @@
 {
-  "comment": "Y -89 is a spot dodge.",
+  "comment": "Pushed past the notch (Y -127 at X 90, below the -0.8 line) is a spot dodge. Before the build had UCF, Y -89 already was; with UCF everything from -80 to about -119 drops (swept 2026-11-13).",
   "event": "course",
   "drill": "universal-shield-drop",
   "hmn": "fox",
@@ -36,7 +36,7 @@
       "hold": 6,
       "stick": [
         90,
-        -89
+        -127
       ]
     }
   ],

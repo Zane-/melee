@@ -1,0 +1,48 @@
+# UCF 0.84 in C (src/melee/tm/ucf/). Slippi injects UCF's assembly inside
+# eight vanilla functions; none of those addresses is touched here. The same
+# rules are reached through the calls and table slots that lead to those
+# functions, and step aside when the assembly is there (tm_ucf_Active).
+# kind  site  target  note
+
+# Pad buffer and 1.0 cardinals (Slippi: Fighter_procInput+0x750). The first
+# call hands over the fighter, the second is the call before the site.
+call     Fighter_procInput+0xC4               tm_ucf_IsCpuControlled     UCF: which fighter
+call     Fighter_procInput+0x738              tm_ucf_8000D148            UCF pad buffer, cardinals
+
+# Dash back (Slippi: ftCo_Turn_IASA+0x4C): the Turn state's input callback.
+pointer  ftData_MotionStateList+0x250         tm_ucf_Turn_IASA           UCF dash back
+
+# Dash back out of crouch (Slippi: ftCo_SquatRv_CheckInput+0x14): its call.
+call     ftCo_SquatWait_IASA+0xF4             tm_ucf_SquatRv_CheckInput  UCF crouch turn
+
+# Shield drop (Slippi: ftCo_80099894+0x10, the spot dodge's start): every
+# call of the two functions that decide on a spot dodge. The calls in
+# ftCo_Guard_IASA (+0x98) and ftCo_GuardOff_IASA (+0xE8) are in osdact's
+# replacements of those functions (src/melee/tm/osdact/osdact.c).
+call     ftCo_Wait_IASA+0xD4                  tm_ucf_80099794            UCF shield drop
+call     ftCo_AppealS_IASA+0xE8               tm_ucf_80099794            UCF shield drop
+call     ftSs_SpecialLw_IASA+0x110            tm_ucf_80099794            UCF shield drop
+call     ftYs_GuardOn_0_IASA+0x34             tm_ucf_80099794            UCF shield drop
+call     ftYs_GuardHold_IASA+0x24             tm_ucf_80099794            UCF shield drop
+call     ftYs_GuardOff_IASA+0xC               tm_ucf_80099794            UCF shield drop
+call     ftCo_GuardOn_IASA+0xA8               tm_ucf_8009980C            UCF shield drop
+call     ftCo_GuardReflect_IASA+0x10C         tm_ucf_8009980C            UCF shield drop
+
+# Shield drop from a held position (Slippi: ftCo_8009A080+0x38): its calls.
+# The one in ftCo_Guard_IASA (+0xD8) is in osdact's replacement.
+call     ftCo_GuardOn_IASA+0xF8               tm_ucf_8009A080            UCF shield drop
+call     ftCo_GuardReflect_IASA+0x15C         tm_ucf_8009A080            UCF shield drop
+call     ftYs_GuardOn_0_IASA+0x64             tm_ucf_8009A080            UCF shield drop
+call     ftYs_GuardHold_IASA+0x54             tm_ucf_8009A080            UCF shield drop
+
+# Wiggle out of tumble (Slippi: ftCo_DamageFall_IASA+0xCC): its three calls
+# and the DamageFall state's input callback.
+call     ftCo_DamageFly_IASA+0x1C             tm_ucf_DamageFall_IASA     UCF tumble
+call     ftCo_DamageFlyRoll_IASA+0x1C         tm_ucf_DamageFall_IASA     UCF tumble
+call     ftCo_ItemParasolDamageFall_IASA+0xC  tm_ucf_DamageFall_IASA     UCF tumble
+pointer  ftData_MotionStateList+0x4D0         tm_ucf_DamageFall_IASA     UCF tumble
+
+# SDI and shield SDI (Slippi: ftCo_Damage_OnEveryHitlag+0x5C,
+# ftCo_80093240+0x54) need no hook of their own: osdtech's wrapper of the
+# call before `fp->hitlag_cb(gobj)` (Fighter_procUpdate+0x5D0) calls
+# tm_ucf_PreHitlag.

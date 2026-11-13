@@ -328,8 +328,11 @@ static int sd_IsShield(int state)
 
 /* The Axe method: shield, ease the stick to full right (a fast push is a
  * roll), then down to the diagonal notch, then an aerial. Swept in the
- * simulator (2026-11-12) with the stick at X 90: Y -80 to -88 (of 127)
- * drops, -89 and beyond is a spot dodge. */
+ * simulator with the stick at X 90. With UCF (2026-11-13; always on, the
+ * build's own or Slippi's, docs/ai/ucf.md): Y -80 to about -119 (of 127)
+ * drops, and only a stick pushed past the -0.8 line (-127) is a spot
+ * dodge. Without UCF (2026-11-12): -80 to -88 drops, -89 and beyond is a
+ * spot dodge. */
 static const CourseRefInput sd_reference[] = {
     { 0, 10, 600, 0, 0, 0, 0, PAD_TRIGGER_R, 140, 0 },
     { 0, 20, 10, 50, 0, 0, 0, 0, 0, 0 },

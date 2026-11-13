@@ -1,8 +1,8 @@
 {
   "boot": true,
-  "max_frames": 820,
+  "max_frames": 880,
   "names": ["ZANE", "FOX"],
-  "shots": [520, 760],
+  "shots": [520, 660, 830],
   "inputs": [
     {"at": 360, "stick": [0, -127], "hold": 3},
     {"at": 385, "buttons": ["A"], "hold": 2},

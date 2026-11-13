@@ -111,6 +111,7 @@ ninja
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | Our own peer-to-peer rollback netcode: feasibility study | `docs/ai/netplay-p2p.md` |
 | Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
+| UCF 0.84 in C, and its comparison against Slippi's own code | `src/melee/tm/ucf/`, `docs/ai/ucf.md`, `tests/sim/ucf.py` |
 | The main menu (panels, pages) | `src/melee/tm/menu/`, `tests/sim/menu.py`; "Main menu" in `docs/ai/training-courses.md` |
 | A picture of a screen from a scripted headless run | `python tools/tmtest.py tests/tmtest/menu/boot.json --shots DIR`; `docs/ai/testing.md` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
