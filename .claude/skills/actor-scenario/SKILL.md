@@ -63,6 +63,7 @@ before believing a script: one passing run says little.
 | `wait` `frames` or `until` | `target_grounded`, `target_airborne`, `target_idle`, `target_attacking`, `target_swung` (its hitbox came out and went), `target_frame:N`, `in_range:N` |
 | `hold` `frames` `buttons` `stick` | hold an input (shield, crouch) |
 | `{"expect": ...}` inside a script | `target_hit`, `target_not_hit`, `hit`, `not_hit`, `in_range:N` |
+| `{"choose": [script, ...], "weights": [...]}` | run one of the branches in its place, a different one from run to run (by run number): an opponent that shields, jabs or rolls after its attack |
 
 Scripts say what is to be achieved, never which frame. If a script needs a frame number
 to work, the step or condition it lacks is the thing to write: a generator method `do_x`

@@ -1,22 +1,105 @@
 {
   "name": "Punish a whiffed forward smash",
-  "about": "Marth swings from too far away and shields as soon as he can. The player waits for the swing to be spent, runs in and grabs: a grab beats the shield, and a running grab is fast enough to be there before Marth can do anything else.",
-  "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,
+  "about": "Marth swings from too far away, and then does one of the things a player does after missing: shields, jabs, or rolls away. The player waits for the swing to be spent, runs in and grabs. Done in time, it does not matter which he would have chosen.",
+  "p1": "fox",
+  "p2": "marth",
+  "stage": "final-destination",
+  "seed": 1,
   "setup": [
-    {"place": 0, "x": -30, "facing": 1},
-    {"place": 1, "x": 12, "facing": -1, "percent": 30}
+    {
+      "place": 0,
+      "x": -30,
+      "facing": 1
+    },
+    {
+      "place": 1,
+      "x": 12,
+      "facing": -1,
+      "percent": 30
+    }
   ],
-  "opponent": {"port": 1, "script": [
-    {"do": "wait", "frames": 40},
-    {"do": "attack", "move": "fsmash"},
-    {"do": "hold", "frames": 90, "buttons": ["R"]}
-  ]},
-  "player": {"port": 0, "script": [
-    {"do": "wait", "until": "target_swung"},
-    {"do": "rush", "move": "grab"},
-    {"do": "throw", "direction": "up"}
-  ]},
+  "opponent": {
+    "port": 1,
+    "script": [
+      {
+        "do": "wait",
+        "frames": 40
+      },
+      {
+        "do": "attack",
+        "move": "fsmash"
+      },
+      {
+        "choose": [
+          [
+            {
+              "do": "hold",
+              "frames": 90,
+              "buttons": [
+                "R"
+              ]
+            }
+          ],
+          [
+            {
+              "do": "attack",
+              "move": "jab"
+            },
+            {
+              "do": "attack",
+              "move": "jab"
+            }
+          ],
+          [
+            {
+              "do": "hold",
+              "frames": 4,
+              "buttons": [
+                "R"
+              ]
+            },
+            {
+              "do": "hold",
+              "frames": 30,
+              "buttons": [
+                "R"
+              ],
+              "stick": [
+                "away",
+                0
+              ]
+            }
+          ]
+        ],
+        "weights": [
+          2,
+          1,
+          1
+        ]
+      }
+    ]
+  },
+  "player": {
+    "port": 0,
+    "script": [
+      {
+        "do": "wait",
+        "until": "target_swung"
+      },
+      {
+        "do": "rush",
+        "move": "grab"
+      },
+      {
+        "do": "throw",
+        "direction": "up"
+      }
+    ]
+  },
   "frames": 400,
   "after": 10,
-  "success": ["target_hit", "not_hit"]
+  "success": [
+    "target_hit",
+    "not_hit"
+  ]
 }

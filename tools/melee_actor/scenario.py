@@ -15,7 +15,9 @@ getting it right. The unit an AI-driven drill is made of.
 
 - `setup`: placements (Native.place), applied in order after the match is up.
 - `opponent`, `player`: each a port and either a `script` (Melee Actor steps,
-  actor.py) or a `policy` (a slippi-ai model's name, policy.py). `player` is
+  actor.py) or a `policy` (a slippi-ai model's name, policy.py). A script
+  may hold {"choose": [script, ...], "weights": [...]}: which branch is run
+  depends on the run number, so an opponent can vary what it does. `player` is
   whoever is being trained: today a stand-in script, later a person, in
   which case it is left out and nothing here drives that pad.
 - `success`: expectations judged from the player's side when the run ends
@@ -81,12 +83,13 @@ class Session:
                if jitter else self.sc.get("seed", 1))
         n.step()
 
-    def _side(self, spec):
+    def _side(self, spec, run=0):
         """(actor, per-frame function returning True while it has more to
         do, function giving its result) for one side."""
         other = 1 - spec["port"]
         actor = Actor(self.n, spec["port"], other,
-                      stage=self.sc.get("stage", "final-destination"))
+                      stage=self.sc.get("stage", "final-destination"),
+                      rng=random.Random(run * 7919 + spec["port"]))
         if "policy" in spec:
             from melee_actor import policy as pol
             player = pol.PolicyPlayer(
@@ -129,7 +132,7 @@ class Session:
         sides = {}
         for role in ("opponent", "player"):
             if role in sc:
-                sides[role] = self._side(sc[role])
+                sides[role] = self._side(sc[role], run)
         judge_port = sc.get("player", {}).get("port", 0)
         judge = Actor(n, judge_port, 1 - judge_port)
         since = dict(percent=judge.them().percent, own=judge.me().percent)

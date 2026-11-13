@@ -114,6 +114,10 @@ works out each frame's buttons from where the fighters are.
 %(vocabulary)s
 - {"expect": ...} may also appear inside a script, with the same words as \
 success.
+- {"choose": [script, script, ...], "weights": [...]} runs one of the \
+branches in its place, a different one from run to run. Use it to make an \
+opponent vary what it does after its attack (shield, jab, roll away), so \
+the player's answer has to work against all of them.
 
 ## What makes a scenario good
 

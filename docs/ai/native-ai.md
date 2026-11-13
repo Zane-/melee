@@ -118,7 +118,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 |-|-|-|
 | N1 (done) | The interface above; actor and policies on it | the three tests |
 | N2 (placement done) | Setting up a situation from a command instead of from play. `Native.place(port, x, y, facing, air, percent)`: standing on whatever floor is at or below the point, or falling from it; not holding or held, no speed, a full shield (`src/host/setup.c`, the course engine's placement on the game's own functions). Stocks, items and the rest of a match's rules: not yet | `tests/native/place.py`, 11 checks |
-| N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield). Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branches | one scenario per step |
+| N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield); `choose`, so an opponent varies what it does from run to run. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branching on what happened | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 | A window, sound and a controller | a person plays a match |
@@ -146,8 +146,14 @@ from the first frame he can. The player is a stand-in script.
   every character against a standing Marth (26 characters in 44 s) and writes
   `data/actor/reach.json`. For Fox the grab connects when started 15 to 38 units out; the
   actor starts it at 26.5.
-- What this is not yet: a drill. Nothing explains, scores over time or adapts; the
-  opponent does one thing; the player is a script.
+- After the smash the opponent now does one of three things, chosen per run: shields,
+  jabs, or rolls away. The punish passes 60 of 60: done in time, it does not matter which.
+- A trained policy can be the opponent of a scenario (`"policy": "marth_d18_vs_fox_v3.1"`,
+  run with slippi-ai's Python). Tried once, to see that it runs: it does, but the policy
+  has not started playing in its first frames (its inputs are 18 frames behind), so what
+  that run scored means nothing. A scenario against a policy needs a warm-up first.
+- What this is not yet: a drill. Nothing explains, scores over time or adapts; the player
+  is a script.
 
 A second situation was written the way `author.py` is meant to work, but by hand, from the
 instruction "shield Marth's dash attack and grab him out of shield":

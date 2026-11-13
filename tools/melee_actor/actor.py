@@ -130,10 +130,14 @@ class Actor:
     """One fighter, driven by a script, aware of one target fighter."""
 
     def __init__(self, sim, port, target, other=None,
-                 stage="final-destination"):
-        """sim: a melee_sim Sim in a match. port / target: fighter indices.
-        other: optional function(sim, frame) called each frame to drive the
-        target's pad (a test's stand-in for the player)."""
+                 stage="final-destination", rng=None):
+        """sim: a Native or a Sim in a match. port / target: fighter
+        indices. other: optional function(sim, frame) called each frame to
+        drive the target's pad (a test's stand-in for the player). rng: a
+        random.Random for `choose` steps (seeded by whoever runs the
+        script, so a run can be repeated)."""
+        import random
+        self.rng = rng or random.Random(0)
         self.limit = STAGE_LIMIT[stage]
         self.sim = sim
         self.port = port
@@ -402,9 +406,12 @@ class Actor:
         raise StepFailed("waited %d frames for %s" % (timeout, until))
 
     def do_hold(self, frames, buttons=(), stick=(0, 0), **_):
-        """Hold an input for a number of frames (shield, crouch...)."""
+        """Hold an input for a number of frames (shield, crouch...). A
+        stick axis may be "toward" or "away" (from the target): R with the
+        stick away is a roll back."""
         for _ in _frames(frames):
-            kw = dict(buttons=list(buttons), stick=tuple(stick))
+            kw = self._resolve(dict(buttons=list(buttons),
+                                    stick=tuple(stick)))
             if "R" in buttons:
                 kw["r"] = 1.0
             yield kw
@@ -456,8 +463,17 @@ class Actor:
 
     def steps(self, script):
         """A generator over `script`: yields each frame's pad, and returns
-        {"success", "frames", "steps": [...]} when the script is over."""
+        {"success", "frames", "steps": [...]} when the script is over.
+
+        Besides steps and expectations a script may hold
+        {"choose": [script, script, ...], "weights": [...]}: one of the
+        branches, picked by the actor's random source, is run in its place.
+        That is how an opponent varies what it does from run to run."""
         since = dict(percent=self.them().percent, own=self.me().percent)
+        ok = yield from self._script(script, since)
+        return dict(success=ok, frames=self.frame, steps=self.log)
+
+    def _script(self, script, since):
         ok = True
         for step in script:
             # logged when it starts, so a step that is cut short (the run
@@ -465,7 +481,15 @@ class Actor:
             entry = dict(step=step, at=self.frame)
             self.log.append(entry)
             try:
-                if "expect" in step:
+                if "choose" in step:
+                    branches = step["choose"]
+                    pick = self.rng.choices(
+                        range(len(branches)),
+                        weights=step.get("weights"))[0]
+                    entry.update(step=dict(choose=len(branches)), chose=pick)
+                    if not (yield from self._script(branches[pick], since)):
+                        return False
+                elif "expect" in step:
                     passed, detail = self._expect(step["expect"], since)
                     entry.update(passed=passed, detail=detail)
                     ok = ok and passed
@@ -485,9 +509,8 @@ class Actor:
                         entry.update(done.value or {})
             except StepFailed as e:
                 entry.update(failed=str(e))
-                ok = False
-                break
-        return dict(success=ok, frames=self.frame, steps=self.log)
+                return False
+        return ok
 
     def run(self, script):
         """Execute `script` alone (anything else moving is driven by
