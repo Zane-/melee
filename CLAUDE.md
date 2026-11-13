@@ -109,6 +109,8 @@ ninja
 | MexTK ↔ decomp mapping (older reimplementation plan) | `docs/ai/training-mode-port.md` |
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
+| Our own peer-to-peer rollback netcode: feasibility study | `docs/ai/netplay-p2p.md` |
+| Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
 | Build the training overlay DOL | `python tools/overlay_build.py` → `build/overlay/main.dol` |
 | Put it and TM-CE's art on the extracted disc | `python tools/tmce_disc.py` → boot `build/disc/sys/main.dol` |
