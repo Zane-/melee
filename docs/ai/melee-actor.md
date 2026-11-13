@@ -161,6 +161,59 @@ libmelee) is the other reference: a hand-written hierarchy of strategies, tactic
 chains (`Chains/`: wavedash, shffl, edgedash, tech, sdi, grabandthrow...). It is the same
 idea as actor steps, one level up, and its chain list is a good checklist for ours.
 
+## Can an instructable model run inside the game?
+
+Asked by the owner 2026-11-12. Short answer: not a model like Phillip, but a small learned
+"director" over actor steps can, and that is where the intelligence should go.
+
+**Measured** (two of the owner's checkpoints, loaded with slippi-ai's own code):
+
+| Checkpoint | Network | Parameters | As 32-bit floats |
+|-|-|-|-|
+| `fox_d18_vs_marth_v3.1` | 3 layers, hidden 512, LSTM | 10.5 million | 42 MB |
+| `fox_d21_ditto_v6.1` | 3 layers, hidden 1024, LSTM | 44.7 million | 179 MB |
+
+A GameCube has 24 MB of main memory in all, and the game uses most of it. One step of the
+smaller network is on the order of 10 to 20 million multiply-adds, sixty times a second,
+on a 486 MHz CPU that is already running Melee. Neither fits, by two to three orders of
+magnitude. Slippi Dolphin emulates that CPU at its real speed, so playing on an emulator
+does not change this. And these policies are not instructable in the first place.
+
+**What does fit.** An estimate, not a measurement: if a millisecond per frame can be spared
+and the CPU manages some tens of millions of multiply-adds per second in practice, the
+budget is roughly 50 to 100 thousand parameters evaluated every frame, a few hundred
+thousand if a decision is only needed every several frames. That is too small to drive a
+controller frame by frame at a high level, which is what Phillip's ten million are for.
+It is plenty for choosing between a few dozen competent behaviours.
+
+**So the split is:**
+
+- **Execution is the Melee Actor's steps, in C.** Exact, free, already native in spirit
+  (the drills contain hand-written ones). A step is "wavedash back", "shine out of
+  shield", "up tilt when in range", not a stick position.
+- **Decisions are a small network over those steps.** Input: the same few dozen numbers
+  slippi-ai reads, plus a goal. Output: which step next, with its parameters. Tens of
+  thousands of parameters.
+- **Instruction is the goal input,** a structured code ("prefer grabs", "recover low",
+  "punish whiffs with up smash", "play at 12 frames of reaction"), not language. Language
+  is turned into goals and scripts before the match, by a person in a menu or by Claude
+  through the coach link (`ai-coach.md`); nothing in the game parses text.
+
+**Where the intelligence would come from.** Three sources this project now has: Slippi
+replays relabelled in step vocabulary, where what the player did next becomes the goal
+that clip teaches (hindsight labelling); the slippi-ai policies in the simulator, as
+teachers to imitate at step level and as opponents to train against; and the simulator
+itself for reinforcement learning toward an instructed goal, where a decision every 10 to
+20 frames makes its speed (about 100 frames a second per process) tolerable.
+
+**Risks, in the order they should be retired.** (1) The real per-frame budget on the
+emulated CPU is unknown: measure it with a matrix-multiply benchmark in the overlay under
+Dolphin before choosing a size. (2) Whether a step-level student of a few tens of
+thousands of parameters plays convincingly is unproven; the cheap test is to train one to
+predict Phillip's next step from simulator games and see how often it agrees. (3) The
+step library has to be good first: a director can only be as good as its steps, and the
+naive ones just went 0 for 5.
+
 ## Roadmap
 
 | Step | What | Proof |
