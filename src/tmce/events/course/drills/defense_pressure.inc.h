@@ -476,3 +476,121 @@ static const CourseDrill Drill_DefRecovery = {
               "D-Pad up: guide. D-Pad down: reset." },
     .Guide = rm_Guide,
 };
+
+/* ---- universal-wall-tech --------------------------------------------------
+ *
+ * The player starts in the air just outside and below the left ledge, as
+ * at the end of a low recovery. Marth, further out, forward airs toward
+ * the stage: the hit sends the player into the stage's side. L or R in
+ * the 20 frames before touching the wall techs it.
+ * (Hitting a player who hangs on the ledge from the stage was tried
+ * first: Marth's down tilt does not reach him, and a hit from the stage
+ * sends him away from the wall, not into it.)
+ */
+
+enum { WT_HANG, WT_HIT };
+enum { WT_MARK_HIT = 1 };
+
+/* Measured in the simulator (2026-11-12): the forward air hits on frame 7
+ * and Fox reaches the wall 20 frames later. A press 4 frames after the hit
+ * techs; one frame after it, still in the hit's freeze, does nothing. */
+static const CourseRefInput wt_reference[] = {
+    { WT_MARK_HIT, 4, 1, 0, 0, 0, 0, PAD_TRIGGER_R, 140, 0 },
+    { COURSE_REF_END },
+};
+
+#define WT_PLAYER_OUT 7.0F
+#define WT_PLAYER_DOWN 30.0F
+#define WT_CPU_OUT 24.0F
+#define WT_CPU_DOWN 28.0F
+#define WT_SWING_AT 2
+
+static struct {
+    Vec3 ledge;
+    int hit_frame; /* frames since the hit */
+    int press;     /* hit_frame of the last L/R press, 0 = none */
+} wt;
+
+static void wt_Setup(CourseCtx* c)
+{
+    memset(&wt, 0, sizeof(wt));
+    if (!course_LedgePos(&wt.ledge)) {
+        return;
+    }
+    c->side = 1.0F;
+    c->toward = -1.0F;
+    /* facing away from the stage, or the player just grabs the ledge */
+    course_PlaceInAir(Fighter_GetGObj(0), wt.ledge.X - WT_PLAYER_OUT,
+                      wt.ledge.Y - WT_PLAYER_DOWN, -1.0F, 60.0F);
+    course_PlaceInAir(Fighter_GetGObj(1), wt.ledge.X - WT_CPU_OUT,
+                      wt.ledge.Y - WT_CPU_DOWN, 1.0F, 20.0F);
+}
+
+static void wt_Guide(CourseCtx* c, CourseGuide* g)
+{
+    int n = 0;
+    sprintf(g->line[n++], "Hit against the side of the stage you bounce");
+    sprintf(g->line[n++], "off it, unless you tech: L or R in the 20");
+    sprintf(g->line[n++], "frames before you touch the wall. You stop");
+    sprintf(g->line[n++], "dead, and can jump straight back.");
+    sprintf(g->line[n++], "You start below the ledge and Marth hits you");
+    sprintf(g->line[n++], "into the stage. Press just after the hit's");
+    sprintf(g->line[n++], "freeze: a press during it does not count.");
+    g->line_count = n;
+    g->hide_timeline = 1;
+}
+
+static void wt_Think(CourseCtx* c)
+{
+    FighterData* cd = c->cd;
+
+    switch (c->phase) {
+    case WT_HANG:
+        if (c->timer == WT_SWING_AT) {
+            cd->cpu.cstickX = 127; /* forward air, toward the stage */
+        }
+        if (c->hmn_hit) {
+            course_Mark(c, WT_MARK_HIT);
+            course_Phase(c, WT_HIT);
+            wt.hit_frame = 0;
+        } else if (c->timer > 60) {
+            course_Retry(c, "The hit missed\nresetting");
+        }
+        break;
+
+    case WT_HIT:
+        wt.hit_frame++;
+        if (c->down & (PAD_TRIGGER_L | PAD_TRIGGER_R)) {
+            wt.press = wt.hit_frame;
+        }
+        course_Report("state", c->state);
+        if (c->state == ASID_PASSIVEWALL || c->state == ASID_PASSIVEWALLJUMP) {
+            course_Measure(wt.hit_frame, wt.hit_frame);
+            course_Result(c, 1, "Wall tech!\n%d frames after the hit",
+                          wt.hit_frame, 0);
+        } else if (c->state == ASID_FLYREFLECTWALL) {
+            course_Report("press", wt.press);
+            course_Result(c, 0, wt.press ? "Bounced: pressed %d frames\n"
+                                           "after the hit, in its freeze"
+                                         : "Bounced off the wall\n"
+                                           "L or R after you are hit",
+                          wt.press, 0);
+        } else if (df_PlayerDead(c) || wt.hit_frame > 150) {
+            course_Result(c, 0, "Never reached the wall\n"
+                                "hold the stick toward it",
+                          0, 0);
+        }
+        break;
+    }
+}
+
+static const CourseDrill Drill_DefWallTech = {
+    .Setup = wt_Setup,
+    .Think = wt_Think,
+    .help = { "Marth hits you into the side of the stage. Tech",
+              "it: L or R as you touch the wall.",
+              "D-Pad up: guide. D-Pad down: reset." },
+    .reference = wt_reference,
+    .live_marks = 1,
+    .Guide = wt_Guide,
+};

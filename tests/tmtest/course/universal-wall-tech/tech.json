@@ -1,0 +1,23 @@
+{
+  "comment": "R 4 frames after the hit (frame 11 of the attempt).",
+  "event": "course",
+  "drill": "universal-wall-tech",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [
+    {
+      "at": 11,
+      "hold": 1,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "success"
+  }
+}

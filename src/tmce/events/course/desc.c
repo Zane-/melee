@@ -418,6 +418,15 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_MARTH,
     },
+    [DRILL_DEF_WALL_TECH] = {
+        .id = "universal-wall-tech",
+        .name = "Wall Tech",
+        .goal = "Tech the side of the stage when hit off the ledge",
+        .part = COURSE_DEFENSE,
+        .characters = 0,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+    },
     [DRILL_DEF_RECOVERY] = {
         .id = "fox-recovery-mixup",
         .name = "Recover against an Edgeguard",

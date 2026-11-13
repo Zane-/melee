@@ -14,9 +14,8 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: all sixteen of Fox's Tech drills, all eight Neutral, all eleven Punish and nine of
-eleven Defense drills. Still plans: `universal-wall-tech` (not tried) and
-`fox-escape-chaingrab` (tried and removed: Marth has to space and pivot to land the
+opens after character select. Built: all sixteen of Fox's Tech drills, all eight Neutral, all eleven Punish and ten of
+eleven Defense drills. Still a plan: `fox-escape-chaingrab` (tried and removed: Marth has to space and pivot to land the
 regrab). Nothing after Tech has been played by a person. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 

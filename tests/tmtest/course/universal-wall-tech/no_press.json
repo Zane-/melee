@@ -1,0 +1,14 @@
+{
+  "comment": "No press: Fox bounces off the wall.",
+  "event": "course",
+  "drill": "universal-wall-tech",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}

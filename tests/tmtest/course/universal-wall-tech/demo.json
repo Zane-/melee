@@ -1,0 +1,20 @@
+{
+  "comment": "Reference demonstration.",
+  "event": "course",
+  "drill": "universal-wall-tech",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [
+    [
+      4,
+      2
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "success",
+    "demo": 2
+  }
+}
