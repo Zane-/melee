@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -305,6 +306,8 @@ static int set_pad(const char* line)
     return used;
 }
 
+double host_driver_ms;
+
 static void command(char* line)
 {
     char cmd[32] = "";
@@ -545,12 +548,21 @@ void host_control_frame(void)
         printf("@ frame %u\n", host.frame);
     }
     fflush(stdout);
-    while (steps_left == 0) {
-        if (!read_line(line, sizeof line)) {
-            snap_drop_all();
-            host_stub_report();
-            exit(0);
+    {
+        /* how long the game stood still for whoever drives it: the reply
+           above to the command that lets the next frame go */
+        struct timespec t0, t1;
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        while (steps_left == 0) {
+            if (!read_line(line, sizeof line)) {
+                snap_drop_all();
+                host_stub_report();
+                exit(0);
+            }
+            command(line);
         }
-        command(line);
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        host_driver_ms = (t1.tv_sec - t0.tv_sec) * 1000.0 +
+                         (t1.tv_nsec - t0.tv_nsec) / 1e6;
     }
 }

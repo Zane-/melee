@@ -501,6 +501,9 @@ def main():
                          "the first other controller, else the keyboard), "
                          "gcc1 to gcc4 (the adapter's ports), keyboard, "
                          "pad0, pad1, ...")
+    ap.add_argument("--timing", action="store_true",
+                    help="on leaving, say how evenly the pictures were "
+                         "shown and where each frame's time went")
     ap.add_argument("--devices", action="store_true",
                     help="say which controllers the game sees, and stop "
                          "(nothing opens on the desktop)")
@@ -510,6 +513,9 @@ def main():
     ap.add_argument("--vsync", action="store_true")
     args = ap.parse_args()
     w = None
+    if args.timing:
+        import os
+        os.environ["MELEE_TIMING"] = "1"
     if args.devices:
         with window.Window() as w:
             w.step(5)
@@ -538,6 +544,13 @@ def main():
             return 1
     finally:
         if w is not None:
+            if args.timing:
+                rows = [line.strip() for line in w.log if "timing:" in line]
+                late = sum(int(r.split(" of 60 late")[0].split()[-1])
+                           for r in rows if " of 60 late" in r)
+                print("%d seconds measured, %d pictures shown late"
+                      % (sum(" of 60 late" in r for r in rows), late))
+                print("\n".join(rows[-6:]))
             w.close()
         left = window.leftovers()
         if left:

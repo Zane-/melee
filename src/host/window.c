@@ -18,6 +18,7 @@
 #include "host.h"
 #include <aurora/aurora.h>
 #include <aurora/event.h>
+#include <aurora/gfx.h>
 #include <dolphin/gx.h>
 #include <dolphin/pad.h>
 #include <SDL3/SDL.h>
@@ -124,10 +125,12 @@ void host_window_init(void)
     started = 1;
 }
 
-/// Which archive an address belongs to and where a blob ends are slow to
-/// find (a walk over an archive's objects), and a match asks about the same
-/// few hundred addresses every frame: the answers are kept until an archive
-/// is opened or closed.
+/// Where a blob of an archive ends is slow to find, and a match asks about
+/// the same few hundred addresses every frame: the answers are kept, and
+/// only the ones about an archive go when that archive is closed. (They
+/// once all went whenever any archive was opened or closed, which a
+/// fighter's animations do several times a second: every such frame then
+/// asked everything again and was late.)
 #define MEMO_SIZE 4096
 typedef struct Memo {
     const void* key;
@@ -136,28 +139,49 @@ typedef struct Memo {
     uint32_t size;
 } Memo;
 
+static Memo array_memo[MEMO_SIZE], palette_memo[MEMO_SIZE];
+
 static Memo* memo_slot(Memo* table, const void* key, uint32_t arg, int* hit)
 {
-    static uint32_t generation;
-    static Memo* tables[2];
-    Memo* m;
+    Memo* m = &table[(((uintptr_t) key >> 2) * 2654435761u) >> 20];
 
-    if (generation != host_dat_generation) {
-        generation = host_dat_generation;
-        for (int i = 0; i < 2; i++) {
-            if (tables[i] != NULL) {
-                memset(tables[i], 0, MEMO_SIZE * sizeof(Memo));
-            }
-        }
-    }
-    if (tables[0] != table && tables[1] != table) {
-        tables[tables[0] != NULL] = table;
-    }
-    m = &table[(((uintptr_t) key >> 2) * 2654435761u) >> 20];
     *hit = m->key == key && m->arg == arg;
     m->key = key;
     m->arg = arg;
     return m;
+}
+
+static int within(const void* p, const void* data, size_t size)
+{
+    return (const uint8_t*) p >= (const uint8_t*) data &&
+           (const uint8_t*) p < (const uint8_t*) data + size;
+}
+
+/// An archive's data is going: forget what was kept about it.
+void host_window_forget(const void* data, size_t size)
+{
+    for (int i = 0; i < MEMO_SIZE; i++) {
+        if (within(array_memo[i].key, data, size)) {
+            memset(&array_memo[i], 0, sizeof(Memo));
+        }
+        if (within(palette_memo[i].raw, data, size)) {
+            memset(&palette_memo[i], 0, sizeof(Memo));
+        }
+    }
+}
+
+/// An archive has been opened: an address that belonged to none before may
+/// belong to it now.
+void host_window_opened(void)
+{
+    for (int i = 0; i < MEMO_SIZE; i++) {
+        if (array_memo[i].key != NULL && array_memo[i].size == 0) {
+            memset(&array_memo[i], 0, sizeof(Memo));
+        }
+        if (palette_memo[i].key != NULL && palette_memo[i].raw == NULL) {
+            memset(&palette_memo[i], 0, sizeof(Memo));
+        }
+    }
 }
 
 /// The console's GXSetArray(attr, data, stride), for Aurora, which also
@@ -167,9 +191,8 @@ static Memo* memo_slot(Memo* table, const void* key, uint32_t arg, int* hit)
 /// frame, so the bound has to be a close one).
 void host_GXSetArray3(GXAttr attr, const void* data, u8 stride)
 {
-    static Memo table[MEMO_SIZE];
     int hit;
-    Memo* m = memo_slot(table, data, stride, &hit);
+    Memo* m = memo_slot(array_memo, data, stride, &hit);
 
     if (!hit) {
         m->size = host_dat_blob_size(data, stride);
@@ -191,9 +214,8 @@ void host_GXSetArray3(GXAttr attr, const void* data, u8 stride)
 /// own bytes.
 void host_GXInitTlutObj(GXTlutObj* obj, void* lut, GXTlutFmt fmt, u16 entries)
 {
-    static Memo table[MEMO_SIZE];
     int hit;
-    Memo* m = memo_slot(table, lut, 0, &hit);
+    Memo* m = memo_slot(palette_memo, lut, 0, &hit);
 
     if (!hit) {
         uint32_t room = 0;
@@ -464,6 +486,39 @@ void host_window_devices(char* out, size_t size)
     SDL_free(ids);
 }
 
+/// When the frame now being worked on began (the tick pace_wait() last
+/// waited for).
+static struct timespec frame_began;
+
+/// Hold a finished picture until a fixed time after its frame began, so
+/// that pictures are shown at even intervals however long each took to
+/// make (the game's work and the driver's vary by milliseconds; shown as
+/// soon as done, that variation is stutter). The time is as short as the
+/// work allows: it is also how old the input is when it is seen.
+/// MELEE_PRESENT_MS sets it (6 by default; 0: as soon as done).
+static void present_wait(void)
+{
+    static long hold = -1;
+    struct timespec at = frame_began;
+
+    if (hold < 0) {
+        const char* e = getenv("MELEE_PRESENT_MS");
+        hold = (long) ((e != NULL && *e != '\0' ? atof(e) : 6.0) * 1e6);
+        if (hold < 0 || hold > 16000000) {
+            hold = 6000000;
+        }
+    }
+    if (at.tv_sec == 0 || hold == 0) {
+        return;
+    }
+    at.tv_nsec += hold;
+    if (at.tv_nsec >= 1000000000) {
+        at.tv_nsec -= 1000000000;
+        at.tv_sec++;
+    }
+    clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &at, NULL);
+}
+
 /// Wait for the next sixtieth of a second (the console's 59.94 a second).
 /// Returns at once after a long stop, without trying to catch up.
 static void pace_wait(void)
@@ -480,6 +535,7 @@ static void pace_wait(void)
     } else if (late < 0) {
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
     }
+    frame_began = next;
     next.tv_nsec += 16683350;
     if (next.tv_nsec >= 1000000000) {
         next.tv_nsec -= 1000000000;
@@ -500,10 +556,11 @@ static double now_ms(void)
 /// graphics calls, which Aurora only records); "end" is Aurora drawing and
 /// presenting the frame, and the wait for the next sixtieth of a second
 /// when paced; "begin" is events, input and opening the next frame.
-static void timing(double game, double end, double begin)
+static void timing(double game, double end, double begin, double shown)
 {
-    static int on = -1, n;
-    static double sum[3];
+    static int on = -1, n, late, empty;
+    static double sum[3], driver, driver_max, worst, draws, uploads, top[2];
+    static unsigned pipelines;
 
     if (on < 0) {
         const char* e = getenv("MELEE_TIMING");
@@ -515,30 +572,72 @@ static void timing(double game, double end, double begin)
     sum[0] += game;
     sum[1] += end;
     sum[2] += begin;
+    if (game - host_driver_ms > top[0]) {
+        top[0] = game - host_driver_ms;
+    }
+    if (begin > top[1]) {
+        top[1] = begin;
+    }
+    driver += host_driver_ms;
+    if (host_driver_ms > driver_max) {
+        driver_max = host_driver_ms;
+    }
+    if (shown > worst) {
+        worst = shown;
+    }
+    if (shown > 20.0) {
+        late++;
+    }
+    {
+        /* what the game asked to be drawn this frame */
+        const AuroraStats* stats = aurora_get_stats();
+        draws += stats->drawCallCount;
+        if (stats->drawCallCount == 0) {
+            empty++;
+        }
+        uploads += stats->lastTextureUploadSize;
+        pipelines += stats->createdPipelines;
+    }
     if (++n == 60) {
-        host_log("timing: a frame takes %.1f ms: game %.1f, end %.1f, "
-                 "begin %.1f",
-                 (sum[0] + sum[1] + sum[2]) / n, sum[0] / n, sum[1] / n,
-                 sum[2] / n);
-        n = 0;
-        sum[0] = sum[1] = sum[2] = 0;
+        /* "driver" is part of "game": the wait for whoever steps the game
+           over the control pipe. "shown" is the time from one picture
+           being presented to the next. */
+        host_log("timing: slowest game %.1f ms, slowest begin %.1f ms",
+                 top[0], top[1]);
+        top[0] = top[1] = 0;
+        host_log("timing: a frame takes %.1f ms: game %.1f (driver %.1f, "
+                 "at most %.1f), end %.1f, begin %.1f; shown every %.1f ms "
+                 "at worst, %d of 60 late; %.0f draws a frame, %d frames "
+                 "with none, %.0f KB of textures sent a frame, %u pipelines "
+                 "made",
+                 (sum[0] + sum[1] + sum[2]) / n, sum[0] / n, driver / n,
+                 driver_max, sum[1] / n, sum[2] / n, worst, late,
+                 draws / n, empty, uploads / n / 1024.0, pipelines);
+        n = late = empty = 0;
+        draws = uploads = 0;
+        pipelines = 0;
+        sum[0] = sum[1] = sum[2] = driver = driver_max = worst = 0;
     }
 }
 
 void host_window_frame(void)
 {
-    static double last;
+    static double last, shown;
     const AuroraEvent* event;
-    double t0, t1, t2;
+    double t0, t1, t2, presented, shown_before = shown;
 
     if (!started) {
         return;
     }
     t0 = now_ms();
     if (in_frame) {
+        if (paced) {
+            present_wait();
+        }
         aurora_end_frame();
         in_frame = 0;
     }
+    presented = shown = now_ms();
     if (paced) {
         pace_wait();
     }
@@ -557,7 +656,7 @@ void host_window_frame(void)
     in_frame = aurora_begin_frame();
     t2 = now_ms();
     if (last != 0) {
-        timing(t0 - last, t1 - t0, t2 - t1);
+        timing(t0 - last, t1 - t0, t2 - t1, presented - shown_before);
     }
     last = t2;
 }

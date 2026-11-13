@@ -153,7 +153,7 @@ What it took, beyond linking Aurora in:
 | Vertex arrays | The console's `GXSetArray` has no length; Aurora copies the whole array into the frame. A model's vertex data is a blob of an archive, so its length is bounded the way the readers bound any array of unknown length: up to the next thing the archive points at (`host_dat_blob_size`). A looser bound overflowed Aurora's 8 MB of frame storage |
 | Fighter materials | `ftmaterial.c` reads two templates through a struct laid over three adjacent globals; natively they are not adjacent (one more of `native-port.md`'s "memory layout" kind). Patched at build time |
 | Palettes | A palette is a typed array in the archives, so the readers hand the game entries in host byte order; Aurora decodes them as the console stores them. It is given the file's own bytes instead (`host_GXInitTlutObj`). Until then every indexed texture had wrong colours |
-| Lookups by address | "Which archive is this pointer in" walked every object of every open archive, for each palette and vertex array of each frame: 27 ms a frame, 36 frames a second. The answers are now kept until an archive is opened or closed (`memo_slot` in `window.c`) |
+| Lookups by address | "Which archive is this pointer in" walked every object of every open archive, for each palette and vertex array of each frame: 27 ms a frame, 36 frames a second. The answers were first kept until any archive was opened or closed, which was still wrong (see "Stutter" below); each archive now has its own index and only what concerns a closing archive is forgotten |
 | Stock icons | Both players' icons were Captain Falcon's. `gm_80168B34` never assigns `base` for the first twenty characters; the console's code happens to keep the character's number in that register (confirmed in the retail code), and natively it was whatever the stack held. Patched at build time. It led to a search for others of its kind (`native-port.md`, kind 7) |
 | Running it safely | The game's process renames itself ("Main thread"), so `pgrep melee_native` does not find it, and `timeout` around `xvfb-run` leaves it running. `window.py` puts the X server and the game each in a process group, kills both on close and looks for survivors by executable path |
 
@@ -348,6 +348,27 @@ in), panel icons, sound.
 aliasing on diagonal graphics is quite bad"). Aurora's RmlUi renderer has 4x
 multisampling behind a compile-time switch that is off; the patch turns it on. The game's
 own picture is not anti-aliased (`AuroraConfig.msaa` would do it; not asked for).
+
+**Stutter (2026-11-13).** The owner, on their own screen: "The game plays fine, but the
+graphics are completely choppy." Measured (`MELEE_TIMING=1`, or `client.py --timing`):
+the driver in Python is not it (the game waits 0.1 to 0.4 ms a frame for it). With the
+fighters acting, the slowest frame of every second took 27 ms on the game's side: a
+fighter's animation archive is closed and opened at every change of animation, and each
+time everything the window build remembered about archives by address was thrown away
+and asked again, by a walk over every object of every open archive. An idle match never
+showed it, and idle matches were all that had been timed. Now each archive has an index
+from converted object to file offset (`find_native`, `archive.c`) and what is remembered
+is only dropped for the archive that closes. An active match: 150 late pictures in 1,140
+before, 5 after; the slowest frame 1 ms. Pictures are also held to an even schedule
+(`present_wait`: shown 6 ms after their frame began, `MELEE_PRESENT_MS`), instead of
+whenever each happened to be done. On the virtual display there is little headroom at
+1280 by 720 (it copies every picture on the CPU: 93 frames a second flat out, 238 at
+640 by 480), so the last few late pictures there say nothing about a real screen.
+**Whether it is smooth on the owner's screen is theirs to say.**
+
+**The focus ring** was a square round every panel but the first: a ring shown later
+(`display`) was drawn without the slant of the panels it sits in. It is always there now
+and only its colour changes; `tests/client/menu.py` looks at a picture for it.
 
 **Tests and a client someone is playing** share nothing now: an off-screen run has its
 own shader cache (`MELEE_STATE_DIR`) and its own folder for documents. Before, a test run

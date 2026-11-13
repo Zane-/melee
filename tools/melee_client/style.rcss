@@ -56,8 +56,11 @@ span { display: inline; }
 /* ---- panels ----------------------------------------------------------- */
 
 .tile { position: relative; display: flex; flex-direction: column; }
-.ring { position: absolute; left: -10dp; top: -10dp; right: -10dp; bottom: -10dp; border: 4dp #12161C; display: none; }
-.focus .ring { display: block; }
+/* The ring is always there and only its colour changes. Shown and hidden
+   instead (display), a ring that appears later is drawn without the slant
+   of the panels it sits in: a square round a slanted panel. */
+.ring { position: absolute; left: -10dp; top: -10dp; right: -10dp; bottom: -10dp; border: 4dp #00000000; }
+.focus .ring { border-color: #12161C; }
 .in { flex: 1; transform: skewX(12deg); display: flex; flex-direction: column; justify-content: space-between; }
 .idx { font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; }
 .soon { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 12dp; padding: 2dp 7dp; border: 1dp #12161C; }

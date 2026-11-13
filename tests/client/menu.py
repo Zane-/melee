@@ -12,6 +12,8 @@ of each screen (under build/shots/ they stay out of the repository).
 """
 import argparse
 import os
+import re
+import subprocess
 import sys
 import tempfile
 
@@ -30,6 +32,20 @@ def check(name, ok, detail=""):
     checks.append(ok)
     print("%s  %s%s" % ("ok  " if ok else "FAIL", name,
                         "  (" + detail + ")" if detail else ""))
+
+
+def ring_edge(path, y, start):
+    """Going left along a row of a picture from a point inside the panel
+    in focus: the x of the first dark pixel, which is the ring's edge."""
+    out = subprocess.run(
+        ["magick", path, "-crop", "140x1+%d+%d" % (start - 140, y), "txt:-"],
+        capture_output=True, text=True).stdout
+    dark = []
+    for line in out.splitlines()[1:]:
+        m = re.match(r"(\d+),0: \((\d+),(\d+),(\d+)", line)
+        if m and max(int(m.group(i)) for i in (2, 3, 4)) < 60:
+            dark.append(start - 140 + int(m.group(1)))
+    return max(dark) if dark else None
 
 
 def main():
@@ -66,6 +82,18 @@ def main():
         for key in ("Right", "Down", "Right", "Down", "Left", "Up", "Left"):
             tap(key)
             seen.append(c.focus)
+            if c.focus == "events" and len(seen) == 2:
+                # the ring round a panel the focus has moved to leans as
+                # the panel does (it was once a square): its left edge is
+                # further right near the top than near the bottom
+                path = os.path.join(tempfile.mkdtemp(prefix="melee-shot-"),
+                                    "ring.png")
+                w.shot(path)
+                edge = [ring_edge(path, 352, 700), ring_edge(path, 600, 660)]
+        check("the ring round a panel leans with it",
+              None not in edge and edge[0] - edge[1] > 30,
+              "its left edge at x %s near the top and x %s near the bottom"
+              % tuple(edge))
         check("the focus moves panel to panel",
               seen == ["lab", "events", "versus", "controls", "events",
                        "lab", "train"], " ".join(seen))

@@ -111,17 +111,68 @@ static const NameEntry* find_name(const char* name)
 /* --- which file each open archive came from ------------------------------ */
 
 #define MAX_OPEN 512
-static struct {
+static struct Open {
     DatArchive* native;
     char file[64];
     const uint8_t* src; ///< the buffer it was parsed from
     size_t size;
+    /// Converted object -> its offset in the file, made the first time one
+    /// is asked for (find_native): the readers only keep the other way.
+    uintptr_t* back_ptr;
+    uint32_t* back_off;
+    size_t back_cap;
 } open_archives[MAX_OPEN];
 
-/// Goes up whenever an archive is opened or closed: what was looked up by
-/// address before then (host_dat_raw_room, host_dat_blob_size) may no
-/// longer hold.
-uint32_t host_dat_generation;
+/// The offset in an archive's file of one of its converted objects.
+/// Animation archives are opened and closed at every change of animation,
+/// and a model's palettes are asked about every frame: walking every
+/// object of every open archive for each (as this once did) cost a frame
+/// in three its whole time.
+static int find_native(struct Open* o, const void* native, uint32_t* offset)
+{
+    const DatArchive* a = o->native;
+    uintptr_t want = (uintptr_t) native;
+    size_t at;
+
+    if (o->back_ptr == NULL) {
+        size_t n = 0, cap = 16;
+        for (size_t k = 0; k < a->natives.cap; k++) {
+            n += a->natives.keys[k] != UINT64_MAX;
+        }
+        while (cap < n * 2) {
+            cap <<= 1;
+        }
+        o->back_ptr = calloc(cap, sizeof *o->back_ptr);
+        o->back_off = calloc(cap, sizeof *o->back_off);
+        if (o->back_ptr == NULL || o->back_off == NULL) {
+            host_fatal("out of memory for an archive's index");
+        }
+        o->back_cap = cap;
+        for (size_t k = 0; k < a->natives.cap; k++) {
+            uintptr_t p = (uintptr_t) a->natives.values[k];
+            if (a->natives.keys[k] == UINT64_MAX || p == 0) {
+                continue;
+            }
+            at = (p * 2654435761u >> 4) & (cap - 1);
+            while (o->back_ptr[at] != 0 && o->back_ptr[at] != p) {
+                at = (at + 1) & (cap - 1);
+            }
+            if (o->back_ptr[at] == 0) {
+                o->back_ptr[at] = p;
+                o->back_off[at] = (uint32_t) (a->natives.keys[k] >> 32);
+            }
+        }
+    }
+    at = (want * 2654435761u >> 4) & (o->back_cap - 1);
+    while (o->back_ptr[at] != 0) {
+        if (o->back_ptr[at] == want) {
+            *offset = o->back_off[at];
+            return 1;
+        }
+        at = (at + 1) & (o->back_cap - 1);
+    }
+    return 0;
+}
 
 static const char* base_name(const char* path)
 {
@@ -133,8 +184,14 @@ static void close_slot(int i)
 {
     DatArchive* native = open_archives[i].native;
     open_archives[i].native = NULL;
-    host_dat_generation++;
+    free(open_archives[i].back_ptr);
+    free(open_archives[i].back_off);
+    open_archives[i].back_ptr = NULL;
+    open_archives[i].back_off = NULL;
     host_particles_forget(native->archive->data, native->archive->size);
+#ifdef HOST_WINDOW
+    host_window_forget(native->archive->data, native->archive->size);
+#endif
     dat_close(native);
 }
 
@@ -161,7 +218,9 @@ static void note_open(DatArchive* native, const void* src, size_t size)
     for (int i = 0; i < MAX_OPEN; i++) {
         if (open_archives[i].native == NULL) {
             open_archives[i].native = native;
-            host_dat_generation++;
+#ifdef HOST_WINDOW
+            host_window_opened();
+#endif
             open_archives[i].src = src;
             open_archives[i].size = size;
             snprintf(open_archives[i].file, sizeof open_archives[i].file,
@@ -522,19 +581,13 @@ void* host_dat_raw_room(const void* native, uint32_t* room)
         if (a == NULL) {
             continue;
         }
+        uint32_t offset;
+
         if (at >= a->archive->data && at < a->archive->data + a->archive->size)
         {
             raw = at;
-        } else {
-            for (size_t k = 0; k < a->natives.cap; k++) {
-                if (a->natives.keys[k] != UINT64_MAX &&
-                    a->natives.values[k] == (uintptr_t) native)
-                {
-                    raw = a->archive->data +
-                          (uint32_t) (a->natives.keys[k] >> 32);
-                    break;
-                }
-            }
+        } else if (find_native(&open_archives[i], native, &offset)) {
+            raw = a->archive->data + offset;
         }
         if (raw != NULL) {
             *room = (uint32_t) (a->archive->data + a->archive->size - raw);
@@ -563,15 +616,9 @@ void* host_dat_raw(const void* native)
     }
     for (int i = 0; i < MAX_OPEN; i++) {
         const DatArchive* a = open_archives[i].native;
-        if (a == NULL) {
-            continue;
-        }
-        for (size_t k = 0; k < a->natives.cap; k++) {
-            if (a->natives.keys[k] != UINT64_MAX &&
-                a->natives.values[k] == (uintptr_t) native)
-            {
-                return a->archive->data + (uint32_t) (a->natives.keys[k] >> 32);
-            }
+        uint32_t offset;
+        if (a != NULL && find_native(&open_archives[i], native, &offset)) {
+            return a->archive->data + offset;
         }
     }
     host_fatal("host_dat_raw: %p is not an archive object", native);

@@ -100,7 +100,10 @@ void host_fighter_json(int slot, char* out, size_t size);
 void* host_dat_raw(const void* native);
 void* host_dat_raw_room(const void* native, uint32_t* room);
 uint32_t host_dat_blob_size(const void* at, uint32_t element);
-extern uint32_t host_dat_generation;
+/// The window build remembers some answers about archives by address
+/// (window.c): an archive opened, one closed.
+void host_window_opened(void);
+void host_window_forget(const void* data, size_t size);
 
 /// The window build only (window.c): a port played by a person, and
 /// running at the console's speed instead of as fast as it goes.
@@ -108,6 +111,9 @@ const char* host_window_live(int port, const char* source);
 void host_window_pace(int on);
 void host_window_capture(int on);
 const HostPad* host_window_seen(int port);
+
+/// The last frame's wait for the driver on the control pipe, in ms.
+extern double host_driver_ms;
 
 /// A GameCube controller adapter, read directly (gcadapter.c).
 void host_gcc_start(void);
