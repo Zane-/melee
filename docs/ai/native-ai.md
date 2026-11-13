@@ -226,6 +226,33 @@ with twelve characters between them. All ran 400 frames and are recognisably rig
 Seen and not looked into: Fountain of Dreams' reflecting floor is drawn in coarse blocks;
 Pokémon Stadium's screen shows "kj" under "Combatants".
 
+### Training against a scenario yourself (2026-11-13, off screen only)
+
+```sh
+python tools/melee_actor/train.py data/scenarios/shield-grab-dash-attack.json [--reps 20] [--jitter 6]
+```
+
+The first loop with a person in it: the scenario's opponent script plays port 2, the
+person plays port 1, each attempt gets a verdict ("yes", or "no: you did not hit them;
+you were hit") and the situation is put back. The same scenario files, the same judge
+(`success`), the same opponent steps as the scripted runs: `Session(scenario,
+game=window, person=port)` leaves the player's stand-in script out.
+
+What differs from a scripted run, and why:
+
+- **No snapshots** (the window build has none): the situation is put back by placement
+  alone. Effects still in the air and the random stream carry over from one attempt to
+  the next, so attempts are not exact repeats.
+- **An attempt lasts as long as the opponent's script** (then `after` frames), since
+  nothing says when a person is done.
+- **The verdict is printed in the terminal**, not on the game's screen. Aurora carries
+  ImGui, which could draw it over the game; not done.
+
+`tests/actor/train.py` (7 checks) is three people made of key presses on the virtual
+display: one stands still (hit: no), one shields and does nothing (not hit, no punish:
+no), one shields, grabs when the hit has landed and hits (yes). **No person has used
+it.**
+
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
@@ -239,9 +266,10 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 (draws, paced, a port played from the keyboard; all off screen) | A window, sound and a controller. Done: Aurora linked in, six stages drawn, the console's speed, live ports, `play.py`. Next: **the owner runs `play.py`** (first time on a real display and with a real controller), then sound, then the adapter read directly | a person plays a match |
-| N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
+| N7 (begun, off screen: `train.py`) | The trainer with a person in it. Done: a scenario's opponent against a live port, a verdict per attempt in the terminal. Next: the verdict and the guide on the game's screen, statistics over a session, choosing what to practise next | the owner trains against an actor |
 
-N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.
+N6 gated N7 and is now far enough for it. What both wait for is the owner running
+`play.py` or `train.py`: nothing here has been on a real display or had a real controller.
 
 ## The first drill-shaped thing: one situation, three ways to play it
 

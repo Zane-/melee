@@ -30,6 +30,12 @@ getting it right. The unit an AI-driven drill is made of.
 Runs on the native build (docs/ai/native-ai.md). A situation is set up
 once and kept as a snapshot; each run restores it, so runs are independent
 and cost what their frames cost.
+
+With a person (`Session(scenario, game=window, person=port)`, train.py) that
+port is theirs: no script drives it, the run lasts as long as the
+opponent's script, and the situation is put back by placement alone, since
+the window build has no snapshots. What is still in the air from the last
+run (an effect, the random stream) carries over.
 """
 import json
 import os
@@ -47,15 +53,16 @@ from melee_actor.actor import Actor  # noqa: E402
 class Session:
     """A game with one scenario set up in it, ready to be run many times."""
 
-    def __init__(self, scenario, game=None):
+    def __init__(self, scenario, game=None, person=None):
         from native import Native
         self.sc = scenario
         self.own = game is None
+        self.person = person   # the port a person plays, if any
         self.n = game or Native()
         self.n.start(scenario.get("p1", "fox"), scenario.get("p2", "marth"),
                      scenario.get("stage", "final-destination"),
                      scenario.get("seed", 1))
-        self.fresh = self.n.snapshot()
+        self.fresh = None if person is not None else self.n.snapshot()
 
     def close(self):
         if self.own:
@@ -71,9 +78,11 @@ class Session:
 
     def _setup(self, jitter, rng):
         n = self.n
-        n.restore(self.fresh)
-        n.pad(0)
-        n.pad(1)
+        if self.fresh is not None:
+            n.restore(self.fresh)
+        for port in (0, 1):
+            if port != self.person:
+                n.pad(port)
         for item in self.sc.get("setup", []):
             dx = rng.uniform(-jitter, jitter) if jitter else 0.0
             n.place(item["place"], item.get("x", 0.0) + dx,
@@ -123,17 +132,20 @@ class Session:
                         steps=actor.log)
         return actor, act, result
 
-    def run(self, jitter=0.0, run=0):
+    def run(self, jitter=0.0, run=0, each_frame=None):
         """Play the scenario once. `jitter` moves every placement sideways
         by up to that much and changes the seed, by run number: the same
-        run number is the same game."""
+        run number is the same game. `each_frame(game, frame)` is called
+        before every frame of the run."""
         sc, n = self.sc, self.n
         self._setup(jitter, random.Random(run))
         sides = {}
         for role in ("opponent", "player"):
-            if role in sc:
+            if role in sc and sc[role].get("port") != self.person:
                 sides[role] = self._side(sc[role], run)
         judge_port = sc.get("player", {}).get("port", 0)
+        if self.person is not None:
+            judge_port = self.person
         judge = Actor(n, judge_port, 1 - judge_port)
         since = dict(percent=judge.them().percent, own=judge.me().percent)
         start = n.frame
@@ -142,13 +154,16 @@ class Session:
         # opponent's is.
         scripted = [r for r in sides if "policy" not in sc[r]]
         decides = ["player"] if "player" in scripted else scripted
-        for _ in range(int(sc.get("frames", 600))):
+        for frame in range(int(sc.get("frames", 600))):
             busy = {role: act() for role, (_a, act, _r) in sides.items()}
             if decides and not any(busy[r] for r in decides):
                 break
+            if each_frame is not None:
+                each_frame(n, frame)
             n.step()
-        n.pad(0)
-        n.pad(1)
+        for port in (0, 1):
+            if port != self.person:
+                n.pad(port)
         if sc.get("after", 0):
             n.step(int(sc["after"]))
         checks = []
@@ -158,8 +173,11 @@ class Session:
                                detail=detail))
         results = {role: result() for role, (_a, _act, result) in
                    sides.items()}
-        ok = all(c["passed"] for c in checks) and all(
-            results[r].get("success", True) for r in decides)
+        # With a person, the opponent's script being cut short (they were
+        # grabbed, hit) is the point, not a failure: the checks decide.
+        ok = all(c["passed"] for c in checks) and (
+            self.person is not None or
+            all(results[r].get("success", True) for r in decides))
         out = dict(name=sc.get("name", ""), success=ok,
                    frames=n.frame - start, checks=checks)
         out.update(results)

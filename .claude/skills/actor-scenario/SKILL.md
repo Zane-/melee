@@ -97,3 +97,13 @@ with scenario.Session(scenario.load("tests/actor/scenarios/whiff_punish.json")) 
 
 Say how many runs of how many passed and with what jitter, and quote the failing check of
 a failed run. A scenario that only passes unjittered is not a result.
+
+## With a person instead of the stand-in
+
+`python tools/melee_actor/train.py FILE [--reps N] [--jitter X] [--input keyboard]` opens
+the native build's window and gives the player's port to a person; the opponent, the
+judge and the file are unchanged (`Session(scenario, game=window, person=port)`). Agents
+do not run it on the owner's desktop: use `--offscreen`, or `tests/actor/train.py`, which
+plays it with key presses on a virtual display. A scenario meant for a person needs an
+`about` line (what to do, in a sentence) and an opponent script that lasts as long as the
+attempt should: the attempt ends when that script does.
