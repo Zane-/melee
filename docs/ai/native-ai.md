@@ -120,7 +120,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N2 (placement done) | Setting up a situation from a command instead of from play. `Native.place(port, x, y, facing, air, percent)`: standing on whatever floor is at or below the point, or falling from it; not holding or held, no speed, a full shield (`src/host/setup.c`, the course engine's placement on the game's own functions). Stocks, items and the rest of a match's rules: not yet | `tests/native/place.py`, 11 checks |
 | N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances) and `throw`. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branches | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
-| N5 | Claude in the loop: turns an instruction into a scenario or a script, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop | an instruction in words becomes a script that passes |
+| N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 | A window, sound and a controller | a person plays a match |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
@@ -148,6 +148,35 @@ from the first frame he can. The player is a stand-in script.
   actor starts it at 26.5.
 - What this is not yet: a drill. Nothing explains, scores over time or adapts; the
   opponent does one thing; the player is a script.
+
+## Claude writing scenarios (`tools/melee_actor/author.py`)
+
+```sh
+.venv/bin/pip install anthropic            # once
+export ANTHROPIC_API_KEY=...               # or `ant auth login`
+python tools/melee_actor/author.py "Marth dash attacks from mid range. \
+    I want to practise shielding it and grabbing him out of shield."
+python tools/melee_actor/author.py --show-prompt
+```
+
+Claude (`claude-opus-5-5` by default, `--model` to change) is told what a scenario is, what
+makes one good (works when moved about, fair, tells right from wrong, no frame numbers where
+a condition would do) and the actor's vocabulary, which is generated from `actor.py` so the
+prompt cannot drift from what runs. It has three tools:
+
+| Tool | Does |
+|-|-|
+| `run_scenario(scenario, runs, jitter)` | runs it on the native build; answers with how many runs passed and the steps and checks of one failing and one passing run |
+| `game_data(query)` | `tools/melee_data/query.py`: frame data, out-of-shield options, shield advantage, knockback |
+| `save_scenario(name, scenario)` | writes `data/scenarios/<name>.json`; refuses unless that exact scenario passed 90% of a run of 10 or more |
+
+The loop is the SDK's tool runner. A safety decline is rerun on a fallback model by the API
+(`fallbacks: "default"`).
+
+**What is checked:** the three tools, the save rule and the tool definitions the SDK builds,
+without any API call (`tests/actor/author_tools.py`, 11 checks); with no credentials the
+command says so and stops. **What is not:** the conversation itself. Nobody has seen
+Claude write a scenario through this yet, so the prompt is a first draft.
 
 ## Not verified
 
