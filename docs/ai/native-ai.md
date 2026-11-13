@@ -36,6 +36,7 @@ not built.
 | Piece | Where | Checked by |
 |-|-|-|
 | A frame per exchange: `tick` sets the pads, runs frames, returns the state (both fighters: state, frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield, kind, jumps used, invulnerable, stocks; items; the random seed) | `src/host/control.c`, `Native.step` | `tests/native/env.py` |
+| Placing fighters: `Native.place()` | `src/host/setup.c` | `tests/native/place.py`: on Final Destination and on Battlefield's platforms, in the air, refused where there is no floor |
 | Snapshots: `Native.snapshot()` / `restore()` / `drop()` | `control.c` (below) | `tests/native/env.py`: the same inputs from a snapshot give the same game, in any order of restores, and the same as a fresh process |
 | The Melee Actor, unchanged, on either the native build or the simulator | `tools/melee_actor/actor.py` | `tests/actor/uptilt.py` (4 of 4 on both) |
 | slippi-ai policies as players, on either | `tools/melee_actor/policy.py` | `tests/actor/policy_match.py` |
@@ -59,6 +60,11 @@ and waits until both fighters stand.
 course engine, no UCF (`ucf.md`), no drills. Where the simulator's Lab and the native VS
 match were given the same script, three of four runs ended within a frame of each other
 and with the same positions; one differed in where the target ended up. Not looked into.
+
+**Placing and repeating.** A placement makes the fighters the same whatever came before.
+It does not touch what else is about: effects still playing, and so where the random
+stream stands a few frames later. To repeat a situation exactly, set it up once, take a
+snapshot and restore that; the test checks both halves of this.
 
 ## Snapshots are forks
 
@@ -97,7 +103,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | Step | What | Proof |
 |-|-|-|
 | N1 (done) | The interface above; actor and policies on it | the three tests |
-| N2 | Setting up a situation: place a fighter (position, facing, damage, on the ground or in the air), choose stocks and items off, from a command instead of from play | a situation set up twice is the same game twice; against the simulator's Lab placement |
+| N2 (placement done) | Setting up a situation from a command instead of from play. `Native.place(port, x, y, facing, air, percent)`: standing on whatever floor is at or below the point, or falling from it; not holding or held, no speed, a full shield (`src/host/setup.c`, the course engine's placement on the game's own functions). Stocks, items and the rest of a match's rules: not yet | `tests/native/place.py`, 11 checks |
 | N3 | The actor's step library (`melee-actor.md`, A2) and "react when", developed here at 8,900 frames a second; script files and a runner with a verdict as JSON (A3) | one test per step; a drill's player-side test rewritten as a script |
 | N4 | A trainer process: a scenario (setup, the opponent's script or policy, what counts as success), run against a stand-in player, retried from a snapshot, scored | two scenarios from `data/courses/` run end to end, headless |
 | N5 | Claude in the loop: turns an instruction into a scenario or a script, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop | an instruction in words becomes a script that passes |

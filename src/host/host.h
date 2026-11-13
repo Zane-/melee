@@ -84,6 +84,11 @@ void host_match_install(void);
 /// End the current scene and enter the match described by host_match.
 void host_match_start(void);
 
+/// Put player `slot`'s fighter standing on the floor at or below (x, y), or
+/// (air) falling from there, facing `facing`, at `percent` damage
+/// (setup.c). Returns NULL, or why not.
+const char* host_place(int slot, float x, float y, float facing, int air,
+                       float percent);
 /// The control protocol (control.c), when enabled.
 extern int host_control_enabled;
 void host_control_frame(void);

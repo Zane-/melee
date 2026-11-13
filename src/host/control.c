@@ -9,6 +9,10 @@
  *                                 set those pads, run N frames and reply
  *                                 with what `state` prints: a whole frame
  *                                 of a driven match in one exchange
+ *   place P X Y FACING AIR PERCENT
+ *                                 put player P's fighter standing on the
+ *                                 floor at or below (X, Y), or (AIR 1)
+ *                                 falling from there (setup.c)
  *   snap                          keep the game as it is now: "@ snap ID"
  *   restore ID                    go back to it: "@ restored ID frame F"
  *   drop ID                       forget it
@@ -308,6 +312,18 @@ static void command(char* line)
     } else if (strcmp(cmd, "pad") == 0) {
         set_pad(line);
         printf("@ ok\n");
+    } else if (strcmp(cmd, "place") == 0) {
+        int p = 0, air = 0;
+        float x = 0, y = 0, facing = 1, percent = 0;
+        const char* why;
+        sscanf(line, "%d %f %f %f %d %f", &p, &x, &y, &facing, &air,
+               &percent);
+        why = host_place(p, x, y, facing, air, percent);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "snap") == 0) {
         int id = -1;
         int r = in_len != 0 ? -3 : snap_take(&id);

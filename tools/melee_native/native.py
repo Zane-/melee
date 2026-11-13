@@ -239,6 +239,13 @@ class Native:
                     break
         return self
 
+    def place(self, port, x, y=0.0, facing=1, air=False, percent=0.0):
+        """Put a fighter standing on the floor at or below (x, y), or (air)
+        falling from there: not holding or held, no speed, that much
+        damage, a full shield. Raises if there is no floor below."""
+        self._cmd("place %d %.9g %.9g %d %d %.9g" % (
+            port, x, y, 1 if facing >= 0 else -1, 1 if air else 0, percent))
+
     # ---- reading --------------------------------------------------------------------
 
     def state(self):
