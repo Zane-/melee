@@ -326,6 +326,7 @@ static const CourseFighterData* course_Fighter(FighterData* fd)
 #include "drills/defense.inc.h"
 #include "drills/defense_escapes.inc.h"
 #include "drills/punish_offstage.inc.h"
+#include "drills/defense_pressure.inc.h"
 
 static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_FOX_SHINE_OOS] = &Drill_FoxShineOos,
@@ -353,6 +354,9 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_DEF_DI_SURVIVAL] = &Drill_DefDiSurvival,
     [DRILL_DEF_TECH_CHASE] = &Drill_DefTechChase,
     [DRILL_DEF_COMBO_SHINE] = &Drill_DefComboShine,
+    [DRILL_DEF_SDI] = &Drill_DefSdi,
+    [DRILL_DEF_ESCAPE_PRESSURE] = &Drill_DefEscapePressure,
+    [DRILL_DEF_RECOVERY] = &Drill_DefRecovery,
     [DRILL_FOX_SHINE_SPIKE] = &Drill_FoxShineSpike,
     [DRILL_FOX_EDGEGUARD] = &Drill_FoxEdgeguard,
     [DRILL_DEF_LEDGE_ATTACK] = &Drill_DefLedgeAttack,

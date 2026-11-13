@@ -1,0 +1,28 @@
+{
+  "comment": "Holding shield for ever.",
+  "event": "course",
+  "drill": "fox-escape-pressure",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 1400,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 1500,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

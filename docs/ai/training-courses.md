@@ -14,16 +14,10 @@ menu engine, messages, HUD drawing and the OSDs stay and are what courses are bu
 
 **Status (2026-11-12): M1 and M2 are in; M3 (the Fox course) has started.** The engine
 runs six drills with a guide overlay, a demonstration and generated frame data; the hub
-opens after character select. Built: all sixteen of Fox's Tech drills, all eight of his Neutral drills, and nine of
-eleven Punish drills. and six of eleven Defense drills (tech, crouch cancel, survival DI, escape the tech
-chase, shine out of combos, getting off the ledge). Still plans: the two offstage Punish
-drills (shine spike, edgeguard from the stage) and five Defense drills (SDI, Marth's chain
-grab, shield pressure, wall tech, recovery), which need a CPU that combos, pressures,
-edgeguards or recovers. The chain grab was tried: a Marth that stands under the falling
-player never lands the regrab, he has to space and pivot. None of the Neutral or new Punish
-drills has been played by a person. The owner played an earlier build on
-2026-11-12; the changes asked for then are in (below). The last three Tech drills (shield
-drop, ledgedash, ledge stall) have not been played by a person. "Built" and "Planned" are marked per section;
+opens after character select. Built: all sixteen of Fox's Tech drills, all eight Neutral, all eleven Punish and nine of
+eleven Defense drills. Still plans: `universal-wall-tech` (not tried) and
+`fox-escape-chaingrab` (tried and removed: Marth has to space and pivot to land the
+regrab). Nothing after Tech has been played by a person. "Built" and "Planned" are marked per section;
 update this file as milestones land.
 
 | Piece | State | Checked how |
@@ -238,6 +232,18 @@ Changed after the owner's first play session (2026-11-12):
   percent is set with `df_SetPercent` after `course_Place`. A player who dies (survival
   DI) is put back by the normal reset. "Free" after a grounded hit means out of hitstun
   and past the 4 landing frames that follow it.
+- **Offstage** (`drills/punish_offstage.inc.h`, `defense_pressure.inc.h`):
+  `course_PlaceInAir` puts either fighter in the air off the ledge with its double jump;
+  `os_CpuRecover` is a Marth that recovers high (jump at once, up B onto the stage) or low
+  (fall, jump, to the ledge). A CPU that covers a recovery swings at a player in reach at
+  stage height after its reaction time, and at a ledge hang as the intangibility ends
+  (the counter is not set while the ledge is still being caught).
+- **A pressure loop** (`ep_Cpu`): hop, late aerial, L-cancel, wait, shine, jump out,
+  driven by the CPU's own state rather than a fixed script, so shield hitlag does not
+  throw it off.
+- **Do not edit `course.h` or `desc.c` while specs run.** The test runner looks up a
+  drill's number in the source, so an edit mid-run makes later specs start the wrong
+  drill. And the runner prints only at the end: a run killed by a timeout shows nothing.
 - **A standing dummy makes kill moves trivial**: the kill confirm drill requires the
   opener to be a grab, shine, up tilt or dash attack.
 

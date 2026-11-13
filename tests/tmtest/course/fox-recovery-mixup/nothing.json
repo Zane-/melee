@@ -1,0 +1,14 @@
+{
+  "comment": "Doing nothing: Fox falls.",
+  "event": "course",
+  "drill": "fox-recovery-mixup",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}

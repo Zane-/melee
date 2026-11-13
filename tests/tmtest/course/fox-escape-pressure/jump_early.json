@@ -1,0 +1,35 @@
+{
+  "comment": "Letting go of shield and jumping at once, before the first aerial has landed: hit out of it.",
+  "event": "course",
+  "drill": "fox-escape-pressure",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 3,
+      "hold": 45,
+      "buttons": [
+        "R"
+      ],
+      "r": 255
+    },
+    {
+      "at": 50,
+      "hold": 2,
+      "buttons": [
+        "X"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

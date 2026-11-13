@@ -1,0 +1,26 @@
+{
+  "comment": "A full Illusion onto the stage: Marth sees it and swings.",
+  "event": "course",
+  "drill": "fox-recovery-mixup",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 500,
+  "options": [],
+  "inputs": [
+    {
+      "at": 12,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ],
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail"
+  }
+}

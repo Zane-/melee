@@ -1,0 +1,19 @@
+{
+  "comment": "Standing still: every hit and the shine.",
+  "event": "course",
+  "drill": "universal-sdi",
+  "hmn": "fox",
+  "cpu": "fox",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail"
+  }
+}
