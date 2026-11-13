@@ -1,0 +1,23 @@
+{
+  "name": "Shield the dash attack, grab out of shield",
+  "about": "Marth runs in with a dash attack. Hold your shield, and as soon as the hit has landed on it, grab: he cannot do anything for 20 more frames.",
+  "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,
+  "setup": [
+    {"place": 0, "x": -10, "facing": 1},
+    {"place": 1, "x": 45, "facing": -1, "percent": 20}
+  ],
+  "opponent": {"port": 1, "script": [
+    {"do": "wait", "frames": 30},
+    {"do": "rush", "move": "dash_attack"},
+    {"do": "hold", "frames": 60, "buttons": ["R"]}
+  ]},
+  "player": {"port": 0, "script": [
+    {"do": "wait", "until": "in_range:40"},
+    {"do": "shield", "until": "blocked"},
+    {"do": "oos", "move": "grab"},
+    {"do": "throw", "direction": "up"}
+  ]},
+  "frames": 400,
+  "after": 10,
+  "success": ["target_hit", "not_hit"]
+}

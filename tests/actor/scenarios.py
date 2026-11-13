@@ -75,6 +75,31 @@ def main():
               r["success"] and r["checks"][0]["expect"] == "hit",
               r["checks"][0]["detail"])
 
+    # A second situation, written from the instruction "shield Marth's
+    # dash attack and grab him out of shield" (data/scenarios/).
+    drill = scenario.load(os.path.join(HERE, "..", "..", "..", "data",
+                                       "scenarios",
+                                       "shield-grab-dash-attack.json"))
+    with scenario.Session(drill) as s:
+        r = s.run()
+        block = step(r, "player", "shield")
+        grab = step(r, "player", "oos")
+        check("shield grab: blocks the dash attack, grabs out of shield",
+              r["success"] and block.get("blocked") and grab["grabbed"],
+              "blocked after %d frames of shield; %s"
+              % (block.get("held", -1),
+                 "; ".join(c["detail"] for c in r["checks"])))
+        many = [s.run(jitter=3.0, run=i) for i in range(40)]
+        good = sum(x["success"] for x in many)
+        check("moved about by up to 3 units, it still works", good == 40,
+              "%d of 40" % good)
+    bare = dict(drill, player=dict(port=0, script=[
+        {"do": "wait", "frames": 120}]), success=["hit"])
+    with scenario.Session(bare) as s:
+        r = s.run()
+        check("without the shield the dash attack hits", r["success"],
+              r["checks"][0]["detail"])
+
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     sys.exit(0 if all(checks) else 1)
 

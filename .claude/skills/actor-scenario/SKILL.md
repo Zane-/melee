@@ -58,6 +58,8 @@ before believing a script: one passing run says little.
 | `attack` `move` | `jab ftilt utilt dtilt fsmash usmash dsmash grab neutral_b side_b up_b down_b jump`, then wait until able to act |
 | `rush` `move` | run at the target and do `grab`, `dash_attack` or `usmash` (jump cancelled) out of the run, started at the distance known to connect for this character (`data/actor/reach.json`); the fast way in |
 | `throw` `direction` | `up down forward back`, after a grab that connected |
+| `shield` `until` or `frames` | hold the shield: until `blocked` (it took a hit and the stun is over: the first frame to act out of shield) or any `wait` condition; the shield stays up for the next step |
+| `oos` `move` | out of shield: `grab` (shield grab), `usmash` (jump cancelled), `jump` |
 | `wait` `frames` or `until` | `target_grounded`, `target_airborne`, `target_idle`, `target_attacking`, `target_swung` (its hitbox came out and went), `target_frame:N`, `in_range:N` |
 | `hold` `frames` `buttons` `stick` | hold an input (shield, crouch) |
 | `{"expect": ...}` inside a script | `target_hit`, `target_not_hit`, `hit`, `not_hit`, `in_range:N` |
@@ -69,6 +71,10 @@ shows it. `approach` is for standing somewhere exactly and is slow (it walks the
 units); to hit someone in time use `rush`. There is no jump-in, aerial, dash dance,
 wavedash or step that is interrupted by being attacked yet; an opponent "shields when it
 can" by a `hold` with R after its attack.
+
+A run ends when the player's script ends; the opponent's being cut short (it was grabbed)
+is not a failure. Scenarios meant as drills go in `data/scenarios/`; ones that only test
+the machinery in `tests/actor/scenarios/`.
 
 A number the actor needs about a character (how far out a move connects) is measured, not
 guessed: `python tools/melee_actor/calibrate.py [character]` tries every distance on the

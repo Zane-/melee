@@ -21,7 +21,9 @@ getting it right. The unit an AI-driven drill is made of.
 - `success`: expectations judged from the player's side when the run ends
   ("target_hit", "target_not_hit", "hit", "not_hit", "in_range:<n>").
 - `frames`: the longest a run may take; `after`: frames to let the last
-  input play out before judging.
+  input play out before judging. A run ends when the player's script does;
+  the opponent's script not finishing (it was grabbed, say) is not a
+  failure.
 
 Runs on the native build (docs/ai/native-ai.md). A situation is set up
 once and kept as a snapshot; each run restores it, so runs are independent
@@ -109,9 +111,14 @@ class Session:
                 box["result"] = done.value
                 self.n.pad(spec["port"])
                 return False
-        return actor, act, lambda: box.get(
-            "result", dict(success=False, unfinished=True, frames=actor.frame,
-                           steps=actor.log))
+        def result():
+            if "result" in box:
+                return box["result"]
+            if actor.log:
+                actor.log[-1]["cut_short"] = True
+            return dict(success=False, unfinished=True, frames=actor.frame,
+                        steps=actor.log)
+        return actor, act, result
 
     def run(self, jitter=0.0, run=0):
         """Play the scenario once. `jitter` moves every placement sideways
@@ -127,10 +134,14 @@ class Session:
         judge = Actor(n, judge_port, 1 - judge_port)
         since = dict(percent=judge.them().percent, own=judge.me().percent)
         start = n.frame
+        # A run is over when the player's script is (the opponent's may
+        # well be cut short by it), or, with no player script, when the
+        # opponent's is.
         scripted = [r for r in sides if "policy" not in sc[r]]
+        decides = ["player"] if "player" in scripted else scripted
         for _ in range(int(sc.get("frames", 600))):
             busy = {role: act() for role, (_a, act, _r) in sides.items()}
-            if scripted and not any(busy[r] for r in scripted):
+            if decides and not any(busy[r] for r in decides):
                 break
             n.step()
         n.pad(0)
@@ -145,7 +156,7 @@ class Session:
         results = {role: result() for role, (_a, _act, result) in
                    sides.items()}
         ok = all(c["passed"] for c in checks) and all(
-            r.get("success", True) for r in results.values())
+            results[r].get("success", True) for r in decides)
         out = dict(name=sc.get("name", ""), success=ok,
                    frames=n.frame - start, checks=checks)
         out.update(results)

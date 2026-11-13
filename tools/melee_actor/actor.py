@@ -43,6 +43,7 @@ SQUAT_FIRST, SQUAT_LAST = 39, 41
 LANDING = 42
 ATTACK_FIRST, ATTACK_LAST = 44, 74     # jab 1 .. down air
 CATCH_FIRST, CATCH_LAST = 212, 215     # grab, dash grab, and pulling in
+GUARD_ON, GUARD, GUARD_OFF, GUARD_STUN, GUARD_REFLECT = 178, 179, 180, 181, 182
 CATCH_WAIT = 216                       # holding someone
 THROW_FIRST, THROW_LAST = 219, 222     # forward, back, up, down
 
@@ -80,6 +81,14 @@ RUSH_STANDING = {"grab": "grab", "dash_attack": "ftilt", "usmash": "usmash"}
 RUSH_REACH = {"grab": 14.0, "dash_attack": 16.0, "usmash": 12.0}
 THROWS = {"up": (0, 1), "down": (0, -1), "forward": ("toward", 0),
           "back": ("away", 0)}
+# Out of shield, frame by frame. The shield button stays held where the
+# move needs it (a shield grab is A with the shield up); the up smash is
+# jump-cancelled, as out of a run.
+OOS = {
+    "grab": [dict(buttons=["R", "A"], r=1.0)],
+    "usmash": [dict(buttons=["X"]), dict(cstick=(0, 1))],
+    "jump": [dict(buttons=["X"])],
+}
 
 # Tilts need the stick already resting off-centre when A is pressed: moved
 # and pressed on the same frame it reads as a smash. (Found the first time
@@ -279,6 +288,13 @@ class Actor:
                 yield self._resolve(pad)
         else:                              # it was already next to us
             yield self._input(RUSH_STANDING[move])
+        out = yield from self._recover(before, timeout)
+        out["started_at"] = round(at, 1)
+        return out
+
+    def _recover(self, before, timeout):
+        """After an input: let it play out. Ends when the actor can act
+        again or is holding the target; returns what it went through."""
         states, grabbed = [], False
         for _ in _frames(timeout):
             me = self.me()
@@ -290,8 +306,52 @@ class Actor:
             if len(states) > 1 and self.grounded_idle(me):
                 break
             yield {}
-        return dict(states=states, started_at=round(at, 1), grabbed=grabbed,
+        return dict(states=states, grabbed=grabbed,
                     damage=round(self.them().percent - before, 1))
+
+    def do_shield(self, until="blocked", frames=None, timeout=300, **_):
+        """Hold the shield up: for a number of `frames`, or `until`
+        "blocked" (it has taken a hit and the stun from it is over: the
+        first frame something can be done out of shield), or until any
+        condition `wait` knows. The shield stays up when the step ends, so
+        the next step can act out of it."""
+        shield = dict(buttons=["R"], r=1.0)
+        if frames is not None:
+            for _ in _frames(frames):
+                yield dict(shield)
+            return {}
+        stunned = False
+        for n in _frames(timeout):
+            me = self.me()
+            if until == "blocked":
+                if me.state == GUARD_STUN:
+                    stunned = True
+                elif stunned and me.state in (GUARD, GUARD_ON):
+                    return dict(blocked=True, held=n,
+                                shield=round(me.shield, 1))
+                elif me.hitstun > 0 or me.percent > 0 and me.hitlag > 0 \
+                        and me.state not in (GUARD_STUN, GUARD,
+                                             GUARD_ON, GUARD_REFLECT):
+                    raise StepFailed("was hit instead of blocking")
+            elif self._condition(until):
+                return dict(held=n)
+            yield dict(shield)
+        raise StepFailed("held the shield %d frames and nothing %s"
+                         % (timeout, "hit it" if until == "blocked"
+                            else "happened"))
+
+    def do_oos(self, move, timeout=120, **_):
+        """Act out of shield: "grab" (a shield grab), "usmash" (jump
+        cancelled) or "jump". Use right after `shield`."""
+        if move not in OOS:
+            raise StepFailed("no way out of shield with %r" % move)
+        if self.me().state not in (GUARD_ON, GUARD, GUARD_STUN,
+                                   GUARD_REFLECT):
+            raise StepFailed("not in shield")
+        before = self.them().percent
+        for pad in OOS[move]:
+            yield self._resolve(pad)
+        return (yield from self._recover(before, timeout))
 
     def do_throw(self, direction="up", timeout=120, **_):
         """Throw the fighter being held."""
@@ -400,7 +460,10 @@ class Actor:
         since = dict(percent=self.them().percent, own=self.me().percent)
         ok = True
         for step in script:
+            # logged when it starts, so a step that is cut short (the run
+            # ended, the fighter was grabbed) still shows when it began
             entry = dict(step=step, at=self.frame)
+            self.log.append(entry)
             try:
                 if "expect" in step:
                     passed, detail = self._expect(step["expect"], since)
@@ -423,9 +486,7 @@ class Actor:
             except StepFailed as e:
                 entry.update(failed=str(e))
                 ok = False
-                self.log.append(entry)
                 break
-            self.log.append(entry)
         return dict(success=ok, frames=self.frame, steps=self.log)
 
     def run(self, script):
