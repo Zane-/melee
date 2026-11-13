@@ -23,6 +23,7 @@
  *                                 random seed it is set up with
  *   state                         frame, random seed and both fighters
  *   rng                           callers of the last frame's random draws
+ *   fp SLOT                       address of a fighter's data, for "r"
  *   fighter I                     one line of JSON about player I's fighter
  *   seed N                        set the game's random seed
  *   r ADDR LEN / w ADDR HEX       read or write memory
@@ -204,9 +205,13 @@ static int read_line(char* out, size_t size)
     }
 }
 
+/// Slots 4 to 7 are the second fighter of ports 0 to 3 (the Ice Climbers'
+/// partner; Zelda's other form).
 void host_fighter_json(int slot, char* out, size_t size)
 {
-    HSD_GObj* gobj = Player_GetEntity(slot);
+    HSD_GObj* gobj = slot >= 4 && slot < 8
+                         ? Player_GetEntityAtIndex(slot - 4, 1)
+                         : Player_GetEntity(slot);
     Fighter* fp;
 
     if (gobj == NULL || (fp = GET_FIGHTER(gobj)) == NULL) {
@@ -385,6 +390,17 @@ static void command(char* line)
         sscanf(line, "%d", &i);
         host_fighter_json(i, buf, sizeof buf);
         printf("@ %s\n", buf);
+    } else if (strcmp(cmd, "fp") == 0) {
+        /* where a fighter's data is (0 if none), for "r": slots as for
+           "fighter" */
+        int i = 0;
+        HSD_GObj* gobj;
+        sscanf(line, "%d", &i);
+        gobj = i >= 4 && i < 8 ? Player_GetEntityAtIndex(i - 4, 1)
+                               : Player_GetEntity(i);
+        printf("@ %x\n",
+               (unsigned) (uintptr_t) (gobj != NULL ? GET_FIGHTER(gobj)
+                                                    : NULL));
     } else if (strcmp(cmd, "seed") == 0) {
         unsigned seed = 0;
         sscanf(line, "%u", &seed);

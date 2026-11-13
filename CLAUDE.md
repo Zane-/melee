@@ -142,6 +142,7 @@ ninja
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |
 | Does the native build play the same game as the console's code? | `python tools/melee_native/compare.py` (`--random N`, `--tolerance`) |
+| Does a native match depend on a variable the game never assigns? | `python tools/native_build.py --auto-init zero` and `pattern`, then `python tests/native/uninit.py`; kind 7 in `docs/ai/native-port.md` |
 
 ## Verification status
 

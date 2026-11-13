@@ -37,6 +37,7 @@ not built.
 |-|-|-|
 | A frame per exchange: `tick` sets the pads, runs frames, returns the state (both fighters: state, frame, position, speed, facing, airborne, damage, hitlag, hitstun, shield, kind, jumps used, invulnerable, stocks; items; the random seed) | `src/host/control.c`, `Native.step` | `tests/native/env.py` |
 | Placing fighters: `Native.place()` | `src/host/setup.c` | `tests/native/place.py`: on Final Destination and on Battlefield's platforms, in the air, refused where there is no floor |
+| A port's second fighter (the Ice Climbers' partner): `fighter 4`..`7`, and `fp SLOT` for where a fighter's data is | `control.c` | used to find the CPU fault in `native-port.md`, kind 7 |
 | Snapshots: `Native.snapshot()` / `restore()` / `drop()` | `control.c` (below) | `tests/native/env.py`: the same inputs from a snapshot give the same game, in any order of restores, and the same as a fresh process |
 | Scenarios: a situation, an opponent's script or policy, a stand-in player, what counts as success; many runs from one set-up, each moved about | `tools/melee_actor/scenario.py`, `run.py` | `tests/actor/scenarios.py`, 8 checks: one situation played three ways (below) |
 | What a character's running moves reach, measured by trying | `tools/melee_actor/calibrate.py` → `data/actor/reach.json` | used by the scenarios above |
@@ -153,16 +154,15 @@ What it took, beyond linking Aurora in:
 | Fighter materials | `ftmaterial.c` reads two templates through a struct laid over three adjacent globals; natively they are not adjacent (one more of `native-port.md`'s "memory layout" kind). Patched at build time |
 | Palettes | A palette is a typed array in the archives, so the readers hand the game entries in host byte order; Aurora decodes them as the console stores them. It is given the file's own bytes instead (`host_GXInitTlutObj`). Until then every indexed texture had wrong colours |
 | Lookups by address | "Which archive is this pointer in" walked every object of every open archive, for each palette and vertex array of each frame: 27 ms a frame, 36 frames a second. The answers are now kept until an archive is opened or closed (`memo_slot` in `window.c`) |
-| Stock icons | Both players' icons were Captain Falcon's. `gm_80168B34` never assigns `base` for the first twenty characters; the console's code happens to keep the character's number in that register (confirmed in the retail code), and natively it was whatever the stack held. Patched at build time. **This is a kind of difference `compare.py` cannot see unless the value reaches a fighter**, and nothing has searched for others: see below |
+| Stock icons | Both players' icons were Captain Falcon's. `gm_80168B34` never assigns `base` for the first twenty characters; the console's code happens to keep the character's number in that register (confirmed in the retail code), and natively it was whatever the stack held. Patched at build time. It led to a search for others of its kind (`native-port.md`, kind 7) |
 | Running it safely | The game's process renames itself ("Main thread"), so `pgrep melee_native` does not find it, and `timeout` around `xvfb-run` leaves it running. `window.py` puts the X server and the game each in a process group, kills both on close and looks for survivors by executable path |
 
 Known, not fixed:
 
-- **Variables the game's code reads without assigning.** The decompiled C matches the
-  console's code even where that code only works because of what a register held. One
-  such place is patched (stock icons). The native build compiles with warnings off; a
-  pass with the compiler's uninitialised-variable warnings over the game's files would
-  list the candidates. Not done.
+- **Variables the game's code reads without assigning**: four places found and patched,
+  two of which changed play (a hit CPU's decision, so the Ice Climbers' partner; Samus's
+  grapple beam). `native-port.md`, kind 7, and `tests/native/uninit.py`. What that test
+  did not exercise is unknown.
 - **The software Vulkan driver (lavapipe) crashes** inside its compiler a few frames in,
   in this 32-bit process. Tests use software OpenGL ES (llvmpipe) instead
   (`MELEE_BACKEND=gles`). `--gpu` leaves the choice to Dawn and has run a match on the

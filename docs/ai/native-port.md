@@ -101,14 +101,14 @@ Known differences, none investigated to the end:
 | Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), `__frsqrte` is an exact reciprocal square root (as in the simulator, unlike hardware), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
 | Sheik's chain | The chain item is in a different state from frame 212 of one run (`falco`/`sheik`, run 1) |
 | Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
-| Ice Climbers | The partner diverges in one run (run 2, frame 183: a solo side special where the console has the pair's). Her inputs come from the CPU code, which nothing here compares |
+| Ice Climbers | The partner diverges in one run (run 2, frame 183: a solo side special where the console has the pair's). Her inputs come from the CPU code, which nothing here compares. Still so after the 2026-11-13 fixes to that code (kind 7 below); four other runs of 1,500 frames are identical |
 | Big Blue, Venom | Three flag unions there are read through pointers and were left as they were |
 | CPU players | Not compared: both players are driven by pads in every run |
 | Menus, other modes | Only the memory card prompt and the debug VS match have run |
 | `--draw` | Asserts in the first frame (a position out of range) |
 | Audio | Sound files are loaded with their headers in host order; nothing plays, nothing was checked |
 
-## What made it work: six kinds of dependence on the console
+## What made it work: seven kinds of dependence on the console
 
 The source matches the retail binary on the console's compiler. On another machine it
 depends on things that compiler and machine provided. Each kind met so far, and the tool
@@ -149,6 +149,27 @@ for it:
    AddressSanitizer build finds the ones that run.
 6. **Floating point.** SSE instead of x87, multiply-add fusing when optimising; see the
    differences above.
+7. **What a register or the stack happened to hold** (found 2026-11-13). The decompiled
+   C matches the console's code even where that code reads a local variable it never
+   assigned; there the console has something definite in a register and the native build
+   had the stack's leftovers. Four places are patched, each checked against the retail
+   code:
+
+   | Where | On the console | Natively, before | Now |
+   |-|-|-|-|
+   | `gm_80168B34`: a stock icon's frame, first twenty characters | the character's number (the register still holds the argument) | every icon Captain Falcon's | the character's number |
+   | `it_802BA3BC`: Samus's grapple beam pulling its links in | reads `dir` itself | read through a stray pointer: a wrong coordinate, or a crash | reads `dir` |
+   | `ftCo_800ADE48`: a CPU that has been hit deciding to go to its "being hit" command | the caller's `r31`: a pointer (so: yes) at 33 of the 36 call sites, 0 at one, an argument at two | leftovers: usually no | yes, always. **Changed matches**: the Ice Climbers' partner is such a CPU |
+   | `ftCo_800AC5A0`, `ftCo_800A75DC`: a hit CPU's stick with no knockback; a CPU's target when its opponent is off stage with no ledge that qualifies | two registers (one is the low byte of the fighter's address); a stale stack slot | leftovers | a stick at rest; the middle of the stage. Not the console's values: those depend on its memory |
+
+   `tests/native/uninit.py` is the check: the game built twice, with every unassigned
+   local starting as zero and as bytes of 0xFE (`native_build.py --auto-init`), plays the
+   same random matches; if nothing read depends on such a variable the two play the same
+   game. After the patches: 80 of 80 matches of 3,000 frames (random characters, the six
+   stages, random inputs) are identical in both and in the ordinary build. It speaks only
+   for what those matches did, and only for locals, not for memory the game allocates.
+   The compiler's own list (`tools/native_uninit_warnings.py`: 201 places in 72 files)
+   is mostly false alarms and **missed both places that changed play**.
 
 **Vanilla functions are not edited for any of this** (the rule in `CLAUDE.md`). Type
 markers and annotations go in headers and expand to nothing in the matching build. Where
@@ -170,6 +191,18 @@ python tools/native_build.py --asan             # build/native-asan/melee_headle
 python tools/melee_native/asan.py --match 2,9,32 --frames 600   # distinct bad accesses
 python tools/melee_native/survey.py --runs 2    # the regression test (about 4 minutes)
 ```
+
+```sh
+python tools/native_build.py --auto-init zero && python tools/native_build.py --auto-init pattern
+python tests/native/uninit.py --matches 80 --frames 3000    # about 3 minutes
+```
+
+When that test names a match, the way to the line: link the zero build with one half of
+the other build's objects, replay, halve again (the objects are in `build/native-init-*/
+host/`; the bulk of the game is `libmelee.a`, whose files can be compiled one by one with
+`-ftrivial-auto-var-init=pattern` and put before it on the link line). Then compare the
+data the code works on between the two runs, frame by frame, with `fp SLOT` and
+`r ADDR LEN` on the control pipe: the first field to differ names the code.
 
 The sanitizer run comes first: a read past the end of converted archive data is an array
 whose count the readers were not told (`heap-buffer-overflow`), and a read or write past

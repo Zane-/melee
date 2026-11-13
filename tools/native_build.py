@@ -127,6 +127,50 @@ PATCHES = {
          "HSD_ObjFree(&hsd_804D0F60.alloc_data, prt);"),
     ],
     # Two tables addressed as "what follows this other table in memory".
+    # Samus's grapple beam, pulling its links in: the first coordinate is
+    # read through `dir_ptr` one line before it is pointed at `dir`. The
+    # retail code reads `dir` itself there (`lfs f1,40(r1)`, the address it
+    # has just passed on); natively it read through whatever the stack
+    # held, a wrong number or a crash.
+    "melee/it/kinds/itsamusgrapple.c": [
+        ("            link->pos.x = (dir_ptr->x * attrs->x38) + head->pos.x;\n"
+         "            dir_ptr = &dir;\n",
+         "            dir_ptr = &dir;\n"
+         "            link->pos.x = (dir_ptr->x * attrs->x38) + head->pos.x;\n"),
+    ],
+    # A CPU fighter hit with no knockback to speak of: the game sets its
+    # stick from two variables it did not assign (upstream marks the bug).
+    # On the console they are what two registers hold, one of them the low
+    # byte of the fighter's own address, which has no native equivalent.
+    # Here: a stick at rest, so that the native game is at least the same
+    # game every time.
+    "melee/ft/kinds/ftCommon/ftCo_0A01.c": [
+        ("    s8 stick_x;\n    s8 stick_y;\n\n    data = &fp->cpu;\n"
+         "    if (!fp->x221A_b3) {",
+         "    s8 stick_x = 0;\n    s8 stick_y = 0;\n\n"
+         "    data = &fp->cpu;\n    if (!fp->x221A_b3) {"),
+        # A CPU that has been hit decides whether to go to its "being hit"
+        # command (18, which steers against the knockback) by a variable
+        # that this branch never assigns. In the retail code it is r31,
+        # which the function does not touch before: the caller's. At 33 of
+        # the 36 places the function is called from, the caller keeps a
+        # pointer there (so: yes); at one it is 0, at two an argument.
+        # Natively it was the stack's leftovers. Here: yes, always. This
+        # changed matches (the Ice Climbers' partner is such a CPU).
+        ("                data2->xFA_b1 = false;\n            }\n        }\n"
+         "        if (switch_cmd != 0) {\n            ftCo_800B4A78(fp);\n"
+         "            data->x18 = 0x12;",
+         "                data2->xFA_b1 = false;\n            }\n"
+         "            switch_cmd = 1;\n        }\n"
+         "        if (switch_cmd != 0) {\n            ftCo_800B4A78(fp);\n"
+         "            data->x18 = 0x12;"),
+        # A CPU whose opponent is in the air with no floor below and no
+        # platform edge that qualifies: ftCo_800A4768 fills nothing in and
+        # the CPU walks towards whatever the stack held. Here: the middle
+        # of the stage.
+        ("    u8 _[0x18];\n    Vec3 sp18;\n    f32 fx;",
+         "    u8 _[0x18];\n    Vec3 sp18 = { 0 };\n    f32 fx;"),
+    ],
     # A stock icon's frame: `base` is never assigned for the first twenty
     # characters. The console's code leaves the character's number in the
     # register that holds it (checked in the retail code: `cmpwi r3,19;
@@ -403,6 +447,13 @@ def main():
                          "AddressSanitizer: reads past the end of converted "
                          "archive data and of globals are reported "
                          "(tools/native_asan.sh runs it)")
+    ap.add_argument("--auto-init", choices=["zero", "pattern"],
+                    help="build build/native-init-X/melee_headless, in "
+                         "which every local variable the code does not "
+                         "assign starts as zero, or as bytes of 0xFE. The "
+                         "decompiled code reads some it never assigns; if "
+                         "the two builds play differently, one of those "
+                         "matters (tests/native/uninit.py)")
     ap.add_argument("--no-cmake", action="store_true",
                     help="reuse libmelee.a as it is")
     ap.add_argument("--window", action="store_true",
@@ -418,6 +469,10 @@ def main():
         OUT = ROOT / "build" / "native-window"
         OBJ = OUT / "host"
         DEFINES.append("-DHOST_WINDOW")
+    if args.auto_init:
+        OUT = ROOT / "build" / f"native-init-{args.auto_init}"
+        OBJ = OUT / "host"
+        flags.append(f"-ftrivial-auto-var-init={args.auto_init}")
     if args.asan:
         OUT = ROOT / "build" / "native-asan"
         OBJ = OUT / "host"
