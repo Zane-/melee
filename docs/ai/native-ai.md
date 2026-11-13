@@ -113,22 +113,45 @@ tools/aurora32/build.sh        # -> build/aurora32/build; first time fetches Daw
 | Aurora itself | Its example initialises and runs its frame loop under a virtual X server (`xvfb-run`, SDL's x11 driver). With SDL's `offscreen` or `dummy` driver it stops: Aurora only makes a surface from an X11 or Wayland window |
 | Nothing had to be installed | The 32-bit Mesa, Vulkan loader and X11 that were there are enough. Would help: `lib32-libxkbcommon lib32-libdecor` (a Wayland driver in SDL3), `lib32-libxcursor lib32-libxi lib32-libxrandr` (X11 extensions SDL3 loads), `lib32-vulkan-swrast` (software Vulkan, for tests off the GPU) |
 
-Not shown by the probe, and the work N6 now consists of:
+### The game draws (2026-11-13)
 
-- **Anything from the game drawn.** Aurora's GX was not exercised (the example only clears
-  the screen), and nothing of this is linked into `melee_headless`. Linking means dropping
-  the host layer's own GX, VI and PAD stand-ins where Aurora has the real thing, driving
-  Aurora's frame from the game's, and finding out whether the game's fixed-address arena
-  and a GPU driver fit in one 32-bit address space.
-- **The game's draw pass.** `--draw` asserts in the first frame even into no-op graphics.
-- **A frame presented.** Screenshots of the virtual X server during the example were
-  black; not looked into.
-- A window on the real display, sound, a controller. Nothing was run on the owner's
-  screen.
-- `build.sh` from an empty tree (it was run on the probe's tree).
+```sh
+tools/aurora32/build.sh                      # once: Aurora, Dawn, SDL3 as 32-bit
+python tools/native_build.py --window        # build/native-window/melee_native
+python tools/melee_native/window.py --out DIR [--match fox,marth,final-destination] [--frames 30,150,330]
+```
 
-The first target for N6 is a frame of a match drawn off screen and read back to a picture:
-it needs no window, so it can be checked without anything appearing on the desktop.
+`melee_native` is the headless game with Aurora under its graphics calls
+(`src/host/window.c`). `tools/melee_native/window.py` runs it where nothing can appear on
+the desktop: on a virtual X server of its own, drawn by a software renderer, and saves
+what is on that screen. The first picture of a match from the native build:
+
+![Fox and Marth on Final Destination, drawn by the native build](img/native-first-match-frame.png)
+
+The stage, both fighters, the background and the damage display are there. Some textures
+are wrong (magenta lines across the stage, the stock icons).
+
+What it took, beyond linking Aurora in:
+
+| | |
+|-|-|
+| A frame | One Aurora frame is opened at each of the game's frame boundaries and closed at the next (`host_window_frame`) |
+| Writes straight to the console's command pipe | The particle and a few other files write vertex data with `GXWGFifo.f32 = x;`, an assignment to a hardware address, which Aurora never sees: its command stream lost its place. `native_build.py` compiles a copy of those files in which each such write is `GXParam1f32(x)` (`FIFO_FILES`) |
+| Vertex arrays | The console's `GXSetArray` has no length; Aurora copies the whole array into the frame. A model's vertex data is a blob of an archive, so its length is bounded the way the readers bound any array of unknown length: up to the next thing the archive points at (`host_dat_blob_size`). A looser bound overflowed Aurora's 8 MB of frame storage |
+| Fighter materials | `ftmaterial.c` reads two templates through a struct laid over three adjacent globals; natively they are not adjacent (one more of `native-port.md`'s "memory layout" kind). Patched at build time |
+| Running it safely | The game's process renames itself ("Main thread"), so `pgrep melee_native` does not find it, and `timeout` around `xvfb-run` leaves it running. `window.py` puts the X server and the game each in a process group, kills both on close and looks for survivors by executable path |
+
+Known, not fixed:
+
+- **Wrong textures** on the stage and the stock icons. Not looked into yet; palettes
+  (indexed textures) are the first suspect.
+- **The software Vulkan driver (lavapipe) crashes** inside its compiler a few frames in,
+  in this 32-bit process. Tests use software OpenGL ES (llvmpipe) instead
+  (`MELEE_BACKEND=gles`). On the real GPU (`--gpu`) nothing has been run yet.
+- **Snapshots do not work in the window build** (a fork of a process with a GPU context
+  and threads): not guarded, do not use them there.
+- No sound, no controller, and nothing has been run on the real display.
+- Speed is unmeasured. Each vertex array lookup walks the open archives.
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
@@ -142,7 +165,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield); `choose`, so an opponent varies what it does from run to run. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branching on what happened | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
-| N6 (probe done: the graphics stack builds and runs 32-bit) | A window, sound and a controller. First: link Aurora in and draw one frame of a match off screen | a picture of a match from the native build; then a person plays one |
+| N6 (the game draws, off screen; textures partly wrong) | A window, sound and a controller. Done: Aurora linked in, a match drawn and saved as a picture. Next: the wrong textures, the real GPU, a window on the desktop, a controller, sound | then a person plays a match |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
 N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.

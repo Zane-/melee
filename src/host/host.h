@@ -69,6 +69,8 @@ const char* host_disc_origin(const void* addr, uint32_t* offset);
 /// that travel through audio RAM.
 int host_origin_find(const void* addr, uint32_t* offset);
 void host_origin_set(void* addr, uint32_t length, int file, uint32_t offset);
+/// How many bytes of the buffer that holds `addr` follow it (0: unknown).
+uint32_t host_origin_room(const void* addr);
 
 /// The match the next host_match_start() sets up.
 typedef struct HostMatch {
@@ -96,6 +98,8 @@ void host_fighter_json(int slot, char* out, size_t size);
 
 /// The file's own bytes behind an archive object (archive.c).
 void* host_dat_raw(const void* native);
+void* host_dat_raw_room(const void* native, uint32_t* room);
+uint32_t host_dat_blob_size(const void* at, uint32_t element);
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 
@@ -109,5 +113,9 @@ void host_stub_report(void);
 
 /// One frame boundary: called by the game loop's pad poll.
 void host_frame_tick(void);
+/// The window build only (window.c): open the window; end one drawn frame
+/// and begin the next.
+void host_window_init(void);
+void host_window_frame(void);
 
 #endif

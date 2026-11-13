@@ -124,6 +124,12 @@ PATCHES = {
          "HSD_ObjFree(&hsd_804D0F60.alloc_data, prt);"),
     ],
     # Two tables addressed as "what follows this other table in memory".
+    # The fighter material class is read as one struct with the two
+    # templates defined after it; on the console they follow it in memory.
+    "melee/ft/ftmaterial.c": [
+        ("info->texp_tmpl", "ftMaterial_803C6A44", 3),
+        ("info->tevdesc_tmpl", "ftMaterial_803C69D0", 2),
+    ],
     "melee/ft/ftdata.c": [
         ("(ftData_UnkCountStruct*) "
          "&CostumeListsForeachCharacter[Ft_Kind_Max];",
@@ -206,6 +212,16 @@ PATCHES = {
         ("sj = &sj[arg2];", "sj = host_dat_element(sj, arg2, 0xC);"),
     ],
 }
+
+# Files that write vertex data straight to the console's command pipe
+# (`GXWGFifo.f32 = x;`, an assignment to a hardware address). In a copy of
+# each, every such write becomes a call of the function that puts the same
+# value in the stream (GXParam1f32(x)): Aurora's in the window build, a stub
+# in the headless one.
+FIFO_FILES = ["melee/gm/gm_1832.c", "sysdolphin/baselib/hsd_3915.c",
+              "sysdolphin/baselib/psdisp.c"]
+FIFO_WRITE = re.compile(
+    r"\bGXWGFifo\.(u8|s8|u16|s16|u32|s32|f32)\s*=\s*([^;]+);")
 
 AURORA_C = ["mtx.c", "mtx44.c", "mtxvec.c", "quat.c", "vec.c"]
 
@@ -292,11 +308,36 @@ def symbol_kinds():
     return kinds
 
 
+AURORA32 = ROOT / "build/aurora32/build"   # tools/aurora32/build.sh
+WINDOW = False
+
+
+def aurora_libs():
+    """What Aurora's own example links, from its build, without the
+    library that only holds a main()."""
+    ninja = AURORA32 / "build.ninja"
+    if not ninja.exists():
+        sys.exit(f"missing {ninja}: run tools/aurora32/build.sh")
+    text = ninja.read_text()
+    at = text.index("build examples/simple:")
+    line = re.search(r"^  LINK_LIBRARIES = (.*)$", text[at:], re.M).group(1)
+    libs = []
+    for item in line.split():
+        if item.endswith("libaurora_main.a"):
+            continue
+        libs.append(item if item.startswith(("/", "-"))
+                    else str(AURORA32 / item))
+    return libs
+
+
 def link(objs, out, capture=False):
     libs = [OUT / "libmelee.a", OUT / "dat-readers/libdat_melee.a",
             OUT / "dat-readers/libdat_native.a"]
-    cmd = ["gcc", "-m32", "-no-pie", "-rdynamic", "-o", out, *objs,
-           "-Wl,--start-group", *libs, "-Wl,--end-group", "-lm"]
+    cmd = ["g++" if WINDOW else "gcc", "-m32", "-no-pie", "-rdynamic", "-o",
+           out, *objs, "-Wl,--start-group", *libs]
+    if WINDOW:
+        cmd += aurora_libs() + ["-pthread"]
+    cmd += ["-Wl,--end-group", "-lm"]
     if "native-asan" in str(OUT):
         cmd.append("-fsanitize=address")
     return run(cmd, capture_output=True, text=True)
@@ -350,10 +391,19 @@ def main():
                          "(tools/native_asan.sh runs it)")
     ap.add_argument("--no-cmake", action="store_true",
                     help="reuse libmelee.a as it is")
+    ap.add_argument("--window", action="store_true",
+                    help="build build/native-window/melee_native: the game "
+                         "with Aurora under its graphics calls (needs "
+                         "tools/aurora32/build.sh first)")
     args = ap.parse_args()
 
-    global OUT, OBJ
+    global OUT, OBJ, WINDOW
     flags = BASE_FLAGS + [f"-O{args.opt}", f"-ffp-contract={args.contract}"]
+    if args.window:
+        WINDOW = True
+        OUT = ROOT / "build" / "native-window"
+        OBJ = OUT / "host"
+        DEFINES.append("-DHOST_WINDOW")
     if args.asan:
         OUT = ROOT / "build" / "native-asan"
         OBJ = OUT / "host"
@@ -368,13 +418,18 @@ def main():
     jobs = []
     shim = ["-include", str(ROOT / "src/host/shim.h")]
     for rel, extra in VANILLA.items():
-        if rel in PATCHES:
+        if rel in PATCHES or rel in FIFO_FILES:
             continue  # built once, from its patched copy, below
         jobs.append((ROOT / "src" / rel,
                      OBJ / "vanilla" / (rel.replace("/", "_") + ".o"),
                      common + shim + extra))
-    for rel, patches in PATCHES.items():
+    for rel in sorted(set(PATCHES) | set(FIFO_FILES)):
+        patches = PATCHES.get(rel, [])
         text = (ROOT / "src" / rel).read_text()
+        if rel in FIFO_FILES:
+            text, n = FIFO_WRITE.subn(r"GXParam1\1(\2);", text)
+            if n == 0:
+                sys.exit(f"{rel}: no direct pipe writes found")
         for old, new, *count in patches:
             want = count[0] if count else 1
             if text.count(old) != want:
@@ -390,7 +445,13 @@ def main():
                      + ["-iquote", str((ROOT / "src" / rel).parent)]
                      + VANILLA.get(rel, [])))
     for src in sorted((ROOT / "src/host").glob("*.c")):
-        jobs.append((src, OBJ / (src.stem + ".o"), common))
+        extra = common
+        if src.name == "window.c":
+            # Aurora's and SDL's headers need the real `bool` (the game's
+            # is an int), and the SDL that Aurora was built with.
+            extra = [f for f in common if f != "-Dbool=int"] + [
+                f"-I{AURORA32}/_deps/sdl-src/include"]
+        jobs.append((src, OBJ / (src.stem + ".o"), extra))
     for name in AURORA_C:
         jobs.append((AURORA / "lib/dolphin/mtx" / name,
                      OBJ / "aurora" / (name + ".o"),
@@ -436,7 +497,7 @@ def main():
         sys.exit("\n".join(other[:30]))
     funcs, objects = write_stubs(missing, stub_c)
     compile_all([(stub_c, stub_o, flags)])
-    exe = OUT / "melee_headless"
+    exe = OUT / ("melee_native" if WINDOW else "melee_headless")
     r = link(objs + [stub_o], exe)
     if r.returncode:
         sys.exit("\n".join(r.stderr.splitlines()[-30:]))

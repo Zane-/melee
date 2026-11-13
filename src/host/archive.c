@@ -475,6 +475,68 @@ void* host_script_target(const void* word)
     return *(void* const*) word;
 }
 
+/// How long a blob of an archive is, where nothing says: `at` points into
+/// an archive's data (a vertex array, a display list), and the blob is
+/// whole elements of `element` bytes up to the next thing anything in the
+/// archive points at, as the readers bound an array of unknown length. 0 if
+/// `at` is in no open archive.
+uint32_t host_dat_blob_size(const void* at, uint32_t element)
+{
+    const uint8_t* p = at;
+
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        if (a != NULL && p >= a->archive->data &&
+            p < a->archive->data + a->archive->size)
+        {
+            return (uint32_t) dat_reader_extent_bound(
+                       a, (uint32_t) (p - a->archive->data), element) *
+                   element;
+        }
+    }
+    return 0;
+}
+
+/// host_dat_raw(), and how many bytes of the archive's data follow that
+/// place: the most a blob of unknown length (a vertex array) can be. NULL
+/// and 0 if `native` is of no open archive.
+void* host_dat_raw_room(const void* native, uint32_t* room)
+{
+    const uint8_t* at = native;
+
+    *room = 0;
+    if (native == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        const uint8_t* raw = NULL;
+
+        if (a == NULL) {
+            continue;
+        }
+        if (at >= a->archive->data && at < a->archive->data + a->archive->size)
+        {
+            raw = at;
+        } else {
+            for (size_t k = 0; k < a->natives.cap; k++) {
+                if (a->natives.keys[k] != UINT64_MAX &&
+                    a->natives.values[k] == (uintptr_t) native)
+                {
+                    raw = a->archive->data +
+                          (uint32_t) (a->natives.keys[k] >> 32);
+                    break;
+                }
+            }
+        }
+        if (raw != NULL) {
+            *room = (uint32_t) (a->archive->data + a->archive->size - raw);
+            return (void*) raw;
+        }
+    }
+    return NULL;
+}
+
 /// The bytes of the file behind an archive object: where `native` is in the
 /// archive's own copy of its data (in disc order, pointers still offsets).
 /// A pointer that is already into that copy is returned as it is.

@@ -66,6 +66,9 @@ void host_frame_tick(void)
         host_fighter_json(1, b, sizeof b);
         printf("@ %u %s %s\n", host.frame, a, b);
     }
+#ifdef HOST_WINDOW
+    host_window_frame();
+#endif
     host_control_frame();
     host_rng_frame();
     if (host.on_frame != NULL) {
@@ -156,11 +159,18 @@ int main(int argc, char** argv)
         sigaction(SIGBUS, &sa, NULL);
         sigaction(SIGFPE, &sa, NULL);
         sigaction(SIGILL, &sa, NULL);
+        sigaction(SIGABRT, &sa, NULL); /* a library's abort() */
     }
     host.pads[0].connected = 1;
     host.int_enabled = 1;
+    /* Before anything else maps memory: the arena has to be at the
+       console's addresses. */
     host_memory_init();
     host_disc_init(disc);
+#ifdef HOST_WINDOW
+    host.draw = 1;
+    host_window_init();
+#endif
     game_main();
     host_log("the game's main returned");
     return 0;

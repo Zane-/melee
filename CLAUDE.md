@@ -136,6 +136,7 @@ ninja
 | Claude writes a scenario from an instruction and tests it (needs API credentials; never run yet) | `python tools/melee_actor/author.py "..."`; "Claude writing scenarios" in `docs/ai/native-ai.md` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
+| A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |
 | Does the native build play the same game as the console's code? | `python tools/melee_native/compare.py` (`--random N`, `--tolerance`) |

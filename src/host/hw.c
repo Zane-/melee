@@ -191,7 +191,9 @@ void VIWaitForRetrace(void)
     host.ticks += HOST_TICKS_PER_FRAME;
 }
 
-/* --- graphics: nothing is drawn, but these answers are used ------------ */
+/* --- graphics: nothing is drawn, but these answers are used ------------
+ * (The window build has Aurora's GX instead: window.c.) */
+#ifndef HOST_WINDOW
 
 GXRenderModeObj GXNtsc480IntDf = {
     0,   640, 480, 480, 40, 0, 640, 480, 1, 0, 0,
@@ -373,6 +375,7 @@ void GXProject(f32 x, f32 y, f32 z, const f32 mtx[3][4], const f32* pm,
     *sy = (vp[3] / 2.0F) + (vp[1] + (wc * (-yc * vp[3] / 2.0F)));
     *sz = vp[5] + (wc * (zc * (vp[5] - vp[4])));
 }
+#endif /* !HOST_WINDOW */
 
 /* --- audio: every voice is one block nobody listens to ------------------ */
 

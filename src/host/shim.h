@@ -16,10 +16,17 @@
 void host_CARDInit(void);
 #define CARDInit() host_CARDInit()
 
-/* The console's GXSetArray has no size or byte order; files upstream has
-   adapted pass Aurora's five arguments. Either way nothing is drawn. */
-void host_GXSetArray(GXAttr attr, const void* data, ...);
-#define GXSetArray(...) host_GXSetArray(__VA_ARGS__)
+/* The console's GXSetArray has no size or byte order. Files upstream has
+   adapted pass Aurora's five arguments, and those calls go straight to it;
+   the console's three go through host_GXSetArray3 (window.c), which works
+   the other two out. In the headless build both are stubs. */
+void host_GXSetArray3(GXAttr attr, const void* data, u8 stride);
+#define HOST_GXSETARRAY_PICK(_1, _2, _3, _4, _5, NAME, ...) NAME
+#define GXSetArray(...)                                                       \
+    HOST_GXSETARRAY_PICK(__VA_ARGS__, (GXSetArray), host_GXSetArray_bad,      \
+                         host_GXSetArray3, host_GXSetArray_bad,               \
+                         host_GXSetArray_bad)                                 \
+    (__VA_ARGS__)
 
 void PADSetSamplingRate(u32 msec);
 s32 CARDFormatAsync(s32 chan, CARDCallback callback);

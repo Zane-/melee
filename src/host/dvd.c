@@ -187,6 +187,19 @@ const char* host_disc_origin(const void* addr, uint32_t* offset)
     return file < 0 ? NULL : files[file].path;
 }
 
+uint32_t host_origin_room(const void* addr)
+{
+    uintptr_t at = (uintptr_t) addr;
+    for (int n = 1; n <= MAX_ORIGINS; n++) {
+        const struct Origin* o =
+            &origins[(origin_next - n + MAX_ORIGINS) % MAX_ORIGINS];
+        if (o->length != 0 && at >= o->addr && at < o->addr + o->length) {
+            return (uint32_t) (o->addr + o->length - at);
+        }
+    }
+    return 0;
+}
+
 /* --- audio files ---------------------------------------------------------
  * Archives are converted to native data by the generated readers. The audio
  * files are not archives: the game reads them as arrays of 32-bit words.

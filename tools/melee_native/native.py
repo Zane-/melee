@@ -104,7 +104,7 @@ class _Pads:
 
 class Native:
     def __init__(self, exe=EXE, disc=None, draw=False, verbose=False,
-                 timeout=120):
+                 timeout=120, env=None):
         cmd = [str(exe), "--control", "--disc",
                str(disc or ROOT / "build/disc")]
         if draw:
@@ -123,7 +123,7 @@ class Native:
         self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT, text=True,
-                                  start_new_session=True)
+                                  start_new_session=True, env=env)
         self._wait_frame()
 
     # ---- the pipe -------------------------------------------------------------
@@ -138,7 +138,15 @@ class Native:
                                   "".join(self.log[-40:]))
             line = self.p.stdout.readline()
             if not line or line.startswith("@ fatal"):
-                raise NativeError("the game stopped:\n" +
+                how = ""
+                if not line:
+                    try:
+                        code = self.p.wait(timeout=2)
+                        how = (" (killed by signal %d)" % -code if code < 0
+                               else " (exit status %d)" % code)
+                    except Exception:
+                        pass
+                raise NativeError("the game stopped%s:\n" % how +
                                   "".join(self.log[-40:]))
             if line.startswith("@ "):
                 return line[2:].rstrip("\n")
