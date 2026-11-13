@@ -26,3 +26,9 @@ call  fn_8016E730+0x194   tm_Hook_StartMelee   TM-CE OnStartMelee
 call  Fighter_800679B0+0x28      tm_Hook_FighterAllocInit  fighter block >= 0x2530
 call  Fighter_Create+0x50        tm_Hook_FighterAlloc      zero fighter block
 call  ftDemo_CreateFighter+0x4C  tm_Hook_FighterAlloc      zero fighter block (results)
+
+# Control profiles and input delay (src/melee/tm/controls/): lb_800198E0's
+# `bl HSD_PadRenewMasterStatus`, the one place a raw pad sample is turned
+# into the game's pad status. Slippi patches inside that function and the
+# raw read before it, not this call.
+call  lb_800198E0+0xC     tm_ctl_PadRenewMaster  profiles, input delay

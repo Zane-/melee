@@ -1,5 +1,6 @@
 #include "tm.h"
 
+#include "controls/controls.h"
 #include "tmce.h"
 
 #include <melee/gm/gmmain_lib.h>
@@ -14,6 +15,7 @@
 void tm_Hook_Boot(void)
 {
     gmMainLib_8015FBA4();
+    tm_ctl_Init();
     tmce_Boot();
 }
 
@@ -25,6 +27,7 @@ void tm_Hook_Boot(void)
 void tm_Hook_SceneChange(void)
 {
     lb_80014534();
+    tm_ctl_OnSceneChange();
     if (tmce_IsLoaded()) {
         OnSceneChange();
     }
@@ -37,6 +40,7 @@ void tm_Hook_SceneChange(void)
 void tm_Hook_StartMelee(int arg)
 {
     lbBgFlash_Init(arg);
+    tm_ctl_OnStartMelee();
     if (tmce_IsLoaded()) {
         OnStartMelee();
     }
