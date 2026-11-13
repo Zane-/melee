@@ -371,6 +371,35 @@ def check_rows(checks):
             "YES" if ch["passed"] else "NO") for ch in checks)
 
 
+def timeline(tl):
+    """A tech drill's attempt frame by frame: a row for each input, the
+    frames it was pressed on, where it was due and what is allowed."""
+    if not tl:
+        return ""
+    n = tl["frames"]
+    head = "".join('<div class="tlc tln">%d</div>' % i
+                   for i in range(1, n + 1))
+    rows = ['<div class="tlrow"><div class="tll"/>%s</div>' % head]
+    for row in tl["rows"]:
+        cells = []
+        for i in range(1, n + 1):
+            cls = "tlc"
+            if row["window"] and row["window"][0] <= i <= row["window"][1]:
+                cls += " win"
+            if i in row["perfect"]:
+                cls += " perf"
+            if i in row["you"]:
+                cls += " you"
+            cells.append('<div class="%s"/>' % cls)
+        rows.append('<div class="tlrow"><div class="tll">%s</div>%s</div>'
+                    % (esc(row["label"]), "".join(cells)))
+    legend = ('<div class="tlleg"><div class="tlc you"/><div>you</div>'
+              '<div class="tlc perf"/><div>frame-perfect</div>'
+              '<div class="tlc win"/><div>allowed</div></div>')
+    return "".join(rows) + legend + '<div class="tlnote">%s</div>' % esc(
+        tl.get("note", ""))
+
+
 def last_squares(results):
     """The last ten attempts, oldest first."""
     shown = results[-10:]
@@ -395,7 +424,7 @@ def drill_rail(c, d, course, about):
         '<div class="try"><div class="row"><div class="lbl">THIS TRY</div>'
         '<div class="grow"/><div id="n" class="lbl">0</div></div>'
         '<div id="verdict" class="verdict">Go</div>'
-        '<div id="checks"/></div>'
+        '<div id="why" class="why"/><div id="checks"/><div id="tl"/></div>'
         '<div class="row lastrow"><div class="lbl">LAST 10</div>'
         '<div class="grow"/><div id="count" class="lbl">0 OF 0</div></div>'
         '<div id="last" class="sqs3">%s</div>'

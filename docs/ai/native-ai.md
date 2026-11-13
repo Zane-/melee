@@ -286,16 +286,36 @@ reads the pad and tells the host what to show.
 | A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
 | Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
 
-**Which drills play.** A drill plays in this client when a scenario file names it:
-`"drill": "<course drill id>"` in `data/scenarios/*.json`. Two do, both in Fox's Neutral
-part: `fox-shield-then-punish` (the shield grab) and `fox-whiff-punish`. The other 44 of
-Fox's drills are listed with everything the course file says about them and "Not in this
-client yet" where Start would be. **No Tech, Punish or Defense drill plays**: Tech drills
-judge the player's own inputs frame by frame, which the scenario judge (hit or not hit)
-cannot do.
+**Which drills play.** A drill plays in this client when a file in `data/scenarios/`
+names it (`"drill": "<course drill id>"`). There are two kinds of file:
+
+| Kind | What judges | Plays (of Fox's 46) |
+|-|-|-|
+| A scenario (`opponent`, `success`) | What happened between the two fighters: hit or not hit (`melee_actor/scenario.py`) | Neutral: Take it on shield, Whiff punish |
+| A tech drill (`"tech": "short_hop"` or `"wavedash"`) | The player's own pad and their fighter's states, frame by frame (`melee_actor/tech.py`) | Tech: Short hop, Wavedash |
+
+The other 42 are listed with everything the course file says about them and "Not in this
+client yet" where Start would be. No Punish or Defense drill plays.
+
+**The tech judge.** It finds each attempt (the fighter entering jump squat), so the
+player sets the pace and nothing is put back between tries. Its rules were measured on the
+game, not assumed: jump squat is frames 1 to J (3 for Fox, 4 for Marth, 8 for Bowser); a
+short hop needs the button held at most J - 1 frames; an air dodge pressed on frame J + 1
+lands at once, pressed in jump squat it never comes out, and each frame later is one more
+in the air. Which jump came out is read from the game (the upward speed on the first
+airborne frame, against the two speeds measured for the character when the drill is set
+up), so a jump with the stick is judged too. The verdict names the frames ("Full hop.
+Jump still held on frame 4: let go within 2", "Air dodge 3 frames late: 2 allowed", "No
+air dodge", "The air dodge did not reach the ground") and the column draws the attempt
+frame by frame: what was pressed when, where it was due, what is allowed. The two files
+are character-free; the client plays them as whoever is being trained.
 
 What the player has done is kept in `save/client.json` (ignored by git): per drill the
 done mark, tries, successes and best run, and the last drill played.
+
+`tests/actor/tech.py` (21 checks, headless) scripts the inputs to the frame for Fox, Marth
+and Bowser: the verdict turns exactly where the jump squat says. `tests/client/tech.py`
+(8 checks) plays both drills in the client with stand-ins that press keys.
 
 Tests, with key presses on the virtual display: `tests/client/menu.py` (15 checks: the
 menu, the roster, free play and back) and `tests/client/course.py` (16 checks: hub, list,
@@ -305,7 +325,8 @@ where you left off, free play from the hub). `--shots DIR` saves a picture of ea
 screen.
 
 Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the guide and
-the demonstration, a judge for Tech drills, nicknames and layouts (the header shows
+the demonstration, the other fourteen Tech drills (L-cancel and SHFFL are the next two
+the judge could take), nicknames and layouts (the header shows
 placeholders), character art (two letters and a colour of the client's choosing stand
 in), panel icons, sound.
 
@@ -337,7 +358,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
 | N6 (draws, paced, a port played from the keyboard; all off screen) | A window, sound and a controller. Done: Aurora linked in, six stages drawn, the console's speed, live ports, `play.py`. Next: **the owner runs `play.py`** (first time on a real display and with a real controller), then sound, then the adapter read directly | a person plays a match |
 | N7 (begun, off screen: `train.py`) | The trainer with a person in it. Done: a scenario's opponent against a live port, a verdict per attempt in the terminal. Next: the verdict and the guide on the game's screen, statistics over a session, choosing what to practise next | the owner trains against an actor |
-| N8 (off screen: `client.py`) | The client: the interface of the design canvas, natively. Done: main menu, character select, course hub, drill list with the done mark, a drill with its verdict, free play. Next: drills that play (a judge for Tech drills first: Tech is where the course starts and none of its 16 play), the guide, Controls | the owner picks a character and trains a drill without a terminal |
+| N8 (off screen: `client.py`) | The client: the interface of the design canvas, natively. Done: main menu, character select, course hub, drill list with the done mark, drills against an opponent and tech drills with their verdicts, free play. Next: more drills (L-cancel, SHFFL; then Punish and Defense scenarios), the guide, Controls | the owner picks a character and trains a drill without a terminal |
 
 N6 gated N7 and is now far enough for it. What all of it waits for is the owner running
 `client.py`, `play.py` or `train.py`: nothing here has been on a real display or had a

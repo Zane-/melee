@@ -1,0 +1,9 @@
+{
+  "drill": "universal-short-hop",
+  "tech": "short_hop",
+  "name": "Short hop",
+  "about": "Press X or Y and let go before jump squat ends. A short hop is a lower jump: it lets an aerial reach a standing opponent and land quickly.",
+  "p2": "marth",
+  "stage": "final-destination",
+  "start": -20
+}

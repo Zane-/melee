@@ -139,7 +139,7 @@ ninja
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
 | The native client: menus, character select, course hub, drill list, drills with a verdict; 16:9 with the game at 4:3 | `python tools/melee_client/client.py`; `tools/melee_client/`, `src/host/ui.cpp`; `tests/client/menu.py`, `tests/client/course.py` (`--shots DIR`); "The client" in `docs/ai/native-ai.md` |
-| Make a course drill play in the native client | a scenario in `data/scenarios/` with `"drill": "<course drill id>"`; skill `actor-scenario` |
+| Make a course drill play in the native client | a file in `data/scenarios/` with `"drill": "<course drill id>"`: a scenario (an opponent, hit or not hit; skill `actor-scenario`) or a tech drill (`"tech"`, judged on the player's inputs by frame: `tools/melee_actor/tech.py`, `tests/actor/tech.py`) |
 | Train against a scenario yourself on the native build (verdicts in the terminal) | `python tools/melee_actor/train.py data/scenarios/FILE.json`; `tests/actor/train.py` |
 | Play the native build yourself (a window on your desktop; no sound yet) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
 | A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |

@@ -41,6 +41,7 @@ import screens  # noqa: E402
 import window  # noqa: E402
 from native import NativeError  # noqa: E402
 from melee_actor import scenario as scn  # noqa: E402
+from melee_actor import tech  # noqa: E402
 from melee_actor import train  # noqa: E402
 
 A, B, X, Y, START = 0x100, 0x200, 0x400, 0x800, 0x1000
@@ -80,6 +81,7 @@ class Client:
         self.back = "chars"           # where free play returns to
         self.person = None            # tests: called before every frame
         self.results = None           # the attempts of the drill last left
+        self.banner = 0               # frames the verdict banner stays up
         self.opponent, self.stage = opponent, stage
         self.roster = characters.roster()
         self.screen = None
@@ -356,18 +358,24 @@ class Client:
         self.read()
         if self.start_held >= 40:
             raise Leave()
+        if self.banner > 0:
+            self.banner -= 1
+            if self.banner == 0:
+                self.w.ui("class banner on 0")
         if self.person is not None:
             self.person(game, frame)
 
     def show_result(self, result, results):
         ok = bool(result["success"])
-        words = train.verdict(result)
-        if ok:
-            words = "; ".join(screens.CHECK_WORDS.get(c["expect"],
-                                                      c["expect"])
-                              for c in result["checks"]) or "done"
-        else:
-            words = words.split(": ", 1)[-1]
+        words = result.get("words")       # a tech drill has its own
+        if not words:
+            words = train.verdict(result)
+            if ok:
+                words = "; ".join(screens.CHECK_WORDS.get(c["expect"],
+                                                          c["expect"])
+                                  for c in result["checks"]) or "done"
+            else:
+                words = words.split(": ", 1)[-1]
         best = run = 0
         for r in results:
             run = run + 1 if r else 0
@@ -381,11 +389,16 @@ class Client:
                 ("rate", "%d%%" % round(100.0 * sum(results) /
                                         len(results))),
                 ("best", best), ("bword", "Success" if ok else "Failure"),
-                ("bmsg", screens.esc(words))):
+                # the banner has room for the first clause only
+                ("bmsg", screens.esc(words.split(":")[0])),
+                ("why", screens.esc(words) if "timeline" in result
+                 else "")):
             self.w.ui("text %s %s" % (ident, text))
         self.put("checks", screens.check_rows(result["checks"]))
         self.put("last", screens.last_squares(results))
+        self.put("tl", screens.timeline(result.get("timeline")))
         self.w.ui("class banner on 1")
+        self.banner = 100
 
     def drill(self, d):
         """Run a drill until the player leaves it: the scenario's opponent
@@ -397,7 +410,10 @@ class Client:
         self.w.live(self.port, "off")
         self.w.pace(False)
         try:
-            session = scn.Session(sc, game=self.w, person=self.port)
+            if sc.get("tech"):
+                session = tech.Session(sc, self.w, self.port, self.c["id"])
+            else:
+                session = scn.Session(sc, game=self.w, person=self.port)
         finally:
             self.w.live(self.port, self.source)
             self.w.pace(True)
@@ -420,10 +436,12 @@ class Client:
                                      each_frame=self.drill_frame)
                 results.append(bool(result["success"]))
                 self.show_result(result, results)
-                for _ in range(75):
+                # Against an opponent the situation is put back, so the
+                # verdict gets a moment first; a tech drill has nothing to
+                # put back and the player sets the pace.
+                for _ in range(0 if sc.get("tech") else 75):
                     self.drill_frame(self.w, -1)
                     self.w.step()
-                self.w.ui("class banner on 0")
         except Leave:
             pass
         self.progress.record(d["id"], self.c["id"], results)

@@ -1,0 +1,10 @@
+{
+  "drill": "universal-wavedash",
+  "tech": "wavedash",
+  "name": "Wavedash",
+  "about": "Jump, and on the first frame in the air press L or R with the stick held diagonally down. The air dodge lands at once and the character slides.",
+  "p2": "marth",
+  "stage": "final-destination",
+  "start": -20,
+  "tolerance": 2
+}

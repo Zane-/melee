@@ -118,3 +118,10 @@ the client's own column and banner. Check it with nobody at the controls first
 (`Session(scenario, game=window, person=0)` for ten varied attempts: every attempt should
 end and none should count as a success) and then with `tests/client/course.py` as the
 pattern for a stand-in player.
+
+A drill with no opponent, judged on the player's own inputs (short hop, wavedash), is not
+a scenario: it is a tech drill, a file with `"tech": "<kind>"` and a judge in
+`tools/melee_actor/tech.py` (`_judge_<kind>`). To add one, measure the rule on the
+headless game first (hold the button 1, 2, ... frames and see what comes out), write the
+judge against what was measured, and test it with inputs scripted to the frame
+(`tests/actor/tech.py` is the pattern) before trying it in the client.
