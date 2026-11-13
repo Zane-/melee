@@ -25,7 +25,8 @@ for tests.
 display. The X server and the game are each a process group of their own
 and both are killed on close; `leftovers()` looks for any that survived, by
 executable path (the game's process renames itself, so its name does not
-find it).
+find it) and by the mark of the driver that started them (a game someone
+else has open is not a leftover).
 """
 import argparse
 import ctypes
@@ -38,15 +39,31 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from native import (Native, NativeError, ROOT,  # noqa: E402
+from native import (HARNESS, Native, NativeError, ROOT,  # noqa: E402
                     die_with_parent)
 
 EXE = ROOT / "build/native-window/melee_native"
 
 
+def _started_by(pid):
+    """The pid of the driver that started process `pid`, or None if no
+    driver did (someone ran it by hand) or it cannot be told."""
+    try:
+        with open("/proc/%s/environ" % pid, "rb") as f:
+            for item in f.read().split(b"\0"):
+                if item.startswith(HARNESS.encode() + b"="):
+                    return int(item.split(b"=", 1)[1])
+    except (OSError, ValueError):
+        pass
+    return None
+
+
 def leftovers():
-    """PIDs of window-build games and of virtual X servers started here
-    that are still alive."""
+    """PIDs of window-build games and of virtual X servers that a driver
+    started and that outlived it: started by this process, or by one that
+    is gone. A game someone else has open (the owner playing the client,
+    another test) is theirs: it is not listed, and so never killed by what
+    acts on this list. (It once was listed, by executable path alone.)"""
     out = []
     for pid in os.listdir("/proc"):
         if not pid.isdigit():
@@ -57,8 +74,12 @@ def leftovers():
                 cmd = f.read().replace(b"\0", b" ").decode(errors="replace")
         except OSError:
             continue
-        if exe.endswith("/melee_native") or (
-                exe.endswith("/Xvfb") and "melee-window" in cmd):
+        if not (exe.endswith("/melee_native") or (
+                exe.endswith("/Xvfb") and "melee-window" in cmd)):
+            continue
+        by = _started_by(pid)
+        if by == os.getpid() or (
+                by is not None and not os.path.exists("/proc/%d" % by)):
             out.append(int(pid))
     return out
 
@@ -106,6 +127,7 @@ class Window(Native):
              "/melee-window/fonts,built-ins"],
             pass_fds=[w], stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL, start_new_session=True,
+            env=dict(os.environ, **{HARNESS: str(os.getpid())}),
             preexec_fn=die_with_parent)
         os.close(w)
         number = b""

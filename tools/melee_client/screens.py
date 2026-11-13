@@ -73,11 +73,12 @@ MAIN = [
     ("train", "ink", "01", "Train",
      "Pick a character and work through its course.", True),
     ("lab", "lab", "02", "Lab",
-     "Free practice with any character and situation.", False),
+     "Free practice against whoever you choose: nobody, the game's CPU or "
+     "a trained model.", True),
     ("events", "events", "03", "Events",
      "Training Mode's own events, page by page.", False),
-    ("versus", "slate", "04", "Versus", "A match, two to four players.",
-     False),
+    ("versus", "slate", "04", "Versus",
+     "A match against a trained model or the game's CPU.", True),
     ("controls", "white", "05", "Controls",
      "Input delay and button layouts.", False),
 ]
@@ -154,7 +155,11 @@ def card(c):
                    % (stats, about, go))
 
 
-def character_select(roster, focus):
+def character_select(roster, focus, title="Choose your character",
+                     about="Choose who you train. A drill brings its own "
+                           "opponents.", inside=None, hints=None):
+    """`inside`: the card's content, if not the usual one about the
+    character in focus."""
     tiles = []
     for i, c in enumerate(roster):
         course = ""
@@ -169,12 +174,67 @@ def character_select(roster, focus):
                 i, " focus" if i == focus else "", c["color"], c["fg"],
                 esc(c["mono"]), esc(c["short"]), course))
     body = (
-        header(["Choose your character"]) +
+        header([title]) +
         '<div class="roster">' + "".join(tiles) + '</div>' +
-        '<div id="card" class="card">' + card(roster[focus]) + '</div>' +
-        footer("Choose who you train. A drill brings its own opponents.",
-               [("A", "Choose"), ("B", "Back")], tab=roster[focus]["color"]))
+        '<div id="card" class="card">' + (inside or card(roster[focus])) +
+        '</div>' +
+        footer(about, hints or [("A", "Choose"), ("B", "Back")],
+               tab=roster[focus]["color"]))
     return page("Character select", body)
+
+
+# ---- versus and lab: who is on the other side ---------------------------------
+
+def opponent_card(c, who, what, stage, count, go):
+    """The card on the opponent screen: the character, who plays it (`who`,
+    with `what` that is in a few words; `count`: "2 of 31"), the stage."""
+    size = 40 if len(c["name"]) > 9 else 64
+    head = ('<div class="top" style="background-color: %s"/>'
+            '<div class="slant" style="background-color: %s"/>'
+            '<div class="head" style="color: %s"><div class="tags">%s</div>'
+            '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
+                c["color"], c["color"], c["fg"],
+                esc(" · ".join(c["tags"]).upper()), size, esc(c["name"])))
+    return head + (
+        '<div class="body"><div class="fact"><div class="fl">Played by'
+        '</div><div class="fv big2">%s</div><div class="fl">%s</div></div>'
+        '<div class="pick">%s<div>Someone else</div><div class="grow"/>'
+        '<div class="lbl">%s</div></div>'
+        '<div class="fact"><div class="fl">Stage</div><div class="fv big2">'
+        '%s</div></div><div class="pick">%s%s<div>Another stage</div></div>'
+        '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
+        '</div></div></div>' % (
+            esc(who), esc(what), key("X"), esc(count), esc(stage),
+            key("L", wide=True), key("R", wide=True), key("A", dark=True),
+            esc(go)))
+
+
+def versus_rail(c, opp, who, what, stage, lab):
+    """The column beside a match in Versus or the Lab."""
+    head = ('<div class="top" style="background-color: %s"/>'
+            '<div class="slant" style="background-color: %s"/>'
+            '<div class="head" style="color: %s"><div class="tags">%s</div>'
+            '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
+                c["color"], c["color"], c["fg"], "LAB" if lab else "VERSUS",
+                34 if len(c["name"]) > 9 else 48, esc(c["name"])))
+    tools = ""
+    if lab:
+        tools = ('<div class="hintrow">%s<div>Put both back</div></div>'
+                 '<div class="hintrow">%s<div>Their damage, 10 less or more'
+                 '</div></div>' % (key("D-PAD DOWN", wide=True),
+                                   key("D-PAD LEFT RIGHT", wide=True)))
+    body = (
+        '<div class="fact"><div class="fl">Against</div><div class="fv big2">'
+        '%s</div></div><div class="fact"><div class="fl">Played by</div>'
+        '<div class="fv">%s</div><div class="fl">%s</div></div>'
+        '<div class="fact"><div class="fl">Stage</div><div class="fv">%s'
+        '</div></div><div id="botstate" class="line botstate"/>'
+        '<div class="grow"/><div class="hints">%s<div class="hintrow">%s'
+        '<div>Pause</div></div><div class="hintrow">%s<div>Back</div></div>'
+        '</div>' % (esc(opp["name"]), esc(who), esc(what), esc(stage), tools,
+                    key("START", wide=True), key("HOLD START", wide=True)))
+    return page("Versus", '<div class="rail">%s<div class="body">%s</div>'
+                '</div>' % (head, body), paper=False)
 
 
 # ---- in a match ----------------------------------------------------------------

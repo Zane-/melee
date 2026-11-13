@@ -102,6 +102,10 @@ class _Pads:
                           connected=(i == 0)) for i in range(4)]
 
 
+#: In the environment of every process a driver starts: the driver's pid.
+HARNESS = "MELEE_HARNESS"
+
+
 def die_with_parent():
     """For Popen's preexec_fn: the child is killed when this process ends,
     however it ends (a `timeout` around a test kills the driver without
@@ -126,6 +130,10 @@ class Native:
         self._dirty = set()    # ports whose pad the game has not been told
         self._state = None     # the last frame's state, if still current
         self._snaps = {}       # snapshot id -> (frame, pads) on this side
+        # Marked as started by this process: what looks for games left
+        # running (window.leftovers) must not take someone else's for one.
+        env = dict(os.environ if env is None else env)
+        env[HARNESS] = str(os.getpid())
         # Its own process group: snapshots are further processes, and all
         # of them go when this object is closed.
         self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,

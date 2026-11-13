@@ -291,6 +291,31 @@ reads the pad and tells the host what to show.
 | A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
 | A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
 | Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
+| Versus | Your character, then the opponent: which character, who plays it (X turns through a trained slippi-ai model for the pairing, other models, the game's CPU, nobody) and the stage (L and R). A match with the column saying who is on the other side | `tools/melee_client/opponents.py`, `melee_actor/policy_server.py` |
+| The Lab | The same choice with nobody playing the opponent unless asked; D-pad down puts both back, left and right set the opponent's damage | the same |
+
+**A trained model on the other side (2026-11-13).** slippi-ai's models
+(`~/Games/Melee/slippi-ai/deployed_models/`, 137 of them) play natively: no Dolphin, no
+Slippi. The model runs in a process of its own in slippi-ai's Python
+(`melee_actor/policy_server.py`; its packages do not load in the project's), and the
+client talks to it in lines of JSON. **The game never waits for it**: the client asks
+about the frame just played and uses the answer a frame later, and the model is told so
+(`console_delay=1`: it reacts one frame sooner to make up). Measured: the frame loop
+spends 0.2 ms a frame on it; a model loads in about five seconds, beside the match (the
+opponent stands still until then). `opponents.models(bot, player)` picks: a model trained
+for the pairing first (`falco_d21_vs_fox_v6.1` for Falco against Fox), then the
+character's other models, then the ones named for a rank, which are not tied to a
+character. `tests/client/versus.py` (16 checks): the Falco model against a Fox nobody
+moves answers 420 of 421 frames, is in 21 different states and crosses the stage; the Lab's
+tools.
+
+Not there, of Versus and the Lab: stocks, a timer that ends the match, a result (the
+match is the debug mode's endless one); more than two players; the Lab's other tools
+(saving and loading a position, recording, the CPU's settings: everything Training Mode's
+Lab has). Not known: how well the models play here against a person (they see no
+projectiles and no partner Ice Climber: `policy.py` does not pass them on); whether the
+rank models play characters they have no model of. slippi-ai's own rule stands: these are
+for offline play, not for the Slippi ladders.
 
 **Which drills play.** A drill plays in this client when a file in `data/scenarios/`
 names it (`"drill": "<course drill id>"`). There are two kinds of file:
@@ -390,6 +415,25 @@ the first try waits (up to a second and a half) for the buttons to be let go.
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
+
+## The target (owner, 2026-11-13)
+
+"Our target to hit is 100% of everything implemented in native w/ native support for
+slippi-ai in versus mode and lab!"
+
+Where that stands, honestly:
+
+| Part of "everything" | Native today | Missing |
+|-|-|-|
+| The game itself | Runs, draws, takes a GameCube controller; identical to the console's code on the compared matches | Sound. Known differences (`native-port.md`) |
+| Menus | Main menu, character select, opponent and stage choice | Nicknames, the vanilla menus' other modes |
+| Courses | Fox's hub and lists; 6 of his 46 drills play; the done mark | 40 Fox drills, the guide and demonstration, every other character's course |
+| Versus | A match against a trained model, the CPU or nobody, six stages | Stocks, timer, result; 3 and 4 players; items |
+| The Lab | Opponent choice, put back, damage | The rest of Training Mode's Lab: save states, recording, CPU behaviours, the info displays |
+| Events | Nothing | All of Training Mode's events |
+| Controls | The adapter is read directly | Layouts, nicknames' profiles, input delay, UCF: all exist only in the overlay build (`src/melee/tm/`) |
+| slippi-ai | In Versus and the Lab, in real time | Projectiles and the partner Ice Climber in what the model sees; choosing a strength |
+| Tandem play | Nothing | `netplay-p2p.md` is a study |
 
 ## Plan
 

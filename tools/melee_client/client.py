@@ -12,12 +12,15 @@ sees); without one, another controller or the keyboard does
 (tools/melee_native/play.py has the keys).
 
 What is here: the main menu; the character select (26 characters, their
-traits from data/characters/); for a character with a course, the hub with
+traits from data/characters/); Versus and the Lab, against a trained
+slippi-ai model, the game's CPU or nobody, on the six stages (the Lab puts
+both back and sets damage from the D-pad); for a character with a course,
+the hub with
 its four parts and each part's drills from data/courses/, which you can
 mark as done; the drills that have a scenario (data/scenarios/) running
 against you with a verdict for every attempt; free play against a standing
-Marth. Hold START to come back. What is not: Lab, Events, Versus,
-Controls, most drills, the guide, sound.
+Marth. Hold START to come back. What is not: Events, Controls, most
+drills, the guide, stocks and a result in Versus, sound.
 
 Needs tools/aurora32/build.sh (with RmlUi) and tools/native_build.py
 --window. --offscreen runs it on a virtual display, which is how it is
@@ -38,10 +41,11 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import characters  # noqa: E402
 import courses  # noqa: E402
+import opponents  # noqa: E402
 import fonts  # noqa: E402
 import screens  # noqa: E402
 import window  # noqa: E402
-from native import NativeError  # noqa: E402
+from native import STAGES, NativeError  # noqa: E402
 from melee_actor import scenario as scn  # noqa: E402
 from melee_actor import tech  # noqa: E402
 from melee_actor import train  # noqa: E402
@@ -51,6 +55,10 @@ L, R = 0x40, 0x20
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = 7
+STAGE_ORDER = ("final-destination", "battlefield", "yoshis-story",
+               "dream-land", "fountain-of-dreams", "pokemon-stadium")
+assert set(STAGE_ORDER) == set(STAGES)
+CPU, NOBODY = "the game's own CPU", "nobody"
 
 # Which panel a direction leads to from each panel of the main menu.
 MAIN_MOVES = {
@@ -87,8 +95,19 @@ class Client:
         self.person = None            # tests: called before every frame
         self.results = None           # the attempts of the drill last left
         self.banner = 0               # frames the verdict banner stays up
+        self.mode = "train"           # what the character is being picked for
+        self.me = None                # versus and lab: the player's character
+        self.opp_at = 0               # the opponent in focus
+        self.who = 0                  # which of players() plays the opponent
+        self.stage_at = 0
+        self.bot = None               # the trained model playing, if one is
+        self.bot_said = None
+        self.damage = 0               # the lab: the opponent's damage
+        self.pad_now = None           # what the player holds this frame
         self.opponent, self.stage = opponent, stage
         self.roster = characters.roster()
+        self.opp_at = next(i for i, c in enumerate(self.roster)
+                           if c["id"] == "marth")
         self.screen = None
         self.focus = "train"          # on the main menu
         self.at = next(i for i, c in enumerate(self.roster)
@@ -150,6 +169,7 @@ class Client:
     def read(self):
         """(buttons pressed this frame, directions pressed or repeating)."""
         pad = self.w.pads()[self.port]
+        self.pad_now = pad
         now = pad["buttons"]
         dirs = now & 0xF
         if pad["lx"] < -60:
@@ -192,7 +212,8 @@ class Client:
                 self.say(self.about(to))
                 break
         if pressed & A:
-            if self.focus == "train":
+            if self.focus in ("train", "versus", "lab"):
+                self.mode = self.focus
                 self.show_characters()
             else:
                 self.say(self.about(self.focus))
@@ -217,6 +238,10 @@ class Client:
             self.w.ui("attr tab style background-color: %s" % c["color"])
         if pressed & B:
             self.show_main()
+        elif pressed & A and self.mode != "train":
+            self.me = self.roster[self.at]
+            self.who = None
+            self.show_opponent()
         elif pressed & A:
             c = self.roster[self.at]
             if courses.load(c["id"]):
@@ -224,6 +249,149 @@ class Client:
             else:
                 self.back = "chars"
                 self.play(c)
+
+    # ---- versus and the lab: who is on the other side ------------------------------
+
+    def players(self):
+        """Who can play the opponent in focus: [(name, what it is)]. In
+        Versus a trained model comes first; in the Lab nobody does."""
+        opp = self.roster[self.opp_at]
+        trained = opponents.models(opp["id"], self.me["id"])
+        rest = [(CPU, "the CPU the game came with"),
+                (NOBODY, "it stands still")]
+        if self.mode == "lab":
+            rest.reverse()
+            return rest + trained
+        return trained + rest
+
+    def opponent_card(self):
+        players = self.players()
+        name, what = players[self.who]
+        return screens.opponent_card(
+            self.roster[self.opp_at], name, what,
+            STAGE_ORDER[self.stage_at].replace("-", " ").title(),
+            "%d of %d" % (self.who + 1, len(players)),
+            "Start" if self.mode == "lab" else "Fight")
+
+    def show_opponent(self):
+        self.screen = "opp"
+        self.w.capture(True)
+        if self.who is None or self.who >= len(self.players()):
+            self.who = 0
+        self.load("opponent", screens.character_select(
+            self.roster, self.opp_at, title="Choose your opponent",
+            about="%s against whom, played by whom, and where." %
+                  self.me["name"],
+            inside=self.opponent_card(),
+            hints=[("A", "Start" if self.mode == "lab" else "Fight"),
+                   ("X", "Played by"), ("B", "Back")]))
+
+    def on_opp(self, pressed, moves):
+        at, n = self.opp_at, len(self.roster)
+        if moves & LEFT and at % COLUMNS > 0:
+            at -= 1
+        if moves & RIGHT and at % COLUMNS < COLUMNS - 1 and at + 1 < n:
+            at += 1
+        if moves & UP and at >= COLUMNS:
+            at -= COLUMNS
+        if moves & DOWN and at + COLUMNS < n:
+            at += COLUMNS
+        changed = False
+        if at != self.opp_at:
+            self.w.ui("class c%d focus 0" % self.opp_at)
+            self.opp_at, self.who = at, 0
+            self.w.ui("class c%d focus 1" % at)
+            self.w.ui("attr tab style background-color: %s" %
+                      self.roster[at]["color"])
+            changed = True
+        if pressed & X:
+            self.who = (self.who + 1) % len(self.players())
+            changed = True
+        if pressed & L:
+            self.stage_at = (self.stage_at - 1) % len(STAGE_ORDER)
+            changed = True
+        if pressed & R:
+            self.stage_at = (self.stage_at + 1) % len(STAGE_ORDER)
+            changed = True
+        if changed:
+            self.put("card", self.opponent_card())
+        if pressed & B:
+            self.show_characters()
+        elif pressed & A:
+            self.fight()
+
+    def fight(self):
+        """A match against the opponent chosen, played as chosen."""
+        opp = self.roster[self.opp_at]
+        name, what = self.players()[self.who]
+        stage = STAGE_ORDER[self.stage_at]
+        self.say("Loading.")
+        self.w.step()
+        if self.bot is not None:
+            self.bot.close()
+            self.bot = None
+        if name not in (CPU, NOBODY):
+            self.bot = opponents.Bot(name, port=1 - self.port,
+                                     opponent=self.port, stage=stage)
+        self.bot_said = None
+        self.w.pad(1 - self.port)
+        self.w.pace(False)
+        try:
+            self.w.start(self.me["id"], opp["id"], stage,
+                         seed=random.randrange(1, 1 << 30),
+                         p2_human=name != CPU, settle=False)
+        finally:
+            self.w.pace(True)
+        self.last = self.me
+        self.screen = "versus"
+        self.start_held = 0
+        self.damage = 0
+        self.load("versus", screens.versus_rail(
+            self.me, opp, name, what, stage.replace("-", " ").title(),
+            self.mode == "lab"))
+        self.w.capture(False)
+
+    def bot_state(self, text):
+        if text != self.bot_said:
+            self.bot_said = text
+            self.w.ui("text botstate " + screens.esc(text))
+
+    def on_versus(self, pressed, moves):
+        other = 1 - self.port
+        if self.bot is not None:
+            ready = self.bot.ready()
+            if ready is None:
+                self.bot_state("The model is loading: it stands still until "
+                               "it has.")
+            elif not ready:
+                self.bot_state("The model did not load (%s). Nobody is "
+                               "playing." % self.bot.error[:80])
+            else:
+                self.bot_state("Reacts %d frames after what it sees." %
+                               self.bot.delay)
+                # the answer to last frame's question; then this frame's
+                pad = self.bot.answer(0.002)
+                if pad is not None:
+                    self.w.pad(other, **pad)
+                pads = [None, None]
+                pads[self.port] = self.pad_now
+                self.bot.ask(self.w.state()["p"], pads)
+        if self.mode == "lab":
+            f = self.w.fighter(other)
+            if pressed & DOWN:
+                self.w.place(self.port, -20, 0, 1)
+                self.w.place(other, 20, 0, -1, percent=self.damage)
+            elif pressed & (LEFT | RIGHT) and f.fp:
+                self.damage = max(0, min(300, self.damage +
+                                         (10 if pressed & RIGHT else -10)))
+                self.w.place(other, f.pos[0], f.pos[1], f.facing,
+                             percent=self.damage)
+        if self.start_held >= 40:
+            if self.bot is not None:
+                self.bot.close()
+                self.bot = None
+            self.w.pad(other)
+            self.show_opponent()
 
     # ---- the course hub -----------------------------------------------------------
 

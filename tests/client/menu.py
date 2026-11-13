@@ -98,9 +98,10 @@ def main():
               seen == ["lab", "events", "versus", "controls", "events",
                        "lab", "train"], " ".join(seen))
         tap("Right")
+        tap("Down")
         tap("x")
         check("A on a panel that is not built goes nowhere",
-              c.screen == "main" and c.focus == "lab")
+              c.screen == "main" and c.focus == "events")
         tap("Left")
 
         tap("x")

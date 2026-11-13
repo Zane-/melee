@@ -9,6 +9,10 @@ its Lab and generic events stay as free practice. Later: an in-game AI coach dri
 Claude, and tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc
 index and `docs/ai/training-courses.md` for the course architecture and its status.
 
+**The target (owner, 2026-11-13): "100% of everything implemented in native w/ native
+support for slippi-ai in versus mode and lab".** What of it exists is in "The target" in
+`docs/ai/native-ai.md`.
+
 **Where new work starts (owner decision 2026-11-13): the native Linux build**, "because we
 want to build in direct AI integration and the actor system to build AI-driven training".
 The overlay build below is what can be played today and stays correct, but scripts,
@@ -139,6 +143,7 @@ ninja
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
 | The native client: menus, character select, course hub, drill list, drills with a verdict; 16:9 with the game at 4:3 | `python tools/melee_client/client.py`; `tools/melee_client/`, `src/host/ui.cpp`; `tests/client/menu.py`, `tests/client/course.py` (`--shots DIR`); "The client" in `docs/ai/native-ai.md` |
+| A trained slippi-ai model as the opponent in the native client (Versus, the Lab) | `tools/melee_client/opponents.py`, `tools/melee_actor/policy_server.py`; `tests/client/versus.py` |
 | Make a course drill play in the native client | a file in `data/scenarios/` with `"drill": "<course drill id>"`: a scenario (an opponent, hit or not hit; skill `actor-scenario`) or a tech drill (`"tech"`, judged on the player's inputs by frame: `tools/melee_actor/tech.py`, `tests/actor/tech.py`) |
 | Which controllers the native client sees; the GameCube adapter, read directly | `python tools/melee_client/client.py --devices`; `src/host/gcadapter.c`, `tests/native/gcadapter.py` |
 | Train against a scenario yourself on the native build (verdicts in the terminal) | `python tools/melee_actor/train.py data/scenarios/FILE.json`; `tests/actor/train.py` |
