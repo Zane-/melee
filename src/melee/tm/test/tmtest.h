@@ -31,6 +31,8 @@ enum TmTestTrigger {
     TM_TEST_AT_FRAME,      ///< `frame` = match frame (0 = first frame)
     TM_TEST_ON_ENTER,      ///< `frame` frames after `port` enters `state`
     TM_TEST_ON_EXIT,       ///< `frame` frames after `port` leaves `state`
+    /// Boot scripts only: report the frame so the runner keeps a picture.
+    TM_TEST_SHOT,
 };
 
 /// Pad buttons (PAD_BUTTON_* values).
@@ -67,7 +69,9 @@ typedef struct TmTestOption {
 
 typedef struct TmTestConfig {
     unsigned int magic;        ///< TM_TEST_MAGIC when filled in
-    char event[16];            ///< EventDesc.eventFile, e.g. "shineoos"
+    /// EventDesc.eventFile, e.g. "shineoos". Empty: a boot script. No match
+    /// is started; the inputs (frames counted from boot) drive the menus.
+    char event[16];
     unsigned char hmn_ckind;   ///< external character id, NONE = event's
     unsigned char hmn_color;
     unsigned char cpu_ckind;   ///< NONE = event's choice

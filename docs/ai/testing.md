@@ -107,3 +107,29 @@ desktop session went down. Rules since then, enforced in `tools/tmtest.py`:
   up to 4 (`TM_ROT_MAX_FIGHTERS`).
 - Fox's shine out of shield: jump on the frame shieldstun ends, down-B on the first airborne frame
   (3 later); the shine is out on frame 4. Down-B during jump squat does nothing.
+
+## Menus: boot scripts and pictures
+
+A spec with `"boot": true` and no event does not start a match. Its inputs count frames
+from boot and drive whatever screen is up, and each frame listed under `"shots"` is kept
+as a picture when `--shots DIR` is given:
+
+```sh
+python tools/tmtest.py tests/tmtest/menu/boot.json --shots /tmp/shots   # about 30 s
+```
+
+```json
+{ "boot": true, "max_frames": 700, "shots": [330, 440, 640],
+  "inputs": [ {"at": 385, "buttons": ["A"], "hold": 2} ] }
+```
+
+With `--shots` Dolphin runs with a renderer (OpenGL under the virtual X server;
+`TMTEST_VIDEO` chooses another) at real-time speed and dumps every frame; the runner copies
+the newest file about 0.4 s after the game logs the shot, so a picture shows the screen
+some 20 frames after its number. Leave the screen still for half a second around a shot.
+Without `--shots` the same spec runs with no renderer in a few seconds, which is enough to
+see whether a path through the menus crashes.
+
+The copy of the disc these runs use (`build/tmtest/disc`) is made once; files added to
+`build/disc` later are linked in at each run. Before that was so, a new event's art file
+was missing there and its screen crashed in Dolphin only.

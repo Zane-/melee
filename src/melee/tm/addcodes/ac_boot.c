@@ -79,6 +79,19 @@ static bool acSelectLab(void)
     return true;
 }
 
+/// Whether booting goes straight into an event's character select. The
+/// build boots to its main menu (src/melee/tm/menu/); a test build with an
+/// event configured boots into that event.
+static bool acBootsToEvent(void)
+{
+#ifdef TM_TEST
+    if (tm_test_config.magic == TM_TEST_MAGIC) {
+        return tm_test_config.event[0] != '\0';
+    }
+#endif
+    return TM_AC_BOOT_TO_LAB && !TM_AC_BOOT_TO_MENU;
+}
+
 /// Wraps `gm_ChangeGameModeAfterCurrentScene(scene_data->mode_id)` in
 /// bootOnLeave (+0x7C).
 ///
@@ -102,7 +115,7 @@ void tm_ac_BootChangeMode(u8 mode)
     if (held & AC_PAD_X) {
         lbAudioAx_80024030(1);
         mode = GM_VS;
-    } else if (TM_AC_BOOT_TO_LAB && !(held & AC_PAD_Y) && acSelectLab()) {
+    } else if (acBootsToEvent() && !(held & AC_PAD_Y) && acSelectLab()) {
         ac_boot_lab_pending = true;
         mode = GM_EVENT;
     } else {

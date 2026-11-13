@@ -1,0 +1,6 @@
+# The build's main menu (src/melee/tm/menu/): a scene in the scene table's
+# empty slot. scenes[9] is { GS_UNK10, NULL, NULL, NULL, NULL } in vanilla
+# (gm/gmscdata.c); entries are 0x14 bytes: kind, on_frame, on_enter, on_exit.
+# It is the menu mode's first state (tm_css_MenuStates, css.txt).
+pointer  scenes+0xB8  tm_menu_SceneFrame  main menu: per frame
+pointer  scenes+0xBC  tm_menu_SceneEnter  main menu: build

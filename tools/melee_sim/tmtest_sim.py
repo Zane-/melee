@@ -27,7 +27,7 @@ from sim import Sim, GuestError, ROOT  # noqa: E402
 OUT = ROOT / os.environ.get("OVERLAY_OUT", "build/overlay-tmtest")
 
 
-def run(spec, timeout=180, keep_log=False):
+def run(spec, timeout=180, keep_log=False, shots_dir=None):
     started = time.time()
     s = Sim(dol=OUT / "main.dol", overlay_map=OUT / "overlay.map")
     s.m.write(s.m.sym.addr("tm_test_config"), tmtest.pack_config(spec))

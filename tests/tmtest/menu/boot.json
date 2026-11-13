@@ -1,0 +1,13 @@
+{
+  "boot": true,
+  "max_frames": 700,
+  "shots": [330, 440, 640],
+  "inputs": [
+    {"at": 360, "stick": [0, -127], "hold": 3},
+    {"at": 385, "buttons": ["A"], "hold": 2},
+    {"at": 410, "stick": [127, 0], "hold": 3},
+    {"at": 420, "stick": [127, 0], "hold": 3},
+    {"at": 470, "buttons": ["B"], "hold": 2},
+    {"at": 540, "buttons": ["A"], "hold": 2}
+  ]
+}

@@ -79,7 +79,7 @@ STATE = {"Wait": 0x0E, "KneeBend": 0x18, "Landing": 0x2A,
          "GuardReflect": 0xB6, "EscapeAir": 0xEC,
          "ShineGround": 0x168, "ShineAir": 0x16D}
 
-TRIGGER = {"at": 0, "on_enter": 1, "on_exit": 2}
+TRIGGER = {"at": 0, "on_enter": 1, "on_exit": 2, "shot": 3}
 WINDOW_OK = False  # --window: allow a visible Dolphin when xvfb-run is missing
 
 
@@ -121,7 +121,9 @@ def drill_index(drill):
 
 def pack_config(spec):
     """TmTestConfig, big-endian (src/melee/tm/test/tmtest.h)."""
-    ev = spec["event"].encode()[:15]
+    # A boot script ("boot": true) has no event: its inputs drive the menus
+    # from the first frame, and "shots" are frames to keep a picture of.
+    ev = b"" if spec.get("boot") else spec["event"].encode()[:15]
     hmn = ident(CKIND, spec.get("hmn"), "character")
     cpu = ident(CKIND, spec.get("cpu"), "character")
     stage = ident(STAGE, spec.get("stage"), "stage")
@@ -138,14 +140,17 @@ def pack_config(spec):
     for i in range(MAX_OPTIONS):
         idx, val = opts[i] if i < len(opts) else (0, 0)
         out += struct.pack(">BBh", idx, 0, val)
-    inputs = spec.get("inputs", [])[:MAX_INPUTS]
+    inputs = (list(spec.get("inputs", [])) +
+              [{"shot": f} for f in spec.get("shots", [])])[:MAX_INPUTS]
     out += struct.pack(">I", len(inputs))
     for i in range(MAX_INPUTS):
         if i >= len(inputs):
             out += bytes(16)
             continue
         e = inputs[i]
-        if "at" in e:
+        if "shot" in e:
+            trig, port, state, frame = TRIGGER["shot"], 0, 0, e["shot"]
+        elif "at" in e:
             trig, port, state, frame = 0, 0, 0, e["at"]
         else:
             kind = "on_enter" if "on_enter" in e else "on_exit"
@@ -179,6 +184,16 @@ def prepare_disc(spec):
         subprocess.run([sys.executable, "tools/tmce_disc.py", "--disc", str(disc),
                         "--dol", str(OUT / "main.dol")], cwd=ROOT, check=True,
                        capture_output=True)
+    else:
+        # The copy is made once; files added to build/disc since (a new
+        # event's art under files/TM) are linked in. A missing art file
+        # shows up as a crash in the screen that needed it.
+        src = ROOT / "build/disc/files"
+        for f in src.rglob("*"):
+            dst = disc / "files" / f.relative_to(src)
+            if f.is_file() and not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                os.link(f, dst)
     dol = bytearray((OUT / "main.dol").read_bytes())
     addr = Overlay(OUT / "overlay.map").addr("tm_test_config")
     blob = pack_config(spec)
@@ -190,9 +205,17 @@ def prepare_disc(spec):
     return target
 
 
-def prepare_user():
+def prepare_user(shots=False):
     user = WORK / "user"
     (user / "Config").mkdir(parents=True, exist_ok=True)
+    if shots:
+        # Every frame Dolphin presents becomes a PNG in Dump/Frames.
+        frames = user / "Dump" / "Frames"
+        if frames.exists():
+            shutil.rmtree(frames)
+        (user / "Config" / "GFX.ini").write_text(
+            "[Settings]\nDumpFramesAsImages = True\nInternalResolution = 1\n"
+            "[Enhancements]\nMaxAnisotropy = 0\n")
     card = user / "GC" / "USA" / "Card A"
     if not card.exists() and OWNER_CARD.exists():
         shutil.copytree(OWNER_CARD, card)
@@ -298,9 +321,21 @@ def kill_group(proc):
             pass
 
 
-def run(spec, timeout=180, keep_log=False):
+def keep_shot(user, shots_dir, frame):
+    """Copy the newest dumped frame as shot_<frame>.png."""
+    time.sleep(0.4)
+    files = sorted((user / "Dump" / "Frames").glob("*.png"),
+                   key=lambda f: f.stat().st_mtime)
+    if len(files) >= 2:
+        shots_dir.mkdir(parents=True, exist_ok=True)
+        # the newest may still be being written
+        shutil.copy(files[-2], shots_dir / f"shot_{frame}.png")
+
+
+def run(spec, timeout=180, keep_log=False, shots_dir=None):
     dol = prepare_disc(spec)
-    user, log = prepare_user()
+    shots = bool(spec.get("shots")) and shots_dir is not None
+    user, log = prepare_user(shots)
     # Qt's offscreen platform stops Dolphin from booting; a virtual X
     # server (xvfb-run, package xorg-server-xvfb) hides the window if present.
     env = dict(os.environ)
@@ -309,10 +344,17 @@ def run(spec, timeout=180, keep_log=False):
         sys.exit("xvfb-run not found: a visible Dolphin window would steal the "
                  "desktop's focus. Install xorg-server-xvfb, run specs in the "
                  "simulator (tools/melee_sim/tmtest_sim.py), or pass --window.")
-    cmd = wrap + ["dolphin-emu", "-u", str(user), "-b", "-v", "Null",
+    # Pictures need a renderer (OpenGL under the virtual X server) and real-time
+    # speed, so that the frame on screen when a "shot" is logged is still
+    # the newest file a moment later.
+    video = ["-v", os.environ.get("TMTEST_VIDEO", "OGL"),
+             "-C", "Dolphin.Movie.DumpFrames=True",
+             "-C", "Dolphin.Movie.DumpFramesSilent=True",
+             "-C", "Dolphin.Core.EmulationSpeed=1"] if shots else \
+            ["-v", "Null", "-C", "Dolphin.Core.EmulationSpeed=0"]
+    cmd = wrap + ["dolphin-emu", "-u", str(user), "-b", *video,
            "-C", "Dolphin.Interface.UsePanicHandlers=False",
            "-C", "Dolphin.Interface.ConfirmStop=False",
-           "-C", "Dolphin.Core.EmulationSpeed=0",
            "-C", "Dolphin.DSP.Backend=No Audio Output",
            "-C", "Dolphin.Core.SIDevice0=6",
            "-e", str(dol)]
@@ -351,6 +393,8 @@ def run(spec, timeout=180, keep_log=False):
                             records.append(json.loads(text[7:]))
                         except json.JSONDecodeError:
                             records.append({"bad_json": text[7:]})
+                        if shots and "shot" in records[-1]:
+                            keep_shot(user, shots_dir, records[-1]["shot"])
                     elif text:
                         other.append(text)
                 if any(r.get("done") for r in records):
@@ -402,6 +446,9 @@ def main():
     ap.add_argument("--keep-log", action="store_true")
     ap.add_argument("--states", action="store_true",
                     help="trace every frame and print each fighter's state changes")
+    ap.add_argument("--shots", type=Path, metavar="DIR",
+                    help="keep a picture of each frame in the spec's \"shots\" "
+                         "here (slow: software renderer at real-time speed)")
     ap.add_argument("--window", action="store_true",
                     help="allow a visible Dolphin window if xvfb-run is missing")
     args = ap.parse_args()
@@ -412,14 +459,16 @@ def main():
     failed = 0
     for path in args.spec:
         try:
-            spec = resolve_exact(json.loads(path.read_text()), args.timeout)
+            spec = json.loads(path.read_text())
+            if not spec.get("boot"):
+                spec = resolve_exact(spec, args.timeout)
         except ValueError as e:
             print(f"{path.name}: SETUP FAILED: {e}")
             failed += 1
             continue
         if args.states:
             spec = dict(spec, trace=1)
-        res = run(spec, args.timeout, args.keep_log)
+        res = run(spec, args.timeout, args.keep_log, args.shots)
         res["spec"] = str(path)
         if args.states:
             print_states(res)

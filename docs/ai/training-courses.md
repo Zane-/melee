@@ -48,6 +48,17 @@ made common.
 ## User flow
 
 ```
+boot ─► MAIN MENU ─► Train ─► character select ─► HUB ─► drill ─► back to the hub
+          │
+          ├─ Lab       the Lab's own character select
+          ├─ Events    Training Mode's event list (the original menus)
+          └─ Controls  input delay (button layouts: not in the menu yet)
+```
+
+Since 2026-11-12 the build boots to its own main menu (below). Train leads to what
+booting led to before:
+
+```
 boot ─► character select ─► HUB (for that character) ─► drill ─► back to the hub
                               │
                               ├─ Tech      individual techniques, executed alone
@@ -342,6 +353,41 @@ How the demonstration is performed is the least proven part. Planned order of pr
 (TM-CE's Lab does this for input playback; how much of that can be reused outside the Lab is
 unverified); (b) fall back to a second copy of the player's character as a CPU, driven by
 the proven CPU script path. Milestone M2 settles this.
+
+### Main menu (built 2026-11-12: `src/melee/tm/menu/`)
+
+Asked for by the owner: "a new more modern navigation, similar to Brawl" (large panels,
+a line at the bottom describing the highlighted one). It takes that way of navigating, not
+Brawl's artwork: the panels are flat shapes drawn with GX and the labels are the game's own
+text, so nothing is loaded from disc.
+
+- **A scene of its own**, in the scene table's one empty slot (`GS_UNK10`; `pointer` hooks
+  in `config/GALE01/tm_hooks/menu.txt`), and the first state of the menu mode
+  (`tm_css_MenuStates`). The original menus are state 2 of the same mode ("Events").
+  Anything that returns to the menu mode (B held on a character select) lands on it.
+- **Pages** are tables of items (label, description, rectangle, action) in `tm_menu.c`.
+  The stick moves to the nearest item in that direction; A acts; B goes back a page; left
+  and right change a value. Adding a panel is adding a row.
+- **Text**: the canvas the scene creates brings an orthographic camera over a 640 by 480
+  screen; the panels are drawn on the same GX link, before the text. A text object's size
+  scales the positions of its lines too, so each label is its own object. Size 1.0 is a
+  line about 36 units high.
+- **Controls page**: input delay, 0 to 10 frames (`src/melee/tm/controls/`). Not saved:
+  it is 0 again after a restart.
+
+Not there yet: button layouts and their link to nicknames (the module underneath exists
+and is tested, `tests/sim/controls.py`; no screen edits it), saving settings, an options
+page, online.
+
+**No Versus panel**, because the vanilla Versus character select runs out of memory in
+the overlay build: `HSD_MemAlloc` asserts while it loads, also when booting straight to
+it (X held at boot), in Dolphin and in the simulator. The main heap is what is left of
+the arena after the game's fixed heaps, and the overlay's code and data (565 KB) come out
+of it; shrinking the persistent heap by that much instead makes the preload assert
+(`memp_kouho`). Open.
+
+Checked: `tests/sim/menu.py` (10 checks: where each panel leads, the delay's limits) and
+pictures from Dolphin (`python tools/tmtest.py tests/tmtest/menu/boot.json --shots DIR`).
 
 ### Hub (built: `src/tmce/events/course/hub_css.c`)
 

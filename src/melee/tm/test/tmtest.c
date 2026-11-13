@@ -51,10 +51,20 @@ typedef struct TestState {
 } TestState;
 
 static TestState ts = { -1 };
+static int boot_frame; ///< frames since boot, for boot scripts
 
+/// A test that starts an event's match.
 static int Active(void)
 {
-    return tm_test_config.magic == TM_TEST_MAGIC;
+    return tm_test_config.magic == TM_TEST_MAGIC &&
+           tm_test_config.event[0] != '\0';
+}
+
+/// A boot script: the menus, driven from the first frame.
+static int BootScript(void)
+{
+    return tm_test_config.magic == TM_TEST_MAGIC &&
+           tm_test_config.event[0] == '\0';
 }
 
 int tm_test_Frame(void)
@@ -229,7 +239,7 @@ static void ScriptedPad(PADStatus* out)
         int start = in->trigger == TM_TEST_AT_FRAME ? 0 : ts.armed[i];
         int hold = in->hold != 0 ? in->hold : 1;
         int t;
-        if (start < 0) {
+        if (start < 0 || in->trigger == TM_TEST_SHOT) {
             continue;
         }
         t = ts.frame - start - in->frame;
@@ -278,6 +288,29 @@ void tm_test_PadRenew(void)
 {
     PadLibData* p = &HSD_PadLibData;
     int in_match = Active() && Player_GetEntity(0) != NULL;
+
+    if (BootScript()) {
+        TmTestConfig* c = &tm_test_config;
+        int i;
+
+        ts.frame = boot_frame++;
+        if (p->qcount != 0 && !ts.done) {
+            ScriptedPad(&p->queue->stat[p->qread * 4]);
+        }
+        lb_800198E0();
+        for (i = 0; i < (int) c->input_count && i < TM_TEST_MAX_INPUTS; i++) {
+            if (c->inputs[i].trigger == TM_TEST_SHOT &&
+                c->inputs[i].frame == ts.frame)
+            {
+                OSReport("TMTEST {\"shot\":%d}\n", ts.frame);
+            }
+        }
+        if (!ts.done && ts.frame >= (int) c->max_frames) {
+            ts.done = 1;
+            OSReport("TMTEST {\"done\":true,\"f\":%d}\n", ts.frame);
+        }
+        return;
+    }
 
     if (!in_match) {
         if (ts.frame >= 0) {

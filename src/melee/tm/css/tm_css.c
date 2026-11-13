@@ -1,5 +1,7 @@
 #include "tm_css.h"
 
+#include "../menu/tm_menu.h"
+
 #ifdef TM_TEST
 #include "test/tmtest.h"
 #endif
@@ -83,15 +85,26 @@ GameModeState tm_css_EventStates[] = {
 };
 
 GameModeState tm_css_MenuStates[] = {
-    { 0 }, /* vanilla gm_Mode_Menu_States[0], copied by tm_css_MenuModeLoad */
     {
-        1,
+        /* The build's main menu (src/melee/tm/menu/): the mode's first
+           state. Its scene is the scene table's empty slot. */
+        TM_MENU_STATE_MAIN,
+        lbDvdPreload_2,
+        0,
+        NULL,
+        NULL,
+        { GS_UNK10, NULL, NULL },
+    },
+    {
+        TM_MENU_STATE_CREDITS,
         lbDvdPreload_3,
         0,
         NULL,
         tm_css_onExitCredits,
         { GS_STAFFROLL, NULL, NULL },
     },
+    { 0 }, /* vanilla gm_Mode_Menu_States[0], copied by tm_css_MenuModeLoad
+              and given the id TM_MENU_STATE_VANILLA */
     { -1 },
 };
 
@@ -115,7 +128,8 @@ void tm_css_EventModeLoad(void)
 /// `pointer` hook on the menu mode's on_load (modes[GM_MENU]; vanilla NULL).
 void tm_css_MenuModeLoad(void)
 {
-    tm_css_MenuStates[0] = gm_Mode_Menu_States[0];
+    tm_css_MenuStates[2] = gm_Mode_Menu_States[0];
+    tm_css_MenuStates[2].id = TM_MENU_STATE_VANILLA;
 }
 
 static inline struct EventData* tm_css_GetEventData(void)

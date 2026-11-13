@@ -23,6 +23,12 @@
 #define TM_AC_BOOT_TO_LAB 1
 #endif
 
+/// Boot to the build's main menu instead (the default since the menu
+/// exists). 0 restores booting into TM_AC_BOOT_EVENT's character select.
+#ifndef TM_AC_BOOT_TO_MENU
+#define TM_AC_BOOT_TO_MENU 1
+#endif
+
 /// Event file (EventDesc.eventFile) to boot into when TM_AC_BOOT_TO_LAB is
 /// set. Test builds override it with a bare token (quotes do not survive
 /// the compiler wrapper), e.g.

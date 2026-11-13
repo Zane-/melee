@@ -111,6 +111,8 @@ ninja
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | Our own peer-to-peer rollback netcode: feasibility study | `docs/ai/netplay-p2p.md` |
 | Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
+| The main menu (panels, pages) | `src/melee/tm/menu/`, `tests/sim/menu.py`; "Main menu" in `docs/ai/training-courses.md` |
+| A picture of a screen from a scripted headless run | `python tools/tmtest.py tests/tmtest/menu/boot.json --shots DIR`; `docs/ai/testing.md` |
 | MexTK name → decomp name | `python tools/mex_symbols.py <name-or-0xaddr>` |
 | Build the training overlay DOL | `python tools/overlay_build.py` → `build/overlay/main.dol` |
 | Put it and TM-CE's art on the extracted disc | `python tools/tmce_disc.py` → boot `build/disc/sys/main.dol` |
