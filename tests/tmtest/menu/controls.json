@@ -1,0 +1,23 @@
+{
+  "boot": true,
+  "max_frames": 820,
+  "names": ["ZANE", "FOX"],
+  "shots": [520, 760],
+  "inputs": [
+    {"at": 360, "stick": [0, -127], "hold": 3},
+    {"at": 385, "buttons": ["A"], "hold": 2},
+    {"at": 410, "stick": [127, 0], "hold": 3},
+    {"at": 430, "stick": [0, -127], "hold": 3},
+    {"at": 450, "buttons": ["A"], "hold": 2},
+    {"at": 470, "stick": [0, -127], "hold": 3},
+    {"at": 490, "buttons": ["A"], "hold": 2},
+    {"at": 560, "stick": [-127, 0], "hold": 3},
+    {"at": 580, "buttons": ["A"], "hold": 2},
+    {"at": 600, "stick": [0, -127], "hold": 3},
+    {"at": 620, "stick": [0, -127], "hold": 3},
+    {"at": 640, "stick": [0, -127], "hold": 3},
+    {"at": 660, "stick": [0, -127], "hold": 3},
+    {"at": 680, "buttons": ["A"], "hold": 2},
+    {"at": 705, "buttons": ["A"], "hold": 2}
+  ]
+}

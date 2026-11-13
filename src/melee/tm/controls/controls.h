@@ -81,6 +81,20 @@ void tm_ctl_Init(void);
 void tm_ctl_ResetProfile(int index, const char* name);
 void tm_ctl_SetNameProfile(int nametag, int profile);
 
+/// @name Keeping the settings on the memory card
+/// The game's save holds its nicknames in seven blocks of 19 but only ever
+/// uses the first 120, so the last 13 slots are written to the card and read
+/// back without the game looking at them. The settings live in the last one.
+/// @{
+/// Take the settings from the game's save, if it holds any. Call once the
+/// card has been read: the main menu does when it opens.
+void tm_ctl_Load(void);
+/// Put the settings in the game's save. Returns whether that changed the
+/// save; the caller then asks the game to write it
+/// (`lbCardGame_SaveChanges`, in a scene that has saving on).
+bool tm_ctl_Store(void);
+/// @}
+
 /// @name Called from the mod's own hooks (tm.c)
 /// @{
 /// A match is starting: give each port the profile of its player's

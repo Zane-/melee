@@ -2,7 +2,10 @@
 
 #include <string.h>
 
+#include <stddef.h>
 #include <dolphin/pad.h>
+#include <melee/gm/gmmain_lib.h>
+#include <melee/gm/types.h>
 #include <melee/pl/forward.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/controller.h>
@@ -71,6 +74,88 @@ void tm_ctl_Init(void)
         tm_ctl_ResetProfile(i, "");
         tm_ctl.profiles[i].used = false;
     }
+}
+
+/* --- on the memory card --------------------------------------------------- */
+
+#define SAVE_SLOT (GM_NAMETAG_BANK_COUNT * GM_NAMETAG_BANK_SIZE - 1)
+#define SAVE_MAGIC 0x544D4331 /* "TMC1": bump when TmCtlSettings changes */
+/// The settings sit in front of the slot's name, which stays empty.
+#define SAVE_ROOM offsetof(struct NameTagData, namedata)
+
+typedef char
+    tm_ctl_SaveFits[(sizeof(u32) + sizeof(TmCtlSettings) <= 0x198) ? 1 : -1];
+
+static u8* SaveArea(void)
+{
+    return (u8*) GetPersistentNameData(SAVE_SLOT);
+}
+
+void tm_ctl_Load(void)
+{
+    u8* at = SaveArea();
+    TmCtlSettings in;
+    u32 magic;
+    int i, j;
+
+    memcpy(&magic, at, sizeof(magic));
+    if (magic != SAVE_MAGIC) {
+        /* A save that has never held settings. Put the current ones there
+           without asking for a write, so that tm_ctl_Store only reports a
+           change once the player has made one. */
+        magic = SAVE_MAGIC;
+        memcpy(at, &magic, sizeof(magic));
+        memcpy(at + sizeof(magic), &tm_ctl, sizeof(tm_ctl));
+        return;
+    }
+    memcpy(&in, at + sizeof(magic), sizeof(in));
+
+    /* Anything out of range means the bytes are not ours: keep what we
+       have. */
+    if (in.delay > TM_CTL_MAX_DELAY) {
+        return;
+    }
+    for (i = 0; i < TM_CTL_PROFILE_COUNT; i++) {
+        in.profiles[i].name[TM_CTL_NAME_LEN] = '\0';
+        for (j = 0; j < TmCtlIn_Count; j++) {
+            if (in.profiles[i].map[j] >= TmCtlAct_Count) {
+                return;
+            }
+        }
+    }
+    tm_ctl = in;
+    tm_ctl_ResetProfile(0, "Standard");
+    for (i = 0; i < 4; i++) {
+        if (tm_ctl.port_profile[i] >= TM_CTL_PROFILE_COUNT ||
+            !tm_ctl.profiles[tm_ctl.port_profile[i]].used)
+        {
+            tm_ctl.port_profile[i] = 0;
+        }
+    }
+    /* A nickname that was deleted since takes its link with it. */
+    for (i = 0; i < TM_CTL_NAMETAG_COUNT; i++) {
+        if (tm_ctl.name_profile[i] >= TM_CTL_PROFILE_COUNT ||
+            !tm_ctl.profiles[tm_ctl.name_profile[i]].used ||
+            GetPersistentNameData(i)->namedata[0] == '\0')
+        {
+            tm_ctl.name_profile[i] = 0;
+        }
+    }
+}
+
+bool tm_ctl_Store(void)
+{
+    u8* at = SaveArea();
+    u32 magic = SAVE_MAGIC;
+
+    if (memcmp(at, &magic, sizeof(magic)) == 0 &&
+        memcmp(at + sizeof(magic), &tm_ctl, sizeof(tm_ctl)) == 0)
+    {
+        return false;
+    }
+    memcpy(at, &magic, sizeof(magic));
+    memcpy(at + sizeof(magic), &tm_ctl, sizeof(tm_ctl));
+    return true;
 }
 
 void tm_ctl_SetNameProfile(int nametag, int profile)

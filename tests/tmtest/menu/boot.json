@@ -1,13 +1,13 @@
 {
   "boot": true,
-  "max_frames": 700,
-  "shots": [330, 440, 640],
+  "max_frames": 760,
+  "shots": [330, 440, 700],
   "inputs": [
     {"at": 360, "stick": [0, -127], "hold": 3},
     {"at": 385, "buttons": ["A"], "hold": 2},
-    {"at": 410, "stick": [127, 0], "hold": 3},
-    {"at": 420, "stick": [127, 0], "hold": 3},
+    {"at": 410, "buttons": ["A"], "hold": 2},
+    {"at": 425, "buttons": ["R"], "hold": 2},
     {"at": 470, "buttons": ["B"], "hold": 2},
-    {"at": 540, "buttons": ["A"], "hold": 2}
+    {"at": 600, "buttons": ["A"], "hold": 2}
   ]
 }

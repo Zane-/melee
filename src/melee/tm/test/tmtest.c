@@ -14,6 +14,7 @@
 #include <sysdolphin/baselib/controller.h>
 #include <sysdolphin/baselib/random.h>
 #include <stdio.h>
+#include <string.h>
 
 /**
  * @file
@@ -52,6 +53,8 @@ typedef struct TestState {
 
 static TestState ts = { -1 };
 static int boot_frame; ///< frames since boot, for boot scripts
+/// The boot frame at which a boot script's nicknames are written.
+#define TM_TEST_NAMES_FRAME 200
 
 /// A test that starts an event's match.
 static int Active(void)
@@ -294,6 +297,15 @@ void tm_test_PadRenew(void)
         int i;
 
         ts.frame = boot_frame++;
+        if (ts.frame == TM_TEST_NAMES_FRAME) {
+            /* After the memory card has been read (or found missing). */
+            for (i = 0; i < TM_TEST_MAX_NAMES; i++) {
+                if (c->names[i][0] != '\0') {
+                    memcpy(GetPersistentNameData(i)->namedata, c->names[i],
+                           8);
+                }
+            }
+        }
         if (p->qcount != 0 && !ts.done) {
             ScriptedPad(&p->queue->stat[p->qread * 4]);
         }

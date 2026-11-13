@@ -1,0 +1,10 @@
+{
+  "boot": true,
+  "card": "keep",
+  "max_frames": 520,
+  "shots": [440],
+  "inputs": [
+    {"at": 360, "stick": [0, -127], "hold": 3},
+    {"at": 385, "buttons": ["A"], "hold": 2}
+  ]
+}

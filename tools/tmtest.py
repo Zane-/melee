@@ -58,6 +58,7 @@ OWNER_CARD = Path.home() / ".local/share/dolphin-emu/GC/USA/Card A"
 
 MAGIC = 0x544D5453
 MAX_INPUTS = 128
+MAX_NAMES = 4
 MAX_OPTIONS = 16
 
 CKIND = {"falcon": 0, "captain-falcon": 0, "dk": 1, "fox": 2, "gnw": 3,
@@ -165,7 +166,26 @@ def pack_config(spec):
         cx, cy = e.get("cstick", [0, 0])
         out += struct.pack(">BBHHHHbbbbBB", trig, port, state, frame, e.get("hold", 1),
                            buttons, lx, ly, cx, cy, e.get("l", 0), e.get("r", 0))
+    # Boot scripts: nicknames for the game's name list, stored as its name
+    # entry screen does (full-width characters, two bytes each, at most 4).
+    names = list(spec.get("names", []))[:MAX_NAMES]
+    for i in range(MAX_NAMES):
+        text = names[i] if i < len(names) else ""
+        out += full_width(text[:4])
     return out
+
+
+def full_width(text):
+    """A nickname as the game stores it: 8 bytes."""
+    out = b""
+    for c in text:
+        if c.isascii() and c.isalpha():
+            out += bytes([0x82, ord(c.upper()) + 0x1F])
+        elif c.isdigit():
+            out += bytes([0x82, ord(c) + 0x1F])
+        else:
+            raise SystemExit("nickname character %r: letters and digits only" % c)
+    return out.ljust(8, b"\0")
 
 
 def dol_offset(dol, addr):
@@ -205,7 +225,7 @@ def prepare_disc(spec):
     return target
 
 
-def prepare_user(shots=False):
+def prepare_user(shots=False, keep_card=False):
     user = WORK / "user"
     (user / "Config").mkdir(parents=True, exist_ok=True)
     if shots:
@@ -219,6 +239,15 @@ def prepare_user(shots=False):
     card = user / "GC" / "USA" / "Card A"
     if not card.exists() and OWNER_CARD.exists():
         shutil.copytree(OWNER_CARD, card)
+    # Every run starts from the same memory card, so that what one run saves
+    # (the Controls page's settings, say) cannot change the next. A spec
+    # with "card": "keep" starts from what the run before it left.
+    pristine = card.with_name("Card A.pristine")
+    if card.exists() and not pristine.exists():
+        shutil.copytree(card, pristine)
+    if pristine.exists() and not keep_card:
+        shutil.rmtree(card, ignore_errors=True)
+        shutil.copytree(pristine, card)
     (user / "Config" / "Logger.ini").write_text(
         "[Logs]\nOSREPORT = True\nOSREPORT_HLE = True\n"
         "[Options]\nWriteToFile = True\nWriteToConsole = False\nVerbosity = 4\n")
@@ -335,7 +364,7 @@ def keep_shot(user, shots_dir, frame):
 def run(spec, timeout=180, keep_log=False, shots_dir=None):
     dol = prepare_disc(spec)
     shots = bool(spec.get("shots")) and shots_dir is not None
-    user, log = prepare_user(shots)
+    user, log = prepare_user(shots, spec.get("card") == "keep")
     # Qt's offscreen platform stops Dolphin from booting; a virtual X
     # server (xvfb-run, package xorg-server-xvfb) hides the window if present.
     env = dict(os.environ)

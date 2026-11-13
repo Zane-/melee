@@ -130,6 +130,21 @@ some 20 frames after its number. Leave the screen still for half a second around
 Without `--shots` the same spec runs with no renderer in a few seconds, which is enough to
 see whether a path through the menus crashes.
 
+A boot script can also put nicknames in the game's name list (`"names": ["ZANE", "FOX"]`,
+letters and digits, four at most each), written 200 frames after boot.
+
+**Memory card.** Every run starts from the same card (`build/tmtest/user/GC/USA/Card
+A.pristine`, taken from the card as it was at the first run), so what one run saves cannot
+change the next. A spec with `"card": "keep"` starts from what the run before it left: that
+is how a save is tested across a restart (`tests/tmtest/menu/save_1.json`, then
+`save_2.json`).
+
+**A shot is lost while the game writes the card.** The game's log goes out on the same
+port as memory card slot A, and while a write holds it (about a second and a half after
+settings change) the line that announces a shot never arrives. Put shots before the change
+or two seconds after it. Dolphin still dumps every frame to
+`build/tmtest/user/Dump/Frames`, numbered a few past the game's frame.
+
 The copy of the disc these runs use (`build/tmtest/disc`) is made once; files added to
 `build/disc` later are linked in at each run. Before that was so, a new event's art file
 was missing there and its screen crashed in Dolphin only.

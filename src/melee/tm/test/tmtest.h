@@ -21,6 +21,7 @@
 #define TM_TEST_MAGIC 0x544D5453 /* 'TMTS' */
 #define TM_TEST_MAX_INPUTS 128
 #define TM_TEST_MAX_OPTIONS 16
+#define TM_TEST_MAX_NAMES 4
 #define TM_TEST_NONE 0xFF
 /// Option index that, for the "course" event, selects the drill (value =
 /// CourseDrillId) instead of a menu option. A spec's "drill" key.
@@ -84,6 +85,9 @@ typedef struct TmTestConfig {
     TmTestOption options[TM_TEST_MAX_OPTIONS];
     unsigned int input_count;
     TmTestInput inputs[TM_TEST_MAX_INPUTS];
+    /// Boot scripts: nicknames put in the game's name list (slots 0..3) as
+    /// the name entry screen stores them; an empty one is left alone.
+    char names[TM_TEST_MAX_NAMES][8];
 } TmTestConfig;
 
 extern TmTestConfig tm_test_config;

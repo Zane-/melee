@@ -52,7 +52,7 @@ boot ─► MAIN MENU ─► Train ─► character select ─► HUB ─► dri
           │
           ├─ Lab       the Lab's own character select
           ├─ Events    Training Mode's event list (the original menus)
-          └─ Controls  input delay (button layouts: not in the menu yet)
+          └─ Controls  input delay, button layouts, which nickname uses which
 ```
 
 Since 2026-11-12 the build boots to its own main menu (below). Train leads to what
@@ -359,7 +359,7 @@ the proven CPU script path. Milestone M2 settles this.
 Asked for by the owner: "a new more modern navigation, similar to Brawl" (large panels,
 a line at the bottom describing the highlighted one). It takes that way of navigating, not
 Brawl's artwork: the panels are flat shapes drawn with GX and the labels are the game's own
-text, so nothing is loaded from disc.
+text, so it has no art of its own on disc.
 
 - **A scene of its own**, in the scene table's one empty slot (`GS_UNK10`; `pointer` hooks
   in `config/GALE01/tm_hooks/menu.txt`), and the first state of the menu mode
@@ -372,12 +372,30 @@ text, so nothing is loaded from disc.
   screen; the panels are drawn on the same GX link, before the text. A text object's size
   scales the positions of its lines too, so each label is its own object. Size 1.0 is a
   line about 36 units high.
-- **Controls page**: input delay, 0 to 10 frames (`src/melee/tm/controls/`). Not saved:
-  it is 0 again after a restart.
+- **Controls page** (`src/melee/tm/controls/` underneath). Rows with a value: A or R
+  moves to the next value, L to the previous one.
+  - Left: input delay (0 to 10 frames, every pad, in a match only), and the layout each
+    port plays with.
+  - Right: one button layout at a time ("Edit" chooses which of 7), a row per button (A,
+    B, X, Y, Z, L, R, D-pad) saying what it does: Attack, Special, Jump, Shield, Grab,
+    Taunt, Nothing. A layout exists once one of its buttons has been changed. Layout 0
+    ("Standard") cannot be changed.
+  - **Nicknames**: a row per nickname in the game's name list; each can carry a layout,
+    which then wins over the port's when that nickname is chosen on a character select.
+    Nicknames are still made on the character select screen, as in the original game.
+- **Saved on the memory card.** The game's save holds its nicknames in seven blocks of 19
+  but only uses the first 120, so the last 13 slots are written and read back without the
+  game looking at them. The settings sit in the last one (`tm_ctl_Load`, `tm_ctl_Store`),
+  behind a tag (`TMC1`; change it when `TmCtlSettings` changes). They are read when the menu
+  opens and stored when a page is left, which asks the game for its normal save. The menu
+  scene turns saving on the way every vanilla scene that saves does (work area, the save
+  notice's art). No card, no saving: the settings then last until the game is closed.
+  An earlier idea, the 188 "padding" bytes of the save data, is not free: it is the tail
+  of the event scores array.
 
-Not there yet: button layouts and their link to nicknames (the module underneath exists
-and is tested, `tests/sim/controls.py`; no screen edits it), saving settings, an options
-page, online.
+Not there yet: turning tap jump off (`tm_ctl_TapJump` exists; no hook uses it and no row
+edits it), naming a layout, stick and trigger settings, making nicknames from this menu,
+an options page, online.
 
 **No Versus panel**, because the vanilla Versus character select runs out of memory in
 the overlay build: `HSD_MemAlloc` asserts while it loads, also when booting straight to
@@ -386,8 +404,10 @@ the arena after the game's fixed heaps, and the overlay's code and data (565 KB)
 of it; shrinking the persistent heap by that much instead makes the preload assert
 (`memp_kouho`). Open.
 
-Checked: `tests/sim/menu.py` (10 checks: where each panel leads, the delay's limits) and
-pictures from Dolphin (`python tools/tmtest.py tests/tmtest/menu/boot.json --shots DIR`).
+Checked: `tests/sim/menu.py` (22 checks: where each panel leads, every kind of row, the
+save round trip in memory) and in Dolphin: pictures of each page
+(`tests/tmtest/menu/boot.json`, `controls.json`), and the settings surviving a restart
+(`save_1.json` changes them, `save_2.json` starts again on the same card and shows them).
 
 ### Hub (built: `src/tmce/events/course/hub_css.c`)
 
