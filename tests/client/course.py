@@ -65,7 +65,7 @@ def main():
     try:
         w = window.Window(window=(1280, 720))
         w.step(30)
-        c = client.Client(w, source="keyboard", save=save)
+        c = client.Client(w, source="keyboard", save=save, out=tempfile.mkdtemp(prefix="melee-ui-"))
         w.pace(False)
         frames(6)
         tap("x")
@@ -172,7 +172,7 @@ def main():
         frames(6)
         check("and holding START comes back to it", c.screen == "hub")
 
-        again = client.Client(w, source="keyboard", save=save)
+        again = client.Client(w, source="keyboard", save=save, out=tempfile.mkdtemp(prefix="melee-ui-"))
         check("started again, the client still has all of it",
               again.progress.done(DRILL) and
               again.progress.drill(DRILL)["tries"] == 3)

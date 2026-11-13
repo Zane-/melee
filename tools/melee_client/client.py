@@ -5,9 +5,11 @@
 
 Opens a 1280 by 720 window. The menus are drawn by the game process over
 the whole window; in a match the game keeps its four-by-three picture at
-the left and a column beside it says what is going on. Your controller (or
-the keyboard: tools/melee_native/play.py has the keys) drives the menus
-and then the fighter.
+the left and a column beside it says what is going on. A GameCube
+controller on an adapter drives the menus and then the fighter (read
+directly, with the controller's own numbers; --devices says what the game
+sees); without one, another controller or the keyboard does
+(tools/melee_native/play.py has the keys).
 
 What is here: the main menu; the character select (26 characters, their
 traits from data/characters/); for a character with a course, the hub with
@@ -66,10 +68,13 @@ class Leave(Exception):
 
 class Client:
     def __init__(self, game, port=0, source="auto", opponent="marth",
-                 stage="final-destination", save=None):
+                 stage="final-destination", save=None, out=None):
         self.w = game
         self.port = port
         self.source = source
+        # where the documents are written: a test gives its own, so that it
+        # and a client someone is playing do not write over each other
+        self.out = Path(out) if out else OUT
         self.progress = courses.Progress(save or courses.SAVE)
         self.here = courses.scenarios()   # drill id -> scenario file
         self.course = None            # of the character being trained
@@ -93,7 +98,7 @@ class Client:
         self.held = {}                # direction -> frames held
         self.start_held = 0
         self.frames = 0
-        OUT.mkdir(parents=True, exist_ok=True)
+        self.out.mkdir(parents=True, exist_ok=True)
         for f in fonts.fonts():
             self.w.ui("font " + str(f))
         self.w.live(port, source)
@@ -103,8 +108,8 @@ class Client:
     # ---- drawing ------------------------------------------------------------
 
     def load(self, name, rml):
-        path = OUT / (name + ".rml")
-        style = OUT / "style.rcss"
+        path = self.out / (name + ".rml")
+        style = self.out / "style.rcss"
         text = screens.STYLE.read_text()
         if not style.exists() or style.read_text() != text:
             style.write_text(text)
@@ -117,7 +122,7 @@ class Client:
     def put(self, ident, rml):
         """Replace an element's content (through a file: a list of rows is
         longer than a control line)."""
-        path = OUT / ("part-%s.rml" % ident)
+        path = self.out / ("part-%s.rml" % ident)
         path.write_text(rml)
         self.w.ui("file %s %s" % (ident, path))
 
@@ -434,6 +439,15 @@ class Client:
             while True:
                 result = session.run(jitter=3.0, run=first + len(results),
                                      each_frame=self.drill_frame)
+                if result.get("skip"):
+                    # not an attempt (an aerial with no lag to cancel):
+                    # say why, count nothing
+                    self.w.ui("text bword Not counted")
+                    self.w.ui("text bmsg " + screens.esc(
+                        result["words"].split(":")[0]))
+                    self.w.ui("class banner on 1")
+                    self.banner = 100
+                    continue
                 results.append(bool(result["success"]))
                 self.show_result(result, results)
                 # Against an opponent the situation is put back, so the
@@ -483,14 +497,31 @@ class Client:
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--input", default="auto",
-                    help="auto (the first controller, else the keyboard), "
-                         "keyboard, pad0, pad1, ...")
+                    help="auto (a GameCube controller on the adapter, else "
+                         "the first other controller, else the keyboard), "
+                         "gcc1 to gcc4 (the adapter's ports), keyboard, "
+                         "pad0, pad1, ...")
+    ap.add_argument("--devices", action="store_true",
+                    help="say which controllers the game sees, and stop "
+                         "(nothing opens on the desktop)")
     ap.add_argument("--offscreen", action="store_true",
                     help="on a virtual display (a test of this file)")
     ap.add_argument("--frames", type=int, default=0)
     ap.add_argument("--vsync", action="store_true")
     args = ap.parse_args()
     w = None
+    if args.devices:
+        with window.Window() as w:
+            w.step(5)
+            said = w.devices()
+            for _ in range(10):
+                if "looking" not in said:
+                    break
+                time.sleep(0.2)
+                w.step(5)
+                said = w.devices()
+            print(said)
+        return 0
     try:
         w = window.Window(real=not args.offscreen, gpu=True,
                           vsync=args.vsync, window=(1280, 720))

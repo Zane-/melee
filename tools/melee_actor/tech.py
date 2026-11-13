@@ -7,7 +7,7 @@ says by how many frames it was right or wrong.
 
     {
       "drill": "universal-short-hop",      the course drill this is
-      "tech": "short_hop",                 short_hop | wavedash
+      "tech": "short_hop",                 short_hop | wavedash | l_cancel | shffl
       "name": "...", "about": "...",
       "p2": "marth", "stage": "final-destination",
       "start": -20,                        where the player stands
@@ -30,10 +30,22 @@ squat, 3 for Fox, 4 for Marth, 8 for Bowser):
   wavedash); pressed during jump squat it does not come out at all, even
   if held; each frame later is a frame more in the air.
 
+- L, R (pressed at all) or Z halves an aerial's landing lag when pressed
+  on the frame the fighter lands or on one of the six before it: seven
+  frames; an eighth frame early, or a frame late, does nothing;
+- a fast fall is the fall speed jumping to the character's fast fall speed.
+
 Which of the two jumps came out is read from the game (the upward speed on
 the first frame in the air, against the two speeds measured for this
-character when the drill is set up), not from the buttons.
+character when the drill is set up), not from the buttons. Whether the lag
+was halved is read from the game too: the frames spent in the landing
+state, against that aerial's two lags in data/framedata/<character>.json.
+
+An L-cancel attempt is any aerial (it starts when the attack does); if the
+attack is over before the fighter lands there is nothing to cancel, and
+the result says so and is marked "skip": it is not an attempt.
 """
+import json
 import os
 import sys
 
@@ -44,8 +56,24 @@ for _p in (os.path.join(HERE, "..", "melee_native"), os.path.join(HERE, "..")):
 
 WAIT, SQUAT, JUMP_F, JUMP_B = 14, 24, 25, 26
 LANDING, LANDING_SPECIAL, AIR_DODGE = 42, 43, 236
+AERIAL = (65, 69)                 # neutral, forward, back, up, down
+LAND_AIR = (70, 74)               # landing during each of them
+AERIALS = ("nair", "fair", "bair", "uair", "dair")
 JUMP = 0x400 | 0x800              # X or Y
 SHOULDER = 0x40 | 0x20            # L or R, pressed all the way
+Z = 0x10
+KINDS = ("short_hop", "wavedash", "l_cancel", "shffl")
+ROOT = os.path.join(HERE, "..", "..")
+
+
+def _cancel_down(pad):
+    """L, R or Z as an L-cancel takes them: a light press counts."""
+    return bool(pad["buttons"] & (SHOULDER | Z)) or pad["lt"] >= 60 or \
+        pad["rt"] >= 60
+
+
+def _plural(n, word="frame"):
+    return "%d %s%s" % (n, word, "" if n == 1 else "s")
 
 
 class Session:
@@ -59,8 +87,17 @@ class Session:
         self.start = float(spec.get("start", -20))
         self.tolerance = int(spec.get("tolerance", 2))
         self.kind = spec["tech"]
-        if self.kind not in ("short_hop", "wavedash"):
+        if self.kind not in KINDS:
             raise ValueError("no such tech drill: " + self.kind)
+        with open(os.path.join(ROOT, "data", "framedata",
+                               character + ".json")) as f:
+            data = json.load(f)
+        self.fast_fall = float(data["attributes"]["fast_fall_velocity"])
+        # landing state -> (lag, lag when L-cancelled)
+        self.lags = {
+            LAND_AIR[0] + i: (data["moves"][name]["landing_lag"],
+                              data["moves"][name]["landing_lag_lcancel"])
+            for i, name in enumerate(AERIALS)}
         game.start(character, spec.get("p2", "marth"),
                    spec.get("stage", "final-destination"),
                    spec.get("seed", 1))
@@ -134,7 +171,7 @@ class Session:
             f = n.fighter(p)
             if began is None:
                 self._keep_on_stage(f)
-                if f.state == SQUAT:
+                if self._starts(f):
                     # (the frame before, for whether a press is a new one)
                     pads = pads[-1:] + [pad]
                     states = [f]
@@ -153,7 +190,13 @@ class Session:
                 result["name"] = self.sc.get("name", "")
                 return result
 
-    # ---- the judges (frame numbers here start at 1 with the jump) ------------------
+    def _starts(self, f):
+        """Is this the first frame of an attempt?"""
+        if self.kind == "l_cancel":
+            return f.airborne and AERIAL[0] <= f.state <= AERIAL[1]
+        return f.state == SQUAT
+
+    # ---- the judges (frame numbers here start at 1 with the attempt) ---------------
 
     def _squat_frames(self, states):
         return sum(1 for f in states if f.state == SQUAT)
@@ -248,6 +291,146 @@ class Session:
                            perfect=[perfect],
                            window=[perfect, perfect + self.tolerance])],
                 note="Jump squat is frames 1 to %d." % squat))
+
+    # ---- landing lag --------------------------------------------------------------
+
+    def _landed(self, states):
+        """The frame the fighter landed in an aerial's landing lag."""
+        return next((i + 1 for i, f in enumerate(states)
+                     if LAND_AIR[0] <= f.state <= LAND_AIR[1]), None)
+
+    def _cancelled(self, states, land):
+        """Was the lag halved? None while it is too soon to tell.
+        Also the frames of lag so far and the lag it would be in full."""
+        full, half = self.lags[states[land - 1].state]
+        lag = sum(1 for f in states[land - 1:]
+                  if LAND_AIR[0] <= f.state <= LAND_AIR[1])
+        if LAND_AIR[0] <= states[-1].state <= LAND_AIR[1]:
+            return (False if lag > half else None), lag, full
+        return lag <= half, lag, full
+
+    def _cancel_press(self, pads, before, land):
+        """How many frames before landing L, R or Z was last pressed, the
+        landing frame counting as 1 (0 or less: after it; None: never)."""
+        presses, down = [], _cancel_down(before) if before else False
+        for i, pad in enumerate(pads):
+            now = _cancel_down(pad)
+            if now and not down:
+                presses.append(i + 1)
+            down = now
+        early = [p for p in presses if p <= land]
+        if early:
+            return land - early[-1] + 1
+        return land - presses[0] + 1 if presses else None
+
+    def _cancel_words(self, ago):
+        if ago is None:
+            return "No L, R or Z before landing"
+        if ago <= 0:
+            return "L pressed %s after landing: too late" % _plural(1 - ago)
+        if ago > 7:
+            return "L pressed %d frames before landing: the window is 7" % ago
+        return "L pressed %s before landing" % _plural(ago)
+
+    def _cancel_row(self, ago):
+        """The ten frames up to the landing, as a timeline row."""
+        return dict(
+            frames=10, labels=[str(i) for i in range(10, 0, -1)],
+            rows=[dict(label="L R Z",
+                       you=[11 - ago] if ago and 1 <= ago <= 10 else [],
+                       perfect=[], window=[4, 10])])
+
+    def _judge_l_cancel(self, pads, before, states):
+        f = states[-1]
+        land = self._landed(states)
+        if land is None:
+            if f.airborne:
+                return None
+            return dict(skip=True, success=False, checks=[], timeline=None,
+                        words="Nothing to cancel: the aerial was over "
+                              "before landing")
+        done, lag, full = self._cancelled(states, land)
+        if done is None:
+            return None
+        ago = self._cancel_press(pads, before, land)
+        words = self._cancel_words(ago)
+        if done:
+            words = "L-cancel. " + words
+        tl = self._cancel_row(ago)
+        tl["note"] = ("Frames before landing; 1 is the frame of landing. "
+                      "Lag: %d frames, %d in full." % (lag, full))
+        return dict(
+            success=done, words=words, timeline=tl, landed=land,
+            checks=[dict(expect="Landing lag halved", passed=done,
+                         detail="%d of %d frames" % (lag, full)),
+                    dict(expect="L, R or Z within 7 frames of landing",
+                         passed=bool(ago and 1 <= ago <= 7), detail=words)])
+
+    def _judge_shffl(self, pads, before, states):
+        f = states[-1]
+        if f.state == SQUAT:
+            return None
+        air = [g for g in states if g.airborne]
+        if not air:
+            return self._none("The jump did not come out")
+        land = self._landed(states)
+        if land is None and f.airborne:
+            return None
+        squat = self._squat_frames(states)
+        short = abs(air[0].vel[1] - self.hop) < abs(air[0].vel[1] - self.full)
+        held = 0
+        for pad in pads:
+            if not pad["buttons"] & JUMP:
+                break
+            held += 1
+        aerial = next((i + 1 for i, g in enumerate(states)
+                       if AERIAL[0] <= g.state <= AERIAL[1]), None)
+        fell = next((i + 1 for i, g in enumerate(states) if g.airborne and
+                     g.vel[1] <= -(self.fast_fall - 0.02)), None)
+        ago = None
+        if land is None:
+            done = False
+            lag_words = "Nothing to cancel: the aerial was over before " \
+                "landing" if aerial else "No aerial"
+        else:
+            done, lag, full = self._cancelled(states, land)
+            if done is None:
+                return None
+            ago = self._cancel_press(pads, before, land)
+            lag_words = self._cancel_words(ago)
+        if not short:
+            words = "Full hop: let go of jump within %d" % (squat - 1)
+        elif aerial is None:
+            words = "No aerial"
+        elif fell is None:
+            words = "No fast fall: tap down at the top of the hop"
+        elif not done:
+            words = "No L-cancel. " + lag_words if land else lag_words
+        else:
+            words = "SHFFL. " + lag_words
+        end = land if land else len(states)
+        rows = [dict(label="Jump", you=list(range(1, min(held, end) + 1)),
+                     perfect=[], window=[1, squat - 1]),
+                dict(label="Attack", you=[aerial] if aerial else [],
+                     perfect=[], window=None),
+                dict(label="Down", you=[fell] if fell else [], perfect=[],
+                     window=None),
+                dict(label="L R Z",
+                     you=[land - ago + 1] if land and ago and
+                     1 <= land - ago + 1 <= end else [],
+                     perfect=[], window=[land - 6, land] if land else None)]
+        return dict(
+            success=bool(short and aerial and fell and done), words=words,
+            landed=land,
+            checks=[dict(expect="Short hop", passed=short, detail=""),
+                    dict(expect="Aerial", passed=aerial is not None,
+                         detail=""),
+                    dict(expect="Fast fall", passed=fell is not None,
+                         detail=""),
+                    dict(expect="L-cancel", passed=bool(done),
+                         detail=lag_words)],
+            timeline=dict(frames=end, rows=rows,
+                          note="Lands on frame %d." % land if land else ""))
 
     def _none(self, why):
         return dict(success=False, words=why, checks=[

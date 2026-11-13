@@ -5,7 +5,9 @@ keys are pressed on a virtual display by stand-ins that watch the fighter.
 
 Fox's Tech part: Short hop played by someone who taps jump and then by
 someone who holds it; Wavedash by someone who air dodges as Fox leaves the
-ground and then by someone who only jumps. The verdicts, what they say, and
+ground and then by someone who only jumps; L-cancel by someone who presses
+L on the way down and someone who does not; SHFFL by someone who does all
+four parts and someone who only hops. The verdicts, what they say, and
 the numbers kept. (The judges themselves are tested to the frame, with
 scripted inputs, in tests/actor/tech.py.)
 """
@@ -23,7 +25,7 @@ import courses  # noqa: E402
 import window  # noqa: E402
 
 WAIT, SQUAT = 14, 24
-KEYS = ("c", "s", "Down", "Right")
+KEYS = ("c", "s", "Down", "Right", "a")
 checks = []
 
 
@@ -82,6 +84,49 @@ class Dasher:
         elif self.seen and self.i > 20:
             for k in ("s", "Right", "Down"):
                 game.key(k, False)
+
+
+class Aerialist:
+    """Short hops and attacks (X is A). `when`: "top" for the top of the
+    hop, "start" for as soon as Fox is in the air. `fall`: taps down at the
+    top. `cancel`: presses L (A) on the way down."""
+
+    def __init__(self, when="top", fall=False, cancel=True):
+        self.when, self.fall, self.cancel = when, fall, cancel
+        self.i, self.still = None, 0
+        self.hit = self.fell = self.pressed = None
+
+    def __call__(self, game):
+        f = game.fighter(0)
+        if self.i is None:
+            self.still = self.still + 1 if f.state == WAIT else 0
+            if self.still < 12:
+                return
+            self.i = 0
+            game.key("c")
+            return
+        self.i += 1
+        if self.i == 1:
+            game.key("c", False)
+        if self.hit and self.i == self.hit + 1:
+            game.key("x", False)
+        if self.fell and self.i == self.fell + 3:
+            game.key("Down", False)
+        if self.pressed and self.i == self.pressed + 2:
+            game.key("a", False)
+        if not f.airborne:
+            return
+        top = f.vel[1] <= 0.3
+        if self.hit is None and (top or self.when == "start"):
+            game.key("x")
+            self.hit = self.i
+        if self.fall and self.fell is None and f.vel[1] <= 0:
+            game.key("Down")
+            self.fell = self.i
+        down = f.vel[1] <= (0 if self.fall else -1.4)
+        if self.cancel and self.pressed is None and down:
+            game.key("a")
+            self.pressed = self.i
 
 
 def main():
@@ -150,7 +195,7 @@ def main():
     try:
         w = window.Window(window=(1280, 720))
         w.step(30)
-        c = client.Client(w, source="keyboard", save=save)
+        c = client.Client(w, source="keyboard", save=save, out=tempfile.mkdtemp(prefix="melee-ui-"))
         w.pace(False)
         frames(6)
         tap("x")
@@ -183,6 +228,26 @@ def main():
         check("leaving comes back to Wavedash's row",
               c.screen == "list" and
               c.drills()[c.row[c.part]]["id"] == "universal-wavedash")
+        tap("Up")
+        tap("Up")
+        check("L-cancel is the second drill, and plays here",
+              c.drills()[c.row[c.part]]["id"] == "universal-l-cancel" and
+              "universal-l-cancel" in c.here)
+        told = play([Aerialist, lambda: Aerialist(cancel=False)],
+                    "l-cancel")
+        check("L on the way down halves the lag; no L does not",
+              c.results == [True, False] and
+              told[0].startswith("L-cancel") and "No L" in told[1],
+              "; ".join(told))
+        tap("Down")
+        check("SHFFL is the third", c.drills()[c.row[c.part]]["id"] ==
+              "universal-shffl")
+        told = play([lambda: Aerialist(when="start", fall=True),
+                     lambda: Hopper(1)], "shffl")
+        check("short hop, aerial, fast fall and L-cancel is a SHFFL; a "
+              "short hop alone is told what is missing",
+              c.results == [True, False] and told[0].startswith("SHFFL")
+              and "No aerial" in told[1], "; ".join(told))
         bad = [line.strip()[:160] for line in w.log
                if "aurora" in line and ("warn" in line or "error" in line)]
         check("the interface raised no warnings", not bad,

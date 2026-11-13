@@ -377,8 +377,11 @@ def timeline(tl):
     if not tl:
         return ""
     n = tl["frames"]
-    head = "".join('<div class="tlc tln">%d</div>' % i
-                   for i in range(1, n + 1))
+    labels = tl.get("labels") or [
+        # a long attempt has no room for every number
+        str(i) if n <= 12 or i % 5 == 0 else "" for i in range(1, n + 1)]
+    head = "".join('<div class="tlc tln">%s</div>' % label
+                   for label in labels)
     rows = ['<div class="tlrow"><div class="tll"/>%s</div>' % head]
     for row in tl["rows"]:
         cells = []

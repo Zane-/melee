@@ -7,8 +7,10 @@ Short hop: the jump button held 1, 2, ... frames; the verdict has to turn
 from success to failure exactly where the character's jump squat says, and
 name the frames held. Wavedash: the air dodge pressed a frame early, on the
 frame, one, two and three frames late, not at all, and straight up; only
-the ones within the tolerance succeed, and each failure says why. For Fox
-(3 frames of jump squat), Marth (4) and Bowser (8).
+the ones within the tolerance succeed, and each failure says why. L-cancel:
+L pressed nine frames before landing down to a frame after it, a light R,
+Z. SHFFL: the whole motion, then with each of its four parts left out. For
+Fox (3 frames of jump squat), Marth (4) and Bowser (8).
 """
 import os
 import sys
@@ -113,6 +115,102 @@ def main():
                   % who, tl["rows"][1]["you"] == [squat + 2] and
                   tl["rows"][1]["perfect"] == [squat + 1],
                   str(tl["rows"][1]))
+            # the top of a short hop, as a frame of the script
+            s.kind = "short_hop"
+            top = None
+            hop = Scripted({0: dict(buttons=["X"]), 1: dict()})
+            for _ in range(160):
+                hop(n, 0)
+                n.step()
+                g = n.fighter(0)
+                if hop.i is not None and g.airborne and g.vel[1] <= 0 and \
+                        top is None:
+                    top = hop.i - 1
+                if top is not None and not g.airborne:
+                    break
+            n.pad(0)
+            n.step(30)
+
+            # ---- L-cancel: an aerial at the top of a short hop -----------------
+            s.kind = "l_cancel"
+            jump = {0: dict(buttons=["X"]), 1: dict(),
+                    top: dict(buttons=["A"]), top + 1: dict()}
+            r = attempt(s, jump)
+            # the script's frame of landing (the attempt starts with the
+            # aerial, at the script's frame `top`)
+            land = top + r["landed"] - 1
+            check("%s: an aerial with nothing pressed lands with its full "
+                  "lag" % who, not r["success"] and "No L" in r["words"],
+                  r["words"])
+
+            def press(ago, pad=None):
+                at = land - ago + 1
+                script = dict(jump)
+                script[at] = pad or dict(buttons=["L"], l=1.0)
+                script[at + 1] = dict()
+                return attempt(s, script)
+
+            got = [press(ago)["success"] for ago in (9, 8, 7, 4, 1, 0)]
+            check("%s: L on any of the 7 frames up to landing halves it; "
+                  "an 8th early or a frame late does not" % who,
+                  got == [False, False, True, True, True, False],
+                  "".join("s" if g else "F" for g in got))
+            r8, r0 = press(8), press(0)
+            check("%s: and says how early or late" % who,
+                  "8 frames before" in r8["words"] and
+                  "after landing" in r0["words"],
+                  "%s; %s" % (r8["words"], r0["words"]))
+            check("%s: a light press of R and Z do it too" % who,
+                  press(3, dict(r=0.5))["success"] and
+                  press(3, dict(buttons=["Z"]))["success"])
+            # a back air at the start of a full hop is over long before the
+            # fighter comes down
+            r = attempt(s, {0: dict(buttons=["X"]), squat + 2: dict(),
+                            squat + 3: dict(cstick=(-1, 0)),
+                            squat + 5: dict()})
+            check("%s: an aerial that is over before landing is no attempt"
+                  % who, bool(r.get("skip")) and
+                  "Nothing to cancel" in r["words"], r["words"])
+
+            # ---- SHFFL -----------------------------------------------------------
+            s.kind = "shffl"
+            # (the aerial a little before the top, so that it is still out
+            # at the landing for a slow faller too)
+            air = top - 2
+            base = {0: dict(buttons=["X"]), 1: dict(),
+                    air: dict(buttons=["A"]), air + 1: dict(),
+                    top + 1: dict(stick=(0, -1)), top + 3: dict()}
+            r = attempt(s, base)
+            land = r["landed"] - 1          # as a frame of the script
+            check("%s: the whole motion without the L-cancel fails on "
+                  "that alone" % who,
+                  [c["passed"] for c in r["checks"]] ==
+                  [True, True, True, False], r["words"])
+            full = dict(base)
+            full[land - 2] = dict(buttons=["L"], l=1.0)
+            full[land - 1] = dict()
+            r = attempt(s, full)
+            check("%s: short hop, aerial, fast fall, L-cancel is a SHFFL"
+                  % who, r["success"] and r["words"].startswith("SHFFL"),
+                  r["words"])
+            held = dict(full)
+            held[1] = dict(buttons=["X"])
+            held[squat + 2] = dict()
+            r = attempt(s, held)
+            check("%s: with the jump held it is a full hop" % who,
+                  not r["success"] and "Full hop" in r["words"], r["words"])
+            none = dict(full)
+            del none[air]
+            r = attempt(s, none)
+            check("%s: with no attack it says no aerial" % who,
+                  not r["success"] and "No aerial" in r["words"],
+                  r["words"])
+            slow = dict(full)
+            del slow[top + 1]
+            r = attempt(s, slow)
+            check("%s: with no fast fall it says so" % who,
+                  not r["success"] and "No fast fall" in r["words"],
+                  r["words"])
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     return 0 if all(checks) else 1
 

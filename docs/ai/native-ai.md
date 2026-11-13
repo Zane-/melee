@@ -196,16 +196,22 @@ needs. `pace` (`Window.pace()`) holds the game to 59.94 frames a second.
 
 | Input | Mapping |
 |-|-|
-| A controller, through SDL | By where the buttons are: bottom A, left B, right X, top Y; right (and left) shoulder Z; left stick the stick, right stick the C stick; triggers L and R, with the click as SDL reports it for a GameCube adapter, or the last tenth of the travel on other controllers |
+| A GameCube controller on an adapter (`gcc1` to `gcc4`; what `auto` picks first) | Read straight from the USB device, as Dolphin does (`src/host/gcadapter.c`): the controller's own numbers, counted from where it rested when first seen, as the console does. No library: the kernel's usbfs. Needs the udev rule Dolphin asks for; while Dolphin has the adapter this cannot, and the other way round |
+| Another controller, through SDL | By where the buttons are: bottom A, left B, right X, top Y; right (and left) shoulder Z; left stick the stick, right stick the C stick; triggers L and R, with the click as SDL reports it for a GameCube adapter, or the last tenth of the travel on other controllers |
 | The keyboard | Arrows: the stick (left shift: a light push). I J K L: C stick. X: A. Z: B. C, V: Y, X. A, S: L, R. D: Z. Return: Start. T F G H: D-pad |
 
-Known limits of the controller path, none of them tried:
+**The adapter (2026-11-13).** The owner opened the client on their desktop and "nothing
+happened with my controller". SDL's own adapter driver goes through libusb, and there is
+no 32-bit libusb on this machine, so SDL saw no controller at all. The game now reads the
+adapter itself. Checked: `tests/native/gcadapter.py` (11 checks) decodes made-up reports
+(every button, sticks and triggers from the rest position, unplug and replug, a wireless
+controller) and then has the game open the owner's adapter (a Lossless adapter, 057e:0337)
+and read the controller on its port 1 at rest. **Nobody has pressed a button through it
+yet.** `python tools/melee_client/client.py --devices` says what the game sees.
 
-- **Not a controller's own numbers.** SDL rescales a GameCube controller's sticks before
-  the game sees them (88 steps from the centre become a full push). For exact inputs
-  (what UCF and control profiles are about) the adapter has to be read directly, as
-  Dolphin does. Not done.
-- The adapter must be openable by SDL (the permissions Dolphin needs).
+Known limits of the SDL path (other controllers), none of them tried:
+
+- SDL rescales a controller's sticks before the game sees them.
 - Aurora's own controller layer (bindings, rumble) is not used: it would replace the
   host's `PADRead`, which scripted runs depend on.
 - No vsync by default (`--vsync`); the picture is shown as soon as it is drawn.
@@ -292,9 +298,9 @@ names it (`"drill": "<course drill id>"`). There are two kinds of file:
 | Kind | What judges | Plays (of Fox's 46) |
 |-|-|-|
 | A scenario (`opponent`, `success`) | What happened between the two fighters: hit or not hit (`melee_actor/scenario.py`) | Neutral: Take it on shield, Whiff punish |
-| A tech drill (`"tech": "short_hop"` or `"wavedash"`) | The player's own pad and their fighter's states, frame by frame (`melee_actor/tech.py`) | Tech: Short hop, Wavedash |
+| A tech drill (`"tech": "short_hop"`, `"l_cancel"`, `"shffl"` or `"wavedash"`) | The player's own pad and their fighter's states, frame by frame (`melee_actor/tech.py`) | Tech: Short hop, L-cancel, SHFFL, Wavedash (the first four of the part) |
 
-The other 42 are listed with everything the course file says about them and "Not in this
+The other 40 are listed with everything the course file says about them and "Not in this
 client yet" where Start would be. No Punish or Defense drill plays.
 
 **The tech judge.** It finds each attempt (the fighter entering jump squat), so the
@@ -302,7 +308,14 @@ player sets the pace and nothing is put back between tries. Its rules were measu
 game, not assumed: jump squat is frames 1 to J (3 for Fox, 4 for Marth, 8 for Bowser); a
 short hop needs the button held at most J - 1 frames; an air dodge pressed on frame J + 1
 lands at once, pressed in jump squat it never comes out, and each frame later is one more
-in the air. Which jump came out is read from the game (the upward speed on the first
+in the air; L, R (pressed at all) or Z halves an aerial's landing lag when pressed on the
+frame of landing or one of the six before it, and an eighth frame early or a frame late
+does nothing; a fast fall is the fall speed jumping to the character's fast fall speed.
+Whether the lag was halved is read from the game (the frames spent in the landing state
+against that aerial's two lags in `data/framedata/`). An L-cancel attempt is any aerial;
+one that is over before landing has nothing to cancel and is shown as "not counted". A
+SHFFL is judged on its four parts and names the first one missing. Which jump came out is
+read from the game (the upward speed on the first
 airborne frame, against the two speeds measured for the character when the drill is set
 up), so a jump with the stick is judged too. The verdict names the frames ("Full hop.
 Jump still held on frame 4: let go within 2", "Air dodge 3 frames late: 2 allowed", "No
@@ -313,9 +326,10 @@ are character-free; the client plays them as whoever is being trained.
 What the player has done is kept in `save/client.json` (ignored by git): per drill the
 done mark, tries, successes and best run, and the last drill played.
 
-`tests/actor/tech.py` (21 checks, headless) scripts the inputs to the frame for Fox, Marth
-and Bowser: the verdict turns exactly where the jump squat says. `tests/client/tech.py`
-(8 checks) plays both drills in the client with stand-ins that press keys.
+`tests/actor/tech.py` (51 checks, headless) scripts the inputs to the frame for Fox, Marth
+and Bowser: the verdict turns exactly where the jump squat and the seven frames say.
+`tests/client/tech.py` (12 checks) plays the four drills in the client with stand-ins that
+press keys.
 
 Tests, with key presses on the virtual display: `tests/client/menu.py` (15 checks: the
 menu, the roster, free play and back) and `tests/client/course.py` (16 checks: hub, list,
@@ -325,10 +339,19 @@ where you left off, free play from the hub). `--shots DIR` saves a picture of ea
 screen.
 
 Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the guide and
-the demonstration, the other fourteen Tech drills (L-cancel and SHFFL are the next two
-the judge could take), nicknames and layouts (the header shows
+the demonstration, the other twelve Tech drills, a target for the aerial drills (they are
+done on the spot; "hit or shielded" is not there), nicknames and layouts (the header shows
 placeholders), character art (two letters and a colour of the client's choosing stand
 in), panel icons, sound.
+
+**Smooth edges.** The slanted panels were stair-stepped on the owner's screen ("the
+aliasing on diagonal graphics is quite bad"). Aurora's RmlUi renderer has 4x
+multisampling behind a compile-time switch that is off; the patch turns it on. The game's
+own picture is not anti-aliased (`AuroraConfig.msaa` would do it; not asked for).
+
+**Tests and a client someone is playing** share nothing now: an off-screen run has its
+own shader cache (`MELEE_STATE_DIR`) and its own folder for documents. Before, a test run
+while the owner had the client open failed on a locked cache.
 
 What RmlUi is not, learned on the way: no CSS grid and no `clip-path` (layouts are flex
 rows and columns; a slanted edge is a skewed element); no outline (a focus ring is an

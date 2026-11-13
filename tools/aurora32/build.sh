@@ -20,7 +20,9 @@ mkdir -p "$out"
 
 # Aurora draws its RmlUi layer over the game's picture only, and centres
 # that picture. The client wants the layer over the whole 16:9 window with
-# the 4:3 game at the left of it (aurora_set_ui_full_window).
+# the 4:3 game at the left of it (aurora_set_ui_full_window). The same patch
+# switches on the layer's 4x multisampling (its slanted edges were
+# stair-stepped).
 if ! grep -q aurora_set_ui_full_window "$src/include/aurora/aurora.h"; then
     patch -d "$src" -p1 < "$root/tools/aurora32/aurora-0001-ui-full-window.patch"
 fi

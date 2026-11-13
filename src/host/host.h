@@ -109,6 +109,15 @@ void host_window_pace(int on);
 void host_window_capture(int on);
 const HostPad* host_window_seen(int port);
 
+/// A GameCube controller adapter, read directly (gcadapter.c).
+void host_gcc_start(void);
+void host_gcc_forget(void);
+int host_gcc_decode(const uint8_t* report, int port, HostPad* pad);
+int host_gcc_pad(int port, HostPad* pad);
+int host_gcc_first(void);
+void host_gcc_status(char* out, size_t size);
+void host_window_devices(char* out, size_t size);
+
 /// The client's interface (ui.cpp): documents drawn over the window.
 void host_ui_init(void);
 void host_ui_frame(void);

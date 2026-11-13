@@ -81,10 +81,19 @@ void host_window_init(void)
         /* Aurora's own files (settings, its shader cache) go beside the
            executable, not into the home directory. */
         static char state[4096];
+        const char* given = getenv("MELEE_STATE_DIR");
         ssize_t n = readlink("/proc/self/exe", state, sizeof state - 8);
         char* slash;
 
-        if (n > 0) {
+        if (given != NULL && *given != '\0' && strlen(given) < sizeof state)
+        {
+            /* a test's own, so that it and a client someone is playing do
+               not share a shader cache (the cache is locked by one) */
+            strcpy(state, given);
+            mkdir(state, 0755);
+            config.userPath = state;
+            config.cachePath = state;
+        } else if (n > 0) {
             state[n] = '\0';
             slash = strrchr(state, '/');
             if (slash != NULL) {
@@ -207,7 +216,8 @@ enum {
     LIVE_OFF,
     LIVE_AUTO,
     LIVE_KEYBOARD,
-    LIVE_GAMEPAD /* + which */
+    LIVE_GAMEPAD,     /* + which, as SDL lists them (up to 60) */
+    LIVE_ADAPTER = 64 /* + which of the GameCube adapter's ports */
 };
 
 static int live[4];
@@ -230,8 +240,10 @@ const HostPad* host_window_seen(int port)
     return &seen[port & 3];
 }
 
-/// "off", "auto" (the first controller, or the keyboard if there is none),
-/// "keyboard", "pad" or "padN" (the Nth controller, from 0).
+/// "off", "auto" (a GameCube controller on the adapter if there is one,
+/// else the first controller SDL knows, else the keyboard), "keyboard",
+/// "gcc" or "gccN" (the adapter's port N, from 1), "pad" or "padN" (the Nth
+/// controller SDL lists, from 0).
 const char* host_window_live(int port, const char* source)
 {
     if (port < 0 || port > 3) {
@@ -241,12 +253,21 @@ const char* host_window_live(int port, const char* source)
         live[port] = LIVE_OFF;
     } else if (strcmp(source, "auto") == 0) {
         live[port] = LIVE_AUTO;
+        host_gcc_start();
     } else if (strcmp(source, "keyboard") == 0) {
         live[port] = LIVE_KEYBOARD;
+    } else if (strncmp(source, "gcc", 3) == 0) {
+        int n = source[3] != '\0' ? atoi(source + 3) : 1;
+        if (n < 1 || n > 4) {
+            return "the adapter's ports are gcc1 to gcc4";
+        }
+        live[port] = LIVE_ADAPTER + n - 1;
+        host_gcc_start();
     } else if (strncmp(source, "pad", 3) == 0) {
-        live[port] = LIVE_GAMEPAD + atoi(source + 3);
+        int n = atoi(source + 3);
+        live[port] = LIVE_GAMEPAD + (n < 0 || n > 59 ? 0 : n);
     } else {
-        return "a source is off, auto, keyboard, pad or padN";
+        return "a source is off, auto, keyboard, gcc, gccN, pad or padN";
     }
     host.pads[port].connected = 1;
     return NULL;
@@ -390,8 +411,15 @@ static void read_live(void)
         if (how == LIVE_OFF) {
             continue;
         }
+        int adapter = -1;
+
         if (how == LIVE_AUTO) {
-            g = nth_gamepad(0);
+            adapter = host_gcc_first();
+            if (adapter < 0) {
+                g = nth_gamepad(0);
+            }
+        } else if (how >= LIVE_ADAPTER) {
+            adapter = how - LIVE_ADAPTER;
         } else if (how >= LIVE_GAMEPAD) {
             g = nth_gamepad(how - LIVE_GAMEPAD);
         }
@@ -399,7 +427,9 @@ static void read_live(void)
             HostPad now = { 0 };
             HostPad rest = { 0 };
 
-            if (g != NULL) {
+            if (adapter >= 0) {
+                host_gcc_pad(adapter, &now);
+            } else if (g != NULL) {
                 read_gamepad(g, &now);
             } else if (how == LIVE_AUTO || how == LIVE_KEYBOARD) {
                 read_keyboard(&now);
@@ -410,6 +440,28 @@ static void read_live(void)
             host.pads[port] = captured ? rest : now;
         }
     }
+}
+
+/// What there is to play with, in a line: the adapter's state and the
+/// controllers SDL knows.
+void host_window_devices(char* out, size_t size)
+{
+    char adapter[240];
+    int count = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&count);
+    size_t used;
+
+    host_gcc_start();
+    host_gcc_status(adapter, sizeof adapter);
+    snprintf(out, size, "GameCube adapter: %s. Other controllers: %d",
+             adapter, ids != NULL ? count : 0);
+    for (int i = 0; ids != NULL && i < count; i++) {
+        const char* name = SDL_GetGamepadNameForID(ids[i]);
+        used = strlen(out);
+        snprintf(out + used, size - used, "%s pad%d %s", i ? "," : ":", i,
+                 name != NULL ? name : "(unnamed)");
+    }
+    SDL_free(ids);
 }
 
 /// Wait for the next sixtieth of a second (the console's 59.94 a second).

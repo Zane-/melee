@@ -1,0 +1,9 @@
+{
+  "drill": "universal-shffl",
+  "tech": "shffl",
+  "name": "SHFFL",
+  "about": "Short hop, aerial, fast fall, L-cancel, as one motion. Each of the four is checked, and the first one missing is named.",
+  "p2": "marth",
+  "stage": "final-destination",
+  "start": -20
+}

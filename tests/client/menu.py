@@ -13,6 +13,7 @@ of each screen (under build/shots/ they stay out of the repository).
 import argparse
 import os
 import sys
+import tempfile
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
@@ -54,7 +55,7 @@ def main():
     try:
         w = window.Window(window=(1280, 720))
         w.step(30)
-        c = client.Client(w, source="keyboard")
+        c = client.Client(w, source="keyboard", out=tempfile.mkdtemp(prefix="melee-ui-"))
         w.pace(False)
         frames(10)
         shot("main")

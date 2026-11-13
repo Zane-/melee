@@ -27,6 +27,8 @@
  *   ui ...                        the client's interface (ui.cpp)
  *   pads                          what the live ports' people are holding
  *   capture 0|1                   keep those presses from the game (menus)
+ *   devices                       the GameCube adapter's state, SDL's pads
+ *   gcc HEX | gcc forget          decode an adapter report (a test)
  *   fighter I                     one line of JSON about player I's fighter
  *   seed N                        set the game's random seed
  *   r ADDR LEN / w ADDR HEX       read or write memory
@@ -427,6 +429,40 @@ static void command(char* line)
             ((uint8_t*) (uintptr_t) addr)[i / 2] = (uint8_t) byte;
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "devices") == 0 || strcmp(cmd, "gcc") == 0) {
+#ifdef HOST_WINDOW
+        if (cmd[0] == 'd') {
+            char text[600];
+            host_window_devices(text, sizeof text);
+            printf("@ %s\n", text);
+        } else {
+            /* "gcc HEX": a report as the adapter sends it, decoded for
+               each of its ports ("gcc forget": the rest positions go) */
+            char hex[128] = "";
+            uint8_t report[37] = { 0 };
+            sscanf(line, "%127s", hex);
+            if (strcmp(hex, "forget") == 0) {
+                host_gcc_forget();
+                printf("@ ok\n");
+            } else {
+                for (size_t i = 0; i < sizeof report && hex[i * 2]; i++) {
+                    unsigned byte = 0;
+                    sscanf(hex + i * 2, "%2x", &byte);
+                    report[i] = (uint8_t) byte;
+                }
+                printf("@");
+                for (int p = 0; p < 4; p++) {
+                    HostPad pad;
+                    int there = host_gcc_decode(report, p, &pad);
+                    printf(" %d %x %d %d %d %d %d %d", there, pad.buttons,
+                           pad.lx, pad.ly, pad.cx, pad.cy, pad.lt, pad.rt);
+                }
+                printf("\n");
+            }
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "ui") == 0 || strcmp(cmd, "pads") == 0 ||
                strcmp(cmd, "capture") == 0)
     {

@@ -128,15 +128,26 @@ class Window(Native):
                if k not in ("WAYLAND_DISPLAY", "XAUTHORITY")}
         env.update(DISPLAY=self.display, SDL_VIDEODRIVER="x11",
                    XDG_DATA_HOME=str(state), XDG_CACHE_HOME=str(state),
-                   XDG_CONFIG_HOME=str(state))
+                   XDG_CONFIG_HOME=str(state),
+                   # its own shader cache: the one beside the executable
+                   # belongs to whoever is playing
+                   MELEE_STATE_DIR=str(state / "aurora"))
         return env
 
     # ---- a person at the controls -------------------------------------------
 
+    def devices(self):
+        """What there is to play with, in a line: the GameCube adapter's
+        state and the controllers SDL knows. Starts looking for the
+        adapter."""
+        return self._cmd("devices")
+
     def live(self, port=0, source="auto"):
-        """Hand a port to a person: "auto" (the first controller, or the
-        keyboard if there is none), "keyboard", "pad" / "padN" (the Nth
-        controller), or "off" to take it back for pad()."""
+        """Hand a port to a person: "auto" (a GameCube controller on the
+        adapter if there is one, else the first controller SDL knows, else
+        the keyboard), "keyboard", "gcc" / "gccN" (the adapter's port N,
+        from 1), "pad" / "padN" (the Nth controller SDL lists), or "off" to
+        take it back for pad()."""
         self._cmd("live %d %s" % (port, source))
 
     def pace(self, on=True):
