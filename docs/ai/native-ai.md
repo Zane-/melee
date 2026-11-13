@@ -92,22 +92,43 @@ sleeper stays, so a snapshot can be restored any number of times.
 ## The gap: nobody can play it
 
 AI-driven training has a person in it. The native build has no graphics, no sound and no
-controller: `--draw` asserts in the first frame, and Aurora, the library upstream uses for
-graphics, has never been built for 32-bit Linux here (`native-port.md`). Until that
-exists, everything below is developed and checked with a stand-in for the player: an actor
-script or a policy.
+controller. Until it does, everything here is developed and checked with a stand-in for
+the player: an actor script or a policy.
 
-What a window would take, as far as a first look goes (2026-11-13, nothing built):
+### The window: the graphics stack builds and runs 32-bit (probe, 2026-11-13)
 
-- Aurora (`build/deps/aurora`, the full source) draws GX through Dawn (WebGPU) and opens
-  its window with SDL3. Its prebuilt Dawn exists for 64-bit Linux only, so for this
-  32-bit game Dawn has to be built from source, which is a large build nobody here has
-  tried.
-- This machine has 32-bit Mesa and the 32-bit Vulkan loader. `lib32-sdl3` is in the
-  distribution's repositories and not installed (`sudo pacman -S lib32-sdl3`).
-- The other ways round the 32-bit problem are each a project: draw in a second, 64-bit
-  process that the game sends its graphics commands to, or make the game itself build
-  64-bit.
+Aurora (`build/deps/aurora`) draws GX through Dawn (WebGPU) and opens its window with
+SDL3. Its prebuilt Dawn exists for 64-bit Linux only, and the game is a 32-bit process.
+A time-boxed probe built all three from source as 32-bit x86:
+
+```sh
+tools/aurora32/build.sh        # -> build/aurora32/build; first time fetches Dawn and SDL3
+```
+
+| | |
+|-|-|
+| Builds | Aurora (unmodified), Dawn at Aurora's pinned revision, SDL 3.4.10: about 2.5 minutes at `-j 10`, 1.8 GB of build tree |
+| Changes needed | One line of Dawn (`tools/aurora32/dawn-0001-vk-null-handle-32bit.patch`: on 32-bit a raw Vulkan handle is a `uint64_t` and Dawn's `VK_NULL_HANDLE` a `nullptr_t`), and `-DDAWN_USE_GLFW=OFF` (GLFW wants a 32-bit `xkbcommon`, which is not installed) |
+| Runs | A 32-bit program (`build/aurora32/probe/dawn32_probe vulkan --render`) creates a WebGPU device on Vulkan with this machine's GPU through the 32-bit NVIDIA driver, with no window and no surface, draws a triangle into a texture and reads back the right pixels. Rerun by hand after the probe: same result |
+| Aurora itself | Its example initialises and runs its frame loop under a virtual X server (`xvfb-run`, SDL's x11 driver). With SDL's `offscreen` or `dummy` driver it stops: Aurora only makes a surface from an X11 or Wayland window |
+| Nothing had to be installed | The 32-bit Mesa, Vulkan loader and X11 that were there are enough. Would help: `lib32-libxkbcommon lib32-libdecor` (a Wayland driver in SDL3), `lib32-libxcursor lib32-libxi lib32-libxrandr` (X11 extensions SDL3 loads), `lib32-vulkan-swrast` (software Vulkan, for tests off the GPU) |
+
+Not shown by the probe, and the work N6 now consists of:
+
+- **Anything from the game drawn.** Aurora's GX was not exercised (the example only clears
+  the screen), and nothing of this is linked into `melee_headless`. Linking means dropping
+  the host layer's own GX, VI and PAD stand-ins where Aurora has the real thing, driving
+  Aurora's frame from the game's, and finding out whether the game's fixed-address arena
+  and a GPU driver fit in one 32-bit address space.
+- **The game's draw pass.** `--draw` asserts in the first frame even into no-op graphics.
+- **A frame presented.** Screenshots of the virtual X server during the example were
+  black; not looked into.
+- A window on the real display, sound, a controller. Nothing was run on the owner's
+  screen.
+- `build.sh` from an empty tree (it was run on the probe's tree).
+
+The first target for N6 is a frame of a match drawn off screen and read back to a picture:
+it needs no window, so it can be checked without anything appearing on the desktop.
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
@@ -121,7 +142,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield); `choose`, so an opponent varies what it does from run to run. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branching on what happened | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
-| N6 | A window, sound and a controller | a person plays a match |
+| N6 (probe done: the graphics stack builds and runs 32-bit) | A window, sound and a controller. First: link Aurora in and draw one frame of a match off screen | a picture of a match from the native build; then a person plays one |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
 N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.

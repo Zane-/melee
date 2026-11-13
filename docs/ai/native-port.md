@@ -203,5 +203,6 @@ steps, a trainer, then a window). What was listed here before still stands behin
    full-precision trace from Dolphin as the reference.
 3. Hooks for the native target, so TM-CE, the course engine and the drill specs
    (`tests/tmtest/course/`, 230 with numbers from the PowerPC build) run on it.
-4. Graphics, audio and input (Aurora, if it builds for 32-bit Linux) for a playable
-   build.
+4. Graphics, audio and input for a playable build. Aurora, Dawn and SDL3 build and run
+   as 32-bit here since 2026-11-13 (`native-ai.md`, "The window"); none of it is linked
+   into the game yet.

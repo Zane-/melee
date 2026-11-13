@@ -1,0 +1,11 @@
+--- a/src/dawn/native/vulkan/ResourceMemoryAllocatorVk.cpp
++++ b/src/dawn/native/vulkan/ResourceMemoryAllocatorVk.cpp
+@@ -123,7 +123,7 @@
+             dedicatedInfo.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO;
+             dedicatedInfo.pNext = nullptr;
+             dedicatedInfo.image = dedicatedImage;
+-            dedicatedInfo.buffer = VK_NULL_HANDLE;
++            dedicatedInfo.buffer = {};  // 32-bit: raw handle is uint64_t, Dawn's VK_NULL_HANDLE is nullptr_t
+             allocateInfo.pNext = &dedicatedInfo;
+         }
+ 
