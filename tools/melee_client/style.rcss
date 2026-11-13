@@ -244,13 +244,14 @@ span { display: inline; }
 .sq3.none { border-color: #4A5361; }
 .stats.two { margin-top: 8dp; padding-top: 6dp; border-top: 1dp #4A5361; }
 .stats.two .n { font-size: 30dp; }
-.bannerwrap { position: absolute; left: 0dp; top: 452dp; width: 960dp; height: 64dp; display: flex; flex-direction: row; justify-content: center; }
-.banner { display: none; height: 62dp; border: 3dp #F3F6FA; transform: skewX(-12deg); flex-direction: row; }
+/* the verdict, over the top of the game's picture: small enough to leave the fight in view */
+.bannerwrap { position: absolute; left: 0dp; top: 14dp; width: 960dp; height: 34dp; display: flex; flex-direction: row; justify-content: center; }
+.banner { display: none; height: 30dp; border: 2dp #F3F6FA; transform: skewX(-12deg); flex-direction: row; }
 .banner.on { display: flex; }
-.chip { padding: 0dp 22dp; background-color: #F3F6FA; color: #12161C; display: flex; flex-direction: row; align-items: center; }
-.chip .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 48dp; text-transform: uppercase; letter-spacing: 1dp; }
-.msg { padding: 0dp 26dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
-.msg .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 30dp; text-transform: uppercase; letter-spacing: 1dp; }
+.chip { padding: 0dp 12dp; background-color: #F3F6FA; color: #12161C; display: flex; flex-direction: row; align-items: center; }
+.chip .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 22dp; text-transform: uppercase; letter-spacing: 1dp; }
+.msg { padding: 0dp 14dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
+.msg .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 16dp; text-transform: uppercase; letter-spacing: 1dp; }
 .why { font-size: 14dp; line-height: 1.25em; color: #D5DCE5; margin: 0dp 0dp 5dp 0dp; }
 .tlrow { height: 16dp; margin-top: 3dp; display: flex; flex-direction: row; align-items: center; }
 .tll { width: 52dp; font-size: 13dp; font-weight: 600; white-space: nowrap; }

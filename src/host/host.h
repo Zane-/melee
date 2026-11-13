@@ -123,9 +123,17 @@ int host_gcc_pad(int port, HostPad* pad);
 int host_gcc_first(void);
 void host_gcc_status(char* out, size_t size);
 void host_window_devices(char* out, size_t size);
+/// Fullscreen on (1), off (0), the other of what it is (2); anything else
+/// only asks. Returns what was last asked for.
+int host_window_fullscreen(int want);
+/// Another size for the window (not fullscreen). NULL, or why not.
+const char* host_window_resize(int width, int height);
+/// The window as JSON: its size in pixels, the frame the picture keeps to
+/// in it, whether it is fullscreen and whether that was asked for.
+void host_window_describe(char* out, size_t size);
 
 /// The client's interface (ui.cpp): documents drawn over the window.
-void host_ui_init(void);
+void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
 /// An archive's data is going away (particles.c).

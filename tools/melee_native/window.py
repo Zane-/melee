@@ -30,6 +30,7 @@ else has open is not a leftover).
 """
 import argparse
 import ctypes
+import json
 import os
 import shutil
 import signal
@@ -87,7 +88,11 @@ def leftovers():
 class Window(Native):
     def __init__(self, gpu=False, size=(800, 600), verbose=False,
                  timeout=120, state_dir=None, real=False, vsync=False,
-                 window=(640, 480)):
+                 window=(640, 480), fullscreen=None):
+        """`fullscreen`: True or False; None is "as it was last left" on a
+        real display and False on a virtual one (a test must not start
+        the way someone left their game); "remembered" asks for that on
+        either."""
         if not EXE.exists():
             raise NativeError("no window build: run tools/aurora32/build.sh "
                               "and tools/native_build.py --window")
@@ -109,6 +114,12 @@ class Window(Native):
                 env["LIBGL_ALWAYS_SOFTWARE"] = "1"
         if vsync:
             env["MELEE_VSYNC"] = "1"
+        if fullscreen is None and not real:
+            fullscreen = False
+        if fullscreen == "remembered":
+            env.pop("MELEE_FULLSCREEN", None)
+        elif fullscreen is not None:
+            env["MELEE_FULLSCREEN"] = "1" if fullscreen else "0"
         env["MELEE_WINDOW_SIZE"] = "%dx%d" % self.window
         try:
             super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
@@ -176,6 +187,28 @@ class Window(Native):
         """Run at the console's speed (59.94 frames a second) instead of
         as fast as the machine goes."""
         self._cmd("pace %d" % (1 if on else 0))
+
+    # ---- the window itself ---------------------------------------------------
+
+    def where(self):
+        """The window: {"size": [w, h] in pixels, "frame": [x, y, w, h]
+        (the part of it the picture keeps to: the shape the window was
+        made with, centred), "fullscreen": 0 or 1, "asked": what was last
+        asked for}."""
+        return json.loads(self._cmd("window"))
+
+    def fullscreen(self, on=True):
+        """Fullscreen on or off, or "toggle" (what F11 does). It happens
+        when the window manager has done it: a frame or more later, and
+        never on a virtual display, which has none."""
+        return json.loads(self._cmd("window fullscreen %s" % (
+            on if on == "toggle" else int(bool(on)))))
+
+    def resize(self, width, height):
+        """Give the window another size (the picture keeps its shape in
+        it); shot() follows."""
+        self._cmd("window size %d %d" % (width, height))
+        self.window = (width, height)
 
     # ---- the client's interface (src/host/ui.cpp) ---------------------------
 

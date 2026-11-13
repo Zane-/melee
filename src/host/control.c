@@ -25,6 +25,9 @@
  *   rng                           callers of the last frame's random draws
  *   fp SLOT                       address of a fighter's data, for "r"
  *   ui ...                        the client's interface (ui.cpp)
+ *   window [fullscreen 0|1|toggle | size W H]
+ *                                 the window: its size, the frame the
+ *                                 picture keeps to, fullscreen (F11 too)
  *   pads                          what the live ports' people are holding
  *   capture 0|1                   keep those presses from the game (menus)
  *   devices                       the GameCube adapter's state, SDL's pads
@@ -514,6 +517,35 @@ static void command(char* line)
             sscanf(line, "%d", &on);
             host_window_pace(on);
             printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
+    } else if (strcmp(cmd, "window") == 0) {
+#ifdef HOST_WINDOW
+        /* "window": its size, the frame the picture keeps to, fullscreen
+           or not, as JSON. "window fullscreen 0|1|toggle", "window size W
+           H": the same after the change was asked for. */
+        char what[16] = "", arg[16] = "", text[200];
+        const char* why = NULL;
+        int w = 0, h = 0;
+
+        sscanf(line, "%15s %15s", what, arg);
+        if (strcmp(what, "fullscreen") == 0) {
+            host_window_fullscreen(strcmp(arg, "toggle") == 0 ? 2
+                                                              : arg[0] == '1');
+        } else if (strcmp(what, "size") == 0) {
+            why = sscanf(line, "%*s %d %d", &w, &h) == 2
+                      ? host_window_resize(w, h)
+                      : "window size W H";
+        } else if (what[0] != '\0') {
+            why = "window [fullscreen 0|1|toggle | size W H]";
+        }
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            host_window_describe(text, sizeof text);
+            printf("@ %s\n", text);
         }
 #else
         printf("@ error %s needs the window build\n", cmd);

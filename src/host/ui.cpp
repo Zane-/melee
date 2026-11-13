@@ -33,22 +33,27 @@
 extern "C" {
 void host_log(const char* fmt, ...);
 void aurora_set_ui_full_window(bool value);
-void host_ui_init(void);
+void aurora_set_ui_frame(uint32_t width, uint32_t height);
+void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
 }
 
 static Rml::ElementDocument* document;
 
-void host_ui_init(void)
+/// `width` by `height`: the shape the window was made with. The interface
+/// and the game's picture keep to a frame of that shape, centred, when the
+/// window gets another (fullscreen on a wider screen: black at the sides).
+void host_ui_init(int width, int height)
 {
     aurora_set_ui_full_window(true);
+    aurora_set_ui_frame((uint32_t) width, (uint32_t) height);
     if (aurora::rmlui::get_context() == nullptr) {
         host_log("ui: Aurora has no RmlUi context; menus will not draw");
     }
 }
 
-/// Keep a 720-high design filling the window, whatever its size.
+/// Keep a 720-high design filling its frame, whatever the window's size.
 void host_ui_frame(void)
 {
     static float last;

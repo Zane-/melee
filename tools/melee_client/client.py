@@ -675,6 +675,11 @@ def main():
     ap.add_argument("--devices", action="store_true",
                     help="say which controllers the game sees, and stop "
                          "(nothing opens on the desktop)")
+    ap.add_argument("--fullscreen", action="store_true",
+                    help="start fullscreen (F11 switches while it runs, "
+                         "and the choice is kept for next time)")
+    ap.add_argument("--windowed", action="store_true",
+                    help="start in a window, whatever was left last time")
     ap.add_argument("--offscreen", action="store_true",
                     help="on a virtual display (a test of this file)")
     ap.add_argument("--frames", type=int, default=0)
@@ -698,7 +703,9 @@ def main():
         return 0
     try:
         w = window.Window(real=not args.offscreen, gpu=True,
-                          vsync=args.vsync, window=(1280, 720))
+                          vsync=args.vsync, window=(1280, 720),
+                          fullscreen=True if args.fullscreen else
+                          False if args.windowed else None)
         w.step(30)
         began = time.time()
         client = Client(w, source=args.input)

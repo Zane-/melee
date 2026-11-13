@@ -8,6 +8,7 @@
  * closed at the next.
  */
 #ifdef HOST_WINDOW
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +27,10 @@
 
 static int in_frame;
 static int started;
+static SDL_Window* sdl_window;
+static char state_dir[4096];    ///< Aurora's files, and what is remembered
+static int fullscreen_asked;    ///< what was last asked for
+static int made_w = 640, made_h = 480; ///< the size the window was made with
 
 static void on_log(AuroraLogLevel level, const char* module,
                    const char* message, unsigned int len)
@@ -45,12 +50,116 @@ static void on_log(AuroraLogLevel level, const char* module,
     }
 }
 
+/* --- fullscreen ------------------------------------------------------------
+   The window takes the whole of the screen it is on; the video mode is not
+   changed. The interface and the game's picture keep the shape the window
+   was made with (host_ui_init), centred: on a screen of another shape the
+   rest is black. The choice is remembered beside Aurora's own files. */
+
+static FILE* fullscreen_file(const char* mode)
+{
+    char path[sizeof state_dir + 16];
+
+    if (state_dir[0] == '\0') {
+        return NULL;
+    }
+    snprintf(path, sizeof path, "%s/fullscreen", state_dir);
+    return fopen(path, mode);
+}
+
+static int fullscreen_remembered(void)
+{
+    FILE* f = fullscreen_file("r");
+    int on = 0;
+
+    if (f != NULL) {
+        on = fgetc(f) == '1';
+        fclose(f);
+    }
+    return on;
+}
+
+static int fullscreen_now(void)
+{
+    return sdl_window != NULL &&
+           (SDL_GetWindowFlags(sdl_window) & SDL_WINDOW_FULLSCREEN) != 0;
+}
+
+int host_window_fullscreen(int want)
+{
+    FILE* f;
+
+    if (sdl_window == NULL) {
+        return 0;
+    }
+    if (want == 2) {
+        want = !fullscreen_now();
+    }
+    if (want != 0 && want != 1) {
+        return fullscreen_asked;
+    }
+    if (!SDL_SetWindowFullscreen(sdl_window, want != 0)) {
+        host_log("fullscreen: %s", SDL_GetError());
+        return fullscreen_asked;
+    }
+    fullscreen_asked = want;
+    if (want) {
+        SDL_HideCursor();
+    } else {
+        SDL_ShowCursor();
+    }
+    f = fullscreen_file("w");
+    if (f != NULL) {
+        fputs(want ? "1\n" : "0\n", f);
+        fclose(f);
+    }
+    return fullscreen_asked;
+}
+
+const char* host_window_resize(int width, int height)
+{
+    if (sdl_window == NULL) {
+        return "there is no window";
+    }
+    if (width < 320 || height < 240) {
+        return "a window is at least 320 by 240";
+    }
+    return SDL_SetWindowSize(sdl_window, width, height) ? NULL
+                                                        : SDL_GetError();
+}
+
+void host_window_describe(char* out, size_t size)
+{
+    int w = 0, h = 0, fw, fh;
+
+    if (sdl_window != NULL) {
+        SDL_GetWindowSizeInPixels(sdl_window, &w, &h);
+    }
+    /* the largest frame of the made shape that fits (as Aurora works out
+       where a picture goes: calculate_present_viewport) */
+    fw = w;
+    fh = (int) lround((double) w * made_h / made_w);
+    if (fh >= h) {
+        fh = h;
+        fw = (int) lround((double) h * made_w / made_h);
+        if (fw > w) {
+            fw = w;
+        }
+    }
+    snprintf(out, size,
+             "{\"size\": [%d, %d], \"frame\": [%d, %d, %d, %d], "
+             "\"fullscreen\": %d, \"asked\": %d}",
+             w, h, (w - fw) / 2, (h - fh) / 2, fw, fh, fullscreen_now(),
+             fullscreen_asked);
+}
+
 void host_window_init(void)
 {
     /* MELEE_WINDOW_SIZE=1280x720: the client's window. The game's picture
        keeps its four-by-three shape in it (the viewport policy below). */
     static char name[] = "melee";
     char* argv[] = { name, NULL };
+    AuroraInfo info;
     int width = 640, height = 480;
     const char* wanted = getenv("MELEE_WINDOW_SIZE");
     AuroraConfig config = {
@@ -117,11 +226,27 @@ void host_window_init(void)
     {
         config.windowWidth = (uint32_t) width;
         config.windowHeight = (uint32_t) height;
+        made_w = width;
+        made_h = height;
     }
-    aurora_initialize(1, argv, &config);
+    if (config.userPath != NULL) {
+        snprintf(state_dir, sizeof state_dir, "%s", config.userPath);
+    }
+    {
+        /* MELEE_FULLSCREEN=1 or 0; not set: as it was last left (F11) */
+        const char* f = getenv("MELEE_FULLSCREEN");
+        fullscreen_asked = f != NULL && *f != '\0' ? *f != '0'
+                                                   : fullscreen_remembered();
+        config.startFullscreen = fullscreen_asked != 0;
+    }
+    info = aurora_initialize(1, argv, &config);
+    sdl_window = info.window;
+    if (fullscreen_asked) {
+        SDL_HideCursor();
+    }
     /* the game's picture keeps its shape in a window of another shape */
     AuroraSetViewportPolicy(AURORA_VIEWPORT_FIT);
-    host_ui_init();
+    host_ui_init(made_w, made_h);
     started = 1;
 }
 
@@ -649,6 +774,13 @@ void host_window_frame(void)
             fflush(stdout);
             host_log("the window was closed");
             exit(0);
+        }
+        if (event->type == AURORA_SDL_EVENT &&
+            event->sdl.type == SDL_EVENT_KEY_DOWN &&
+            event->sdl.key.scancode == SDL_SCANCODE_F11 &&
+            !event->sdl.key.repeat)
+        {
+            host_window_fullscreen(2);
         }
     }
     read_live();

@@ -264,12 +264,33 @@ it.**
 ```sh
 tools/aurora32/build.sh && python tools/native_build.py --window   # once: RmlUi is now part of it
 python tools/melee_client/client.py [--input keyboard]             # a 1280 by 720 window
+python tools/melee_client/client.py --fullscreen                   # or F11 while it runs
 ```
 
 The native build's own interface, in the look of the design canvas (the owner's decisions
 on it are in the project memory `ui-mockups-canvas`): a main menu, a character select and
 the column beside a match. 16:9, with the game's picture kept four by three at the left.
-**It has only been run on a virtual display.**
+**It has only been run on a virtual display.** (The owner has since opened it on their
+own screen.)
+
+**Fullscreen (2026-11-13).** The owner: "Let's also add support for fullscreen.
+Fullscreen should center the window when fullscreening on screens that do not have the
+same aspect ratio (for example I have an ultrawide monitor)". F11 switches, `--fullscreen`
+and `--windowed` choose at start, and the choice is kept for the next start (a file
+`fullscreen` beside Aurora's shader cache; `MELEE_FULLSCREEN=0|1` overrides it). It is
+SDL's desktop fullscreen: the screen's mode is not changed. Whatever the window's shape,
+the interface and the game's picture keep to a 16:9 frame (the shape the window was made
+with), as large as fits and centred, black round it: `aurora_set_ui_frame` in
+`tools/aurora32/aurora-0001-ui-full-window.patch`. The driver's `window` command (and
+`Window.where()`, `fullscreen()`, `resize()`) say where that frame is.
+`tests/client/fullscreen.py` (18 checks) gives the window an ultrawide shape (1720 by 720)
+and a tall one (1280 by 900) on a virtual display and compares pictures: black bars, the
+same menu between them, a match with the game at the frame's left. **The switch to
+fullscreen itself is not tested**: a window manager does it and a virtual display has
+none; the test checks that it is asked for, by F11 and by command, and remembered.
+
+**The verdict banner** sits at the top of the game's picture, about a third the size it
+was ("much too large", the owner, 2026-11-13).
 
 | Piece | Where |
 |-|-|
@@ -289,7 +310,7 @@ reads the pad and tells the host what to show.
 | Character select | 26 characters; the card shows three style words, weight, fall speed, jump squat | `data/characters/<id>.md` |
 | Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; free play; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
 | A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
-| A drill | The scenario's opponent against the player, attempt after attempt: a banner over the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
+| A drill | The scenario's opponent against the player, attempt after attempt: a small banner at the top of the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
 | Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
 | Versus | Your character, then the opponent: which character, who plays it (X turns through a trained slippi-ai model for the pairing, other models, the game's CPU, nobody) and the stage (L and R). A match with the column saying who is on the other side | `tools/melee_client/opponents.py`, `melee_actor/policy_server.py` |
 | The Lab | The same choice with nobody playing the opponent unless asked; D-pad down puts both back, left and right set the opponent's damage | the same |

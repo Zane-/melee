@@ -114,7 +114,7 @@ def main_menu(last=None):
         '<div class="lower">' + _tile(by["events"]) + gap +
         '<div class="small">' + _tile(by["versus"]) + gap +
         _tile(by["controls"]) + '</div></div></div></div>' +
-        footer(by["train"][4], [("A", "Choose")]))
+        footer(by["train"][4], [("A", "Choose"), ("F11", "Fullscreen")]))
     return page("Main menu", body)
 
 
@@ -219,10 +219,12 @@ def versus_rail(c, opp, who, what, stage, lab):
                 34 if len(c["name"]) > 9 else 48, esc(c["name"])))
     tools = ""
     if lab:
-        tools = ('<div class="hintrow">%s<div>Put both back</div></div>'
-                 '<div class="hintrow">%s<div>Their damage, 10 less or more'
-                 '</div></div>' % (key("D-PAD DOWN", wide=True),
-                                   key("D-PAD LEFT RIGHT", wide=True)))
+        tools = "".join(
+            '<div class="hintrow">%s<div>%s</div></div>' % (
+                key(k, wide=True), what) for k, what in (
+                    ("D-PAD DOWN", "Put both back"),
+                    ("D-PAD LEFT", "Their damage, 10 less"),
+                    ("D-PAD RIGHT", "Their damage, 10 more")))
     body = (
         '<div class="fact"><div class="fl">Against</div><div class="fv big2">'
         '%s</div></div><div class="fact"><div class="fl">Played by</div>'
