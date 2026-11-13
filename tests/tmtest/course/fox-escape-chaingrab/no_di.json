@@ -1,0 +1,24 @@
+{
+  "comment": "No DI at 0%: Marth regrabs three times.",
+  "event": "course",
+  "drill": "fox-escape-chaingrab",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ],
+    [
+      5,
+      0
+    ]
+  ],
+  "inputs": [],
+  "expect": {
+    "event_result": "fail",
+    "regrabs": 3
+  }
+}

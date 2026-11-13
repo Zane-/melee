@@ -355,6 +355,7 @@ static const CourseDrill* const drills[DRILL_COUNT] = {
     [DRILL_DEF_TECH_CHASE] = &Drill_DefTechChase,
     [DRILL_DEF_COMBO_SHINE] = &Drill_DefComboShine,
     [DRILL_DEF_SDI] = &Drill_DefSdi,
+    [DRILL_DEF_CHAINGRAB] = &Drill_DefChaingrab,
     [DRILL_DEF_ESCAPE_PRESSURE] = &Drill_DefEscapePressure,
     [DRILL_DEF_RECOVERY] = &Drill_DefRecovery,
     [DRILL_DEF_WALL_TECH] = &Drill_DefWallTech,

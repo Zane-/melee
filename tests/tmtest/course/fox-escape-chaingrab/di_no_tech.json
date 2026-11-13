@@ -1,0 +1,29 @@
+{
+  "comment": "DI away but no tech and no jump: Fox lies there and is smashed.",
+  "event": "course",
+  "drill": "fox-escape-chaingrab",
+  "hmn": "fox",
+  "cpu": "marth",
+  "seed": 1,
+  "max_frames": 900,
+  "options": [
+    [
+      2,
+      1
+    ]
+  ],
+  "inputs": [
+    {
+      "at": 28,
+      "hold": 40,
+      "stick": [
+        127,
+        0
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "fail",
+    "regrabs": 0
+  }
+}

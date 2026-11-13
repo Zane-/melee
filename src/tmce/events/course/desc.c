@@ -391,6 +391,15 @@ const CourseDrillInfo Course_Drills[DRILL_COUNT] = {
         .stage = GRKINDEXT_FD,
         .cpu_kind = CKIND_SHEIK,
     },
+    [DRILL_DEF_CHAINGRAB] = {
+        .id = "fox-escape-chaingrab",
+        .name = "Escape Marth's Chain Grab",
+        .goal = "DI the up throws and get out of the chain",
+        .part = COURSE_DEFENSE,
+        .characters = CSSID_FOX,
+        .stage = GRKINDEXT_FD,
+        .cpu_kind = CKIND_MARTH,
+    },
     [DRILL_DEF_SDI] = {
         .id = "universal-sdi",
         .name = "SDI out of Multi-Hits",
