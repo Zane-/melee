@@ -40,10 +40,15 @@ MELEE_DAT = ROOT / "build/nix/melee-dat/bin/melee-dat"
 
 # Floating point is done in SSE, in the precision the source asks for, as
 # the console's FPU does; x87 would compute everything in extended precision.
+# The console's compiler fuses a multiply and an add into one instruction
+# with one rounding (fmadds) wherever the product has no other use, also
+# across statements; -mfma with -ffp-contract=fast is gcc's nearest
+# equivalent, and only acts when optimising. The two compilers do not always
+# choose the same places.
 BASE_FLAGS = [
     "-m32", "-std=gnu2x", "-g", "-fno-pie", "-fno-strict-aliasing",
     "-fwrapv", "-fno-delete-null-pointer-checks", "-fno-omit-frame-pointer",
-    "-msse2", "-mfpmath=sse", "-ffp-contract=off", "-w",
+    "-msse2", "-mfpmath=sse", "-mfma", "-w",
 ]
 DEFINES = ["-DTARGET_PC", "-Dbool=int"]
 
@@ -69,7 +74,12 @@ VANILLA = {
     "sysdolphin/baselib/gobj.c": [
         "-DHSD_GObj_80390FC0=HSD_GObj_80390FC0_vanilla",
     ],
-    # Headless: no particles (src/host/cuts.c).
+    # Random draws can be logged with their callers (src/host/debug.c).
+    "sysdolphin/baselib/random.c": [
+        "-DHSD_Rand=HSD_Rand_vanilla", "-DHSD_Randf=HSD_Randf_vanilla",
+        "-DHSD_Randi=HSD_Randi_vanilla",
+    ],
+    # Particle banks are converted first (src/host/particles.c).
     "sysdolphin/baselib/particle.c": [
         "-DpsInitDataBankLocate=psInitDataBankLocate_vanilla",
         "-DpsInitDataBankLoad=psInitDataBankLoad_vanilla",
@@ -81,8 +91,50 @@ VANILLA = {
 # is compiled here (the file in the repository is not touched). For the few
 # places where the game's code depends on how the console lays data out in
 # memory and no function boundary separates that from the rest. A patch
-# whose text is no longer found stops the build.
+# whose text is no longer found, or found a different number of times than
+# the patch says (once unless given), stops the build.
 PATCHES = {
+    # The particle interpreter's one multi-byte operand: a float, copied
+    # byte by byte from byte code that stays in disc order.
+    "sysdolphin/baselib/particle.c": [
+        ("""    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[0] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[1] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[2] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[3] = *p++;
+""",
+         """    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[3] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[2] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[1] = *p++;
+    ((ParticleFloatBytes*) &hsd_804D78D0)->bytes[0] = *p++;
+"""),
+        # Three globals addressed as one struct laid over them.
+        ("head = &data->particle[gen->linkNo];",
+         "head = &hsd_804D0908[gen->linkNo];"),
+        ("if (data->jobj[jidx] != NULL) {",
+         "if (psPointJObj[jidx] != NULL) {"),
+        ("HSD_JObjUnref(data->jobj[jidx]);",
+         "HSD_JObjUnref(psPointJObj[jidx]);"),
+        ("data->jobj[jidx] = NULL;", "psPointJObj[jidx] = NULL;"),
+        ("HSD_ObjFree(&data->alloc_data, prt);",
+         "HSD_ObjFree(&hsd_804D0F60.alloc_data, prt);"),
+    ],
+    # Two tables addressed as "what follows this other table in memory".
+    "melee/ft/ftdata.c": [
+        ("(ftData_UnkCountStruct*) "
+         "&CostumeListsForeachCharacter[Ft_Kind_Max];",
+         "ftData_Table_Unk0;"),
+        ("(ftData_UnkCountStruct*) "
+         "((u8*) CostumeListsForeachCharacter + 5940);",
+         "ftData_UnkIntPairs;"),
+    ],
+    # Item script words read through casts: they are in disc order.
+    "melee/it/itanimlist.c": [
+        ("((u16*) cmd->x8.u)[0]", "host_be_u16(cmd->x8.u, 0)", 2),
+        ("((u16*) cmd->x8.u)[1]", "host_be_u16(cmd->x8.u, 1)", 2),
+        ("((s16*) cmd->x8.u)[0]", "host_be_s16(cmd->x8.u, 0)", 3),
+        ("((s16*) cmd->x8.u)[1]", "host_be_s16(cmd->x8.u, 1)", 3),
+        ("*(u32*) cmd->x8.u;", "host_be_u32(cmd->x8.u);"),
+    ],
     # A script's goto and subroutine targets are offsets in the file.
     "melee/lb/lbcommand.c": [
         ("info->x8.u = info->x8.u->Command_05.ptr;",
@@ -227,11 +279,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--opt", default="0",
                     help="optimisation level (default 0)")
+    ap.add_argument("--contract", default="fast",
+                    choices=["fast", "on", "off"],
+                    help="fusing of multiply-add (default fast; it only "
+                         "happens when optimising)")
     ap.add_argument("--no-cmake", action="store_true",
                     help="reuse libmelee.a as it is")
     args = ap.parse_args()
 
-    flags = BASE_FLAGS + [f"-O{args.opt}"]
+    flags = BASE_FLAGS + [f"-O{args.opt}", f"-ffp-contract={args.contract}"]
+    if args.opt == "1":
+        # The pass that fuses multiply-adds is otherwise an -O2 pass.
+        flags.append("-fexpensive-optimizations")
     if not args.no_cmake:
         cmake(flags)
 
@@ -239,14 +298,17 @@ def main():
     jobs = []
     shim = ["-include", str(ROOT / "src/host/shim.h")]
     for rel, extra in VANILLA.items():
+        if rel in PATCHES:
+            continue  # built once, from its patched copy, below
         jobs.append((ROOT / "src" / rel,
                      OBJ / "vanilla" / (rel.replace("/", "_") + ".o"),
                      common + shim + extra))
     for rel, patches in PATCHES.items():
         text = (ROOT / "src" / rel).read_text()
-        for old, new in patches:
-            if text.count(old) != 1:
-                sys.exit(f"patch for {rel}: expected exactly one "
+        for old, new, *count in patches:
+            want = count[0] if count else 1
+            if text.count(old) != want:
+                sys.exit(f"patch for {rel}: expected {want} of "
                          f"{old!r}, found {text.count(old)}")
             text = text.replace(old, new)
         copy = OBJ / "patched" / rel

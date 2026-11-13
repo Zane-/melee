@@ -89,6 +89,15 @@ extern int host_control_enabled;
 void host_control_frame(void);
 void host_fighter_json(int slot, char* out, size_t size);
 
+/// The file's own bytes behind an archive object (archive.c).
+void* host_dat_raw(const void* native);
+/// An archive's data is going away (particles.c).
+void host_particles_forget(const uint8_t* data, uint32_t size);
+
+/// Random draws since the frame boundary (debug.c).
+void host_rng_frame(void);
+void host_rng_print(void);
+
 /// Count a call of a generated stub.
 void host_stub_hit(int index);
 void host_stub_report(void);

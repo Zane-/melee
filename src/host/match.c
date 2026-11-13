@@ -52,10 +52,12 @@ static void on_enter(GameModeState* state)
         if (i < 4 && host_match.ckind[i] >= 0) {
             p->ckind = (s8) host_match.ckind[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
+        } else if (i < 4) {
+            p->ckind = CKind_Link; /* as the game's own state leaves it */
         }
     }
-    gm_LoadAnnouncer();
     *HSD_RandSeedPtr = host_match.seed;
+    gm_LoadAnnouncer();
     host_log("match: %d vs %d on stage %d, seed %u", host_match.ckind[0],
              host_match.ckind[1], host_match.stage, host_match.seed);
 }

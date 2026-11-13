@@ -210,6 +210,8 @@ void HSD_ArchiveReleaseNative(HSD_Archive* archive)
         return;
     }
     note_close(archive->native_data);
+    host_particles_forget(archive->native_data->archive->data,
+                          archive->native_data->archive->size);
     dat_close(archive->native_data);
     archive->native_data = NULL;
     archive->top_ptr = NULL;
@@ -364,4 +366,37 @@ void* host_script_target(const void* word)
         }
     }
     return *(void* const*) word;
+}
+
+/// The bytes of the file behind an archive object: where `native` is in the
+/// archive's own copy of its data (in disc order, pointers still offsets).
+/// A pointer that is already into that copy is returned as it is.
+void* host_dat_raw(const void* native)
+{
+    const uint8_t* at = native;
+    if (native == NULL) {
+        return NULL;
+    }
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        if (a != NULL && at >= a->archive->data &&
+            at < a->archive->data + a->archive->size)
+        {
+            return (void*) native;
+        }
+    }
+    for (int i = 0; i < MAX_OPEN; i++) {
+        const DatArchive* a = open_archives[i].native;
+        if (a == NULL) {
+            continue;
+        }
+        for (size_t k = 0; k < a->natives.cap; k++) {
+            if (a->natives.keys[k] != UINT64_MAX &&
+                a->natives.values[k] == (uintptr_t) native)
+            {
+                return a->archive->data + (uint32_t) (a->natives.keys[k] >> 32);
+            }
+        }
+    }
+    host_fatal("host_dat_raw: %p is not an archive object", native);
 }

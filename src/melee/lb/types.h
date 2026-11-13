@@ -331,14 +331,15 @@ struct ColorOverlay_UnkInner {
     /* +7B */ u8 x7B;
 };
 
-union ColorOverlay_x8_t {
+/// A word of a colour animation script, as it is on the disc.
+union PPC_LAYOUT ColorOverlay_x8_t {
     GXColor light_color;
-    struct ColorOverlay_x8_t_light_rot1 {
+    struct PPC_LAYOUT ColorOverlay_x8_t_light_rot1 {
         s32 unk : 6;
         s32 x : 13;
         s32 yz : 13;
     } light_rot1;
-    struct ColorOverlay_x8_t_light_rot2 {
+    struct PPC_LAYOUT ColorOverlay_x8_t_light_rot2 {
         u32 x0_0 : 1;
         u32 x0_1 : 1;
         u32 x0_2 : 1;
@@ -350,7 +351,7 @@ union ColorOverlay_x8_t {
         s32 x : 12;
         s32 yz : 12;
     } light_rot2;
-    struct ColorOverlay_x8_t_unk {
+    struct PPC_LAYOUT ColorOverlay_x8_t_unk {
         u32 unk : 6;
         u32 timer : 26;
     } unk;

@@ -11,6 +11,7 @@
  *                                 id, whether player 2 is a human, the
  *                                 random seed it is set up with
  *   state                         frame, random seed and both fighters
+ *   rng                           callers of the last frame's random draws
  *   fighter I                     one line of JSON about player I's fighter
  *   seed N                        set the game's random seed
  *   r ADDR LEN / w ADDR HEX       read or write memory
@@ -45,12 +46,13 @@ void host_fighter_json(int slot, char* out, size_t size)
              "{\"ckind\":%d,\"state\":%d,\"frame\":%.9g,\"x\":%.9g,"
              "\"y\":%.9g,\"vx\":%.9g,\"vy\":%.9g,\"facing\":%.9g,"
              "\"air\":%d,\"percent\":%.9g,\"hitlag\":%.9g,"
-             "\"hitstun\":%.9g,\"shield\":%.9g}",
+             "\"hitstun\":%.9g,\"shield\":%.9g,\"gvel\":%.9g}",
              (int) Player_GetPlayerCharacter(slot), (int) fp->motion_id,
              fp->cur_anim_frame, fp->cur_pos.x, fp->cur_pos.y, fp->self_vel.x,
              fp->self_vel.y, fp->facing_dir, (int) fp->ground_or_air,
              fp->dmg.x1830_percent, fp->dmg.x195c_hitlag_frames,
-             fp->x221C_b6 ? *(float*) &fp->mv : 0.0F, fp->shield_health);
+             fp->x221C_b6 ? *(float*) &fp->mv : 0.0F, fp->shield_health,
+             fp->gr_vel);
 }
 
 static void command(char* line)
@@ -99,6 +101,8 @@ static void command(char* line)
         host_fighter_json(1, b, sizeof b);
         printf("@ {\"frame\":%u,\"rng\":%u,\"p\":[%s,%s]}\n", host.frame,
                (unsigned) *HSD_RandSeedPtr, a, b);
+    } else if (strcmp(cmd, "rng") == 0) {
+        host_rng_print();
     } else if (strcmp(cmd, "fighter") == 0) {
         char buf[512];
         int i = 0;

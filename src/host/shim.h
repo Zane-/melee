@@ -33,4 +33,22 @@ void GXInitFogAdjTable(GXFogAdjTable* table, u16 width,
 void* host_dat_element(void* native, int n, unsigned console_size);
 void* host_script_target(const void* word);
 
+/* A 16- or 32-bit value in a script word, which is in disc order. */
+static inline u16 host_be_u16(const void* word, int index)
+{
+    const u8* b = (const u8*) word + 2 * index;
+    return (u16) (b[0] << 8 | b[1]);
+}
+
+static inline s16 host_be_s16(const void* word, int index)
+{
+    return (s16) host_be_u16(word, index);
+}
+
+static inline u32 host_be_u32(const void* word)
+{
+    const u8* b = word;
+    return (u32) b[0] << 24 | (u32) b[1] << 16 | (u32) b[2] << 8 | b[3];
+}
+
 #endif

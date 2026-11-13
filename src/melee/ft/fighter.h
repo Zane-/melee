@@ -224,6 +224,11 @@ struct ftDamageShifts {
     /* +4 */ int count;
 };
 
+struct ftLoadCommonData_x20 {
+    /* +0 */ HSD_Joint* x0;
+    /* +4 */ HSD_AnimJoint* x4;
+};
+
 struct ftLoadCommonData {
     /* +00 */ ftCommonData* common;
     /* +04 */ ftCo_ItemThrowAttrs* item_throw;
@@ -238,7 +243,8 @@ struct ftLoadCommonData {
         x18 DAT_COUNT(FtColAnim_SpycloakStart);
     /// Spycloak animations, IDs 0x7B through 0x80 (#ft_800C0098).
     /* +1C */ struct Fighter_804D653C_t* x1C DAT_COUNT(6);
-    /* +20 */ UNK_T x20;
+    /// The revival platform (#ftCo_800D4FF4 reads it as two pointers).
+    /* +20 */ struct ftLoadCommonData_x20* x20;
     /// By #Fighter::dmg's @c x18F8
     /* +24 */ struct ftDamageShifts* x24 DAT_COUNT(3);
     /* +28 */ struct Fighter_ShakeTable_t* grab_mash_shake;
