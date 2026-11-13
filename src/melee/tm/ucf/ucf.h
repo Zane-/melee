@@ -30,7 +30,9 @@
 /// vanilla instruction and #tm_ucf_off is clear.
 bool tm_ucf_Active(void);
 
-/// Set to turn this file's UCF off (the vanilla game; tests use it).
+/// Set to turn this file's UCF off (the vanilla game; tests use it). The
+/// native build has this file too, on unless the driver's `ucf 0` says
+/// otherwise (src/host/ucf.c).
 extern u8 tm_ucf_off;
 
 /// @name `call` hooks in Fighter_procInput

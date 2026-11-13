@@ -103,6 +103,47 @@ the stick past the notch (90, -127). Before, the specs ran without UCF while the
 with Slippi's; they now run with the rules the game is played with.
 `TM_UCF_OFF=1 python tools/melee_sim/tmtest_sim.py SPEC` runs a spec without UCF.
 
+## In the native build (2026-11-13)
+
+The owner, playing the native client: "dashback seems a little stuck, I am getting stuck
+in my movement sometimes". The native build had no UCF at all: it compiled the vanilla
+game and nothing of `src/melee/tm/`. It now compiles `ucf.c` too and reaches it at the same
+places as the overlay's hooks, in the copies of vanilla files it builds
+(`tools/native_build.py`):
+
+- files that call one of the replaced functions without defining it are compiled with it
+  renamed (`-DftCo_80099794=tm_ucf_80099794` and so on; `VANILLA`). Every call of those
+  functions in the decomp is one the hook table hooks, so a rename reaches exactly those
+  sites; the Turn and DamageFall entries of `ftData_MotionStateList` the same way
+  (`ftmotionstates.c`);
+- `fighter.c` is patched (`PATCHES`) at the two calls in `Fighter_procInput` (the first
+  `ftCo_IsCpuControlled`, +0xC4, and the one `lb_8000D148`, +0x738: both checked against
+  the console's code) and before the hitlag callback in `Fighter_procUpdate`;
+- `src/host/ucf.c` stands in for the overlay's display wrappers that the C calls
+  (`tm_osdtech_DashEnter` is `ftCo_Dash_Enter` here) and has its own copy of
+  `ftCo_SquatRv_Enter`, which is `static` in the decomp (the overlay reaches it by its
+  console address; without the copy the native link stubbed it, silently);
+- `tm_ucf_Active()` does not read the eight sites under `TARGET_PC`: they are this
+  machine's code and nothing injects into them.
+
+On from the start, as on Slippi. The driver's `ucf 0|1` (`Native.ucf()`) switches it;
+`tools/melee_native/compare.py` switches it off, because the console code it compares
+with is vanilla.
+
+`tests/native/ucf.py` checks it against Slippi's own code: the console's code in the
+simulator with Slippi's eight codes injected, the native build with UCF, the native build
+without, the same controller input to all three every frame (tests/sim/ucf.py's input,
+without its writes into memory: the fighters walk where each part happens). Six seeds of
+2,700 frames: identical on every frame (states, facing, hitlag and hitstun exact;
+positions, speeds and animation frames to rounding, as `compare.py`), and every rule
+fired in Slippi's code at least once (SDI 4 times, shield SDI 3, the rest more). The
+vanilla build parts from them in each seed.
+
+What a player feels (the same test, first): Fox standing, facing right, the stick flicked
+left with one frame part way (-40). With UCF the dash starts after one frame of Turn;
+without it, after five. Four frames stuck turning, on every dash back whose flick the game
+happens to read half done.
+
 ## Not done
 
 - In Dolphin the overlay with these hooks boots, the Controls page reports "built in"

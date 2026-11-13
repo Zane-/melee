@@ -723,9 +723,18 @@ def main():
                 rows = [line.strip() for line in w.log if "timing:" in line]
                 late = sum(int(r.split(" of 60 late")[0].split()[-1])
                            for r in rows if " of 60 late" in r)
-                print("%d seconds measured, %d pictures shown late"
-                      % (sum(" of 60 late" in r for r in rows), late))
+                inputs = [r for r in rows if "input read every" in r]
+                bunched = sum(int(r.split(" closer than")[0].split()[-1])
+                              for r in inputs)
+                print("%d seconds measured, %d pictures shown late, %d "
+                      "controller readings closer than 12 ms to the one "
+                      "before" % (sum(" of 60 late" in r for r in rows),
+                                  late, bunched))
                 print("\n".join(rows[-6:]))
+                log = ROOT / "build" / "client-timing.log"
+                log.parent.mkdir(parents=True, exist_ok=True)
+                log.write_text("\n".join(rows) + "\n")
+                print("all of it: %s" % log)
             w.close()
         left = window.leftovers()
         if left:

@@ -24,6 +24,7 @@
  *   state                         frame, random seed and both fighters
  *   rng                           callers of the last frame's random draws
  *   fp SLOT                       address of a fighter's data, for "r"
+ *   ucf [0|1]                     UCF 0.84 off or on (on by default)
  *   ui ...                        the client's interface (ui.cpp)
  *   window [fullscreen 0|1|toggle | size W H]
  *                                 the window: its size, the frame the
@@ -521,6 +522,15 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "ucf") == 0) {
+        /* "ucf 0" or "ucf 1": UCF 0.84 off or on (on from the start);
+           "ucf": which */
+        extern u8 tm_ucf_off;
+        int on;
+        if (sscanf(line, "%d", &on) == 1) {
+            tm_ucf_off = on ? 0 : 1;
+        }
+        printf("@ %d\n", tm_ucf_off ? 0 : 1);
     } else if (strcmp(cmd, "window") == 0) {
 #ifdef HOST_WINDOW
         /* "window": its size, the frame the picture keeps to, fullscreen

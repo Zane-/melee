@@ -437,6 +437,39 @@ the first try waits (up to a second and a half) for the buttons to be let go.
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
+### How it feels: UCF, and when the controller is read (2026-11-13)
+
+The owner, after playing: "I also feel like the gameplay feels slightly off; I am not sure
+if we implemented UCF dash fixes correctly, dashback seems a little stuck, I am getting
+stuck in my movement sometimes so I wonder if a frame is being eaten somewhere." Three
+causes found:
+
+1. **No UCF.** The native build played the vanilla game's stick handling. A dash back from
+   standing whose flick the game reads half done spent four extra frames turning. UCF is
+   now in the native build, on by default, identical frame by frame to Slippi's own code
+   over six long seeds: "In the native build" in `ucf.md`.
+2. **Hurrying after a late frame.** The pacer made up lost time by running the next frames
+   back to back (up to 100 ms of it). Each frame reads the controller once, so those
+   frames read it a millisecond apart, and to the game a flick across them is a slow one:
+   the dash back that comes out as a turn. Now a frame more than 2 ms late starts the
+   schedule again (`pace_wait`): the readings are never closer than about 14.7 ms. Off
+   screen, with two deliberate stalls of 45 ms: one long gap each, nothing bunched.
+3. **Reading after the window's events.** The controller was read after the window's
+   events were handled, which takes a variable time; on the virtual display the readings
+   were 2.6 to 28 ms apart in ordinary seconds. The adapter's reading is now taken as the
+   frame starts (`host_gcc_take`): 16.6 to 16.8 ms apart. (The keyboard and SDL's
+   controllers still need the events and are read after them.)
+
+The pipeline itself drops nothing: each frame boundary takes one reading and the game
+runs one frame on it (`lb_80019894` in `main.c`; the retrace count is the frame count, not
+the clock).
+
+Not known: how it is on the owner's screen. `python tools/melee_client/client.py --timing`
+prints, on leaving, pictures shown late and controller readings closer than 12 ms, and
+writes every second's numbers to `build/client-timing.log`: the spacing of the readings,
+the adapter's reports, failed reads and reopenings, how old its newest report was when
+read, and frames where the auto port found no adapter controller.
+
 ## The target (owner, 2026-11-13)
 
 "Our target to hit is 100% of everything implemented in native w/ native support for
@@ -452,7 +485,7 @@ Where that stands, honestly:
 | Versus | A match against a trained model, the CPU or nobody, six stages | Stocks, timer, result; 3 and 4 players; items |
 | The Lab | Opponent choice, put back, damage | The rest of Training Mode's Lab: save states, recording, CPU behaviours, the info displays |
 | Events | Nothing | All of Training Mode's events |
-| Controls | The adapter is read directly | Layouts, nicknames' profiles, input delay, UCF: all exist only in the overlay build (`src/melee/tm/`) |
+| Controls | The adapter is read directly; UCF 0.84 (Slippi's, frame for frame) | Layouts, nicknames' profiles, input delay: all exist only in the overlay build (`src/melee/tm/`) |
 | slippi-ai | In Versus and the Lab, in real time | Projectiles and the partner Ice Climber in what the model sees; choosing a strength |
 | Tandem play | Nothing | `netplay-p2p.md` is a study |
 

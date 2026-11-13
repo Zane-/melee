@@ -123,6 +123,9 @@ int host_gcc_pad(int port, HostPad* pad);
 int host_gcc_first(void);
 void host_gcc_status(char* out, size_t size);
 void host_window_devices(char* out, size_t size);
+void host_gcc_take(void);
+void host_gcc_counts(unsigned long* reports, unsigned long* errors,
+                     unsigned long* opened, double* age);
 /// Fullscreen on (1), off (0), the other of what it is (2); anything else
 /// only asks. Returns what was last asked for.
 int host_window_fullscreen(int want);

@@ -645,7 +645,15 @@ static void present_wait(void)
 }
 
 /// Wait for the next sixtieth of a second (the console's 59.94 a second).
-/// Returns at once after a long stop, without trying to catch up.
+///
+/// A frame that starts late does not make the next ones hurry. Each frame
+/// reads the controller once, as it starts; frames run back to back to make
+/// up lost time would read it a millisecond apart, and to the game a flick
+/// across those readings is a slow one (a dash back that comes out as a
+/// turn). So after more than 2 ms the schedule starts again from now: the
+/// game falls behind the clock by that much, and readings are never closer
+/// than about 14.7 ms. (It once caught up on up to 100 ms.) Less than 2 ms
+/// is the ordinary lateness of waking up, made up on the next frame.
 static void pace_wait(void)
 {
     static struct timespec next;
@@ -655,7 +663,7 @@ static void pace_wait(void)
     clock_gettime(CLOCK_MONOTONIC, &now);
     late = (now.tv_sec - next.tv_sec) * 1000000000LL +
            (now.tv_nsec - next.tv_nsec);
-    if (next.tv_sec == 0 || late > 100000000LL) {
+    if (next.tv_sec == 0 || late > 2000000LL) {
         next = now;
     } else if (late < 0) {
         clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
@@ -681,6 +689,58 @@ static double now_ms(void)
 /// graphics calls, which Aurora only records); "end" is Aurora drawing and
 /// presenting the frame, and the wait for the next sixtieth of a second
 /// when paced; "begin" is events, input and opening the next frame.
+/// MELEE_TIMING: how evenly the controller was read (the time between two
+/// frames' readings), and the adapter's side of it.
+static void input_timing(double read_at, int reset)
+{
+    static double last, least = 1e9, most, age_most;
+    static int bunched, gaps, fallbacks;
+    static unsigned long reports0, errors0, opened0;
+    unsigned long reports, errors, opened;
+    double age;
+
+    if (reset) {
+        host_gcc_counts(&reports, &errors, &opened, &age);
+        if (live[0] != LIVE_OFF || live[1] != LIVE_OFF) {
+            host_log("timing: input read every %.1f to %.1f ms, %d closer "
+                     "than 12 ms, %d further than 22 ms; adapter: %lu "
+                     "reports, %lu failed reads, opened %lu times, newest "
+                     "report at most %.1f ms old when read; %d frames the "
+                     "auto port found no adapter controller",
+                     least, most, bunched, gaps, reports - reports0,
+                     errors - errors0, opened - opened0, age_most,
+                     fallbacks);
+        }
+        reports0 = reports;
+        errors0 = errors;
+        opened0 = opened;
+        least = 1e9;
+        most = age_most = 0;
+        bunched = gaps = fallbacks = 0;
+        return;
+    }
+    if (last != 0 && paced) {
+        double d = read_at - last;
+        least = d < least ? d : least;
+        most = d > most ? d : most;
+        bunched += d < 12.0;
+        gaps += d > 22.0;
+    }
+    last = read_at;
+    host_gcc_counts(&reports, &errors, &opened, &age);
+    if (age > age_most) {
+        age_most = age;
+    }
+    for (int port = 0; port < 4; port++) {
+        if (live[port] == LIVE_AUTO && host_gcc_first() < 0 &&
+            opened > 0)
+        {
+            fallbacks++;
+            break;
+        }
+    }
+}
+
 static void timing(double game, double end, double begin, double shown)
 {
     static int on = -1, n, late, empty;
@@ -738,6 +798,7 @@ static void timing(double game, double end, double begin, double shown)
                  (sum[0] + sum[1] + sum[2]) / n, sum[0] / n, driver / n,
                  driver_max, sum[1] / n, sum[2] / n, worst, late,
                  draws / n, empty, uploads / n / 1024.0, pipelines);
+        input_timing(0, 1);
         n = late = empty = 0;
         draws = uploads = 0;
         pipelines = 0;
@@ -767,6 +828,20 @@ void host_window_frame(void)
         pace_wait();
     }
     t1 = now_ms();
+    /* the controller is read now, as the frame starts; the window's events
+       can take a while (the keyboard and SDL's controllers need them, and
+       are read after them) */
+    host_gcc_take();
+    {
+        static int timing_on = -1;
+        if (timing_on < 0) {
+            const char* e = getenv("MELEE_TIMING");
+            timing_on = e != NULL && *e != '\0' && *e != '0';
+        }
+        if (timing_on) {
+            input_timing(t1, 0);
+        }
+    }
     for (event = aurora_update(); event != NULL && event->type != AURORA_NONE;
          event++)
     {

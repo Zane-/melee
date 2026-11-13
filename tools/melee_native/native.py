@@ -287,6 +287,13 @@ class Native:
                     break
         return self
 
+    def ucf(self, on=None):
+        """UCF 0.84 (src/host/ucf.c): True or False to switch it, None to
+        ask. On from the start, as on Slippi."""
+        if on is None:
+            return self._cmd("ucf") == "1"
+        return self._cmd("ucf %d" % (1 if on else 0)) == "1"
+
     def place(self, port, x, y=0.0, facing=1, air=False, percent=0.0):
         """Put a fighter standing on the floor at or below (x, y), or (air)
         falling from there: not holding or held, no speed, that much

@@ -127,6 +127,9 @@ class SimSide:
 class NativeSide:
     def __init__(self):
         self.n = Native()
+        # the console's code here is vanilla: no UCF on this side either
+        # (tests/native/ucf.py compares the native UCF with Slippi's)
+        self.n.ucf(False)
 
     def match(self, p1, p2, stage, seed, p2_human=True):
         self.n.match(p1, p2, stage, seed, p2_human)

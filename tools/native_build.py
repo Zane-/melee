@@ -93,6 +93,30 @@ VANILLA = {
         "-DpsInitDataBankLoad=psInitDataBankLoad_vanilla",
         "-DpsInitDataBank=psInitDataBank_vanilla",
     ],
+    # UCF 0.84 (src/melee/tm/ucf/, src/host/ucf.c): every call and table
+    # entry the overlay hooks for it (config/GALE01/tm_hooks/ucf.txt) goes
+    # to the C version instead. These files call those functions and do not
+    # define them, so a rename reaches exactly those sites; the two calls
+    # in Fighter_procInput and the one before the hitlag callback are
+    # patches (PATCHES, fighter.c).
+    **{rel: ["-D%s=tm_ucf_%s" % (fn, fn.split("_", 1)[1]) for fn in fns]
+       for rel, fns in {
+        "melee/ft/kinds/ftCommon/ftCo_Wait.c": ["ftCo_80099794"],
+        "melee/ft/kinds/ftCommon/ftCo_AppealS.c": ["ftCo_80099794"],
+        "melee/ft/kinds/ftSamus/ftsamusspeciallw0.c": ["ftCo_80099794"],
+        "melee/ft/kinds/ftYoshi/ftyoshiguard.c": [
+            "ftCo_80099794", "ftCo_8009A080"],
+        "melee/ft/kinds/ftCommon/ftCo_Guard.c": [
+            "ftCo_8009980C", "ftCo_8009A080"],
+        "melee/ft/kinds/ftCommon/ftCo_SquatWait.c": [
+            "ftCo_SquatRv_CheckInput"],
+        "melee/ft/kinds/ftCommon/ftCo_Damage.c": ["ftCo_DamageFall_IASA"],
+        "melee/ft/kinds/ftCommon/ftCo_ItemParasolDamageFall.c": [
+            "ftCo_DamageFall_IASA"],
+        # the Turn and DamageFall states' input callbacks
+        "melee/ft/ftmotionstates.c": [
+            "ftCo_Turn_IASA", "ftCo_DamageFall_IASA"],
+       }.items()},
 }
 
 # Source patches: exact text replaced in a copy of a vanilla file before it
@@ -102,6 +126,30 @@ VANILLA = {
 # whose text is no longer found, or found a different number of times than
 # the patch says (once unless given), stops the build.
 PATCHES = {
+    # UCF (see VANILLA): Fighter_procInput's first ftCo_IsCpuControlled
+    # (+0xC4 on the console) hands UCF the fighter, its one lb_8000D148
+    # (+0x738) is where UCF keeps the stick's history and snaps cardinals,
+    # and the hitlag callback is run through UCF's SDI (Fighter_procUpdate,
+    # after the call at +0x5D0).
+    "melee/ft/fighter.c": [
+        ('#include "fighter.h"\n',
+         '#include "fighter.h"\n#include "melee/tm/ucf/ucf.h"\n'),
+        ("""            if (ftCo_IsCpuControlled(fp)) {
+                SET_STICKS(fp->input.lstick[0].x, fp->input.lstick[0].y,
+                           ftCo_GetCpuLStickX(fp), ftCo_GetCpuLStickY(fp));""",
+         """            if (tm_ucf_IsCpuControlled(fp)) {
+                SET_STICKS(fp->input.lstick[0].x, fp->input.lstick[0].y,
+                           ftCo_GetCpuLStickX(fp), ftCo_GetCpuLStickY(fp));"""),
+        ("if (lb_8000D148(fp->input.lstick[1].x, fp->input.lstick[1].y,",
+         "if (tm_ucf_8000D148(fp->input.lstick[1].x, fp->input.lstick[1].y,"),
+        ("""    ftColl_80076528(gobj);
+
+    if (fp->hitlag_cb) {""",
+         """    ftColl_80076528(gobj);
+    tm_ucf_PreHitlag(gobj);
+
+    if (fp->hitlag_cb) {"""),
+    ],
     # The particle interpreter's one multi-byte operand: a float, copied
     # byte by byte from byte code that stays in disc order.
     "sysdolphin/baselib/particle.c": [
@@ -514,6 +562,9 @@ def main():
                      common + shim
                      + ["-iquote", str((ROOT / "src" / rel).parent)]
                      + VANILLA.get(rel, [])))
+    # UCF in C, the same file the overlay links (src/host/ucf.c).
+    jobs.append((ROOT / "src/melee/tm/ucf/ucf.c", OBJ / "tm" / "ucf.o",
+                 common + shim))
     for src in sorted((ROOT / "src/host").glob("*.c")):
         extra = common
         if src.name == "window.c":

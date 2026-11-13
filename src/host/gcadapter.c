@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <dolphin/pad.h>
@@ -43,6 +44,23 @@
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static uint8_t latest[REPORT];
 static int have; ///< a report has been read since the adapter was opened
+/// The report the current frame reads: taken from #latest as the frame
+/// starts (host_gcc_take), so that when the game reads the controller does
+/// not depend on how long the window's events took that frame.
+static uint8_t taken[REPORT];
+static int taken_have;
+
+/// For MELEE_TIMING: reports read, reads that failed, times the adapter
+/// was opened, and when the newest report came (CLOCK_MONOTONIC, ms).
+static unsigned long n_reports, n_errors, n_opened;
+static double latest_at;
+
+static double clock_ms(void)
+{
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
+}
 static char status[200] = "not looked for";
 static int started;
 
@@ -142,15 +160,24 @@ static void* reader(void* arg)
         }
         transfer(fd, 0x02, &go, 1);
         say("open%s", "");
+        pthread_mutex_lock(&lock);
+        n_opened++;
+        pthread_mutex_unlock(&lock);
         for (;;) {
             uint8_t report[REPORT];
             int n = transfer(fd, 0x81, report, sizeof report);
             if (n == REPORT && report[0] == 0x21) {
+                double at = clock_ms();
                 pthread_mutex_lock(&lock);
                 memcpy(latest, report, sizeof latest);
                 have = 1;
+                n_reports++;
+                latest_at = at;
                 pthread_mutex_unlock(&lock);
             } else if (n < 0 && errno != ETIMEDOUT) {
+                pthread_mutex_lock(&lock);
+                n_errors++;
+                pthread_mutex_unlock(&lock);
                 break; /* unplugged */
             }
         }
@@ -161,6 +188,19 @@ static void* reader(void* arg)
         close(fd);
     }
     return NULL;
+}
+
+/// For MELEE_TIMING: reports read, failed reads and openings so far, and
+/// how old the newest report is now (ms; -1 if there is none).
+void host_gcc_counts(unsigned long* reports, unsigned long* errors,
+                     unsigned long* opened, double* age)
+{
+    pthread_mutex_lock(&lock);
+    *reports = n_reports;
+    *errors = n_errors;
+    *opened = n_opened;
+    *age = have ? clock_ms() - latest_at : -1.0;
+    pthread_mutex_unlock(&lock);
 }
 
 /// Start looking for the adapter (once; it may be plugged in later).
@@ -188,6 +228,16 @@ static int8_t from_rest(int value, int rest)
 {
     int v = value - rest;
     return (int8_t) (v > 127 ? 127 : v < -128 ? -128 : v);
+}
+
+/// The newest report becomes the one this frame reads. Called once a frame,
+/// as it starts (right after the wait for it).
+void host_gcc_take(void)
+{
+    pthread_mutex_lock(&lock);
+    memcpy(taken, latest, sizeof taken);
+    taken_have = have;
+    pthread_mutex_unlock(&lock);
 }
 
 /// One port of a report as the game's pad. 0 if no controller is there.
@@ -237,22 +287,16 @@ int host_gcc_decode(const uint8_t* report, int port, HostPad* pad)
     return 1;
 }
 
-/// The controller on one of the adapter's ports (0 to 3), now. 0 if the
-/// adapter is not open or nothing is plugged into that port.
+/// The controller on one of the adapter's ports (0 to 3), as this frame
+/// took it (host_gcc_take). 0 if the adapter is not open or nothing is
+/// plugged into that port.
 int host_gcc_pad(int port, HostPad* pad)
 {
-    uint8_t report[REPORT];
-    int ok;
-
-    pthread_mutex_lock(&lock);
-    ok = have;
-    memcpy(report, latest, sizeof report);
-    pthread_mutex_unlock(&lock);
-    if (!ok) {
+    if (!taken_have) {
         memset(pad, 0, sizeof *pad);
         return 0;
     }
-    return host_gcc_decode(report, port, pad);
+    return host_gcc_decode(taken, port, pad);
 }
 
 /// The first of the adapter's ports with a controller, or -1.

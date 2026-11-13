@@ -52,6 +52,11 @@ bool tm_ucf_Active(void)
     if (tm_ucf_off) {
         return false;
     }
+#ifdef TARGET_PC
+    /* The native build (tools/native_build.py): its functions are this
+       machine's code, and nobody injects anything into them. */
+    return true;
+#endif
     return SITE(Fighter_procInput, 0x750) == 0x887F0678 &&         /* lbz */
            SITE(ftCo_Turn_IASA, 0x4C) == 0xD01F002C &&             /* stfs */
            SITE(ftCo_SquatRv_CheckInput, 0x14) == 0xC0040094 &&    /* lfs */

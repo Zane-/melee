@@ -91,6 +91,9 @@ every item's kind, state, position and speed.
   comes after 130 to 200 frames, in the last bit of a speed.
 - **`tools/melee_native/asan.py`** (the AddressSanitizer build) reports no bad access in
   an idle match, and none in gameplay code over 15 of the survey's runs.
+- **UCF.** The native build carries UCF 0.84 and has it on (`docs/ai/ucf.md`, "In the
+  native build"); the console's code compared here is vanilla, so `compare.py` and
+  `survey.py`'s native side switch it off (`ucf 0`).
 - Speed: about 9,500 frames a second in active play unoptimised, 15,600 with `--opt 1`
   (the Python simulator: 50 to 160), driven from Python.
 
@@ -99,6 +102,7 @@ Known differences, none investigated to the end:
 | Where | What |
 |-|-|
 | Samus against Captain Falcon | 4 of 5 random runs of 1,500 frames identical (2026-11-13); the fifth differs at frame 527 in the last bit of an animation frame counter (1.9166666 / 1.91666675) |
+| Fox against Marth, Battlefield | `tests/native/ucf.py` seed 3 (with UCF, against Slippi's): Marth's animation frame counter differs in its last bit at frame 1551 (5.0999861 / 5.0999856). The same kind as the row above; that test compares frame counters to rounding |
 | Last-bit floats | The floor normal comes out 0.99999994 instead of 1: `PSVECNormalize` is the console's paired-single routine there, numpy in the simulator and Aurora's C here. Three implementations; only Dolphin or hardware is the reference. One exact comparison in the game (`scale != 1.0F`) showed how a last bit can flip a branch. Also: the C library's `sinf`, `sqrtf`... are glibc's, not the console's (`src/MSL` has the console's in C), `__frsqrte` is an exact reciprocal square root (as in the simulator, unlike hardware), and multiply-add fusing follows gcc's choices, which are not always the console compiler's |
 | Sheik's chain | The chain item is in a different state from frame 212 of one run (`falco`/`sheik`, run 1) |
 | Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
