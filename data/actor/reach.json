@@ -1,0 +1,530 @@
+{
+ "about": "How far from a standing Marth a running fighter starts each move for it to connect: the middle of the band of distances that worked. Made by tools/melee_actor/calibrate.py on the native build.",
+ "bands": {
+  "0": {
+   "dash_attack": [
+    5,
+    30
+   ],
+   "grab": [
+    12,
+    39
+   ],
+   "usmash": [
+    10,
+    37
+   ]
+  },
+  "1": {
+   "dash_attack": [
+    5,
+    32
+   ],
+   "grab": [
+    5,
+    23
+   ],
+   "usmash": [
+    5,
+    13
+   ]
+  },
+  "10": {
+   "dash_attack": [
+    5,
+    45
+   ],
+   "grab": [
+    6,
+    33
+   ],
+   "usmash": [
+    5,
+    34
+   ]
+  },
+  "11": {
+   "dash_attack": [
+    5,
+    26
+   ],
+   "grab": [
+    5,
+    15
+   ],
+   "usmash": [
+    5,
+    32
+   ]
+  },
+  "12": {
+   "dash_attack": [
+    5,
+    41
+   ],
+   "grab": [
+    5,
+    24
+   ],
+   "usmash": [
+    5,
+    18
+   ]
+  },
+  "13": {
+   "dash_attack": [
+    5,
+    36
+   ],
+   "grab": [
+    5,
+    18
+   ],
+   "usmash": [
+    5,
+    29
+   ]
+  },
+  "14": {
+   "dash_attack": [
+    13,
+    34
+   ],
+   "grab": [
+    5,
+    26
+   ],
+   "usmash": [
+    5,
+    27
+   ]
+  },
+  "15": {
+   "dash_attack": [
+    5,
+    35
+   ],
+   "grab": [
+    5,
+    23
+   ],
+   "usmash": [
+    5,
+    18
+   ]
+  },
+  "16": {
+   "dash_attack": [
+    5,
+    43
+   ],
+   "grab": [
+    6,
+    45
+   ],
+   "usmash": [
+    5,
+    30
+   ]
+  },
+  "17": {
+   "dash_attack": [
+    10,
+    45
+   ],
+   "grab": [
+    29,
+    41
+   ],
+   "usmash": [
+    5,
+    29
+   ]
+  },
+  "18": {
+   "dash_attack": [
+    5,
+    34
+   ],
+   "grab": [
+    5,
+    24
+   ],
+   "usmash": [
+    5,
+    16
+   ]
+  },
+  "19": {
+   "dash_attack": [
+    14,
+    40
+   ],
+   "grab": [
+    5,
+    33
+   ],
+   "usmash": [
+    5,
+    31
+   ]
+  },
+  "2": {
+   "dash_attack": [
+    6,
+    36
+   ],
+   "grab": [
+    15,
+    38
+   ],
+   "usmash": [
+    6,
+    33
+   ]
+  },
+  "20": {
+   "dash_attack": [
+    6,
+    38
+   ],
+   "grab": [
+    5,
+    29
+   ],
+   "usmash": [
+    5,
+    30
+   ]
+  },
+  "21": {
+   "dash_attack": [
+    5,
+    34
+   ],
+   "grab": [
+    8,
+    45
+   ],
+   "usmash": [
+    5,
+    27
+   ]
+  },
+  "22": {
+   "dash_attack": [
+    5,
+    40
+   ],
+   "grab": [
+    5,
+    23
+   ],
+   "usmash": [
+    5,
+    29
+   ]
+  },
+  "23": {
+   "dash_attack": [
+    12,
+    42
+   ],
+   "grab": [
+    6,
+    39
+   ],
+   "usmash": [
+    5,
+    26
+   ]
+  },
+  "24": {
+   "dash_attack": [
+    5,
+    27
+   ],
+   "grab": [
+    5,
+    23
+   ],
+   "usmash": [
+    5,
+    23
+   ]
+  },
+  "25": {
+   "dash_attack": [
+    5,
+    37
+   ],
+   "grab": [
+    5,
+    30
+   ],
+   "usmash": [
+    5,
+    18
+   ]
+  },
+  "3": {
+   "dash_attack": [
+    5,
+    29
+   ],
+   "grab": [
+    6,
+    31
+   ],
+   "usmash": [
+    5,
+    29
+   ]
+  },
+  "4": {
+   "dash_attack": [
+    5,
+    45
+   ],
+   "grab": [
+    5,
+    26
+   ],
+   "usmash": [
+    5,
+    26
+   ]
+  },
+  "5": {
+   "dash_attack": [
+    5,
+    42
+   ],
+   "grab": [
+    10,
+    40
+   ],
+   "usmash": [
+    5,
+    24
+   ]
+  },
+  "6": {
+   "dash_attack": [
+    6,
+    41
+   ],
+   "grab": [
+    5,
+    45
+   ],
+   "usmash": [
+    5,
+    23
+   ]
+  },
+  "7": {
+   "dash_attack": [
+    5,
+    45
+   ],
+   "grab": [
+    5,
+    27
+   ],
+   "usmash": [
+    5,
+    34
+   ]
+  },
+  "8": {
+   "dash_attack": [
+    5,
+    35
+   ],
+   "grab": [
+    5,
+    23
+   ],
+   "usmash": [
+    5,
+    29
+   ]
+  },
+  "9": {
+   "dash_attack": [
+    18,
+    45
+   ],
+   "grab": [
+    9,
+    42
+   ],
+   "usmash": [
+    5,
+    35
+   ]
+  }
+ },
+ "measured": "2026-11-13",
+ "names": {
+  "0": "captain-falcon",
+  "1": "donkey-kong",
+  "10": "mewtwo",
+  "11": "ness",
+  "12": "peach",
+  "13": "pikachu",
+  "14": "ice-climbers",
+  "15": "jigglypuff",
+  "16": "samus",
+  "17": "yoshi",
+  "18": "zelda",
+  "19": "sheik",
+  "2": "fox",
+  "20": "falco",
+  "21": "young-link",
+  "22": "dr-mario",
+  "23": "roy",
+  "24": "pichu",
+  "25": "ganondorf",
+  "3": "mr-game-and-watch",
+  "4": "kirby",
+  "5": "bowser",
+  "6": "link",
+  "7": "luigi",
+  "8": "mario",
+  "9": "marth"
+ },
+ "reach": {
+  "0": {
+   "dash_attack": 17.5,
+   "grab": 25.5,
+   "usmash": 23.5
+  },
+  "1": {
+   "dash_attack": 18.5,
+   "grab": 14.0,
+   "usmash": 9.0
+  },
+  "10": {
+   "dash_attack": 25.0,
+   "grab": 19.5,
+   "usmash": 19.5
+  },
+  "11": {
+   "dash_attack": 15.5,
+   "grab": 10.0,
+   "usmash": 18.5
+  },
+  "12": {
+   "dash_attack": 23.0,
+   "grab": 14.5,
+   "usmash": 11.5
+  },
+  "13": {
+   "dash_attack": 20.5,
+   "grab": 11.5,
+   "usmash": 17.0
+  },
+  "14": {
+   "dash_attack": 23.5,
+   "grab": 15.5,
+   "usmash": 16.0
+  },
+  "15": {
+   "dash_attack": 20.0,
+   "grab": 14.0,
+   "usmash": 11.5
+  },
+  "16": {
+   "dash_attack": 24.0,
+   "grab": 25.5,
+   "usmash": 17.5
+  },
+  "17": {
+   "dash_attack": 27.5,
+   "grab": 35.0,
+   "usmash": 17.0
+  },
+  "18": {
+   "dash_attack": 19.5,
+   "grab": 14.5,
+   "usmash": 10.5
+  },
+  "19": {
+   "dash_attack": 27.0,
+   "grab": 19.0,
+   "usmash": 18.0
+  },
+  "2": {
+   "dash_attack": 21.0,
+   "grab": 26.5,
+   "usmash": 19.5
+  },
+  "20": {
+   "dash_attack": 22.0,
+   "grab": 17.0,
+   "usmash": 17.5
+  },
+  "21": {
+   "dash_attack": 19.5,
+   "grab": 26.5,
+   "usmash": 16.0
+  },
+  "22": {
+   "dash_attack": 22.5,
+   "grab": 14.0,
+   "usmash": 17.0
+  },
+  "23": {
+   "dash_attack": 27.0,
+   "grab": 22.5,
+   "usmash": 15.5
+  },
+  "24": {
+   "dash_attack": 16.0,
+   "grab": 14.0,
+   "usmash": 14.0
+  },
+  "25": {
+   "dash_attack": 21.0,
+   "grab": 17.5,
+   "usmash": 11.5
+  },
+  "3": {
+   "dash_attack": 17.0,
+   "grab": 18.5,
+   "usmash": 17.0
+  },
+  "4": {
+   "dash_attack": 25.0,
+   "grab": 15.5,
+   "usmash": 15.5
+  },
+  "5": {
+   "dash_attack": 23.5,
+   "grab": 25.0,
+   "usmash": 14.5
+  },
+  "6": {
+   "dash_attack": 23.5,
+   "grab": 25.0,
+   "usmash": 14.0
+  },
+  "7": {
+   "dash_attack": 25.0,
+   "grab": 16.0,
+   "usmash": 19.5
+  },
+  "8": {
+   "dash_attack": 20.0,
+   "grab": 14.0,
+   "usmash": 17.0
+  },
+  "9": {
+   "dash_attack": 31.5,
+   "grab": 25.5,
+   "usmash": 20.0
+  }
+ }
+}

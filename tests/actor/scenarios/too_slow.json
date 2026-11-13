@@ -1,0 +1,22 @@
+{
+  "name": "Walking in to punish",
+  "about": "The same situation with the punish a beginner tries: stop next to Marth, then up smash. Marth's shield is up long before.",
+  "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,
+  "setup": [
+    {"place": 0, "x": -30, "facing": 1},
+    {"place": 1, "x": 12, "facing": -1, "percent": 30}
+  ],
+  "opponent": {"port": 1, "script": [
+    {"do": "wait", "frames": 40},
+    {"do": "attack", "move": "fsmash"},
+    {"do": "hold", "frames": 90, "buttons": ["R"]}
+  ]},
+  "player": {"port": 0, "script": [
+    {"do": "wait", "until": "target_swung"},
+    {"do": "approach", "range": 8, "tolerance": 6},
+    {"do": "attack", "move": "usmash"}
+  ]},
+  "frames": 400,
+  "after": 10,
+  "success": ["target_not_hit"]
+}

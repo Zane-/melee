@@ -31,10 +31,11 @@ before believing a script: one passing run says little.
   "setup": [{"place": 0, "x": -30, "facing": 1},
             {"place": 1, "x": 12, "facing": -1, "percent": 30}],
   "opponent": {"port": 1, "script": [{"do": "wait", "frames": 40},
-                                     {"do": "attack", "move": "fsmash"}]},
+                                     {"do": "attack", "move": "fsmash"},
+                                     {"do": "hold", "frames": 90, "buttons": ["R"]}]},
   "player": {"port": 0, "script": [{"do": "wait", "until": "target_swung"},
-                                   {"do": "approach", "range": 8, "tolerance": 6},
-                                   {"do": "attack", "move": "usmash"}]},
+                                   {"do": "rush", "move": "grab"},
+                                   {"do": "throw", "direction": "up"}]},
   "frames": 400, "after": 10,
   "success": ["target_hit", "not_hit"]
 }
@@ -55,6 +56,8 @@ before believing a script: one passing run says little.
 | `approach` `range` `tolerance` | get that close to the target, standing; stops at the stage's edge |
 | `face` | turn toward the target |
 | `attack` `move` | `jab ftilt utilt dtilt fsmash usmash dsmash grab neutral_b side_b up_b down_b jump`, then wait until able to act |
+| `rush` `move` | run at the target and do `grab`, `dash_attack` or `usmash` (jump cancelled) out of the run, started at the distance known to connect for this character (`data/actor/reach.json`); the fast way in |
+| `throw` `direction` | `up down forward back`, after a grab that connected |
 | `wait` `frames` or `until` | `target_grounded`, `target_airborne`, `target_idle`, `target_attacking`, `target_swung` (its hitbox came out and went), `target_frame:N`, `in_range:N` |
 | `hold` `frames` `buttons` `stick` | hold an input (shield, crouch) |
 | `{"expect": ...}` inside a script | `target_hit`, `target_not_hit`, `hit`, `not_hit`, `in_range:N` |
@@ -62,8 +65,14 @@ before believing a script: one passing run says little.
 Scripts say what is to be achieved, never which frame. If a script needs a frame number
 to work, the step or condition it lacks is the thing to write: a generator method `do_x`
 on `Actor` that yields one pad per frame, or a branch in `_condition`, with a scenario that
-shows it. Known weak spots: `approach` walks the last 18 units (slow for a punish); there
-is no shield, jump-in, dash dance, wavedash or reaction to being attacked yet.
+shows it. `approach` is for standing somewhere exactly and is slow (it walks the last 18
+units); to hit someone in time use `rush`. There is no jump-in, aerial, dash dance,
+wavedash or step that is interrupted by being attacked yet; an opponent "shields when it
+can" by a `hold` with R after its attack.
+
+A number the actor needs about a character (how far out a move connects) is measured, not
+guessed: `python tools/melee_actor/calibrate.py [character]` tries every distance on the
+native build (all 26 characters in under a minute) and writes `data/actor/reach.json`.
 
 ## From Python
 

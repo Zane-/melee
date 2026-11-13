@@ -42,7 +42,9 @@ KNEEBEND = 24
 SQUAT_FIRST, SQUAT_LAST = 39, 41
 LANDING = 42
 ATTACK_FIRST, ATTACK_LAST = 44, 74     # jab 1 .. down air
-CATCH_FIRST, CATCH_LAST = 212, 215     # grab, dash grab and their misses
+CATCH_FIRST, CATCH_LAST = 212, 215     # grab, dash grab, and pulling in
+CATCH_WAIT = 216                       # holding someone
+THROW_FIRST, THROW_LAST = 219, 222     # forward, back, up, down
 
 # One-frame inputs for moves. `toward` is replaced by the direction of the
 # target (+1 / -1) when the input is built.
@@ -63,6 +65,22 @@ MOVES = {
 }
 
 
+# How a move comes out of a run, frame by frame ("toward" as above). The up
+# smash is jump-cancelled: jump, and the smash on the next frame, before the
+# fighter leaves the ground.
+RUSH = {
+    "grab": [dict(buttons=["Z"], stick=("toward", 0))],
+    "dash_attack": [dict(buttons=["A"], stick=("toward", 0))],
+    "usmash": [dict(buttons=["X"], stick=("toward", 0)), dict(cstick=(0, 1))],
+}
+# The same from a standstill, when the target is already within reach.
+RUSH_STANDING = {"grab": "grab", "dash_attack": "ftilt", "usmash": "usmash"}
+# How far away a running fighter gives the input, when nothing better is
+# known (data/actor/reach.json, made by calibrate.py, is better).
+RUSH_REACH = {"grab": 14.0, "dash_attack": 16.0, "usmash": 12.0}
+THROWS = {"up": (0, 1), "down": (0, -1), "forward": ("toward", 0),
+          "back": ("away", 0)}
+
 # Tilts need the stick already resting off-centre when A is pressed: moved
 # and pressed on the same frame it reads as a smash. (Found the first time
 # this ran: "utilt" came out as an up smash.)
@@ -77,6 +95,26 @@ STAGE_LIMIT = {"final-destination": 78.0, "battlefield": 61.0,
 
 class StepFailed(Exception):
     pass
+
+
+_reach = None
+
+
+def reach_table():
+    """{character kind: {move: units}} from data/actor/reach.json, if it
+    has been made."""
+    global _reach
+    if _reach is None:
+        import json
+        import os
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
+                            "..", "data", "actor", "reach.json")
+        try:
+            with open(path) as f:
+                _reach = {int(k): v for k, v in json.load(f)["reach"].items()}
+        except (OSError, ValueError, KeyError):
+            _reach = {}
+    return _reach
 
 
 class Actor:
@@ -120,6 +158,26 @@ class Actor:
         """What a step yields: the pad to hold for one frame (nothing =
         neutral)."""
         return pad
+
+    def _resolve(self, pad):
+        """A pad from the tables above, with "toward" and "away" turned
+        into the direction of the target."""
+        t = self.toward()
+
+        def axis(v):
+            if not isinstance(v, str):
+                return v
+            if v == "away":
+                return -t
+            return t * float(v.split("*")[1]) if "*" in v else t
+        return {k: (tuple(axis(v) for v in val) if k in ("stick", "cstick")
+                    else val) for k, val in pad.items()}
+
+    def reach(self, move):
+        """How far from the target this fighter, running, starts `move`."""
+        me = self.me()
+        table = reach_table().get(getattr(me, "ckind", -1), {})
+        return float(table.get(move, RUSH_REACH[move]))
 
     def _input(self, move):
         t = self.toward()
@@ -191,6 +249,71 @@ class Actor:
             yield {}
         return dict(states=states,
                     damage=round(self.them().percent - before, 1))
+
+    def do_rush(self, move, reach=None, timeout=300, **_):
+        """Run at the target and do `move` out of the run, without stopping
+        first: "grab" (a running grab), "dash_attack", "usmash" (jump
+        cancelled). The input is given `reach` units away (by default what
+        is known for this character). Done when the actor can act again, or
+        is holding the target."""
+        if move not in RUSH:
+            raise StepFailed("no way to rush with %r" % move)
+        reach = float(reach) if reach is not None else self.reach(move)
+        before = self.them().percent
+        at = None
+        for _ in _frames(timeout):
+            me, dist = self.me(), abs(self.dx())
+            running = me.state in (DASH, RUN)
+            if dist <= reach and (running or self.grounded_idle(me)):
+                at = dist
+                break
+            going_off = abs(me.pos[0] + self.toward() * 4) > self.limit
+            if me.airborne or going_off:
+                yield {}
+            else:
+                yield dict(stick=(self.toward(), 0))
+        if at is None:
+            raise StepFailed("never got within %.0f of the target" % reach)
+        if self.me().state in (DASH, RUN):
+            for pad in RUSH[move]:
+                yield self._resolve(pad)
+        else:                              # it was already next to us
+            yield self._input(RUSH_STANDING[move])
+        states, grabbed = [], False
+        for _ in _frames(timeout):
+            me = self.me()
+            if me.state not in states:
+                states.append(me.state)
+            if me.state == CATCH_WAIT:
+                grabbed = True
+                break
+            if len(states) > 1 and self.grounded_idle(me):
+                break
+            yield {}
+        return dict(states=states, started_at=round(at, 1), grabbed=grabbed,
+                    damage=round(self.them().percent - before, 1))
+
+    def do_throw(self, direction="up", timeout=120, **_):
+        """Throw the fighter being held."""
+        if direction not in THROWS:
+            raise StepFailed("unknown throw %r" % direction)
+        before = self.them().percent
+        thrown = False
+        for _ in _frames(timeout):
+            me = self.me()
+            if THROW_FIRST <= me.state <= THROW_LAST:
+                thrown = True
+                yield {}
+            elif thrown and self.grounded_idle(me):
+                return dict(damage=round(self.them().percent - before, 1))
+            elif me.state == CATCH_WAIT:
+                yield self._resolve(dict(stick=THROWS[direction]))
+            elif CATCH_FIRST <= me.state <= CATCH_LAST:
+                yield {}                   # still pulling them in
+            else:
+                break
+        raise StepFailed("holding nobody" if not thrown else
+                         "the throw never ended")
 
     def do_wait(self, frames=None, until=None, timeout=600, **_):
         """Wait a number of frames, or until a condition holds:

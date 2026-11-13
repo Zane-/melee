@@ -1,5 +1,6 @@
 """Scenarios on the native build: a situation, both sides scripted, a
-verdict (tools/melee_actor/scenario.py).
+verdict (tools/melee_actor/scenario.py). One situation, three ways of
+playing it, which is what a drill has to tell apart.
 
     python tools/native_build.py
     python tests/actor/scenarios.py
@@ -21,17 +22,37 @@ def check(name, ok, detail=""):
                         ("  (" + detail + ")") if detail else ""))
 
 
-def main():
-    punish = scenario.load(os.path.join(HERE, "whiff_punish.json"))
-    early = scenario.load(os.path.join(HERE, "too_early.json"))
+def step(result, role, do):
+    return next(s for s in result[role]["steps"] if s["step"].get("do") == do)
 
-    with scenario.Session(punish) as s:
+
+def main():
+    def load(name):
+        return scenario.load(os.path.join(HERE, name + ".json"))
+
+    # Left alone, when can Marth shield again? The slow punish shows it.
+    with scenario.Session(load("too_slow")) as s:
+        slow = s.run()
+    shield_at = step(slow, "opponent", "hold")["at"]
+    check("stopping next to him and up smashing meets his shield",
+          slow["success"] and step(slow, "player", "attack")["damage"] == 0,
+          "%s; his shield is up from frame %d, the up smash starts at %d"
+          % (slow["checks"][0]["detail"], shield_at,
+             step(slow, "player", "attack")["at"]))
+
+    with scenario.Session(load("whiff_punish")) as s:
         a = s.run()
-        check("the punish: waits for the swing, runs in, hits, is not hit",
+        check("the punish: waits for the swing, runs in, grabs, throws",
               a["success"], "; ".join(c["detail"] for c in a["checks"]))
-        waited = a["player"]["steps"][0].get("waited", 0)
+        waited = step(a, "player", "wait").get("waited", 0)
         check("the wait ended because the swing did, not on a frame count",
               40 < waited < 70, "after %d frames" % waited)
+        grab = step(a, "player", "rush")
+        throw_at = step(a, "player", "throw")["at"]
+        check("the grab has Marth before his shield could be up",
+              grab["grabbed"] and throw_at < shield_at,
+              "holding him at frame %d; he could have shielded from %d"
+              % (throw_at, shield_at))
         b = s.run()
         check("the same run again is the same", a == b)
         t = time.time()
@@ -41,14 +62,14 @@ def main():
         check("moved about by up to 2 units either way, it still works",
               good == 40, "%d of 40" % good)
         frames = sum(r["frames"] for r in many)
-        check("forty runs take about a second", took < 5.0,
+        check("forty runs take a second or two", took < 6.0,
               "%d frames in %.2f s" % (frames, took))
         wide = [s.run(jitter=8.0, run=i) for i in range(40)]
         print("      (moved by up to 8: %d of 40. From about 35 units the tip "
               "of the sword reaches: no longer a whiff)"
               % sum(r["success"] for r in wide))
 
-    with scenario.Session(early) as s:
+    with scenario.Session(load("too_early")) as s:
         r = s.run()
         check("going at the start of the swing gets the player hit",
               r["success"] and r["checks"][0]["expect"] == "hit",

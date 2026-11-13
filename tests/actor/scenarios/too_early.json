@@ -1,21 +1,59 @@
 {
   "name": "Running in before the swing is spent",
   "about": "The same situation, and what a drill has to catch: the player goes as soon as Marth starts the smash and runs into it.",
-  "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,
+  "p1": "fox",
+  "p2": "marth",
+  "stage": "final-destination",
+  "seed": 1,
   "setup": [
-    {"place": 0, "x": -30, "facing": 1},
-    {"place": 1, "x": 12, "facing": -1, "percent": 30}
+    {
+      "place": 0,
+      "x": -30,
+      "facing": 1
+    },
+    {
+      "place": 1,
+      "x": 12,
+      "facing": -1,
+      "percent": 30
+    }
   ],
-  "opponent": {"port": 1, "script": [
-    {"do": "wait", "frames": 40},
-    {"do": "attack", "move": "fsmash"}
-  ]},
-  "player": {"port": 0, "script": [
-    {"do": "wait", "until": "target_attacking"},
-    {"do": "approach", "range": 8, "tolerance": 6},
-    {"do": "attack", "move": "usmash"}
-  ]},
+  "opponent": {
+    "port": 1,
+    "script": [
+      {
+        "do": "wait",
+        "frames": 40
+      },
+      {
+        "do": "attack",
+        "move": "fsmash"
+      },
+      {
+        "do": "hold",
+        "frames": 90,
+        "buttons": [
+          "R"
+        ]
+      }
+    ]
+  },
+  "player": {
+    "port": 0,
+    "script": [
+      {
+        "do": "wait",
+        "until": "target_attacking"
+      },
+      {
+        "do": "rush",
+        "move": "grab"
+      }
+    ]
+  },
   "frames": 400,
   "after": 10,
-  "success": ["hit"]
+  "success": [
+    "hit"
+  ]
 }

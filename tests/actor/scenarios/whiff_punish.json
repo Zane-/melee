@@ -1,6 +1,6 @@
 {
   "name": "Punish a whiffed forward smash",
-  "about": "Marth swings from too far away. The player waits for the swing to be spent, runs in and up smashes before Marth can act again.",
+  "about": "Marth swings from too far away and shields as soon as he can. The player waits for the swing to be spent, runs in and grabs: a grab beats the shield, and a running grab is fast enough to be there before Marth can do anything else.",
   "p1": "fox", "p2": "marth", "stage": "final-destination", "seed": 1,
   "setup": [
     {"place": 0, "x": -30, "facing": 1},
@@ -8,12 +8,13 @@
   ],
   "opponent": {"port": 1, "script": [
     {"do": "wait", "frames": 40},
-    {"do": "attack", "move": "fsmash"}
+    {"do": "attack", "move": "fsmash"},
+    {"do": "hold", "frames": 90, "buttons": ["R"]}
   ]},
   "player": {"port": 0, "script": [
     {"do": "wait", "until": "target_swung"},
-    {"do": "approach", "range": 8, "tolerance": 6},
-    {"do": "attack", "move": "usmash"}
+    {"do": "rush", "move": "grab"},
+    {"do": "throw", "direction": "up"}
   ]},
   "frames": 400,
   "after": 10,

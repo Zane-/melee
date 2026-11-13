@@ -68,6 +68,7 @@ class Fighter:
         self.fp = 1 if d else 0          # truthy when the fighter exists
 
     kind = property(lambda s: s.d["kind"])            # internal fighter kind
+    ckind = property(lambda s: s.d["ckind"])          # the roster's number
     state = property(lambda s: s.d["state"])
     state_frame = property(lambda s: s.d["frame"])
     facing = property(lambda s: s.d["facing"])
