@@ -124,12 +124,13 @@ python tools/melee_native/window.py --out DIR [--match fox,marth,final-destinati
 `melee_native` is the headless game with Aurora under its graphics calls
 (`src/host/window.c`). `tools/melee_native/window.py` runs it where nothing can appear on
 the desktop: on a virtual X server of its own, drawn by a software renderer, and saves
-what is on that screen. The first picture of a match from the native build:
+what is on that screen. In the first picture of a match (Fox and Marth on Final
+Destination, frame 330) the stage, both fighters, the background and the damage display
+are there. Some textures are wrong (magenta lines across the stage, the stock icons).
 
-![Fox and Marth on Final Destination, drawn by the native build](img/native-first-match-frame.png)
-
-The stage, both fighters, the background and the damage display are there. Some textures
-are wrong (magenta lines across the stage, the stock icons).
+Pictures of the game are not kept in this repository (it is public, and they show the
+game's art): they go under `build/shots/`, which git ignores. One was committed by mistake
+in e61f7e715 and removed in the next commit; it is still in that commit's history.
 
 What it took, beyond linking Aurora in:
 
