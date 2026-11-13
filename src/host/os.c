@@ -50,6 +50,12 @@ _Noreturn void host_fatal(const char* fmt, ...)
     va_end(ap);
     host_backtrace();
     host_stub_report();
+    if (host_control_enabled) {
+        /* Whoever drives the game is waiting for a reply; with snapshots
+           asleep, stdout stays open after this process is gone. */
+        printf("@ fatal\n");
+        fflush(stdout);
+    }
     exit(2);
 }
 

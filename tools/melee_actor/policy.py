@@ -1,15 +1,17 @@
-"""A slippi-ai (Phillip II) policy as a player in the headless simulator.
+"""A slippi-ai (Phillip II) policy as a player, on the native build or in
+the headless simulator.
 
 Experiment for docs/ai/melee-actor.md, option A: no Dolphin, no Slippi, no
 libmelee connection. Each frame the game state the policy was trained on
-(slippi_ai.types.Game) is filled from simulator memory, the policy is
-stepped, and its controller is written to the simulated pad.
+(slippi_ai.types.Game) is filled from the game, the policy is stepped, and
+its controller is written to the pad. `sim` is a tools/melee_native Native
+or a tools/melee_sim Sim: both give the same view of a fighter.
 
 Needs a slippi-ai checkout with its Python environment and trained models.
 Run with that environment's interpreter; this file adds the project's own
 packages (the simulator needs `unicorn`) to the path:
 
-    ~/Games/Melee/slippi-ai/venv/bin/python tests/sim/policy_match.py
+    ~/Games/Melee/slippi-ai/venv/bin/python tests/actor/policy_match.py
 
 The policy is not instructable: it plays its own game, `policy.delay`
 frames behind. See the doc for what that means for the Melee Actor.
@@ -28,6 +30,7 @@ def setup_path():
     """Make the simulator and slippi-ai importable from either
     environment."""
     for p in (os.path.join(ROOT, "tools", "melee_sim"),
+              os.path.join(ROOT, "tools", "melee_native"),
               os.path.join(ROOT, "tools"), SLIPPI_AI):
         if p not in sys.path:
             sys.path.insert(0, p)
@@ -85,19 +88,16 @@ class PolicyPlayer:
         from slippi_ai.types import Player
         from slippi_db.parse_libmelee import _EMPTY_NANA
         f = self.sim.fighter(port)
-        m = self.sim.m
         kind = f.kind
-        used = m.u8(f.fp + 0x1968)
         return Player(
             percent=np.uint16(max(0, int(f.percent))),
             facing=np.bool_(f.facing > 0),
             x=np.float32(f.pos[0]), y=np.float32(f.pos[1]),
             action=np.uint16(f.state),
-            invulnerable=np.bool_(m.u32(f.fp + 0x1988) != 0 or
-                                  m.u32(f.fp + 0x198C) != 0),
+            invulnerable=np.bool_(f.invulnerable),
             character=np.uint8(kind),
-            jumps_left=np.uint8(max(0, JUMPS.get(kind, 2) - used)),
-            shield_strength=np.float32(m.f32(f.fp + 0x1998)),
+            jumps_left=np.uint8(max(0, JUMPS.get(kind, 2) - f.jumps_used)),
+            shield_strength=np.float32(f.shield),
             on_ground=np.bool_(not f.airborne),
             controller=self._controller(port),
             nana=_EMPTY_NANA)

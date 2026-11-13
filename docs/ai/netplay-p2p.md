@@ -72,8 +72,13 @@ between versions. Shipping one static binary, or using the console's own math ro
 `src/MSL`, removes that. Different compilers or operating systems would not be bit-identical
 without more work. Checksums of the state exchanged every so often detect a desync either way.
 
-**Not shown yet:** a save and restore that leaves the game identical, and two instances kept
-in step over a socket. Both can be proven headless, before graphics exist.
+**Shown since (2026-11-13):** the game's state can be captured and brought back exactly.
+`tests/native/env.py` restores snapshots and gets the same game from the same inputs. Those
+snapshots are forks of the process (`native-ai.md`), which is not what rollback will use:
+it needs the copy in one process, described above.
+
+**Not shown yet:** that in-process save and restore, and two instances kept in step over a
+socket. Both can be proven headless, before graphics exist.
 
 ## Connecting without a server of ours
 

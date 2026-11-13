@@ -15,6 +15,7 @@ Start with the root `CLAUDE.md`, then read only what the task needs.
 | [native-port.md](native-port.md) | You are building or running the game natively for Linux (no emulator), comparing it with the console's code, or fixing a difference between the two |
 | [netplay-p2p.md](netplay-p2p.md) | You are asked about our own online play: whether two players can connect with no server of ours, where rollback netcode can live, what it would be built from |
 | [ucf.md](ucf.md) | You touch stick reading, UCF, or a function Slippi patches for it: the eight rules, how they are reached without Slippi's addresses, how they are compared against Slippi's own code |
+| [native-ai.md](native-ai.md) | You build anything that decides inputs or drives training on the native build: the interface (a frame per exchange, snapshots), what runs on it (actor, policies), the plan to AI-driven training, and why nobody can play it yet |
 | [training-mode-port.md](training-mode-port.md) | You are porting anything from `../TrainingMode` |
 | [ai-coach.md](ai-coach.md) | You are working on the Claude coach link |
 | [slippi-tandem.md](slippi-tandem.md) | You are working on netplay / Slippi direct-connect training |

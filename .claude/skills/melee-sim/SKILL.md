@@ -18,6 +18,24 @@ Order of tools for any question about what the game does:
 
 Never loop on Dolphin to tune a value. Tune in the simulator, confirm once in Dolphin.
 
+**Vanilla interactions run about 70 times faster on the native build**
+(`tools/melee_native/native.py`, `docs/ai/native-ai.md`): no overlay, no Lab, no drills
+there, but spacing, hitlag, knockback and anything between two pad-driven fighters is the
+same game (`docs/ai/native-port.md`, "How close it is"). `Native` has this simulator's
+`pad` / `step` / `fighter` / `snapshot` / `restore`:
+
+```python
+import sys; sys.path.insert(0, "tools/melee_native")
+from native import Native
+with Native() as n:                      # always close it: snapshots are processes
+    n.start("fox", "marth")              # VS match, both pads ours, fighters standing
+    here = n.snapshot()
+    n.pad(0, stick=(1, 0)); n.step(40)
+    print(n.fighter(0).summary()); n.restore(here)
+```
+
+Use the simulator when the question involves the overlay (an event, a drill, UCF, a hook).
+
 ## Setup
 
 ```sh

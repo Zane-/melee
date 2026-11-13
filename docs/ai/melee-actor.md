@@ -8,9 +8,9 @@ fighters actually are. The same layer lets an agent test things by instruction (
 the player") instead of by frame.
 
 This file is the research and the design. Status: a reference implementation and a proof
-exist on the simulator (`tools/melee_actor/actor.py`, `tests/sim/actor_uptilt.py`), and
-trained slippi-ai policies play in the simulator (`tools/melee_actor/policy.py`). Nothing
-is in the game yet.
+exist (`tools/melee_actor/actor.py`, `tests/actor/uptilt.py`), and trained slippi-ai
+policies play (`tools/melee_actor/policy.py`, `tests/actor/policy_match.py`), on the native
+build and on the simulator alike. Nothing is in a game a person can play yet.
 
 ## What it is
 
@@ -44,6 +44,7 @@ killed the actor until it was given the stage's width.
 
 | Runtime | State | For |
 |-|-|-|
+| Python on the native build (`tools/melee_actor/` with `tools/melee_native/native.py`), since 2026-11-13 | the same code as the next row, about 70 times faster; **where steps are developed now** (`native-ai.md`). Vanilla game only: no Lab, no drills | developing steps; agent-run tests in a fraction of a second; policies as players |
 | Python on the simulator (`tools/melee_actor/`) | reference implementation: 5 steps, 3 expectations; a trained policy can be the other fighter | developing steps; agent-run tests in seconds; the player's side of a drill test |
 | C in the overlay, inside the course engine | **not built** | the CPU in drills, on console and Slippi with nothing running beside the game |
 | Python beside Dolphin, through libmelee | **not built** | the only place a learned policy can run live |

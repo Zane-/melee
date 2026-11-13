@@ -1,20 +1,29 @@
 """Drive the native headless game (build/native/melee_headless).
 
     from native import Native
-    n = Native()
-    n.step(30)
-    n.match("fox", "marth")            # the game's debug VS mode, no menus
-    n.step(200)
-    n.pad(0, stick=(1, 0)); n.step(40)
-    print(n.fighter(0))
+    with Native() as n:
+        n.start("fox", "marth")            # a match, both pads ours, no menus
+        n.pad(0, stick=(1, 0)); n.step(40)
+        print(n.fighter(0).pos, n.fighter(1).percent)
+        here = n.snapshot()                # the whole game, as it is now
+        n.pad(0, buttons=["A"]); n.step(30)
+        n.restore(here)                    # ...and back, as often as wanted
 
-The interface follows tools/melee_sim/sim.py where the two overlap: pad()
-holds a controller state until changed, step() advances whole frames,
-fighter() reads a player's fighter. The process speaks the line protocol of
-src/host/control.c.
+The interface follows tools/melee_sim/sim.py where the two overlap, so code
+written for one runs on the other (the Melee Actor does): pad() holds a
+controller state until changed, step() advances whole frames, fighter()
+reads a player's fighter. One step is one exchange with the process (the
+`tick` command of src/host/control.c): pads in, the frame's state out.
+
+The game is a 32-bit process, so it cannot be loaded into Python; anything
+that decides inputs (a script, a trained policy, a model) lives on this side
+of the pipe.
 """
 import json
+import os
 import re
+import select
+import signal
 import subprocess
 from pathlib import Path
 
@@ -50,8 +59,49 @@ class NativeError(RuntimeError):
     pass
 
 
+class Fighter:
+    """A player's fighter in the last frame's state. The same attributes as
+    tools/melee_sim/sim.py's Fighter."""
+
+    def __init__(self, d):
+        self.d = d
+        self.fp = 1 if d else 0          # truthy when the fighter exists
+
+    kind = property(lambda s: s.d["kind"])            # internal fighter kind
+    state = property(lambda s: s.d["state"])
+    state_frame = property(lambda s: s.d["frame"])
+    facing = property(lambda s: s.d["facing"])
+    pos = property(lambda s: (s.d["x"], s.d["y"]))
+    vel = property(lambda s: (s.d["vx"], s.d["vy"]))
+    airborne = property(lambda s: bool(s.d["air"]))
+    percent = property(lambda s: s.d["percent"])
+    hitlag = property(lambda s: s.d["hitlag"])
+    hitstun = property(lambda s: s.d["hitstun"])
+    shield = property(lambda s: s.d["shield"])
+    jumps_used = property(lambda s: s.d["jumps"])
+    invulnerable = property(lambda s: bool(s.d["invuln"]))
+    stocks = property(lambda s: s.d["stocks"])
+
+    def summary(self):
+        if not self.fp:
+            return "(no fighter)"
+        return "state %d f%.0f pos (%.1f, %.1f) %s %.0f%%" % (
+            self.state, self.state_frame, self.pos[0], self.pos[1],
+            "air" if self.airborne else "ground", self.percent)
+
+
+class _Pads:
+    """What each controller is holding, as the simulator keeps it
+    (`sim.h.pads`), for code that reads the pads back."""
+
+    def __init__(self):
+        self.pads = [dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0,
+                          connected=(i == 0)) for i in range(4)]
+
+
 class Native:
-    def __init__(self, exe=EXE, disc=None, draw=False, verbose=False):
+    def __init__(self, exe=EXE, disc=None, draw=False, verbose=False,
+                 timeout=120):
         cmd = [str(exe), "--control", "--disc",
                str(disc or ROOT / "build/disc")]
         if draw:
@@ -60,15 +110,31 @@ class Native:
             cmd.append("-v")
         self.log = []          # everything the process printed besides replies
         self.frame = 0
+        self.timeout = timeout
+        self.h = _Pads()
+        self._dirty = set()    # ports whose pad the game has not been told
+        self._state = None     # the last frame's state, if still current
+        self._snaps = {}       # snapshot id -> (frame, pads) on this side
+        # Its own process group: snapshots are further processes, and all
+        # of them go when this object is closed.
         self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT, text=True)
+                                  stderr=subprocess.STDOUT, text=True,
+                                  start_new_session=True)
         self._wait_frame()
+
+    # ---- the pipe -------------------------------------------------------------
 
     def _reply(self):
         while True:
+            # With snapshots asleep the pipe stays open after a crash, so a
+            # silent game is told apart by time.
+            if not self.p.stdout.buffer.peek(1) and not select.select(
+                    [self.p.stdout], [], [], self.timeout)[0]:
+                raise NativeError("no reply in %d s:\n" % self.timeout +
+                                  "".join(self.log[-40:]))
             line = self.p.stdout.readline()
-            if not line:
+            if not line or line.startswith("@ fatal"):
                 raise NativeError("the game stopped:\n" +
                                   "".join(self.log[-40:]))
             if line.startswith("@ "):
@@ -82,51 +148,173 @@ class Native:
         self.frame = int(reply.split()[1])
 
     def _cmd(self, text):
+        self._flush_pads()
+        self._state = None
         self.p.stdin.write(text + "\n")
         self.p.stdin.flush()
-        return self._reply()
+        reply = self._reply()
+        if reply.startswith("error"):
+            raise NativeError(reply)
+        return reply
 
-    def step(self, frames=1):
-        self.p.stdin.write("step %d\n" % frames)
-        self.p.stdin.flush()
-        self._wait_frame()
-        return self.frame
+    def _pad_words(self, port):
+        p = self.h.pads[port]
+        return "%d %x %d %d %d %d %d %d" % (
+            port, p["buttons"], p["lx"], p["ly"], p["cx"], p["cy"], p["lt"],
+            p["rt"])
+
+    def _flush_pads(self):
+        for port in sorted(self._dirty):
+            self.p.stdin.write("pad " + self._pad_words(port) + "\n")
+            self.p.stdin.flush()
+            self._reply()
+        self._dirty.clear()
+
+    # ---- driving ------------------------------------------------------------------
 
     def pad(self, port=0, buttons=(), stick=(0, 0), cstick=(0, 0), l=0, r=0):
-        b = sum(BUTTONS[x.upper()] for x in buttons)
-        lx, ly = (int(round(max(-1, min(1, v)) * 127)) for v in stick)
-        cx, cy = (int(round(max(-1, min(1, v)) * 127)) for v in cstick)
-        self._cmd("pad %d %x %d %d %d %d %d %d" % (
-            port, b, lx, ly, cx, cy, int(l * 255), int(r * 255)))
+        """Set a controller's state until changed. Buttons by name
+        (A B X Y Z L R START and D-pad UP DOWN LEFT RIGHT), sticks -1..1,
+        analog triggers 0..1. Takes effect with the next step."""
+        p = self.h.pads[port]
+        p["connected"] = True
+        p["buttons"] = sum(BUTTONS[x.upper()] for x in buttons)
+        p["lx"], p["ly"] = (int(round(max(-1, min(1, v)) * 127))
+                            for v in stick)
+        p["cx"], p["cy"] = (int(round(max(-1, min(1, v)) * 127))
+                            for v in cstick)
+        p["lt"], p["rt"] = int(l * 255), int(r * 255)
+        self._dirty.add(port)
+
+    def step(self, frames=1):
+        """Run whole frames with the pads as they are. Returns the frame
+        number; state() and fighter() then cost nothing more."""
+        words = " ".join(self._pad_words(port) for port in sorted(self._dirty))
+        self._dirty.clear()
+        self.p.stdin.write("tick %d %s\n" % (frames, words))
+        self.p.stdin.flush()
+        self._state = _json(self._reply())
+        self.frame = self._state["frame"]
+        return self.frame
 
     def match(self, p1="fox", p2="marth", stage="final-destination", seed=1,
               p2_human=True):
+        """Ask for a match (the game's debug VS mode). It loads over the
+        next frames; start() also waits for it."""
         self._cmd("match %d %d %d %d %d" % (
             CHARACTERS[p1], CHARACTERS[p2], STAGES[stage],
             1 if p2_human else 0, seed))
+        self.match_info = dict(p1=p1, p2=p2, stage=stage, seed=seed,
+                               p2_human=p2_human)
+
+    def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
+              p2_human=True, settle=True):
+        """A match with both fighters standing on the stage, ready to act:
+        boot, ask for the match, wait for the fighters, and (settle) for
+        them to land from their entrance and the countdown to end."""
+        self.step(30)
+        self.match(p1, p2, stage, seed, p2_human)
+        for _ in range(600):
+            self.step()
+            if self.fighter(0).fp and self.fighter(1).fp:
+                break
+        else:
+            raise NativeError("the match never started")
+        if settle:
+            # the countdown holds every fighter in place; it is over when a
+            # held jump gets one off the ground
+            for _ in range(400):
+                self.pad(0, buttons=["X"])
+                self.step()
+                if self.fighter(0).airborne and self.fighter(0).state in (
+                        25, 26):
+                    break
+            self.pad(0)
+            for _ in range(200):
+                self.step()
+                if not self.fighter(0).airborne and \
+                        not self.fighter(1).airborne and \
+                        self.fighter(0).state == 14 and \
+                        self.fighter(1).state == 14:
+                    break
+        return self
+
+    # ---- reading --------------------------------------------------------------------
 
     def state(self):
         """Frame, random seed, both fighters (None before they exist) and
         the items."""
-        return _json(self._cmd("state"))
+        if self._state is None:
+            self._state = _json(self._cmd("state"))
+        return self._state
 
     def fighter(self, i):
-        return _json(self._cmd("fighter %d" % i))
+        return Fighter(self.state()["p"][i])
 
     def seed(self, value):
         self._cmd("seed %d" % value)
 
+    # ---- snapshots ------------------------------------------------------------------
+
+    def snapshot(self):
+        """Keep the game as it is now; returns a handle for restore(). A
+        snapshot is a sleeping copy of the process, taken in well under a
+        millisecond and sharing memory with the game until either changes
+        it. drop() it when done; all are gone when this object closes."""
+        reply = self._cmd("snap")
+        snap = int(reply.split()[1])
+        self._snaps[snap] = (self.frame, [dict(p) for p in self.h.pads])
+        return snap
+
+    def restore(self, snap):
+        """Go back to a snapshot. It stays, and can be restored again."""
+        if snap not in self._snaps:
+            raise NativeError("no snapshot %r" % (snap,))
+        reply = self._cmd("restore %d" % snap)
+        if not reply.startswith("restored"):
+            raise NativeError("restore: " + reply)
+        self.frame, pads = self._snaps[snap]
+        self.h.pads = [dict(p) for p in pads]
+        self._dirty.clear()
+        self._state = None
+
+    def drop(self, snap):
+        if self._snaps.pop(snap, None) is not None:
+            self._cmd("drop %d" % snap)
+
+    # ---- ending ---------------------------------------------------------------------
+
     def close(self):
-        if self.p.poll() is None:
+        try:
+            self.p.stdin.write("quit\n")
+            self.p.stdin.flush()
+        except Exception:
+            pass
+        for pipe in (self.p.stdin, self.p.stdout):
             try:
-                self.p.stdin.write("quit\n")
-                self.p.stdin.flush()
-                self.p.wait(timeout=5)
+                pipe.close()
             except Exception:
-                self.p.kill()
+                pass
+        # the runner may be a later process than the one started; the group
+        # is all of them
+        try:
+            os.killpg(self.p.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        try:
+            self.p.wait(timeout=5)
+        except Exception:
+            self.p.kill()
 
     def __enter__(self):
         return self
 
     def __exit__(self, *exc):
         self.close()
+
+    def __del__(self):
+        try:
+            if self.p.poll() is None or self._snaps:
+                self.close()
+        except Exception:
+            pass

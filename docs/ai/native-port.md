@@ -8,6 +8,10 @@ Status, 2026-11-12: **it boots, starts a match without menus, and plays the same
 the console's code, frame for frame, in most of what was tested.** It is the vanilla game
 only: no overlay, no TM-CE, no courses. Nothing is drawn or heard.
 
+Since 2026-11-13 this build is where new work starts: the owner wants AI built into it
+directly. What it offers a script, a policy or a model (a frame per exchange, snapshots),
+and the plan from here, are in `native-ai.md`.
+
 ```sh
 . .venv/bin/activate
 python tools/native_build.py                    # build/native/melee_headless (about 10 s)
@@ -32,7 +36,7 @@ python tools/melee_native/compare.py --tolerance 1e-4 --random 3     # against t
 | Archive readers | `tools/dat-cli/native` (upstream), generated into `build/native/dat-readers` | Turn a big-endian `.dat` archive into host objects of the game's own types, from a schema taken from a PowerPC DWARF build |
 | Host layer | `src/host/` | The console underneath the game, at the level of SDK functions: `os.c` (reports, emulated time, interrupts as queued completions, alarms, the arena at the console's addresses), `dvd.c` (the disc is `build/disc/files`), `hw.c` (audio RAM, pads, video timing, the few graphics answers the game uses), `archive.c` (the loader on the readers), `particles.c`, `match.c`, `control.c`, `debug.c`, `cuts.c` |
 | Build | `tools/native_build.py` | Runs the preset, compiles the vanilla files upstream leaves out, the host layer, Aurora's C matrix functions and the SDK's own heap allocator, generates a stub for every SDK function still missing (222), links |
-| Driver | `tools/melee_native/native.py` | `Native`: `step`, `pad`, `match`, `fighter`, `state`, over the line protocol of `src/host/control.c` |
+| Driver | `tools/melee_native/native.py` | `Native`: `start`, `step`, `pad`, `fighter`, `state`, `snapshot`, `restore`, over the line protocol of `src/host/control.c`. The simulator's interface where the two overlap (`native-ai.md`) |
 | Comparison | `tools/melee_native/compare.py`, `survey.py`, `rngdiff.py` | The same match and inputs in the Python simulator and natively, compared every frame; the same over 19 matchups; which code drew random numbers differently |
 | Sanitizer | `tools/native_build.py --asan`, `tools/melee_native/asan.py` | The game under AddressSanitizer, and its reports reduced to distinct places in the source |
 | Crash traces | `tools/native_run.sh` | Runs the game and turns a crash backtrace into function names and lines |
@@ -188,6 +192,9 @@ offered upstream; its rules (no AI-chosen names, no AI-written PR text) apply to
 that would be.
 
 ## Next steps
+
+The order since 2026-11-13 is `native-ai.md`'s plan (setting up situations, the actor's
+steps, a trainer, then a window). What was listed here before still stands behind it:
 
 1. Work through the known differences; compare CPU players and more of the game's
    state (the Ice Climbers' partner shows that two pad-driven fighters are not all of

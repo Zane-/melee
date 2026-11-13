@@ -449,6 +449,14 @@ class Fighter:
     def shield(self):
         return self._f32(0x1998)
 
+    @property
+    def jumps_used(self):
+        return self.sim.m.u8(self.fp + 0x1968)
+
+    @property
+    def invulnerable(self):
+        return self._u32(0x1988) != 0 or self._u32(0x198C) != 0
+
     def summary(self):
         x, y = self.pos
         return "P%d state %3d f%-4g pos (%7.2f, %6.2f) %s %5.1f%%" % (

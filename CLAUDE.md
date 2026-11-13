@@ -9,6 +9,13 @@ its Lab and generic events stay as free practice. Later: an in-game AI coach dri
 Claude, and tandem training over Slippi direct connect. Read `docs/ai/README.md` for the doc
 index and `docs/ai/training-courses.md` for the course architecture and its status.
 
+**Where new work starts (owner decision 2026-11-13): the native Linux build**, "because we
+want to build in direct AI integration and the actor system to build AI-driven training".
+The overlay build below is what can be played today and stays correct, but scripts,
+policies and models that drive the game are built against the native build first:
+`docs/ai/native-ai.md`. It has no window, sound or controller yet, so a person cannot
+train on it.
+
 ## Facts that shape every task
 
 - **Everything is decompiled.** All 1,117 objects in `configure.py` are `Matching`. There is no
@@ -126,7 +133,8 @@ ninja
 | Course curricula and drill specs | `data/courses/` (`README.md` for the format) |
 | Plan a course / specify a drill / implement a drill | skills `plan-character-course`, `design-training-scenario`, `add-course-drill` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
-| Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/` |
+| AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
+| Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |
 | Does the native build play the same game as the console's code? | `python tools/melee_native/compare.py` (`--random N`, `--tolerance`) |
 
