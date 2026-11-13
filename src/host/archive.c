@@ -118,6 +118,11 @@ static struct {
     size_t size;
 } open_archives[MAX_OPEN];
 
+/// Goes up whenever an archive is opened or closed: what was looked up by
+/// address before then (host_dat_raw_room, host_dat_blob_size) may no
+/// longer hold.
+uint32_t host_dat_generation;
+
 static const char* base_name(const char* path)
 {
     const char* slash = strrchr(path, '/');
@@ -128,6 +133,7 @@ static void close_slot(int i)
 {
     DatArchive* native = open_archives[i].native;
     open_archives[i].native = NULL;
+    host_dat_generation++;
     host_particles_forget(native->archive->data, native->archive->size);
     dat_close(native);
 }
@@ -155,6 +161,7 @@ static void note_open(DatArchive* native, const void* src, size_t size)
     for (int i = 0; i < MAX_OPEN; i++) {
         if (open_archives[i].native == NULL) {
             open_archives[i].native = native;
+            host_dat_generation++;
             open_archives[i].src = src;
             open_archives[i].size = size;
             snprintf(open_archives[i].file, sizeof open_archives[i].file,

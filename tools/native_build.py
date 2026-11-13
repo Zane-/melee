@@ -64,6 +64,9 @@ VANILLA = {
     "melee/lb/lbcardnew.c": [],
     "sysdolphin/baselib/fog.c": [],
     "sysdolphin/baselib/pobj.c": [],
+    # Palettes go to the graphics layer through the shim (shim.h).
+    "sysdolphin/baselib/tobj.c": [],
+    "sysdolphin/baselib/sobjlib.c": [],
     "sysdolphin/baselib/sislib_font.c": [],
     "sysdolphin/baselib/hsd_3915.c": [],
     "sysdolphin/baselib/video.c": [
@@ -124,6 +127,17 @@ PATCHES = {
          "HSD_ObjFree(&hsd_804D0F60.alloc_data, prt);"),
     ],
     # Two tables addressed as "what follows this other table in memory".
+    # A stock icon's frame: `base` is never assigned for the first twenty
+    # characters. The console's code leaves the character's number in the
+    # register that holds it (checked in the retail code: `cmpwi r3,19;
+    # ble` straight to the sum), so that is its value there; natively it
+    # was whatever the stack held, and every icon was Captain Falcon's.
+    "melee/gm/gm_1601.c": [
+        ("f32 gm_80168B34(CharacterKind ckind, int arg1, int arg2)\n"
+         "{\n    int base;",
+         "f32 gm_80168B34(CharacterKind ckind, int arg1, int arg2)\n"
+         "{\n    int base = ckind;"),
+    ],
     # The fighter material class is read as one struct with the two
     # templates defined after it; on the console they follow it in memory.
     "melee/ft/ftmaterial.c": [

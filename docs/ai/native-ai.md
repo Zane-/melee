@@ -124,9 +124,17 @@ python tools/melee_native/window.py --out DIR [--match fox,marth,final-destinati
 `melee_native` is the headless game with Aurora under its graphics calls
 (`src/host/window.c`). `tools/melee_native/window.py` runs it where nothing can appear on
 the desktop: on a virtual X server of its own, drawn by a software renderer, and saves
-what is on that screen. In the first picture of a match (Fox and Marth on Final
-Destination, frame 330) the stage, both fighters, the background and the damage display
-are there. Some textures are wrong (magenta lines across the stage, the stock icons).
+what is on that screen. A picture of a match (Fox and Marth on Final Destination, frame
+330) shows the stage, both fighters, the background, the damage display and each
+player's stock icon. Set beside a frame of the same stage and characters from Dolphin it
+shows nothing wrong, but the two were taken from different camera positions and compared
+by eye, not pixel by pixel.
+
+It runs faster than the game needs: a frame of that match takes about 6 ms with the
+software renderer and 4 ms on this machine's GPU (240 a second), where the game wants one
+every 16.7 ms. `MELEE_TIMING=1` logs where a frame's time goes every 60 frames;
+`MELEE_DEBUGGER=1` lets a debugger that is not the game's parent attach (the kernel's
+default forbids it), which is how the slow part below was found.
 
 Pictures of the game are not kept in this repository (it is public, and they show the
 game's art): they go under `build/shots/`, which git ignores. One was committed by mistake
@@ -140,19 +148,30 @@ What it took, beyond linking Aurora in:
 | Writes straight to the console's command pipe | The particle and a few other files write vertex data with `GXWGFifo.f32 = x;`, an assignment to a hardware address, which Aurora never sees: its command stream lost its place. `native_build.py` compiles a copy of those files in which each such write is `GXParam1f32(x)` (`FIFO_FILES`) |
 | Vertex arrays | The console's `GXSetArray` has no length; Aurora copies the whole array into the frame. A model's vertex data is a blob of an archive, so its length is bounded the way the readers bound any array of unknown length: up to the next thing the archive points at (`host_dat_blob_size`). A looser bound overflowed Aurora's 8 MB of frame storage |
 | Fighter materials | `ftmaterial.c` reads two templates through a struct laid over three adjacent globals; natively they are not adjacent (one more of `native-port.md`'s "memory layout" kind). Patched at build time |
+| Palettes | A palette is a typed array in the archives, so the readers hand the game entries in host byte order; Aurora decodes them as the console stores them. It is given the file's own bytes instead (`host_GXInitTlutObj`). Until then every indexed texture had wrong colours |
+| Lookups by address | "Which archive is this pointer in" walked every object of every open archive, for each palette and vertex array of each frame: 27 ms a frame, 36 frames a second. The answers are now kept until an archive is opened or closed (`memo_slot` in `window.c`) |
+| Stock icons | Both players' icons were Captain Falcon's. `gm_80168B34` never assigns `base` for the first twenty characters; the console's code happens to keep the character's number in that register (confirmed in the retail code), and natively it was whatever the stack held. Patched at build time. **This is a kind of difference `compare.py` cannot see unless the value reaches a fighter**, and nothing has searched for others: see below |
 | Running it safely | The game's process renames itself ("Main thread"), so `pgrep melee_native` does not find it, and `timeout` around `xvfb-run` leaves it running. `window.py` puts the X server and the game each in a process group, kills both on close and looks for survivors by executable path |
 
 Known, not fixed:
 
-- **Wrong textures** on the stage and the stock icons. Not looked into yet; palettes
-  (indexed textures) are the first suspect.
+- **Variables the game's code reads without assigning.** The decompiled C matches the
+  console's code even where that code only works because of what a register held. One
+  such place is patched (stock icons). The native build compiles with warnings off; a
+  pass with the compiler's uninitialised-variable warnings over the game's files would
+  list the candidates. Not done.
 - **The software Vulkan driver (lavapipe) crashes** inside its compiler a few frames in,
   in this 32-bit process. Tests use software OpenGL ES (llvmpipe) instead
-  (`MELEE_BACKEND=gles`). On the real GPU (`--gpu`) nothing has been run yet.
+  (`MELEE_BACKEND=gles`). `--gpu` leaves the choice to Dawn and has run a match on the
+  virtual display; which driver it chose there was not recorded.
+- **Every texture is new to Aurora each time it is drawn** (the game fills in a fresh
+  texture object per draw, and Aurora numbers them). Aurora finds the picture again by
+  its content, so it is correct, but what this costs over a long session is unmeasured.
 - **Snapshots do not work in the window build** (a fork of a process with a GPU context
   and threads): not guarded, do not use them there.
-- No sound, no controller, and nothing has been run on the real display.
-- Speed is unmeasured. Each vertex array lookup walks the open archives.
+- No sound, no controller, no pacing to 60 frames a second, and nothing has been run on
+  the real display.
+- Only Final Destination with Fox and Marth, and the boot screens, have been looked at.
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
@@ -166,7 +185,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield); `choose`, so an opponent varies what it does from run to run. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branching on what happened | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
-| N6 (the game draws, off screen; textures partly wrong) | A window, sound and a controller. Done: Aurora linked in, a match drawn and saved as a picture. Next: the wrong textures, the real GPU, a window on the desktop, a controller, sound | then a person plays a match |
+| N6 (the game draws, off screen, faster than real time) | A window, sound and a controller. Done: Aurora linked in, a match drawn and saved as a picture. Next: playing in real time with a controller or the keyboard, a window on the desktop, more stages and characters looked at, sound | then a person plays a match |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
 N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.

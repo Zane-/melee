@@ -28,6 +28,15 @@ void host_GXSetArray3(GXAttr attr, const void* data, u8 stride);
                          host_GXSetArray_bad)                                 \
     (__VA_ARGS__)
 
+/* Palettes are typed in the archives (arrays of 16-bit entries), so the
+   readers hand the game entries in host order. Aurora wants them as the
+   console has them: host_GXInitTlutObj (window.c) passes the file's own
+   bytes instead. */
+void host_GXInitTlutObj(GXTlutObj* obj, void* lut, GXTlutFmt fmt,
+                        u16 entries);
+#define GXInitTlutObj(obj, lut, fmt, entries)                                 \
+    host_GXInitTlutObj((obj), (lut), (fmt), (entries))
+
 void PADSetSamplingRate(u32 msec);
 s32 CARDFormatAsync(s32 chan, CARDCallback callback);
 void GXWaitDrawDone(void);

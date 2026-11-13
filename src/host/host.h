@@ -100,6 +100,7 @@ void host_fighter_json(int slot, char* out, size_t size);
 void* host_dat_raw(const void* native);
 void* host_dat_raw_room(const void* native, uint32_t* room);
 uint32_t host_dat_blob_size(const void* at, uint32_t element);
+extern uint32_t host_dat_generation;
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 

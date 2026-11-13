@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/prctl.h>
 
 #include <dolphin/os.h>
 #include <sysdolphin/baselib/controller.h>
@@ -165,6 +166,11 @@ int main(int argc, char** argv)
     host.int_enabled = 1;
     /* Before anything else maps memory: the arena has to be at the
        console's addresses. */
+    if (getenv("MELEE_DEBUGGER") != NULL) {
+        /* let a debugger that is not this process's parent attach (the
+           kernel's default only allows a parent): for profiling */
+        prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY, 0, 0, 0);
+    }
     host_memory_init();
     host_disc_init(disc);
 #ifdef HOST_WINDOW
