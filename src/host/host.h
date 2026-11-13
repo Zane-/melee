@@ -101,6 +101,11 @@ void* host_dat_raw(const void* native);
 void* host_dat_raw_room(const void* native, uint32_t* room);
 uint32_t host_dat_blob_size(const void* at, uint32_t element);
 extern uint32_t host_dat_generation;
+
+/// The window build only (window.c): a port played by a person, and
+/// running at the console's speed instead of as fast as it goes.
+const char* host_window_live(int port, const char* source);
+void host_window_pace(int on);
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 

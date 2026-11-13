@@ -13,8 +13,9 @@ index and `docs/ai/training-courses.md` for the course architecture and its stat
 want to build in direct AI integration and the actor system to build AI-driven training".
 The overlay build below is what can be played today and stays correct, but scripts,
 policies and models that drive the game are built against the native build first:
-`docs/ai/native-ai.md`. It has no window, sound or controller yet, so a person cannot
-train on it.
+`docs/ai/native-ai.md`. Its window variant draws, runs at the console's speed and reads
+a controller or the keyboard (`python tools/melee_native/play.py`), but that has only
+been checked on a virtual display, it has no sound, and no drills run on it yet.
 
 ## Facts that shape every task
 
@@ -136,6 +137,7 @@ ninja
 | Claude writes a scenario from an instruction and tests it (needs API credentials; never run yet) | `python tools/melee_actor/author.py "..."`; "Claude writing scenarios" in `docs/ai/native-ai.md` |
 | Run the game headless, test interactions in seconds | `tools/melee_sim/` (`docs/ai/simulator.md`), skill `melee-sim` |
 | AI on the native build: the interface, snapshots, the plan | `docs/ai/native-ai.md`; `tools/melee_native/native.py`; `python tests/native/env.py` |
+| Play the native build yourself (a window on your desktop; no sound yet) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
 | A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |

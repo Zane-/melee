@@ -12,6 +12,15 @@ desktop: on a virtual X server of its own, drawn by a software renderer
     python tools/melee_native/window.py --out DIR [--match fox,marth,final-destination]
                                         [--frames 30,120,300] [--gpu]
 
+`Window(real=True)` instead opens the window on the desktop this process
+was started from (tools/melee_native/play.py does, for a person to play).
+
+A port can be handed to a person (`live(port)`: a controller, or the
+keyboard) and the game slowed to the console's speed (`pace()`); the rest
+of the interface is unchanged, so a script can drive the other fighter and
+read the state while they play. `key()` presses keys on the virtual display,
+for tests.
+
 `Window` is a `Native` (tools/melee_native/native.py) whose game has a
 display. The X server and the game are each a process group of their own
 and both are killed on close; `leftovers()` looks for any that survived, by
@@ -19,6 +28,7 @@ executable path (the game's process renames itself, so its name does not
 find it).
 """
 import argparse
+import ctypes
 import os
 import shutil
 import signal
@@ -28,7 +38,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from native import Native, NativeError, ROOT  # noqa: E402
+from native import (Native, NativeError, ROOT,  # noqa: E402
+                    die_with_parent)
 
 EXE = ROOT / "build/native-window/melee_native"
 
@@ -54,10 +65,34 @@ def leftovers():
 
 class Window(Native):
     def __init__(self, gpu=False, size=(800, 600), verbose=False,
-                 timeout=120, state_dir=None):
+                 timeout=120, state_dir=None, real=False, vsync=False):
         if not EXE.exists():
             raise NativeError("no window build: run tools/aurora32/build.sh "
                               "and tools/native_build.py --window")
+        self.x = None
+        self.display = None
+        self._xlib = None
+        if real:
+            # the desktop this was started from, and its GPU
+            env = dict(os.environ)
+        else:
+            env = self._virtual_display(size, state_dir)
+            if not gpu:
+                # Software OpenGL ES (llvmpipe). The software Vulkan driver
+                # (lavapipe) crashes inside its compiler in this 32-bit
+                # process, a few frames in.
+                env["MELEE_BACKEND"] = "gles"
+                env["LIBGL_ALWAYS_SOFTWARE"] = "1"
+        if vsync:
+            env["MELEE_VSYNC"] = "1"
+        try:
+            super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
+                             env=env)
+        except Exception:
+            self._kill_x()
+            raise
+
+    def _virtual_display(self, size, state_dir):
         # A display of our own: Xvfb picks a free number and writes it to
         # the pipe. The fake "-fp" entry only marks the process as ours.
         r, w = os.pipe()
@@ -66,7 +101,8 @@ class Window(Native):
              "%dx%dx24" % size, "-nolisten", "tcp", "-fp",
              "/melee-window/fonts,built-ins"],
             pass_fds=[w], stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL, start_new_session=True)
+            stderr=subprocess.DEVNULL, start_new_session=True,
+            preexec_fn=die_with_parent)
         os.close(w)
         number = b""
         deadline = time.time() + 10
@@ -89,21 +125,60 @@ class Window(Native):
         env.update(DISPLAY=self.display, SDL_VIDEODRIVER="x11",
                    XDG_DATA_HOME=str(state), XDG_CACHE_HOME=str(state),
                    XDG_CONFIG_HOME=str(state))
-        if not gpu:
-            # Software OpenGL ES (llvmpipe). The software Vulkan driver
-            # (lavapipe) crashes inside its compiler in this 32-bit
-            # process, a few frames in.
-            env["MELEE_BACKEND"] = "gles"
-            env["LIBGL_ALWAYS_SOFTWARE"] = "1"
-        try:
-            super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
-                             env=env)
-        except Exception:
-            self._kill_x()
-            raise
+        return env
+
+    # ---- a person at the controls -------------------------------------------
+
+    def live(self, port=0, source="auto"):
+        """Hand a port to a person: "auto" (the first controller, or the
+        keyboard if there is none), "keyboard", "pad" / "padN" (the Nth
+        controller), or "off" to take it back for pad()."""
+        self._cmd("live %d %s" % (port, source))
+
+    def pace(self, on=True):
+        """Run at the console's speed (59.94 frames a second) instead of
+        as fast as the machine goes."""
+        self._cmd("pace %d" % (1 if on else 0))
+
+    def key(self, name, down=True):
+        """Press or release a key on the virtual display, by its X name
+        ("Right", "x", "Return", "Shift_L"). For tests."""
+        if self.display is None:
+            raise NativeError("key() is for the virtual display only")
+        if self._xlib is None:
+            x = ctypes.CDLL("libX11.so.6")
+            t = ctypes.CDLL("libXtst.so.6")
+            x.XOpenDisplay.restype = ctypes.c_void_p
+            x.XOpenDisplay.argtypes = [ctypes.c_char_p]
+            x.XStringToKeysym.restype = ctypes.c_ulong
+            x.XStringToKeysym.argtypes = [ctypes.c_char_p]
+            x.XKeysymToKeycode.restype = ctypes.c_ubyte
+            x.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+            x.XFlush.argtypes = [ctypes.c_void_p]
+            x.XCloseDisplay.argtypes = [ctypes.c_void_p]
+            t.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint,
+                                            ctypes.c_int, ctypes.c_ulong]
+            t.XTestFakeMotionEvent.argtypes = [
+                ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_ulong]
+            dpy = x.XOpenDisplay(self.display.encode())
+            if not dpy:
+                raise NativeError("cannot open the virtual display")
+            # with no window manager, keys go to the window under the
+            # pointer: put it on the game's
+            t.XTestFakeMotionEvent(dpy, 0, 320, 240, 0)
+            self._xlib = (x, t, dpy)
+        x, t, dpy = self._xlib
+        code = x.XKeysymToKeycode(dpy, x.XStringToKeysym(name.encode()))
+        if not code:
+            raise NativeError("no such key: " + name)
+        t.XTestFakeKeyEvent(dpy, code, 1 if down else 0, 0)
+        x.XFlush(dpy)
 
     def shot(self, path):
         """Save what is on the virtual screen as a picture."""
+        if self.display is None:
+            raise NativeError("shot() is for the virtual display only")
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         # the game's window is 640 by 480 at the corner of the screen
@@ -116,6 +191,11 @@ class Window(Native):
         return path
 
     def _kill_x(self):
+        if self._xlib is not None:
+            self._xlib[0].XCloseDisplay(self._xlib[2])
+            self._xlib = None
+        if self.x is None:
+            return
         try:
             os.killpg(self.x.pid, signal.SIGKILL)
         except (ProcessLookupError, PermissionError):

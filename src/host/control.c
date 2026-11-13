@@ -408,6 +408,28 @@ static void command(char* line)
             ((uint8_t*) (uintptr_t) addr)[i / 2] = (uint8_t) byte;
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "live") == 0 || strcmp(cmd, "pace") == 0) {
+#ifdef HOST_WINDOW
+        if (cmd[0] == 'l') {
+            int p = 0;
+            char source[16] = "auto";
+            const char* why;
+            sscanf(line, "%d %15s", &p, source);
+            why = host_window_live(p, source);
+            if (why != NULL) {
+                printf("@ error %s\n", why);
+            } else {
+                printf("@ ok\n");
+            }
+        } else {
+            int on = 1;
+            sscanf(line, "%d", &on);
+            host_window_pace(on);
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "quit") == 0) {
         snap_drop_all();
         host_stub_report();

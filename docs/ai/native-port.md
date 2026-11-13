@@ -204,5 +204,6 @@ steps, a trainer, then a window). What was listed here before still stands behin
 3. Hooks for the native target, so TM-CE, the course engine and the drill specs
    (`tests/tmtest/course/`, 230 with numbers from the PowerPC build) run on it.
 4. Graphics, audio and input for a playable build. Since 2026-11-13 the window build
-   (`native_build.py --window`) draws a match through Aurora, off screen, with some
-   textures wrong (`native-ai.md`, "The game draws"). No sound or controller yet.
+   (`native_build.py --window`) draws matches through Aurora, runs at the console's speed
+   and reads a controller or the keyboard (`native-ai.md`, "The game draws" and "A person
+   at the controls"); checked on a virtual display only. No sound yet.

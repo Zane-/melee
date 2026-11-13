@@ -42,6 +42,7 @@ not built.
 | What a character's running moves reach, measured by trying | `tools/melee_actor/calibrate.py` → `data/actor/reach.json` | used by the scenarios above |
 | The Melee Actor, unchanged, on either the native build or the simulator | `tools/melee_actor/actor.py` | `tests/actor/uptilt.py` (4 of 4 on both) |
 | slippi-ai policies as players, on either | `tools/melee_actor/policy.py` | `tests/actor/policy_match.py` |
+| A window: the game drawn, at the console's speed, a port played from a controller or the keyboard (below) | `src/host/window.c`, `tools/melee_native/window.py`, `play.py` | `tests/native/live.py`, 14 checks, on a virtual display with keys pressed there. Never on a real display or with a real controller |
 
 Measured on this machine, unoptimised build (`-O0`):
 
@@ -89,11 +90,13 @@ sleeper stays, so a snapshot can be restored any number of times.
 - With sleepers holding stdout open, a crashed game no longer shows as end of input. A
   fatal error prints `@ fatal`; `Native` also gives up after `timeout` seconds of silence.
 
-## The gap: nobody can play it
+## The gap: nobody has played it
 
-AI-driven training has a person in it. The native build has no graphics, no sound and no
-controller. Until it does, everything here is developed and checked with a stand-in for
-the player: an actor script or a policy.
+AI-driven training has a person in it. Until 2026-11-13 the native build had no graphics
+and no controller, and everything here was developed with a stand-in for the player: an
+actor script or a policy. It now draws and reads a person's input (the next three
+sections), but no person has played it: it has only been run on a virtual display. It has
+no sound.
 
 ### The window: the graphics stack builds and runs 32-bit (probe, 2026-11-13)
 
@@ -169,9 +172,59 @@ Known, not fixed:
   its content, so it is correct, but what this costs over a long session is unmeasured.
 - **Snapshots do not work in the window build** (a fork of a process with a GPU context
   and threads): not guarded, do not use them there.
-- No sound, no controller, no pacing to 60 frames a second, and nothing has been run on
-  the real display.
-- Only Final Destination with Fox and Marth, and the boot screens, have been looked at.
+- No sound, and nothing has been run on the real display.
+
+### A person at the controls (2026-11-13, off screen only)
+
+```sh
+python tools/melee_native/play.py                         # Fox against a standing Marth
+python tools/melee_native/play.py falco sheik --stage battlefield --cpu
+python tools/melee_native/play.py --input keyboard        # or pad0, pad1; --input2 for port 2
+```
+
+`play.py` opens the window on the desktop it is started from, hands port 1 to a person
+and runs at the console's speed. **It has never been run that way**: agents here do not
+put windows on the owner's desktop. `--offscreen` runs the same loop on a virtual
+display, which is what was tested.
+
+How it works: a port can be *live* (`live P SOURCE` on the control pipe,
+`Window.live()`). At each frame boundary a live port's pad is read from a controller or
+the keyboard through SDL into the same `host.pads[]` a script writes, so the game, the
+state on the pipe and the other port's script are as before: an actor or a policy can
+play port 2 and read every frame while a person plays port 1. That is the shape N7
+needs. `pace` (`Window.pace()`) holds the game to 59.94 frames a second.
+
+| Input | Mapping |
+|-|-|
+| A controller, through SDL | By where the buttons are: bottom A, left B, right X, top Y; right (and left) shoulder Z; left stick the stick, right stick the C stick; triggers L and R, with the click as SDL reports it for a GameCube adapter, or the last tenth of the travel on other controllers |
+| The keyboard | Arrows: the stick (left shift: a light push). I J K L: C stick. X: A. Z: B. C, V: Y, X. A, S: L, R. D: Z. Return: Start. T F G H: D-pad |
+
+Known limits of the controller path, none of them tried:
+
+- **Not a controller's own numbers.** SDL rescales a GameCube controller's sticks before
+  the game sees them (88 steps from the centre become a full push). For exact inputs
+  (what UCF and control profiles are about) the adapter has to be read directly, as
+  Dolphin does. Not done.
+- The adapter must be openable by SDL (the permissions Dolphin needs).
+- Aurora's own controller layer (bindings, rumble) is not used: it would replace the
+  host's `PADRead`, which scripted runs depend on.
+- No vsync by default (`--vsync`); the picture is shown as soon as it is drawn.
+
+Two faults in the driver came out of this and are fixed for every user of `Native`:
+
+- **A reply could be missed and the driver wait for ever.** It read lines through
+  Python's text layer but looked for waiting data below it; when the game printed several
+  lines at once (always with `-v`) the reply sat in between. It reads the pipe itself now,
+  and a silent game is an error after `timeout` seconds.
+- **A driver killed from outside left the game and the virtual display running** (twice,
+  for two minutes, under `timeout`). Both are now killed by the kernel when the driver
+  dies, however it dies (`die_with_parent`); checked by killing a driver with SIGKILL.
+
+Looked at, one frame each, software renderer (pictures under `build/shots/`): Dream Land,
+Battlefield, Pokémon Stadium, Yoshi's Story, Fountain of Dreams and Final Destination,
+with twelve characters between them. All ran 400 frames and are recognisably right.
+Seen and not looked into: Fountain of Dreams' reflecting floor is drawn in coarse blocks;
+Pokémon Stadium's screen shows "kj" under "Combatants".
 
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
@@ -185,7 +238,7 @@ Where a person can train **today** is still the overlay build on Dolphin
 | N3 (begun) | The actor's step library (`melee-actor.md`, A2). Done: steps are generators, so two scripts run at once; scenario files and a runner with a verdict as JSON; the conditions `target_attacking`, `target_swung`, `target_idle`, `target_frame`; `rush` (running grab, dash attack, jump-cancelled up smash, at measured distances), `throw`, `shield` (until it has blocked) and `oos` (shield grab, up smash, jump out of shield); `choose`, so an opponent varies what it does from run to run. Not done: jumps and aerials, dash dance, wavedash, a step interrupted by being attacked, branching on what happened | one scenario per step |
 | N4 (begun) | A trainer process: scenarios run against a stand-in player, retried from a snapshot, scored. Done: `scenario.Session`, one situation in two versions. Not done: scenarios from `data/courses/`, a session of several, keeping score over time | two scenarios from `data/courses/` run end to end, headless |
 | N5 (written, never run against the API) | Claude in the loop: turns an instruction into a scenario, runs it, reads the verdicts, revises (`ai-coach.md` for the coaching side). Never in the frame loop. `tools/melee_actor/author.py`, below | an instruction in words becomes a scenario that passes: **not shown**, no credentials on this machine |
-| N6 (the game draws, off screen, faster than real time) | A window, sound and a controller. Done: Aurora linked in, a match drawn and saved as a picture. Next: playing in real time with a controller or the keyboard, a window on the desktop, more stages and characters looked at, sound | then a person plays a match |
+| N6 (draws, paced, a port played from the keyboard; all off screen) | A window, sound and a controller. Done: Aurora linked in, six stages drawn, the console's speed, live ports, `play.py`. Next: **the owner runs `play.py`** (first time on a real display and with a real controller), then sound, then the adapter read directly | a person plays a match |
 | N7 | The trainer with a person in it: feedback on screen | the owner trains against an actor |
 
 N6 is the largest unknown and gates N7. N2 to N5 do not wait for it.

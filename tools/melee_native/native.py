@@ -102,6 +102,14 @@ class _Pads:
                           connected=(i == 0)) for i in range(4)]
 
 
+def die_with_parent():
+    """For Popen's preexec_fn: the child is killed when this process ends,
+    however it ends (a `timeout` around a test kills the driver without
+    letting it clean up; games were left running that way)."""
+    import ctypes
+    ctypes.CDLL("libc.so.6").prctl(1, signal.SIGKILL)  # PR_SET_PDEATHSIG
+
+
 class Native:
     def __init__(self, exe=EXE, disc=None, draw=False, verbose=False,
                  timeout=120, env=None):
@@ -123,20 +131,33 @@ class Native:
         self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT, text=True,
-                                  start_new_session=True, env=env)
+                                  start_new_session=True, env=env,
+                                  preexec_fn=die_with_parent)
+        self._out = self.p.stdout.fileno()
+        self._pending = b""    # read from the game, not yet a whole line
         self._wait_frame()
 
     # ---- the pipe -------------------------------------------------------------
 
-    def _reply(self):
-        while True:
-            # With snapshots asleep the pipe stays open after a crash, so a
-            # silent game is told apart by time.
-            if not self.p.stdout.buffer.peek(1) and not select.select(
-                    [self.p.stdout], [], [], self.timeout)[0]:
+    def _line(self):
+        """The game's next line, "" at the end of its output. Raises if it
+        says nothing for `timeout` seconds: with snapshots asleep the pipe
+        stays open after a crash, and a hung game says nothing either."""
+        while b"\n" not in self._pending:
+            if not select.select([self._out], [], [], self.timeout)[0]:
                 raise NativeError("no reply in %d s:\n" % self.timeout +
                                   "".join(self.log[-40:]))
-            line = self.p.stdout.readline()
+            chunk = os.read(self._out, 65536)
+            if not chunk:
+                rest, self._pending = self._pending, b""
+                return rest.decode(errors="replace")
+            self._pending += chunk
+        line, _, self._pending = self._pending.partition(b"\n")
+        return line.decode(errors="replace") + "\n"
+
+    def _reply(self):
+        while True:
+            line = self._line()
             if not line or line.startswith("@ fatal"):
                 how = ""
                 if not line:
