@@ -206,7 +206,7 @@ typedef struct ftCo_ItemThrowAttrs {
 } ftCo_ItemThrowAttrs;
 
 typedef struct Fighter_804D6540_t {
-    Fighter_804D6540_x0_t* x0;
+    Fighter_804D6540_x0_t* x0 DAT_COUNT(x4);
     int x4;
 } Fighter_804D6540_t;
 extern Fighter_804D6540_t** Fighter_804D6540;

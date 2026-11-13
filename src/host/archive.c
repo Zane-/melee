@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include "melee_dat.h"
 
@@ -109,8 +112,10 @@ static const NameEntry* find_name(const char* name)
 
 #define MAX_OPEN 512
 static struct {
-    const DatArchive* native;
+    DatArchive* native;
     char file[64];
+    const uint8_t* src; ///< the buffer it was parsed from
+    size_t size;
 } open_archives[MAX_OPEN];
 
 static const char* base_name(const char* path)
@@ -119,17 +124,45 @@ static const char* base_name(const char* path)
     return slash ? slash + 1 : path;
 }
 
-static void note_open(const DatArchive* native, const void* src)
+static void close_slot(int i)
+{
+    DatArchive* native = open_archives[i].native;
+    open_archives[i].native = NULL;
+    host_particles_forget(native->archive->data, native->archive->size);
+    dat_close(native);
+}
+
+/// On the console an archive is the buffer it was read into: reading
+/// something else into that buffer ends it. Here its converted objects are
+/// separate, so they are released when the buffer is parsed again (a
+/// fighter's animation buffer is, at every change of animation, into an
+/// archive struct on the stack that nothing ever frees).
+static void end_overlapping(const uint8_t* src, size_t size)
+{
+    for (int i = 0; i < MAX_OPEN; i++) {
+        if (open_archives[i].native != NULL &&
+            src < open_archives[i].src + open_archives[i].size &&
+            open_archives[i].src < src + size)
+        {
+            close_slot(i);
+        }
+    }
+}
+
+static void note_open(DatArchive* native, const void* src, size_t size)
 {
     const char* path = host_disc_origin(src, NULL);
     for (int i = 0; i < MAX_OPEN; i++) {
         if (open_archives[i].native == NULL) {
             open_archives[i].native = native;
+            open_archives[i].src = src;
+            open_archives[i].size = size;
             snprintf(open_archives[i].file, sizeof open_archives[i].file,
                      "%s", path ? base_name(path) : "");
             return;
         }
     }
+    host_fatal("too many archives open");
 }
 
 static const char* file_of(const DatArchive* native)
@@ -142,11 +175,70 @@ static const char* file_of(const DatArchive* native)
     return "";
 }
 
-static void note_close(const DatArchive* native)
+/// Whether it was still open.
+static int note_close(const DatArchive* native)
 {
     for (int i = 0; i < MAX_OPEN; i++) {
         if (open_archives[i].native == native) {
-            open_archives[i].native = NULL;
+            close_slot(i);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* --- types that stay in disc order -----------------------------------------
+ * A type marked PPC_LAYOUT (src/Runtime/platform.h) is read by the game in
+ * the console's bit and byte order, so the bytes of the file are already its
+ * memory. The readers would store its integers in host order; for these
+ * types their conversion is replaced by a copy. The names come from the
+ * headers (tools/native_build.py writes the list).
+ */
+extern const char* const host_ppc_layout_names[];
+
+#define RAW_COPY(n)                                                           \
+    static void raw_copy_##n(DatArchive* a, uint32_t offset, void* native)    \
+    {                                                                         \
+        memcpy(native, a->archive->data + offset, n);                         \
+    }
+RAW_COPY(1)
+RAW_COPY(2)
+RAW_COPY(4)
+RAW_COPY(8)
+
+static void keep_disc_order(void)
+{
+    static int done;
+    const DatSchema* s = &melee_dat_schema;
+    long page = sysconf(_SC_PAGESIZE);
+
+    if (done) {
+        return;
+    }
+    done = 1;
+    for (uint32_t i = 1; i < s->ntypes; i++) {
+        DatType* t = (DatType*) s->types[i];
+        void (*copy)(DatArchive*, uint32_t, void*);
+        if (t == NULL || t->name == NULL ||
+            (t->kind != DAT_KIND_UNION && t->kind != DAT_KIND_STRUCT))
+        {
+            continue;
+        }
+        copy = t->size == 1   ? raw_copy_1
+               : t->size == 2 ? raw_copy_2
+               : t->size == 4 ? raw_copy_4
+               : t->size == 8 ? raw_copy_8
+                              : NULL;
+        for (int n = 0; copy != NULL && host_ppc_layout_names[n] != NULL; n++)
+        {
+            if (strcmp(host_ppc_layout_names[n], t->name) == 0) {
+                /* The descriptors are constants: unprotect to patch one. */
+                uintptr_t start = (uintptr_t) t & ~(uintptr_t) (page - 1);
+                uintptr_t end = (uintptr_t) (t + 1);
+                mprotect((void*) start, end - start, PROT_READ | PROT_WRITE);
+                t->convert = copy;
+                break;
+            }
         }
     }
 }
@@ -163,13 +255,15 @@ s32 HSD_ArchiveParse(HSD_Archive* archive, u8* src, size_t size)
         return -1;
     }
     memset(archive, 0, sizeof(*archive));
+    keep_disc_order();
+    end_overlapping(src, size);
     native = dat_open(&melee_dat_schema, src, size, &error);
     if (native == NULL) {
         host_log("archive from %s does not parse: %s",
                  host_disc_origin(src, NULL), error ? error : "?");
         return -1;
     }
-    note_open(native, src);
+    note_open(native, src, size);
     raw = native->archive;
     archive->native_data = native;
     archive->header.file_size = be32(src);
@@ -209,10 +303,7 @@ void HSD_ArchiveReleaseNative(HSD_Archive* archive)
     if (archive == NULL || archive->native_data == NULL) {
         return;
     }
-    note_close(archive->native_data);
-    host_particles_forget(archive->native_data->archive->data,
-                          archive->native_data->archive->size);
-    dat_close(archive->native_data);
+    note_close(archive->native_data); /* unless its buffer was reused */
     archive->native_data = NULL;
     archive->top_ptr = NULL;
     free(archive->reloc_info);
@@ -222,6 +313,15 @@ void HSD_ArchiveReleaseNative(HSD_Archive* archive)
     archive->public_info = NULL;
     archive->extern_info = NULL;
     archive->symbols = NULL;
+}
+
+static int same_stem(const char* a, const char* b)
+{
+    const char* da = strrchr(a, '.');
+    const char* db = strrchr(b, '.');
+    size_t la = da ? (size_t) (da - a) : strlen(a);
+    size_t lb = db ? (size_t) (db - b) : strlen(b);
+    return la == lb && strncasecmp(a, b, la) == 0;
 }
 
 /// The type the schema gives the symbol `name`: the root of that name in
@@ -235,6 +335,13 @@ static int32_t type_by_name(const DatArchive* native, const char* name)
 
     for (const NameEntry* e = first; e != NULL; e = e->next) {
         if (file[0] != '\0' && strcmp(e->file->file, file) == 0) {
+            return e->root->type;
+        }
+    }
+    /* A file's other language version (GrPs.usd for GrPs.dat) has the
+       same symbols. */
+    for (const NameEntry* e = first; e != NULL; e = e->next) {
+        if (file[0] != '\0' && same_stem(e->file->file, file)) {
             return e->root->type;
         }
     }
@@ -399,4 +506,15 @@ void* host_dat_raw(const void* native)
         }
     }
     host_fatal("host_dat_raw: %p is not an archive object", native);
+}
+
+/// On the console: a byte copy of an archive already located elsewhere, to
+/// be fixed up for its new address (a second fighter of the same character
+/// takes its partner's animation this way). Here the copy is the file's
+/// bytes again, so it is simply loaded.
+int lbArchiveRelocate(HSD_Archive* archive, u8* src, size_t file_size,
+                      intptr_t base_addr)
+{
+    (void) base_addr;
+    return HSD_ArchiveParse(archive, src, file_size);
 }

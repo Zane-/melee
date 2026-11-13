@@ -2150,8 +2150,18 @@ struct ftData_80085FD4_ret {
     /* +4 */ UNK_T x4;
     /* +8 */ size_t x8;
     /* +C */ UNK_T xC;
+#ifdef TARGET_PC
+    /// The same word as #Fighter_WaitAnimData::x10_animCurrFlags, which is
+    /// a host integer: on a little-endian host its first byte on the disc
+    /// is its last in memory, and bit-fields fill a byte from the other end.
+    /* +10 */ u8 x10_pad[3];
+    /* +13 */ u8 x10_rest : 6;
+    /* +13 */ u8 x10_b1 : 1;
+    /* +13 */ u8 x10_b0 : 1;
+#else
     /* +10:0 */ u8 x10_b0 : 1;
     /* +10:1 */ u8 x10_b1 : 1;
+#endif
     /* +14 */ uintptr_t x14;
 };
 
