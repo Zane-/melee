@@ -119,6 +119,17 @@ typedef bool (*Predicate)(void);
 #define STATIC_ASSERT(cond)
 #endif
 
+/// On a struct or union whose members are read both as bit-fields and as
+/// whole integers (or as the console's bytes): keep the console's layout,
+/// most significant bit and byte first, on hosts that are not big-endian.
+/// The address of a scalar member of such a type cannot be taken.
+/// Expands to nothing for the console's own compiler.
+#if defined(TARGET_PC) && defined(__GNUC__) && !defined(__clang__)
+#define PPC_LAYOUT __attribute__((scalar_storage_order("big-endian")))
+#else
+#define PPC_LAYOUT
+#endif
+
 #if defined(MUST_MATCH) || defined(LINT)
 #define ASSERT_SIZE(expr, size) STATIC_ASSERT(sizeof(expr) == size)
 #define ASSERT_OFFSET(type, member, offset)                                   \

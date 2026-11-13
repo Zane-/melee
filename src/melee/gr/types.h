@@ -160,9 +160,9 @@ typedef struct StageCallbacks {
     /*  +4 */ HSD_GObjPredicate callback1;
     /*  +8 */ HSD_GObjEvent gobj_proc;
     /*  +C */ void (*callback3)(Ground_GObj*);
-    /* +10 */ union StageCallbacks_x10 {
+    /* +10 */ union PPC_LAYOUT StageCallbacks_x10 {
         /* +10 */ u32 flags;
-        struct StageCallbacks_x10_x0 {
+        struct PPC_LAYOUT StageCallbacks_x10_x0 {
             /* +10:0 */ u8 flags_b0 : 1;
             /* +10:1 */ u8 flags_b1 : 1;
             /* +10:2 */ u8 flags_b2 : 1;

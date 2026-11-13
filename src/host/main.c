@@ -1,0 +1,163 @@
+/** @file
+ * Entry point of the native headless game, and its frame boundary.
+ *
+ * The game's own `main` (gmmain.c, compiled as `game_main`) runs unchanged
+ * and never returns: its scene loop waits each frame for a pad sample, in
+ * lb_80019894. That wait is the frame boundary, as in the Python simulator:
+ * one call is one frame.
+ */
+#include "host.h"
+
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <dolphin/os.h>
+#include <sysdolphin/baselib/controller.h>
+
+int game_main(void);
+void fn_800195FC(void);
+
+/* --- generated stubs ------------------------------------------------------ */
+
+extern const char* const host_stub_names[];
+extern unsigned host_stub_hits[];
+extern const int host_stub_count;
+static int report_stubs;
+static uint32_t match_at;    ///< frame at which --match starts its match
+static uint32_t trace_every; ///< print both fighters every N frames
+
+void host_stub_hit(int index)
+{
+    host_stub_hits[index]++;
+}
+
+void host_stub_report(void)
+{
+    if (!report_stubs) {
+        return;
+    }
+    fprintf(stderr, "[host] stubs called:");
+    for (int i = 0; i < host_stub_count; i++) {
+        if (host_stub_hits[i] != 0) {
+            fprintf(stderr, " %s:%u", host_stub_names[i], host_stub_hits[i]);
+        }
+    }
+    fputc('\n', stderr);
+}
+
+/* --- the frame boundary --------------------------------------------------- */
+
+void host_frame_tick(void)
+{
+    host.int_enabled = 1;
+    host_deliver();
+    host.frame++;
+    host_advance(HOST_TICKS_PER_FRAME);
+    host_match_install();
+    if (match_at != 0 && host.frame == match_at) {
+        host.pads[1].connected = 1;
+        host_match_start();
+    }
+    if (trace_every != 0 && host.frame % trace_every == 0) {
+        char a[512], b[512];
+        host_fighter_json(0, a, sizeof a);
+        host_fighter_json(1, b, sizeof b);
+        printf("@ %u %s %s\n", host.frame, a, b);
+    }
+    host_control_frame();
+    if (host.on_frame != NULL) {
+        host.on_frame();
+    }
+    if (host.max_frames != 0 && host.frame > host.max_frames) {
+        fflush(stdout);
+        host_log("stopped after %u frames", host.max_frames);
+        host_stub_report();
+        exit(0);
+    }
+}
+
+/// The scene loop's wait for a pad sample (the vanilla function is built as
+/// lb_80019894_vanilla and not used: it reads a queue filled by an alarm).
+/// One frame passes, the pads are sampled, and the queue length is
+/// reported.
+u8 lb_80019894(void)
+{
+    host_frame_tick();
+    fn_800195FC();
+    return HSD_PadGetRawQueueCount();
+}
+
+static void on_fault(int sig, siginfo_t* info, void* context)
+{
+    (void) context;
+    host_fatal("signal %d at address %p (frame %u)", sig, info->si_addr,
+               host.frame);
+}
+
+/* --- entry ---------------------------------------------------------------- */
+
+static void usage(void)
+{
+    fprintf(stderr,
+            "usage: melee_headless [--disc DIR] [--frames N] [-v] "
+            "[--stubs]\n"
+            "       [--match P1,P2,STAGE] [--trace N] [--control]\n"
+            "  --disc DIR   extracted disc (holds files/); default "
+            "build/disc\n"
+            "  --frames N   stop after N frames\n"
+            "  -v           print the game's own reports\n"
+            "  --stubs      list the stubbed SDK functions that were called\n"
+            "  --match      start a match at frame 30: character kinds and "
+            "stage id\n"
+            "  --trace N    print both fighters every N frames\n"
+            "  --control    obey commands on stdin (see control.c)\n");
+    exit(1);
+}
+
+int main(int argc, char** argv)
+{
+    const char* disc = "build/disc";
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--disc") == 0 && i + 1 < argc) {
+            disc = argv[++i];
+        } else if (strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
+            host.max_frames = (uint32_t) strtoul(argv[++i], NULL, 0);
+        } else if (strcmp(argv[i], "-v") == 0) {
+            host.verbose = 1;
+        } else if (strcmp(argv[i], "--stubs") == 0) {
+            report_stubs = 1;
+        } else if (strcmp(argv[i], "--control") == 0) {
+            host_control_enabled = 1;
+        } else if (strcmp(argv[i], "--match") == 0 && i + 1 < argc) {
+            /* P1,P2,STAGE as numbers, at frame 30 */
+            sscanf(argv[++i], "%d,%d,%d", &host_match.ckind[0],
+                   &host_match.ckind[1], &host_match.stage);
+            match_at = 30;
+        } else if (strcmp(argv[i], "--trace") == 0 && i + 1 < argc) {
+            trace_every = (uint32_t) strtoul(argv[++i], NULL, 0);
+        } else {
+            usage();
+        }
+    }
+    setvbuf(stdout, NULL, _IOLBF, 0);
+    {
+        struct sigaction sa;
+        memset(&sa, 0, sizeof sa);
+        sa.sa_sigaction = on_fault;
+        sa.sa_flags = SA_SIGINFO | SA_RESETHAND;
+        sigaction(SIGSEGV, &sa, NULL);
+        sigaction(SIGBUS, &sa, NULL);
+        sigaction(SIGFPE, &sa, NULL);
+        sigaction(SIGILL, &sa, NULL);
+    }
+    host.pads[0].connected = 1;
+    host.int_enabled = 1;
+    host_memory_init();
+    host_disc_init(disc);
+    game_main();
+    host_log("the game's main returned");
+    return 0;
+}
