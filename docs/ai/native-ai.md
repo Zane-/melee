@@ -96,6 +96,18 @@ graphics, has never been built for 32-bit Linux here (`native-port.md`). Until t
 exists, everything below is developed and checked with a stand-in for the player: an actor
 script or a policy.
 
+What a window would take, as far as a first look goes (2026-11-13, nothing built):
+
+- Aurora (`build/deps/aurora`, the full source) draws GX through Dawn (WebGPU) and opens
+  its window with SDL3. Its prebuilt Dawn exists for 64-bit Linux only, so for this
+  32-bit game Dawn has to be built from source, which is a large build nobody here has
+  tried.
+- This machine has 32-bit Mesa and the 32-bit Vulkan loader. `lib32-sdl3` is in the
+  distribution's repositories and not installed (`sudo pacman -S lib32-sdl3`).
+- The other ways round the 32-bit problem are each a project: draw in a second, 64-bit
+  process that the game sends its graphics commands to, or make the game itself build
+  64-bit.
+
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
