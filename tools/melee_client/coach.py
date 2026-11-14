@@ -22,7 +22,7 @@ Nothing here talks to the game: Client gathers, these functions say.
 
 # How the paths are drawn (dp): a panel's drawing area (the pictures too;
 # TALL_H without a timeline below them)
-PATH_W, PATH_H = 412, 236
+PATH_W, PATH_H = 412, 216
 TALL_H = 340
 PAD = 26             # room round the path, for the tags
 MAX_SCALE = 9.0      # dp per game unit: a small movement is not blown up

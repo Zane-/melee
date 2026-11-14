@@ -197,6 +197,14 @@ class Play:
                     if head is not None:
                         self.w.ui("class cgn%d now 1" % head)
                     self.head = head
+            if p.get("strip"):          # and the strip's under the replay
+                head = e["f"]
+                if head != p.get("shead"):
+                    if p.get("shead") is not None:
+                        self.w.ui("class c%sn%d now 0" % (pid, p["shead"]))
+                    if head is not None:
+                        self.w.ui("class c%sn%d now 1" % (pid, head))
+                    p["shead"] = head
         return slow
 
     def step(self):
@@ -243,17 +251,6 @@ DPAD = LEFT | RIGHT | DOWN | UP
 
 
 class Client:
-    @property
-    def port(self):
-        """The port the person plays at."""
-        return self._port
-
-    @port.setter
-    def port(self, value):
-        # the coach's and the tutorial's input displays show this port's
-        # label (screens.pad_display)
-        self._port = screens.PAD_PORT = value
-
     def __init__(self, game, port=0, source="auto", save=None, out=None):
         self.w = game
         self.port = port
@@ -2694,8 +2691,11 @@ class Client:
             fix=coach.fix(result, fix_lines),
             you_pic=self.pic_panel(0, 0, you_seq, mask, tall),
             target_pic=self.pic_panel(1, 1, tgt_seq, mask, tall),
-            anim=[dict(id="y", view=0, ring=0, seq=you_seq),
-                  dict(id="t", view=1, ring=1, seq=tgt_seq)],
+            anim=[dict(id="y", view=0, ring=0, seq=you_seq,
+                       strip=bool(result.get("timeline"))),
+                  dict(id="t", view=1, ring=1, seq=tgt_seq,
+                       strip=bool(result.get("timeline")) and
+                       target_track is not None)],
             replay=True)
 
     COACH_WAIT = 30         # frames of the verdict before the card

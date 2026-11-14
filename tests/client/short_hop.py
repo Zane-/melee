@@ -371,6 +371,17 @@ def main():
               "%r / %r; try pictured %s" % (
                   co.get("headline"), co.get("fix", "")[:60],
                   co.get("you_pic") is not None))
+        html = screens.coach_card(co) if co else ""
+        n_rows = len((co.get("timeline") or {}).get("rows", []))
+        check("its inputs: yours in one row and what is allowed under it, "
+              "and the same frame boxes under each replay",
+              n_rows > 0 and html.count('class="cgr cgt"') == n_rows and
+              'class="cgc you"' in html and 'class="cgc perf"' in html and
+              'id="cyn1"' in html and 'id="ctn1"' in html and
+              html.count('class="cfc you"') >= 1 and
+              html.count('class="cfc perf"') >= 1,
+              "%d inputs; strips %s %s" % (n_rows, 'id="cyn1"' in html,
+                                          'id="ctn1"' in html))
         check("three taps pass the second part, and the third opens",
               len(told) == 6 and all(r["success"] for r in told[3:]) and
               told[5].get("part_passed") and

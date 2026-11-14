@@ -51,7 +51,7 @@ def over_game():
     return (
         '<div id="gpads" class="gpads"><div id="gp0" class="gpad">%s</div>'
         '<div id="gp1" class="gpad">%s</div></div>' % (
-            pad_display("g0", 0), pad_display("g1", 1)) +
+            pad_display("g0"), pad_display("g1")) +
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
@@ -292,11 +292,12 @@ def header(crumbs, tag=None):
                 '<div class="un">%s</div></div>' % (t[1], t[2], esc(t[0])))
     who += ('<div class="port">PORT 1</div><div class="nick">----</div>'
             '<div class="layout">Default layout</div>')
-    # (no ruler of ticks under it: the owner, 2026-11-14, "delete the weird
-    # ruler marks near the top of every window")
+    ticks = "".join('<div class="tick%s"/>' % (" ten" if i % 10 == 0 else "")
+                    for i in range(60))
     return ('<div class="header"><div class="plate"><div class="title">%s'
             '</div></div>%s<div class="grow"/><div class="who">%s</div></div>'
-            % ("".join(words), stripes, who))
+            '<div class="ruler">%s</div>' % ("".join(words), stripes, who,
+                                             ticks))
 
 
 def footer(text, hints, tab="#F3F6FA"):
@@ -470,14 +471,11 @@ def art_head(c, costume=0):
     # the wall's shadow and the post's on the character, the wall with its
     # lit top face, the post upright (the portraits' cut is upright); all
     # inside the card ("I don't want a line bleeding out of the
-    # container"). The post before the wall, which covers its foot: it
-    # stops at the wall's edge, going in under it ("should not extend into
-    # the diagonal line below it, it should stop cleanly at it", the owner,
-    # 2026-11-14)
+    # container")
     out += ('<div class="ashade"><div class="wshadow"/><div class="postsh"/>'
-            '</div><div class="post"/><div class="plip"/>'
-            '<div class="wclip"><div class="wedge"/></div>'
-            '<div class="wfclip"><div class="wface"/><div class="wlip"/></div>')
+            '</div><div class="wclip"><div class="wedge"/></div>'
+            '<div class="wfclip"><div class="wface"/><div class="wlip"/></div>'
+            '<div class="post"/><div class="plip"/>')
     out += ('<div class="aname" style="color: %s"><div class="tags">%s</div>'
             '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
                 c["fg"], esc(" · ".join(c["tags"]).upper()),
@@ -860,8 +858,9 @@ def check_rows(checks):
 
 
 def timeline(tl):
-    """A tech drill's attempt frame by frame: a row for each input, the
-    frames it was pressed on, where it was due and what is allowed."""
+    """A tech drill's attempt frame by frame: for each input a row of the
+    frames it was pressed on, and under it the frames allowed and the
+    frame-perfect ones."""
     if not tl:
         return ""
     n = tl["frames"]
@@ -872,18 +871,12 @@ def timeline(tl):
                    for label in labels)
     rows = ['<div class="tlrow"><div class="tll"/>%s</div>' % head]
     for row in tl["rows"]:
-        cells = []
-        for i in range(1, n + 1):
-            cls = "tlc"
-            if row["window"] and row["window"][0] <= i <= row["window"][1]:
-                cls += " win"
-            if i in row["perfect"]:
-                cls += " perf"
-            if i in row["you"]:
-                cls += " you"
-            cells.append('<div class="%s"/>' % cls)
+        # yours, and under them what is allowed (input_cells)
         rows.append('<div class="tlrow"><div class="tll">%s</div>%s</div>'
-                    % (esc(row["label"]), "".join(cells)))
+                    % (esc(row["label"]), input_cells(row, n, "you",
+                                                      "tlc")))
+        rows.append('<div class="tlrow tlt"><div class="tll tls">allowed'
+                    '</div>%s</div>' % input_cells(row, n, "should", "tlc"))
     legend = ('<div class="tlleg"><div class="tlc you"/><div>you</div>'
               '<div class="tlc perf"/><div>frame-perfect</div>'
               '<div class="tlc win"/><div>allowed</div></div>')
@@ -1232,22 +1225,15 @@ def _path(dots, floor, kind):
 # one of the two None to keep the picture's shape. In the markup every place
 # is a share of the controller's box, so the box's size (style.rcss, .pv) is
 # the display's size wherever it is.
-PAD_W, PAD_H = 156.0, 114.4      # buttons.SHELL_W by SHELL_H, at 0.52
+PAD_W, PAD_H = 156.0, 104.0
 PAD_PARTS = (
-    ("L", "L", 24, 3, 28, None), ("R", "R", 132, 3, 28, None),
-    ("Z", "Z", 110, 5, 20, None),
-    ("S", "STICK", 27.9, 39.7, 30, 30), ("D", "PAD-D", 50.3, 76, 19, 19),
-    ("ST", "PAD-START", 78, 38.5, 9, 9),
-    ("A", "A", 128.1, 39, None, 20), ("B", "B", 109.4, 49.6, None, 12),
-    ("X", "X", 145.4, 36.5, None, 19), ("Y", "Y", 121.4, 22.6, 18, None),
-    ("C", "C", 104.6, 75.2, 22, 22))
-# the triggers behind the shell (pressed, they go in under it)
-PAD_BEHIND = ("L", "R")
-# the port's label above START ("P1"): where its foot is, how wide it is
-PAD_LABEL = (78, 32, 22)
-# the port whose controller a card's display is, unless told (the client
-# sets it: the player's)
-PAD_PORT = 0
+    ("L", "L", 30, 8, 30, None), ("R", "R", 126, 8, 30, None),
+    ("Z", "Z", 104, 12, 22, None),
+    ("S", "STICK", 41, 42, 36, 36), ("D", "PAD-D", 58, 70, 18, 18),
+    ("ST", "PAD-START", 78, 44, 9, 9),
+    ("A", "A", 116, 43, None, 23), ("B", "B", 98, 55, None, 14),
+    ("X", "X", 133, 38, None, 22), ("Y", "Y", 112, 25, 21, None),
+    ("C", "C", 100, 74, 26, 26))
 # a stick's cap: its size, where it rests and how far it goes at full tilt,
 # in hundredths of its gate; how far a trigger moves when all the way in,
 # in hundredths of its height; how bright a part not held is. (The game's
@@ -1295,28 +1281,19 @@ def _pad_img(name, ident, cls, style=""):
         at, cls, style, plain)
 
 
-def pad_display(k, port=None):
+def pad_display(k):
     """An input display (the coach's pictures, the tutorial's example, the
     game's own over a match): a GameCube controller whose buttons light
     while held, whose sticks' caps move in their gates and whose triggers
-    go in, its port above START ("P1": the owner, 2026-11-14, "a small
-    label above the start button on the controller so it is clear";
-    `port` from 0, PAD_PORT if None). Its parts' ids are `c` + `k` + "i" +
-    the part (A B X Y Z, ST for START, DU DD DL DR the D-pad, S and C the
-    sticks' caps, L and R the triggers, P the label); pad_lines says what
-    they show."""
+    go in. Its parts' ids are `c` + `k` + "i" + the part (A B X Y Z, ST
+    for START, DU DD DL DR the D-pad, S and C the sticks' caps, L and R
+    the triggers); pad_lines says what they show."""
     def at(part):
         return "c%si%s" % (k, part)
     out = ['<div id="c%si" class="pv">' % k]
-    n = (PAD_PORT if port is None else port) + 1
-    edge = PAD_W / 300.0 * 4           # the body's picture's room round it
-    body = _box(PAD_W / 2, PAD_H / 2, PAD_W + 2 * edge, PAD_H + 2 * edge)
-    parts = sorted(PAD_PARTS, key=lambda p: p[0] not in PAD_BEHIND)
-    for i, (part, name, cx, cy, w, h) in enumerate(parts):
-        if i == len(PAD_BEHIND):
-            out.append(_pad_img("PAD-BODY", None, "pvbody", body)
-                       if "PAD-BODY" in BUTTONS else
-                       '<div class="pvbody pvx"/>')
+    out.append(_pad_img("PAD-BODY", None, "pvbody")
+               if "PAD-BODY" in BUTTONS else '<div class="pvbody pvx"/>')
+    for part, name, cx, cy, w, h in PAD_PARTS:
         if w is None:
             w = h * _shape(name)
         elif h is None:
@@ -1336,11 +1313,6 @@ def pad_display(k, port=None):
                 box, _pad_img(name, None, "pvdb"), arms))
         else:
             out.append(_pad_img(name, at(part), "pvk", box))
-    x, foot, w = PAD_LABEL
-    out.append('<div id="%s" class="pvp p%d" style="left: %.2f%%; bottom: '
-               '%.2f%%; width: %.2f%%;">P%d</div>' % (
-                   at("P"), n, (x - w / 2) / PAD_W * 100,
-                   (PAD_H - foot) / PAD_H * 100, w / PAD_W * 100, n))
     out.append("</div>")
     return "".join(out)
 
@@ -1388,11 +1360,33 @@ def _picture(pic, kind, width=412.0):
             k, kind, cue, pad_display(k), k, kind))
 
 
+def input_cells(row, n, which, cls):
+    """One row of an input timeline's cells, frames 1 to n: `which` "you"
+    (the frames it was pressed or held) or "should" (the frames allowed,
+    and the frame-perfect ones), each cell of class `cls`. The two used
+    to share a row, and a press hid what was allowed under it (the owner,
+    2026-11-14: "You always overshadows allowed. We should have two
+    rows")."""
+    cells = []
+    for i in range(1, n + 1):
+        c = cls
+        if which == "you":
+            if i in row["you"]:
+                c += " you"
+        elif i in row["perfect"]:
+            c += " perf"
+        elif row["window"] and row["window"][0] <= i <= row["window"][1]:
+            c += " win"
+        cells.append('<div class="%s"/>' % c)
+    return "".join(cells)
+
+
 def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
-    """The try's inputs frame by frame against the frame-perfect ones, and
-    a bracket from where one was due to where it came (`wrong`: coach.
-    first_wrong). The columns' heads are `cgn1`... (the pictures' frame,
-    marked as they play)."""
+    """The try's inputs frame by frame, each input in two rows: the frames
+    `you` pressed it on, and below them the frames allowed and the
+    frame-perfect ones; and a bracket from where one was due to where it
+    came (`wrong`: coach.first_wrong). The columns' heads are `cgn1`...
+    (the pictures' frame, marked as they play)."""
     if not tl:
         return ""
     n = tl["frames"]
@@ -1402,18 +1396,15 @@ def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
                    for i, l in enumerate(labels))
     rows = ['<div class="cgr"><div class="cgl"/>%s</div>' % head]
     for row in tl["rows"]:
-        cells = []
-        for i in range(1, n + 1):
-            cls = "cgc"
-            if row["window"] and row["window"][0] <= i <= row["window"][1]:
-                cls += " win"
-            if i in row["perfect"]:
-                cls += " perf"
-            if i in row["you"]:
-                cls += " you"
-            cells.append('<div class="%s"/>' % cls)
-        rows.append('<div class="cgr"><div class="cgl">%s</div>%s</div>'
-                    % (esc(row["label"]), "".join(cells)))
+        rows.append(
+            '<div class="cgr"><div class="cgl"><div class="cgb">%s</div>'
+            '<div class="cgs">%s</div></div>%s</div>' % (
+                esc(row["label"]), esc(you), input_cells(row, n, "you",
+                                                         "cgc")))
+        rows.append(
+            '<div class="cgr cgt"><div class="cgl"><div class="cgb"/><div '
+            'class="cgs">allowed</div></div>%s</div>' % input_cells(
+                row, n, "should", "cgc"))
     bracket = ""
     if wrong is not None and wrong[1] is not None:
         cell = 690.0 / n
@@ -1429,11 +1420,35 @@ def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
     legend = ('<div class="cleg"><div class="cgc you"/><div>%s</div>'
               '<div class="cgc perf"/><div>frame-perfect</div>'
               '<div class="cgc win"/><div>allowed</div></div>' % esc(you))
-    # four rows or more: closer together (the card's height is fixed)
-    return ('<div class="csec">%s</div>'
-            '<div class="cgrid%s">%s</div>%s%s' % (
-                esc(title), " tight" if len(tl["rows"]) >= 4 else "",
-                "".join(rows), bracket, legend))
+    # the legend beside the title; two inputs or more (four rows): closer
+    # together (the card's height is fixed)
+    return ('<div class="cgh"><div class="csec">%s</div><div class="grow"/>'
+            '%s</div><div class="cgrid%s">%s</div>%s' % (
+                esc(title), legend, " tight" if len(tl["rows"]) >= 2 else "",
+                "".join(rows), bracket))
+
+
+def frame_strip(tl, kind):
+    """The frame boxes under a replay of the coach's card, in the same
+    columns under both (the owner: "line up these frame boxes under each
+    replay too ... so we can directly compare the frame sequences"):
+    `kind` "you" (the frames you pressed each input on) or "tgt" (the
+    frames allowed, and the frame-perfect ones). The heads are c{y,t}n1...
+    (the frame shown, marked as the replay plays)."""
+    if not tl:
+        return ""
+    n = tl["frames"]
+    k = "y" if kind == "you" else "t"
+    labels = tl.get("labels") or [
+        str(i) if n <= 12 or i % 5 == 0 else "" for i in range(1, n + 1)]
+    head = "".join('<div id="c%sn%d" class="cfc cfn">%s</div>' % (
+        k, i + 1, esc(l)) for i, l in enumerate(labels))
+    rows = ['<div class="cfsr"><div class="cfsl"/>%s</div>' % head]
+    for row in tl["rows"]:
+        rows.append('<div class="cfsr"><div class="cfsl">%s</div>%s</div>' % (
+            esc(row["label"]), input_cells(
+                row, n, "you" if kind == "you" else "should", "cfc")))
+    return '<div class="cfs">%s</div>' % "".join(rows)
 
 
 def coach_card(v):
@@ -1446,8 +1461,10 @@ def coach_card(v):
     else:
         mine = '<div class="cpath">%s</div>' % _path(
             v["you"][0], v["you"][1], "you")
-    you = ('<div class="cpanel"><div class="csec you">YOUR TRY</div>%s<div '
-           'class="ccap">%s</div></div>' % (mine, esc(v["you_words"])))
+    tl = v.get("timeline")
+    you = ('<div class="cpanel"><div class="csec you">YOUR TRY</div>%s%s<div '
+           'class="ccap">%s</div></div>' % (mine, frame_strip(tl, "you"),
+                                            esc(v["you_words"])))
     theirs = None
     if v.get("target_pic") is not None:
         theirs = _picture(v["target_pic"], "tgt")
@@ -1456,8 +1473,9 @@ def coach_card(v):
             v["target"][0], v["target"][1], "tgt")
     if theirs is not None:
         target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
-                  'LOOK LIKE</div>%s<div class="ccap">%s</div></div>' % (
-                      theirs, esc(v["target_words"])))
+                  'LOOK LIKE</div>%s%s<div class="ccap">%s</div></div>' % (
+                      theirs, frame_strip(tl, "tgt"),
+                      esc(v["target_words"])))
     else:
         target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
                   'LOOK LIKE</div><div class="cpath cnone">This drill has '

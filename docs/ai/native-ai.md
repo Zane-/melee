@@ -656,25 +656,17 @@ screen loads and 0 on leaving.
 *What it looks like* (the owner, 2026-11-14: "use the official button icons so it looks
 more like an actual gamecube controller"): a GameCube controller made of SmashWiki's button
 icons (`screens.pad_display`), the same one in the match, on the coach's card and in the
-tutorial's example. The shell is our own drawing (`buttons.SHELL_LEFT`, mirrored, with
-the wells round the sticks and the face buttons: `buttons.BODY`), drawn to two references
-the owner gave of the controller's shape ("the shape of the controller is very off ...
-Ensure the shell looks like this so we have a realistic controller!"; the references
-themselves are not in the repository: one carries Nintendo's logo and no licence). On it
-the icons sit where the controller has them: L and R behind the shoulders, Z on R, the
-control stick top left with the D-pad below it, START in the middle with the port above
-it ("P1" in the port's colour: "a small label above the start button on the controller so
-it is clear"), A with B, X and Y round it, the C-stick below. Each stick's icon is cut in
-two (`buttons._make_pad`), its gate and its cap, so the cap moves in the gate; a trigger
-moves in under the shell and brightens as far as the game reads it pressed; a button not
-held is dim, held is lit. Every part is placed as a share of the controller's box, so one size in
+tutorial's example. The body is our own drawing (`buttons.BODY`); on it the icons sit where
+the controller has them: L and R on the shoulders, Z on R, the control stick top left with
+the D-pad below it, START in the middle, A with B, X and Y round it, the C-stick below. Each
+stick's icon is cut in two (`buttons._make_pad`), its gate and its cap, so the cap moves in
+the gate; a trigger moves in and brightens as far as it is pressed; a button not held is
+dim, held is lit. Every part is placed as a share of the controller's box, so one size in
 `style.rcss` (`.pv`) sizes it. Over a match the client's screens carry two of them
 (`screens.over_game`, ids `cg0i...`, `cg1i...`), and the game fills them in itself: the
 match's frame leaves each pad in `inputs.c`, and as the window's frame ends
 `host_inputs_ui` hands them to the interface (`ui.cpp`, `host_ui_pad`, which sets only what
-changed, and the label when the slot's port changes: the opponent's alone is "P2"). On
-the card (labelled with the player's port, `screens.PAD_PORT`, which `Client.port` sets)
-the client does the same with the recorded pads (`Play._pad`); the
+changed). On the card the client does the same with the recorded pads (`Play._pad`); the
 sums are `screens.pad_lines`, mirrored in `ui.cpp`. Where no client document has the
 display (`tools/melee_native/play.py`), TM-CE's own model from `lab.dat` is drawn instead
 (put on the disc as `files/TM/lab.dat` by `tools/tmce_disc.py`; not in the repository),
@@ -724,8 +716,14 @@ its history:
   neutral air, a fast fall at the top and L as it comes down), played from a state saved
   before the try and judged again: the card says what the judge made of it ("The same
   try, put right: Short hop");
-- the inputs frame by frame (the result's timeline: yours filled, frame-perfect outlined,
-  the allowed window shaded) with a bracket "5 FRAMES LATE";
+- the inputs frame by frame (the result's timeline), each input in two rows: the frames
+  you pressed it on, and under them the frames allowed (pale) and the frame-perfect ones
+  (teal), with a bracket "5 FRAMES LATE"; the same two kinds of frame boxes under each
+  replay, yours under your try and the allowed ones under the example, in the same columns,
+  the frame shown marked in both as they play (the owner, 2026-11-14: "You always
+  overshadows allowed. We should have two rows ... line up these frame boxes under each
+  replay too ... so we can directly compare the frame sequences"). The column's timeline
+  under the verdict has the same two rows;
 - "How to fix it": the judge's own when it gives one (a tech drill), else the frame to
   press on and by how much, then the drill's timeline note (or its guide's first
   sentences without a timeline).
