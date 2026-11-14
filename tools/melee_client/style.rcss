@@ -655,8 +655,9 @@ img { display: inline-block; }
 .tg { margin-right: 18dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 34dp; letter-spacing: 2dp; line-height: 1.25em; color: #F3F6FA; }
 .tg.alt { color: #F5BE1B; }
 .tsub { font-size: 15dp; color: #D5DCE5; }
-.perfs { width: 10dp; padding: 10dp 0dp; display: flex; flex-direction: column; justify-content: space-between; }
-.perf { width: 10dp; height: 10dp; background-color: #E9EDF2; }
+/* (the ticket's perforation: not .perf, which the timelines' frame-perfect cells are) */
+.tperfs { width: 10dp; padding: 10dp 0dp; display: flex; flex-direction: column; justify-content: space-between; }
+.tperf { width: 10dp; height: 10dp; background-color: #E9EDF2; }
 .tstub { width: 100dp; background-color: #22B8A0; color: #12161C; display: flex; flex-direction: row; align-items: center; justify-content: center; }
 .tadmit { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 30dp; line-height: 1em; text-align: center; }
 .ostrip { height: 64dp; margin: 18dp 0dp 18dp 0dp; display: flex; flex-direction: row; }

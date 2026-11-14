@@ -91,13 +91,13 @@ def online_body(code, rows, at, delay=2, router=None):
                                             esc(g))
             for j, g in enumerate(line))
         for i, line in enumerate(l for l in lines if l))
-    perf = "".join('<div class="perf"/>' for _ in range(9))
+    perf = "".join('<div class="tperf"/>' for _ in range(9))
     ticket = (
         '<div class="ticket%s"><div class="tring"/><div class="tbody">'
         '<div class="row"><div class="tl">YOUR CODE</div><div class="grow"/>'
         '<div class="tl">A COPIES IT</div></div><div class="tcode">%s</div>'
         '<div class="tsub">Send it to your friend; paste theirs below.</div>'
-        '</div><div class="perfs">%s</div><div class="tstub"><div class="un">'
+        '</div><div class="tperfs">%s</div><div class="tstub"><div class="un">'
         '<div class="tadmit">ADMIT</div><div class="tadmit">ONE</div></div>'
         '</div></div>' % (" on" if focus == "copy" else "", code_html, perf))
     if router:
