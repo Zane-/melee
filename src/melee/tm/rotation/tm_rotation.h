@@ -52,6 +52,10 @@ typedef struct TmRotDeck {
 /// new CPU's (and `stkind`'s). Also resets the shuffle bag.
 void tm_rot_Preload(const TmRotDeck* deck, int stkind);
 
+/// Raise (or put back: 0) the limits above, for a game with more memory
+/// than the console's (the native build's). Applies to the next preload.
+void tm_rot_SetLimits(int fighters, unsigned int anim_budget);
+
 /// Seed the rotation's own RNG (preload subset, shuffle order) for the next
 /// tm_rot_Preload; unseeded, it seeds itself from the game's RNG. Test
 /// builds pass the test's seed so Dolphin and tools/melee_sim agree.

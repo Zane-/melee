@@ -25,6 +25,8 @@
 #include <melee/gm/gmscene.h>
 #include <melee/gm/gmvsmelee.h>
 #include <melee/gm/types.h>
+#include <melee/if/ifstatus.h>
+#include <melee/if/types.h>
 #include <melee/lb/lbcardgame.h>
 #include <melee/lb/lbdvd.h>
 #include <melee/lb/types.h>
@@ -50,9 +52,9 @@ static int installed;
 static int started; ///< a match has been asked for since the game booted
 
 /// The match's characters in the preload cache, as a character select
-/// screen leaves them, then as many of the characters asked for as fit
-/// beside them (tm_rot_Preload: four fighters in all, and the animation
-/// memory), loaded before the match starts as vanilla event mode's
+/// screen leaves them, then the characters asked for beside them
+/// (tm_rot_Preload: up to eight fighters here), loaded before the match
+/// starts as vanilla event mode's
 /// onEnterVs waits for them (lbDvd_80018254, lbDvd_80017700).
 static void preload(void)
 {
@@ -81,6 +83,13 @@ static void preload(void)
         rot_deck.count++;
     }
     tm_rot_SetSeed(host_match.seed); /* not the game's random numbers */
+    /* Not the console's four fighters: with more audio RAM (HOST_ARAM_SIZE,
+       and lbmemory.c's patch in tools/native_build.py) the animations
+       that do not fit the preload heap load into the rest as each fighter
+       is made. Eight, the cache's entries, of the heaviest (Bowser, Donkey
+       Kong, Ganondorf, the Ice Climbers, Zelda and Sheik, Mewtwo with Fox
+       and Marth) load and swap back and forth (tests/native/loading.py). */
+    tm_rot_SetLimits(8, 0xFFFFFFFFu);
     tm_rot_Preload(&rot_deck, host_match.stage);
     lbDvd_80017700(4);
 }
@@ -91,7 +100,13 @@ int host_match_swap(int slot, int ckind)
         return Player_GetPlayerCharacter(slot) == ckind ? 0 : -1;
     }
     /* the slot stays what it was: the drills drive a human slot's pad */
-    return tm_rot_SetFighter(slot, ckind, 0, Player_GetPlayerSlotType(slot));
+    int r = tm_rot_SetFighter(slot, ckind, 0, Player_GetPlayerSlotType(slot));
+    if (r == 1 &&
+        ifStatus_GetHUDInfo()->players[slot].HUD_parent_entity == NULL)
+    {
+        ifStatus_802F6E1C(slot); /* it replaced one asleep (host_sleep) */
+    }
+    return r;
 }
 
 void host_match_loaded(char* out, size_t size)

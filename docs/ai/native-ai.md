@@ -774,34 +774,50 @@ same way.
 
 | Now | How |
 |-|-|
-| A new opponent in one frame | A match loads the deck's other opponents with it (`match ... CK...`): the overlay's character rotation, `src/melee/tm/rotation/rotation.c`, compiled into the native build, up to four fighters and its animation budget. `swap P CK` makes player P one of them (`tm_rot_SetFighter`, which keeps the slot a human slot so the drill still drives its pad). The course engine draws scenarios from the opponents loaded, as the overlay does (`Session.usable`, the bag); only a scenario chosen by hand whose opponent is not loaded loads a match |
-| The next drill with no load | `Session(reuse=True)` (the client): a match the last drill left is kept when it is the same character and stage and has all of this drill's opponents loaded. Nearly every Fox drill is on Final Destination |
-| A clean slate each attempt | `clean` (`host_clean`, `src/host/setup.c`), before the drill places the fighters: TM-CE's list, plus the stale-move queue (`plStale_ResetStaleMoveTableForPlayer`; TM-CE puts back the one saved at the match's start), so the tenth jab hits as hard as the first. Items are removed only when no fighter still points at them: removing Fox's blaster while he held it crashed the game in the blaster's code, and his own code lets go of it once he stands. Scenario drills played by a person clean too (`tools/melee_actor/scenario.py`) |
-| A load nobody sees or hears | `quiet 1` ... `quiet 0` (`Client.load_quietly`): no draw pass (a tenth of the time: 0.4 to 0.6 s for a match with software rendering, against 2.5 to 6), no pacing, and the window keeps its last picture (`aurora_set_present_hold`, added to the Aurora patch). The first frame drawn afterwards is whole and shown at once. Sound: the stretch's first 150 ms goes through as ordinary real-time sound (the menu's click that started it, the end of what was playing), then nothing; afterwards the sound effects it started are keyed off and music it asked for starts from its beginning (`host_pstream_start` waits for the end of the stretch; starting the music again instead stopped a stream whose first read was still coming, and the stream's code fell over). The device then waits for its 64 ms lead again |
+| A new opponent in one frame | A match loads the other opponents with it (`match ... CK...`): the overlay's character rotation, `src/melee/tm/rotation/rotation.c`, compiled into the native build. `swap P CK` makes player P one of them (`tm_rot_SetFighter`, which keeps the slot a human one so the drill still drives its pad). The course engine draws scenarios from the opponents loaded, as the overlay does (`Session.usable`, the bag) |
+| Every deck whole | The overlay is held to four fighters by the console's memory: the animations that do not fit the preload heap load into the game's audio RAM heap as each fighter is made, and that ran out ("memp_kouho" in `lbmemory.c`). The native host has 64 MB of audio RAM (`HOST_ARAM_SIZE`), the game's 16 MB clamp is patched out for the native build only (`PATCHES` in `tools/native_build.py`, `lbmemory.c`), and the rotation's limits are raised there (`tm_rot_SetLimits(8, ...)` in `match.c`): eight fighters, the preload cache's entries. Fox with the shine out of shield deck's six, and eight of the heaviest (Bowser, Donkey Kong, Ganondorf, the Ice Climbers, Zelda and Sheik, Mewtwo, with Fox and Marth), load and swap back and forth. The overlay keeps the console's limits |
+| The next drill with no load | `Session(reuse=True, also=...)` (the client): a match also loads the rest of the course's opponents (`Client.course_opponents`, the most used first; Fox's course has seven, so a match holds all eight fighters), and the next drill keeps it when it is the same character and stage and has all of that drill's opponents. A drill without an opponent keeps it too, its opponent asleep (`sleep P`, `host_sleep`: the game's sleep state, as between a lost stock and the respawn, so not drawn, not hit, not followed by the camera; its damage display removed, `ifStatus_802F6788`); placing the opponent again wakes it (`wake` in `host_place`, `host_ledge`, `host_rebirth`: `Fighter_EnterRebirth` and the damage display back). In Fox's course only the shield drop (Battlefield) and the drills played from scenario files load a match after the first |
+| A clean slate each attempt | `clean` (`host_clean`, `src/host/setup.c`), before the drill places the fighters: the fighters' sounds and the crowd's stopped, particles ended (through the game's own delete: their life set to one frame), the fighters' free items destroyed, colour overlays off, and the stale-move queue emptied (`plStale_ResetStaleMoveTableForPlayer`; TM-CE puts back the one saved at the match's start), so the tenth jab hits as hard as the first. Items are destroyed only when no fighter still points at them: destroying Fox's blaster while he held it crashed the game in the blaster's code, and his own code lets go of it once he stands. TM-CE's camera shakes are left alone (below). Scenario drills played by a person clean too (`tools/melee_actor/scenario.py`) |
+| A load nobody sees or hears | `quiet 1` ... `quiet 0` (`Client.load_quietly`): no draw pass, no pacing, no Aurora frames at all, and the window keeps its last picture (`aurora_set_present_hold`, added to the Aurora patch): 0.28 s for a match with software rendering, against 2.5 to 6 drawn. The first frame drawn afterwards is whole and shown at once. Sound: the stretch's first 150 ms goes through as ordinary real-time sound (the menu's click that started it, the end of what was playing), then nothing; afterwards the sound effects it started are keyed off and music it asked for starts from its beginning (`host_pstream_start` waits for the end of the stretch; starting the music again instead stopped a stream whose first read was still coming, and the stream's code fell over). The device then waits for its 64 ms lead again |
 
-The "Loading" cover is gone from the client. Free play, Versus and scenario drills load
-quietly too; the menu stays on screen meanwhile (a menu covers the game's picture anyway).
-Not changed: the online match start (`online_match`), which still loads unpaced.
+The "Loading" cover is gone from the client. Free play, Versus, scenario drills and the
+online match start load quietly too (online, both sides load the same way, so the two
+games stay the same); the menu stays on screen meanwhile.
 
-Two traps found on the way: a frame held from the screen asked for no surface texture,
-and Aurora took the "Error" status that left for a failed surface and dropped it every
-frame, until Dawn lost the device (the patch now skips that while holding). And the
-harness's screenshots lag the screen by a frame, which first looked like a stale first
-frame after a quiet load.
+Traps found on the way:
 
-Tests: `tests/native/loading.py` (15, headless: four fighters loaded, a swap in one frame
-with no new match and the pad driving the new opponent, a character not loaded refused, a
-laser in flight cleaned but not the blaster Fox holds, a staled jab back to full damage, a
-quiet load writing exactly the 150 ms tail and the new music playing after it);
-`tests/client/loading.py` (10, off screen: the picture held through a quiet load with no
-black frame, a sixth of the time of a drawn one; seven whiff punish attempts against Marth
-and another opponent on one match; the next drill keeps the match). The course specs:
-227 of 227, as before.
+- TM-CE removes "camera shake" objects as class 3 on link 18. The stage's objects are
+  class 3 too (`HSD_GOBJ_CLASS_STAGE`), and the camera keeps a pointer to its looping
+  shake (`Camera_RequestQuake`'s `quake_gobj`): freeing them crashed the game in the sixth
+  shine out of shield attempt (another session's long run found it, at the 45th). A
+  one-shot shake ends by itself after 22 frames, before a verdict's pause is over.
+- A frame held from the screen asked for no surface texture, and Aurora took the "Error"
+  status that left for a failed surface and dropped it every frame, until Dawn lost the
+  device (the patch skips that while holding).
+- A match asked for in the frames right after another settled is not started at all;
+  `start()`'s 30 frames before asking are needed between matches too.
+- The game's "no Ready, no GO" switches (the rules' `x1_2`, `x1_3`, which TM-CE's events
+  and All-Star mode set) change nothing in the debug VS mode the host uses: it has no
+  countdown to skip.
+- The harness's screenshots lag the screen by a frame, and the last picture before a quiet
+  stretch can reach the virtual display a frame late.
 
-Not known: how long a quiet load takes on the owner's GPU (no drawing happens in it, so
-it should be about the same as here), and whether holding the picture for half a second
-is noticed when a load does happen (a stage change, a scenario chosen by hand, a solo drill
-after one with an opponent).
+Tests: `tests/native/loading.py` (24, headless: the six-opponent deck loaded whole, a swap
+in one frame with no new match and the pad driving the new opponent, a character not
+loaded refused, sleep and wake, a laser in flight cleaned but not the blaster Fox holds,
+a staled jab back to full damage, eight shine out of shield attempts in one match each
+cleaned, eight of the heaviest fighters, a quiet load writing exactly the 150 ms tail and
+the new music playing after it); `tests/client/loading.py` (11, off screen: the picture
+held through a quiet load with no black frame, a tenth of the time of a drawn one; the
+first drill from the menu loading the course's opponents, all of shine out of shield's six
+there and seven attempts against them on one match; a drill without an opponent keeping
+the match with Marth asleep; the next drill against Marth keeping it with Marth back).
+The course specs: 227 of 227. The overlay's shine out of shield specs (28, which use the
+rotation) pass in the simulator.
+
+Not known: how long the first load from the menu takes on the owner's GPU (1.5 s here,
+counted from A to the first attempt, with eight fighters loaded and software rendering),
+and whether the half-second hold at a stage change is noticed.
 
 ### Settings: input delay, rumble, volumes (2026-11-13)
 

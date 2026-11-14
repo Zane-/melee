@@ -76,6 +76,16 @@ extern char* ftData_803C23E4[];
 /// margin.
 #define ROT_ANIM_BUDGET (8 * 1024 * 1024 + 512 * 1024)
 
+/// The limits in force (tm_rot_SetLimits): the console's by default.
+static int rot_max_fighters = TM_ROT_MAX_FIGHTERS;
+static u32 rot_anim_budget = ROT_ANIM_BUDGET;
+
+void tm_rot_SetLimits(int fighters, unsigned int anim_budget)
+{
+    rot_max_fighters = fighters > 0 ? fighters : TM_ROT_MAX_FIGHTERS;
+    rot_anim_budget = anim_budget != 0 ? anim_budget : ROT_ANIM_BUDGET;
+}
+
 /// Bytes of animation a character's preload brings, partner included.
 static u32 rotAnimBytes(int ckind)
 {
@@ -184,11 +194,11 @@ void tm_rot_Preload(const TmRotDeck* deck, int stkind)
         anim += rotAnimBytes(rot.loaded[i]);
     }
     slot = 0;
-    for (j = 0; j < wanted_num && rot.loaded_num < TM_ROT_MAX_FIGHTERS; j++) {
+    for (j = 0; j < wanted_num && rot.loaded_num < rot_max_fighters; j++) {
         int ckind = wanted[j];
         u32 size = rotAnimBytes(ckind);
         int color = 0, k;
-        if (anim + size > ROT_ANIM_BUDGET) {
+        if (anim + size > rot_anim_budget) {
             continue;
         }
         while (slot < CACHE_ENTRIES &&

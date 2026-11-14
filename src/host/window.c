@@ -569,6 +569,9 @@ void host_window_quiet(int on)
     } else if (!on && quiet) {
         quiet = 0;
         aurora_set_present_hold(false);
+        if (started && !in_frame) {
+            in_frame = aurora_begin_frame(); /* for the frame to come */
+        }
         audio_relead();
     }
 }
@@ -1155,7 +1158,7 @@ void host_window_frame(void)
     }
     read_live();
     host_ui_frame();
-    in_frame = aurora_begin_frame();
+    in_frame = quiet ? 0 : aurora_begin_frame();
     t2 = now_ms();
     if (last != 0 && !quiet) {
         timing(t0 - last, t1 - t0, t2 - t1, presented - shown_before);

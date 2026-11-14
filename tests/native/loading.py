@@ -5,9 +5,13 @@ swapped in place, the last attempt cleaned away, and a load nobody hears.
     python tests/native/loading.py
 
 - A match loads the other opponents a drill needs with it (`match ...
-  CK...`, the overlay's character rotation in src/melee/tm/rotation): four
-  fighters in all. `swap` makes the opponent one of them in one frame, no
-  new match; its pad still drives it; a character not loaded is refused.
+  CK...`, the overlay's character rotation in src/melee/tm/rotation): a
+  six-opponent deck whole, and eight of the heaviest fighters (more audio
+  RAM than the console's: HOST_ARAM_SIZE). `swap` makes the opponent one
+  of them in one frame, no new match; its pad still drives it; a character
+  not loaded is refused.
+- `sleep`: the opponent out of play (a drill without one keeps the
+  match's this way): it cannot be hit; placing it brings it back.
 - `clean` (TM-CE's savestate load, src/host/setup.c): a laser in flight is
   gone but not the blaster Fox still holds (destroying that under him
   crashed the game), and a move staled by repeated hits hits as hard as at
@@ -26,7 +30,7 @@ sys.path.insert(0, "tools/melee_native")
 from native import Native, NativeError  # noqa: E402
 
 checks = []
-JUMPSQUAT = 24
+JUMPSQUAT, SLEEP, WAIT = 24, 11, 14
 BLASTER, LASER = 74, 54   # item kinds: Fox's blaster, its shot
 TAIL_BYTES = 30 * 160 * 4  # 150 ms of 16-bit stereo at 32 kHz
 
@@ -60,9 +64,9 @@ def main():
     with Native(env=env) as n:
         n.start("fox", "marth", "final-destination", seed=7, preload=deck)
         loaded = n.loaded()
-        check("a match loads the deck's other opponents, four fighters in "
-              "all", loaded[:2] == ["fox", "marth"] and len(loaded) == 4 and
-              all(c in deck for c in loaded[2:]), ", ".join(loaded))
+        check("a match loads a six-opponent deck whole",
+              loaded[:2] == ["fox", "marth"] and
+              sorted(loaded[2:]) == sorted(deck), ", ".join(loaded))
         matches = n.state()["match"]
         names = {v: k for k, v in __import__("native").CHARACTERS.items()}
         for c in loaded[2:] + ["marth"]:
@@ -89,6 +93,31 @@ def main():
             refused = True
         check("a character not loaded is refused", refused)
         check("the same match all along", n.state()["match"] == matches)
+
+        # ---- sleep ---------------------------------------------------------
+        n.sleep(1)
+        n.step(5)
+        asleep = n.fighter(1).state
+        n.place(0, 10.0, 0.0, facing=1)
+        n.step(2)
+        n.pad(0, buttons=["A"])
+        n.step(3)
+        n.pad(0)
+        n.step(20)
+        missed = n.fighter(1).percent
+        n.place(1, 20.0, 0.0, facing=-1)
+        n.place(0, 8.0, 0.0, facing=1)
+        n.step(3)
+        woken = n.fighter(1).state
+        n.pad(0, buttons=["A"])
+        n.step(3)
+        n.pad(0)
+        n.step(20)
+        check("sleep: out of play, a jab where it was hits nothing; placed, "
+              "it is back and is hit", asleep == SLEEP and missed == 0 and
+              woken == WAIT and n.fighter(1).percent > 0,
+              "state %d, %.0f%%; then state %d, %.0f%%" % (
+                  asleep, missed, woken, n.fighter(1).percent))
 
         # ---- clean ---------------------------------------------------------
         n.place(0, -40.0, 0.0, facing=1)
@@ -123,6 +152,35 @@ def main():
               first > 0 and staled < first and abs(again - first) < 1e-4,
               "%.2f%%, staled %.2f%%, after clean %.2f%%" % (
                   first, staled, again))
+
+        # ---- many attempts, each cleaned ------------------------------------
+        # (freeing TM-CE's "camera shakes", class 3 on link 18, freed stage
+        # objects too, and this one died in the sixth attempt)
+        sys.path.insert(0, "tools")
+        from melee_course import engine, registry
+        s = engine.Session(registry.get("fox-shine-oos"), n, live=False,
+                           seed=5)
+        seen = set()
+        for i in range(8):
+            s.run(run=i)
+            seen.add(s.cpu_char)
+        check("eight shine out of shield attempts in one match, each "
+              "cleaned, against its opponents", len(seen) >= 3,
+              ", ".join(sorted(seen)))
+
+        # ---- eight of the heaviest ------------------------------------------
+        heavy = ["bowser", "donkey-kong", "ganondorf", "ice-climbers",
+                 "zelda", "mewtwo"]
+        n.start("fox", "marth", "final-destination", seed=9, preload=heavy)
+        loaded = n.loaded()
+        ok = sorted(loaded[2:]) == sorted(heavy)
+        for c in heavy + ["marth"] + heavy:
+            n.swap(1, c)
+            n.place(1, 20.0, 0.0, facing=-1)
+            n.step(30)
+            ok = ok and names.get(n.fighter(1).ckind) == c
+        check("eight of the heaviest fighters load, and swap back and forth",
+              ok, ", ".join(loaded))
 
         # ---- quiet ---------------------------------------------------------
         n.step(30)

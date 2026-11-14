@@ -260,9 +260,8 @@ class Native:
         """Ask for a match (the game's debug VS mode). It loads over the
         next frames; start() also waits for it. `stocks`: each player's;
         0 is an endless time match. `preload`: further characters loaded
-        with it, which player 2 can become at once (swap); as many as fit
-        (four fighters in all, as the overlay's rotation): loaded() says
-        which."""
+        with it, which player 2 can become at once (swap); up to eight
+        fighters in all: loaded() says which."""
         extra = [CHARACTERS[c] for c in preload if c != p2]
         self._cmd("match %d %d %d %d %d %d%s" % (
             CHARACTERS[p1], CHARACTERS[p2] if p2 else -1, STAGES[stage],
@@ -284,10 +283,17 @@ class Native:
         return [names[int(w)] for w in self._cmd("loaded").split()[1:]
                 if int(w) in names]
 
+    def sleep(self, port):
+        """Player `port` out of play until placed again: not drawn, not
+        hit, not followed by the camera, no damage display (a drill without
+        an opponent keeps the match's this way)."""
+        self._cmd("sleep %d" % port)
+
     def clean(self):
         """What the last attempt left behind gone, as TM-CE's savestate load
-        does: the fighters' sounds and the crowd's stopped, particles,
-        camera shakes and the fighters' items gone, colour overlays off."""
+        does: the fighters' sounds and the crowd's stopped, particles and
+        the fighters' free items gone, colour overlays off, staled moves
+        fresh."""
         self._cmd("clean")
 
     def quiet(self, on=True):

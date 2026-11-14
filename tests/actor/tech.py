@@ -56,6 +56,10 @@ def attempt(session, script):
     result = session.run(each_frame=Scripted(script))
     session.n.pad(0)
     session.n.step(30)
+    # Back to the middle: the judge no longer moves the player (commit
+    # 73c814112), and four wavedashes to the right left Marth teetering
+    # at the ledge, never standing still, so the next script never began.
+    session.n.place(session.person, 0.0, 0.0, 1)
     return result
 
 

@@ -9,10 +9,11 @@ Off screen:
   picture on screen until the new match's first frame, with no black frame
   and nothing of the load shown; it takes a fraction of what a drawn load
   takes, and only the stretch's first 150 ms of sound is written;
-- a drill whose scenarios have different opponents (Fox's whiff punish:
-  Marth, Sheik, Peach) plays attempt after attempt against them, the
-  opponent swapped in place, no match loaded;
-- the next drill against one of them on the same stage keeps the match;
+- the first drill from the menu loads its match with the course's other
+  opponents: the shine out of shield's six are all there, and attempt after
+  attempt is against them, the opponent swapped in place, no match loaded;
+- a drill without an opponent keeps that match, its opponent asleep, and
+  the next drill against Marth keeps it too, Marth back in play;
 - the interface raised no warnings (a held frame once dropped the window's
   surface, and the game fell over).
 """
@@ -33,6 +34,7 @@ from pausekeys import Chooser  # noqa: E402
 
 checks = []
 TAIL_BYTES = 30 * 160 * 4  # 150 ms of 16-bit stereo at 32 kHz
+SLEEP = 11
 
 
 def check(name, ok, detail=""):
@@ -88,9 +90,11 @@ def window_checks(shots):
         w.quiet(False)
         quiet = time.time() - t
         before = held[0]
+        # (the first is taken two frames in: the picture shown as the load
+        # began may reach the screen a frame late)
         check("a quiet load leaves the last picture on screen",
-              all(same_picture(held[0], p) for p in held[1:]) and
-              mean(held[0]) > 0.02, "%.3f" % mean(held[0]))
+              same_picture(held[1], held[2]) and mean(held[1]) > 0.02,
+              "%.3f" % mean(held[1]))
         check("and takes a fraction of a drawn one", quiet < drawn / 2,
               "%.2f s, drawn %.2f s" % (quiet, drawn))
         check("only its first 150 ms of sound is heard", heard == TAIL_BYTES,
@@ -141,11 +145,15 @@ def main():
             tap("x")
         if c.screen == "list":
             tap("z")                             # back to the course hub
-        for _ in range(4):
-            if ident in [d["id"] for d in c.course["parts"][
-                    courses.PARTS[int(c.hub_at[1:])]]]:
+        part = next(i for i, p in enumerate(courses.PARTS)
+                    if ident in [d["id"] for d in c.course["parts"][p]])
+        if not c.hub_at.startswith("p"):
+            tap("Up")
+        for _ in range(6):
+            at = int(c.hub_at[1:])
+            if at == part:
                 break
-            tap("Right")
+            tap("Right" if at < part else "Left")
         tap("x")
         for _ in range(40):
             if c.drills()[c.row[c.part]]["id"] == ident:
@@ -153,8 +161,43 @@ def main():
             tap("Down")
         if c.screen != "list" or c.drills()[c.row[c.part]]["id"] != ident:
             raise RuntimeError("no way to %s from %s" % (ident, c.screen))
+        seen["asked"] = time.time()
         w.key("x")
 
+    def play(ident, attempts=1):
+        """Drill `ident` until `attempts` attempts have begun, then back to
+        its list: what it was like as each began."""
+        seen.clear()
+        seen.update(n=0, at=[])
+
+        def person(game, frame):
+            seen["n"] += 1
+            if seen["n"] == 1:
+                game.key("x", False)
+            if frame == 0:
+                s = c.session
+                f = game.fighter(1 - c.port)
+                seen["at"].append(dict(
+                    match=game.state()["match"], cpu=s.cpu_char,
+                    loaded=tuple(s.swappable), parked=s.parked,
+                    state=f.state if f.fp else None,
+                    deck={e.cpu for e in s.d.deck or () if e.cpu},
+                    after=time.time() - seen["asked"]))
+            if len(seen["at"]) >= attempts and "out" not in seen:
+                seen["out"] = Chooser(c, "list")
+            if "out" in seen:
+                seen["out"](game)
+
+        c.person = person
+        open_drill(ident)
+        for _ in range(60):
+            c.frame()
+            if c.screen == "list" and "out" in seen:
+                break
+        w.key("x", False)
+        return seen["at"]
+
+    seen = {}
     try:
         w = window.Window(window=(1280, 720))
         w.step(30)
@@ -163,62 +206,35 @@ def main():
         w.pace(False)
         frames(6)
 
-        # ---- one drill, its opponents swapped in -------------------------
-        seen = dict(n=0, cpus=[], matches=set(), attempts=0)
+        # ---- a deck of six opponents, swapped in ------------------------
+        at = play("fox-shine-oos", attempts=7)
+        first = at[0]
+        print("      (the first drill from the menu: its match in %.2f s, "
+              "with %s)" % (first["after"], ", ".join(first["loaded"])))
+        check("shine out of shield: its six opponents all loaded",
+              first["deck"] <= set(first["loaded"]),
+              "deck %s" % sorted(first["deck"]))
+        check("attempt after attempt against them, swapped in place: the "
+              "same match all along", len({a["match"] for a in at}) == 1 and
+              len({a["cpu"] for a in at}) >= 2,
+              ", ".join(a["cpu"] for a in at))
+        before = at[0]["match"]
 
-        def whiff(game, frame):
-            seen["n"] += 1
-            if seen["n"] == 1:
-                game.key("x", False)
-            s = c.session
-            if frame == 0:
-                seen["cpus"].append(s.cpu_char)
-                seen["matches"].add(game.state()["match"])
-            if len(seen["cpus"]) >= 7 and "out" not in seen:
-                seen["out"] = Chooser(c, "list")
-            if "out" in seen:
-                seen["out"](game)
+        # ---- a drill without an opponent keeps the match ----------------
+        at = play("fox-multishine")
+        check("a drill without an opponent keeps the match, its opponent "
+              "asleep", at[0]["match"] == before and
+              at[0]["parked"] is not None and at[0]["state"] == SLEEP,
+              "match %s -> %s, state %s" % (before, at[0]["match"],
+                                            at[0]["state"]))
+        w.shot(os.path.join(shots, "solo.png"))
 
-        c.person = whiff
-        open_drill("fox-whiff-punish")
-        for _ in range(40):
-            c.frame()
-            if c.screen == "list" and "out" in seen:
-                break
-        w.key("x", False)
-        check("whiff punish: attempt after attempt against its opponents",
-              len(set(seen["cpus"])) >= 2, ", ".join(map(str,
-                                                         seen["cpus"])))
-        check("swapped in place: the same match all along",
-              len(seen["matches"]) == 1, str(sorted(seen["matches"])))
-        before = w.state()["match"]
-
-        # ---- the next drill keeps the match ------------------------------
-        seen = dict(n=0)
-
-        def aerial(game, frame):
-            seen["n"] += 1
-            if seen["n"] == 1:
-                game.key("x", False)
-            if frame == 0 and "match" not in seen:
-                seen["match"] = game.state()["match"]
-                seen["cpu"] = c.session.cpu_char
-                game.shot(os.path.join(shots, "next-drill.png"))
-                seen["out"] = Chooser(c, "list")
-            if "out" in seen:
-                seen["out"](game)
-
-        c.person = aerial
-        open_drill("fox-approach-nair-dair")
-        for _ in range(40):
-            c.frame()
-            if c.screen == "list" and "out" in seen:
-                break
-        w.key("x", False)
-        check("the next drill against Marth on the same stage keeps the "
-              "match", seen.get("cpu") == "marth" and
-              seen.get("match") == before, "match %s -> %s" % (
-                  before, seen.get("match")))
+        # ---- and the next one with an opponent too ----------------------
+        at = play("fox-approach-nair-dair")
+        check("the next drill against Marth keeps it, Marth back in play",
+              at[0]["match"] == before and at[0]["cpu"] == "marth" and
+              at[0]["state"] not in (None, SLEEP), "match %s -> %s, "
+              "state %s" % (before, at[0]["match"], at[0]["state"]))
         bad = [line.strip()[:160] for line in w.log
                if "aurora" in line and ("warn" in line or "error" in line)]
         check("the interface raised no warnings", not bad,

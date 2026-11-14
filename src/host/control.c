@@ -767,6 +767,17 @@ static void command(char* line)
         char out[128];
         host_match_loaded(out, sizeof out);
         printf("@ ok %s\n", out);
+    } else if (strcmp(cmd, "sleep") == 0) {
+        /* "sleep P": player P out of play until placed (setup.c) */
+        int p = 1;
+        const char* why;
+        sscanf(line, "%d", &p);
+        why = host_sleep(p);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "clean") == 0) {
         /* "clean": what an attempt left behind gone (setup.c) */
         host_clean();

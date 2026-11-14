@@ -137,6 +137,15 @@ VANILLA = {
 # whose text is no longer found, or found a different number of times than
 # the patch says (once unless given), stops the build.
 PATCHES = {
+    # The game's audio RAM arena stops at 16 MB, the console's. The host has
+    # more (HOST_ARAM_SIZE): what does not fit the preload heap (a drill's
+    # many opponents' animations) loads into the rest when a fighter is
+    # made (src/host/match.c). Audio RAM is not part of the game's state.
+    "melee/lb/lbmemory.c": [
+        ("_p(a_arenaHi) = (ARGetSize() > 0x01000000U) ? 0x01000000U : "
+         "ARGetSize();",
+         "_p(a_arenaHi) = ARGetSize();"),
+    ],
     # UCF (see VANILLA): Fighter_procInput's first ftCo_IsCpuControlled
     # (+0xC4 on the console) hands UCF the fighter, its one lb_8000D148
     # (+0x738) is where UCF keeps the stick's history and snaps cardinals,

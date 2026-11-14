@@ -29,6 +29,8 @@
 #include <melee/ft/kinds/ftCommon/ftCo_Fall.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Throw.h>
 #include <melee/ft/types.h>
+#include <melee/if/ifstatus.h>
+#include <melee/if/types.h>
 #include <melee/it/forward.h>
 #include <melee/it/inlines.h>
 #include <melee/it/item.h>
@@ -47,6 +49,8 @@ extern HSD_Particle* hsd_804D0908[16]; /* particle.c: the particle lists */
 
 /// How far below the point asked for a floor is looked for.
 #define FLOOR_REACH 400.0F
+
+static void wake(HSD_GObj* gobj, Fighter* fp);
 
 /// Tell everything that keeps its own copy where the fighter now is.
 static void moved(HSD_GObj* gobj, Fighter* fp)
@@ -121,6 +125,7 @@ const char* host_ledge(int slot, float percent)
     {
         return "no such fighter";
     }
+    wake(gobj, fp); /* from host_sleep, its damage display too */
     line = left_ledge(&pos);
     if (line < 0) {
         return "no ledge found";
@@ -235,6 +240,7 @@ const char* host_rebirth(int slot, float x, float y)
     {
         return "no such fighter";
     }
+    wake(gobj, fp); /* from host_sleep, its damage display too */
     /* As TM-CE's ledgedash event starts on the respawn platform (its
        OPTPOS_RESPAWNPLAT, ledgedash.c): the respawn, then the wait on the
        platform, which the fighter leaves by itself after a while or with
@@ -363,12 +369,50 @@ void host_clean(void)
             pp->life = 1;
         }
     }
-    /* camera shakes: class 3 on the match camera's link (18) */
-    for (gobj = HSD_GObjPLinkHead[18]; gobj != NULL; gobj = next) {
-        next = gobj->next;
-        if (gobj->classifier == 3) {
-            HSD_GObjFree(gobj);
-        }
+    /* Not TM-CE's camera shakes (class 3 on link 18): the stage's objects
+       are class 3 too, and the camera keeps its looping shake
+       (Camera_RequestQuake's quake_gobj); freeing them crashed the game a
+       few attempts later. A one-shot shake ends by itself after 22 frames,
+       before a verdict's pause is over. */
+}
+
+/// Out of play, as between a lost stock and the respawn (TM-CE's
+/// Fighter_EnterSleep): not drawn, not hit, not followed by the camera,
+/// and its damage display gone. A drill without an opponent keeps the
+/// match's one this way instead of loading a match without it; placing it
+/// brings it back (wake).
+const char* host_sleep(int slot)
+{
+    HSD_GObj* gobj = Player_GetEntity(slot);
+    Fighter* fp;
+
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
+        return "no such fighter";
+    }
+    if (!fp->is_sleeping) {
+        release(gobj, fp);
+        ftCo_800D4F24(gobj, 0); /* Fighter_EnterSleep, no effect */
+        ifStatus_802F6788((u8) slot);
+        Camera_8002F3AC();
+    }
+    return NULL;
+}
+
+/// Back in play from host_sleep, as a respawn starts (Fighter_EnterRebirth),
+/// with its damage display again; the placement that follows puts it where
+/// it is wanted.
+static void wake(HSD_GObj* gobj, Fighter* fp)
+{
+    if (!fp->is_sleeping) {
+        return;
+    }
+    ftCo_800D4FF4(gobj);
+    if (ifStatus_GetHUDInfo()->players[fp->player_idx].HUD_parent_entity ==
+        NULL)
+    {
+        ifStatus_802F6E1C(fp->player_idx);
     }
 }
 
@@ -383,6 +427,7 @@ const char* host_place(int slot, float x, float y, float facing, int air,
     {
         return "no such fighter";
     }
+    wake(gobj, fp);
     release(gobj, fp);
 
     if (air) {

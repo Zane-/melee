@@ -21,7 +21,9 @@
 /// The console's arena, at the console's addresses.
 #define HOST_ARENA_LO 0x804F0C00u
 #define HOST_ARENA_HI 0x817F8AC0u
-#define HOST_ARAM_SIZE 0x1000000u
+/// Audio RAM: the console's 16 MB, and 48 more for a drill's opponents'
+/// animations (tools/native_build.py, lbmemory.c's patch).
+#define HOST_ARAM_SIZE 0x4000000u
 #define HOST_ARAM_BASE 0x4000u
 
 typedef struct HostPad {
@@ -127,8 +129,8 @@ const char* host_anchor(int slot, int on);
 void host_anchor_frame(void);
 const char* host_set_shield(int slot, float health);
 /// What TM-CE does round loading a savestate (savestate_v1.c), for a new
-/// attempt: the fighters' sounds and the crowd's stopped, the particles,
-/// camera shakes and fighters' items gone, colour overlays off.
+/// attempt: the fighters' sounds and the crowd's stopped, the particles and
+/// the fighters' free items gone, colour overlays off, moves fresh.
 void host_clean(void);
 /// Frames nobody sees or hears until host_quiet(0): no draw pass, no sound,
 /// and (the window) no pacing and the last picture kept. Coming back, the
@@ -137,6 +139,9 @@ void host_clean(void);
 void host_quiet(int on);
 int host_quiet_now(void);
 void host_audio_quiet(int on);
+/// Player `slot`'s fighter out of play (asleep, no damage display) until
+/// placed again.
+const char* host_sleep(int slot);
 const char* host_place(int slot, float x, float y, float facing, int air,
                        float percent);
 /// The control protocol (control.c), when enabled.

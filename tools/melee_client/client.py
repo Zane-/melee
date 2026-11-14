@@ -1038,13 +1038,15 @@ class Client:
         self.w.live(self.port, "off")
         self.w.pad(0)
         self.w.pad(1)
-        self.w.pace(False)
+        # unseen and unheard, as every load (load_quietly); both sides
+        # load the same way, so the two games stay the same
+        self.w.quiet(True)
         try:
             self.w.start(met["chars"][0], met["chars"][1], met["stage"],
                          seed=met["seed"], p2_human=True, settle=False)
             self.w.step(FRAMES_BEFORE_SESSION)
         finally:
-            self.w.pace(True)
+            self.w.quiet(False)
         # the person plays the session's local port
         self.port = local
         self.w.live(local, self.source)
@@ -1452,6 +1454,27 @@ class Client:
             if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
                 break
 
+    def course_opponents(self):
+        """The opponents of the course's drills on the course engine, the
+        most used first: a drill's match loads them all (Session's `also`),
+        so that the drills after it find theirs and start at once."""
+        key = self.c["id"]
+        if getattr(self, "_opponents_of", (None,))[0] != key:
+            count = {}
+            for part in self.course["parts"].values():
+                for d in part:
+                    if self.here.get(d["id"]) != courses.COURSE or \
+                            not course_registry.has(d["id"]):
+                        continue
+                    drill = course_registry.get(d["id"])
+                    for c in ({e.cpu for e in drill.deck} if drill.deck
+                              else {drill.cpu}):
+                        if c is not None:
+                            count[c] = count.get(c, 0) + 1
+            self._opponents_of = (key, sorted(count, key=lambda c:
+                                              -count[c]))
+        return list(self._opponents_of[1])
+
     def course_drill(self, d, results):
         """A drill on the course engine (tools/melee_course): the overlay's
         drill, ported. The match the last drill left is kept when it can
@@ -1462,7 +1485,8 @@ class Client:
         session = course_engine.Session(
             drill, self.w, person=self.port, character=self.c["id"],
             live=True, on_load=self.load_quietly,
-            seed=random.randrange(1, 1 << 30), dpad=False, reuse=True)
+            seed=random.randrange(1, 1 << 30), dpad=False, reuse=True,
+            also=self.course_opponents())
         self.session = session
         self.drill_stages = drill.stages
         self.wait_released()
