@@ -309,7 +309,18 @@ PATCHES = {
         # camera.c: a drill's camera, following its player at a distance)
         ("/* 452C68 */ static Camera game_camera;",
          "/* 452C68 */ static Camera game_camera;\n"
-         "Camera* host_game_camera(void) { return &game_camera; }"),
+         "Camera* host_game_camera(void) { return &game_camera; }\n"
+         "void host_camera_subject(Vec3* pos, int slot);"),
+        # the free camera's subject (a fighter's bone, followed at half
+        # the way each frame) eased by the host when a drill's camera
+        # follows its player (src/host/camera.c)
+        ("    while (!get_subject_pos(subject_pos, slot_ptr)) {\n"
+         "        *slot_ptr = Camera_8002BA00(*slot_ptr, 1);\n"
+         "    }\n",
+         "    while (!get_subject_pos(subject_pos, slot_ptr)) {\n"
+         "        *slot_ptr = Camera_8002BA00(*slot_ptr, 1);\n"
+         "    }\n"
+         "    host_camera_subject(subject_pos, *slot_ptr);\n"),
     ],
     # An image descriptor, addressed from a struct laid over the globals
     # before it.

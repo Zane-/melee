@@ -77,7 +77,15 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
   `{"follow": "player", "distance": D, "height": H}`: the game's own free camera (the pause
   camera's) on the player, its eye D in front and H above; Training Mode's "Zoom" is 140
   and 10. (`camera` in `src/host/camera.c`; the client puts the match camera back when the
-  drill is left.)
+  drill is left.) Followed, it is eased (the owner: "really jarring. It picks up every
+  little motion ... make it smoother so it literally doesn't 100% track the character"):
+  the game's free camera aims at a bone and goes half the way to it every frame, so it
+  dipped with every crouch and landing; the native build hands its aim to the host, which
+  follows the fighter's feet instead, holds still while the fighter is within 12 units
+  across and 20 up of it, and eases a tenth (across) and a twentieth (up) of the way beyond.
+  Measured through the window build (a stage point's move in the picture): a short hop
+  9.8 px a frame at most and 146 px in all before, 0.35 and 2.3 after; a full hop 13.4 and
+  291 before, 1.7 and 23 after; a dash is still followed, smoothly.
 
 ## Tutorial and coach
 
@@ -134,8 +142,9 @@ played it.
    stick), let go in the squat, a short hop. Three in a row.
 3. **Every time**: ten short hops in a row.
 
-No CPU; the camera follows Fox, a little further out than the normal camera's close zoom
-on a lone fighter (180). The tutorial's examples are filmed closer (90), to see the crouch.
+No CPU; the camera follows Fox, eased, further out than the normal camera's close zoom on a
+lone fighter (220; the owner asked for "a little" further than the first 180). The
+tutorial's examples are filmed closer (90), to see the crouch.
 
 ## Next
 
