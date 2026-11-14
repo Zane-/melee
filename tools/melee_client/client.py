@@ -192,7 +192,8 @@ class Play:
                 self._ui(pid + "q", "text c%sq %s" % (pid,
                                                      screens.esc(words)))
                 for name in ("go", "late", "info"):
-                    self._ui(pid + "q" + name, "class c%sq %s %d" % (
+                    # (q-prefixed: ".go" alone is the slanted GO button's)
+                    self._ui(pid + "q" + name, "class c%sq q%s %d" % (
                         pid, name, 1 if kind == name else 0))
                 self._ui(pid + "qon", "class c%sq on %d" % (
                     pid, 1 if words else 0))
@@ -2091,11 +2092,12 @@ class Client:
         "similar to coach where it shows you a frame by frame playback in
         the tutorial itself ... more visual rather than textual", "more
         educational as well"). On a drill's first open and on D-pad up
-        (`intro`): its lessons, the concept (what a jump squat is, how it
-        differs from one character to the next, when to let go), each with
+        (`intro`): its lessons, the concept (what a jump squat is and how it
+        differs from one character to the next; how to short hop), each with
         what it shows: the game's own pictures of an example, frame by
-        frame with the input display and a cue on each frame, or a table of
-        every character; then the part now. When a part opens: that part's
+        frame with the input display and a cue on each frame, or one still
+        picture of it; and below, a table of every character's number if it
+        has one. Then the part now. When a part opens: that part's
         card. A goes on, B back, START to the drill; Y shows an example
         full size; L and R choose the part."""
         from melee_drills import format as fmt
@@ -2109,24 +2111,39 @@ class Client:
         while k < len(lessons):
             le = lessons[k]
             show = le.get("show") or {}
+            text = le["text"]
             view = dict(title=T(le["title"]), sub="LESSON %d OF %d" % (
-                k + 1, len(lessons)), lead=T(spec["goal"]),
-                heading="What it is", text=T(le["text"]))
-            seq, ex = [], show.get("example")
+                k + 1, len(lessons)), text=[T(t) for t in (
+                    text if isinstance(text, list) else [text])])
+            seq, ex, still = [], show.get("example"), show.get("still")
             if ex is not None:
                 result, seq = self.tutorial_seq(drill, session, ex["inputs"],
                                                 ex.get("marks", {}),
                                                 ex.get("cues", []))
                 view["timeline"] = (result or {}).get("timeline")
-                if seq:
-                    view["pic"] = dict(view=1, crop=coach.crop([], (520,
-                                                                     300)))
-            elif "characters" in show:
+            elif still is not None:
+                # one picture of the example: the frame the lesson is about
+                at = int(fmt.value(still["frame"], nums))
+                cue = still.get("cue")
+                _, seq = self.tutorial_seq(
+                    drill, session, still["inputs"], {},
+                    [dict(cue, frames=[at, at])] if cue else [])
+                seq = [e for e in seq if e["label"] == "F%d" % at][:1]
+                for e in seq:
+                    e["label"] = ""
+                    e.pop("caption", None)  # (a still has no caption
+                    e["f"] = None           # and no inputs below it)
+                view["still"] = True
+            if seq:
+                view["pic"] = dict(view=1, crop=coach.crop([], (520, 300)))
+            if "characters" in le:
                 view["table"] = screens.character_table(
-                    fmt.every_character(show["characters"]), self.c["id"])
+                    fmt.every_character(le["characters"]), self.c["id"],
+                    fmt.CHARACTER_NUMBERS[le["characters"]][2])
+            moving = bool(seq) and still is None
             keys = [("A", "Next" if k + 1 < len(lessons) else
                      "On to part %d" % (drill.part_index + 1))]
-            if seq:
+            if moving:
                 keys += [("D-SIDE", "Frame by frame"),
                          ("D-UP", "Play, pause"), ("Y", "Full size")]
             if k > 0:
@@ -2135,7 +2152,7 @@ class Client:
             view["keys"] = keys
             what = self.tutorial_card(view, seq, dict(
                 a="next", b="back" if k > 0 else None, start="skip",
-                y="full" if seq else None))
+                y="full" if moving else None))
             if what == "next":
                 k += 1
             elif what == "back":
@@ -2153,8 +2170,6 @@ class Client:
                                             part.get("cues", []))
             pic = dict(view=1, crop=coach.crop([], (520, 300))) if seq \
                 else None
-            lead = T(spec["goal"]) if intro else \
-                "Next: part %d, %s." % (i + 1, T(part["name"]))
             keys = [("A", "Start")]
             if seq:
                 keys += [("D-SIDE", "Frame by frame"),
@@ -2164,7 +2179,7 @@ class Client:
             view = dict(
                 title=T(spec["name"]), sub="PART %d OF %d\n%s" % (
                     i + 1, n, T(part["name"]).upper()),
-                lead=lead, pic=pic, heading="How", text=T(part["teach"]),
+                pic=pic, text=[T(part["teach"])],
                 timeline=(result or {}).get("timeline"),
                 parts=[(T(p["name"]), "done" if j < i else "now" if j == i
                         else "") for j, p in enumerate(drill.parts)],

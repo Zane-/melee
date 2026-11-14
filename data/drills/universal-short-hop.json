@@ -19,33 +19,26 @@
     "lessons": [
       {
         "title": "The jump squat",
-        "text": "Every jump starts on the ground. When you press jump, {char} crouches for {J} frames before leaving it: the jump squat. Short hop or full jump is decided inside those {J} frames.",
-        "show": {"example": {
+        "text": [
+          "When you press jump, {char} crouches for {J} frames before leaving the ground. This crouch is the jump squat, and whether the jump is a short hop or a full one is decided inside it.",
+          "Every character's jump squat is a different length, from 3 frames to Bowser's 8. The longer it is, the more time you have to let go: {char} has {J-1} frames. Switch characters and the timing changes."
+        ],
+        "show": {"still": {
           "inputs": [{"press": "jump", "frame": 1, "hold": 1}],
-          "marks": {
-            "1": "Frame 1: jump pressed. The squat begins",
-            "2": "Still crouching: {char} has not left the ground",
-            "J": "Frame {J}: the squat's last frame",
-            "J+1": "Frame {J+1}: off the ground"
-          },
-          "cues": [
-            {"frames": [1, "J"], "words": "Jump squat: frame {f} of {J}", "kind": "info"},
-            {"frames": ["J+1", "J+40"], "words": "In the air", "kind": "info"}
-          ]
-        }}
+          "frame": "J",
+          "cue": {"words": "{char}'s jump squat: {J} frames", "kind": "info"}
+        }},
+        "characters": "jump_squat"
       },
       {
-        "title": "Every character's is different",
-        "text": "Not every character crouches as long. The quickest squat is 3 frames, Bowser's is 8; {char}'s is {J}. The longer the squat, the more time to let go: {char} has {J-1} frames, every frame of the squat but its last. With another character, the timing changes.",
-        "show": {"characters": "jump_squat"}
-      },
-      {
-        "title": "When to let go",
-        "text": "Let go of jump by frame {J-1} and {char} short hops. Still held on frame {J}, the squat's last, the jump is a full one. Step through it: on green frames, let go; on the red one it is too late.",
+        "title": "How to short hop",
+        "text": "Press jump and let go by frame {J-1}: {char} short hops. Still held on frame {J}, the squat's last, the jump is full. Step through the frames: green is in time, red is too late.",
         "show": {"example": {
           "inputs": [{"press": "jump", "frame": 1, "hold": 1}],
           "marks": {
             "1": "Frame 1: jump pressed. Let go now, or by frame {J-1}",
+            "2": "Frame {f}: still in the squat. Let go by frame {J-1}",
+            "J-1": "Frame {J-1}: the last frame to let go for a short hop",
             "J": "Frame {J}: too late to let go. Held here, the jump is full",
             "J+1": "Frame {J+1}: in the air. Let go in time: a short hop"
           },
@@ -62,7 +55,7 @@
   "scenarios": [
     {"name": "On the stage", "stage": "final-destination",
      "player": {"x": -20}, "opponent": "none",
-     "camera": {"follow": "player", "distance": 180, "height": 10}}
+     "camera": {"follow": "player", "distance": 220, "height": 10}}
   ],
 
   "attempt": {"start": {"enters": "jump_squat"}, "judge": "airborne"},

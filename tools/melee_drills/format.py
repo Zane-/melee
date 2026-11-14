@@ -23,10 +23,12 @@ The words:
 - opponents: "none" (no CPU in the drill: none is spawned, and one a
   match already has is asleep: out of play, out of the picture)
 - lessons (the tutorial's, before the parts: the concept taught): a
-  title, a text, and what is shown: {"example": {"inputs", "marks",
-  "cues"}} (played frame by frame, each frame captioned) or
-  {"characters": NUMBER} (every character's NUMBER, the player's marked:
-  "jump_squat")
+  title, a text (a paragraph or a list of them), and what is shown:
+  {"example": {"inputs", "marks", "cues"}} (played frame by frame, each
+  frame captioned) or {"still": {"inputs", "frame", "cue"}} (one picture
+  of that example: its frame `frame`, a cue {"words", "kind"} on it); and
+  "characters": NUMBER (every character's NUMBER in a table below, the
+  player's marked: "jump_squat")
 - cues (on a lesson's example or a part's): {"frames": [lo, hi], "words",
   "kind": "go" | "late" | "info"}: a colour and words on the picture for
   those frames ("let go now", "too late"); {f} in them is the frame shown
@@ -71,8 +73,10 @@ OPPONENTS = ("none",)
 CUE_KINDS = ("go", "late", "info")
 # a character's numbers a lesson can list for every character: its name in
 # expressions, where it is in data/framedata/<id>.json
-CHARACTER_NUMBERS = {"jump_squat": ("J", ("attributes",
-                                          "jump_startup_time"))}
+# a character's numbers a lesson can list for every character: its name in
+# expressions, where it is in data/framedata/<id>.json, what it is called
+CHARACTER_NUMBERS = {"jump_squat": ("J", ("attributes", "jump_startup_time"),
+                                    "Jump squat")}
 CAMERAS = ("normal", "stage")
 
 TOP = {
@@ -261,12 +265,19 @@ def _problems(spec):
     for i, le in enumerate(t.get("lessons", [])):
         w = "tutorial.lessons[%d]" % i
         words(le.get("title"), w + ".title")
-        words(le.get("text"), w + ".text")
+        paras = le.get("text")
+        for k, para in enumerate(paras if isinstance(paras, list)
+                                 else [paras]):
+            words(para, "%s.text[%d]" % (w, k))
+        if "characters" in le:
+            need(le["characters"] in CHARACTER_NUMBERS, w,
+                 "characters: one of %s" % ", ".join(CHARACTER_NUMBERS))
         show = le.get("show")
         if show is None:
             continue
-        if not need(isinstance(show, dict) and len(show) == 1, w,
-                    'show: {"example": ...} or {"characters": NUMBER}'):
+        if not need(isinstance(show, dict) and len(show) == 1 and
+                    ("example" in show or "still" in show), w,
+                    'show: {"example": ...} or {"still": ...}'):
             continue
         if "example" in show:
             ex = show["example"]
@@ -274,8 +285,13 @@ def _problems(spec):
             marks(ex.get("marks", {}), w + ".show.example.marks")
             cues(ex.get("cues", []), w + ".show.example.cues")
         else:
-            need(show.get("characters") in CHARACTER_NUMBERS, w,
-                 "characters: one of %s" % ", ".join(CHARACTER_NUMBERS))
+            st = show["still"]
+            inputs(st.get("inputs"), w + ".show.still.inputs")
+            num(st.get("frame"), w + ".show.still.frame")
+            if "cue" in st:
+                words(st["cue"].get("words"), w + ".show.still.cue.words")
+                need(st["cue"].get("kind", "info") in CUE_KINDS, w,
+                     "cue kind: one of %s" % ", ".join(CUE_KINDS))
 
     for i, sc in enumerate(spec["scenarios"]):
         w = "scenarios[%d]" % i
@@ -373,7 +389,7 @@ def load(drill_id=None, path=None):
 def every_character(number):
     """[(value, id, name)] of a character number (CHARACTER_NUMBERS) for
     every character in data/framedata, by value."""
-    _, path = CHARACTER_NUMBERS[number]
+    path = CHARACTER_NUMBERS[number][1]
     out = []
     d = os.path.join(ROOT, "data", "framedata")
     for f in sorted(os.listdir(d)):

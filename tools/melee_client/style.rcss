@@ -547,8 +547,7 @@ img { display: inline-block; }
    frame, a teal head, the part's example played large, frame by frame */
 .cstrip.tut { background-color: #22B8A0; }
 .cbadge.tut { background-color: #22B8A0; width: 112dp; }
-.tlead { padding: 10dp 24dp 0dp 24dp; font-size: 16dp; font-weight: 600; color: #3A4452; white-space: nowrap; overflow: hidden; }
-.tmain { display: flex; flex-direction: row; padding: 10dp 24dp 0dp 24dp; }
+.tmain { display: flex; flex-direction: row; padding: 18dp 24dp 0dp 24dp; }
 .cpic.tpic { width: 520dp; height: 300dp; }
 .cpath.tpic { width: 520dp; height: 300dp; }
 .tside { flex: 1; margin-left: 18dp; display: flex; flex-direction: column; }
@@ -557,14 +556,15 @@ img { display: inline-block; }
 .ttext { font-size: 16dp; line-height: 1.35em; color: #12161C; margin-bottom: 12dp; }
 .tcue { display: none; position: absolute; left: 0dp; right: 0dp; top: 34dp; padding: 8dp 12dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; text-align: center; }
 .tcue.on { display: block; }
-.tcue.go { background-color: #22B8A0E6; color: #12161C; }
-.tcue.late { background-color: #F0643CE6; color: #FFFFFF; }
-.tcue.info { background-color: #12161CCC; color: #F3F6FA; }
-.ttable { width: 520dp; height: 300dp; background-color: #FFFFFF; padding: 12dp 16dp; box-sizing: border-box; overflow: hidden; }
-.trow { display: flex; flex-direction: row; align-items: center; padding: 5dp 0dp; border-bottom: 1dp #DCE2EA; }
-.trow.mine { background-color: #E3F6F2; }
-.tval { width: 44dp; font-family: "Barlow Condensed"; font-weight: 800; font-size: 28dp; text-align: center; color: #12161C; }
-.tnames { flex: 1; font-size: 13dp; line-height: 1.3em; color: #3A4452; }
+/* (q-prefixed: ".go" alone is the slanted GO button's) */
+.tcue.qgo { background-color: #22B8A0E6; color: #12161C; }
+.tcue.qlate { background-color: #F0643CE6; color: #FFFFFF; }
+.tcue.qinfo { background-color: #12161CCC; color: #F3F6FA; }
+.ttable { display: flex; flex-direction: row; margin-top: 6dp; }
+.tcol { flex: 1; display: flex; flex-direction: column; padding: 8dp 10dp; margin-right: 6dp; background-color: #FFFFFF; }
+.tcol.mine { background-color: #D7F3EC; }
+.tval { font-family: "Barlow Condensed"; font-weight: 800; font-size: 30dp; line-height: 1.0em; color: #12161C; margin-bottom: 4dp; }
+.tnames { font-size: 13dp; line-height: 1.3em; color: #3A4452; }
 .tme { font-weight: 800; color: #12161C; }
 .tchips { display: flex; flex-direction: row; padding: 10dp 24dp 0dp 24dp; }
 .tchip { display: flex; flex-direction: row; align-items: center; height: 30dp; margin-right: 8dp; background-color: #FFFFFF; padding-right: 12dp; }

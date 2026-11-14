@@ -64,10 +64,12 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
   attempt's first; stick x positive is forward.
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
   from another drill sleeps: out of play, out of the picture).
-- **Lessons**: `{"title", "text", "show"}`; `show` is `{"example": {"inputs", "marks",
-  "cues"}}` (played frame by frame from the game's own pictures, each frame captioned) or
-  `{"characters": NUMBER}` (every character's NUMBER in a table, the player's marked;
-  `"jump_squat"`).
+- **Lessons**: `{"title", "text", "show", "characters"}`; `text` is a paragraph or a list
+  of them; `show` is `{"example": {"inputs", "marks", "cues"}}` (played frame by frame
+  from the game's own pictures, each frame captioned) or `{"still": {"inputs", "frame",
+  "cue"}}` (one picture of that example, its frame `frame`, with a cue `{"words", "kind"}`);
+  `characters` (optional) is a number shown for every character in a table below, the
+  player's marked (`"jump_squat"`).
 - **Cues**: `{"frames": [lo, hi], "words", "kind": "go" | "late" | "info"}`: a band of
   colour and words over the example's picture on those frames ("Let go now: short hop" in
   green, "Still held: full hop" in red); `{f}` in the words is the frame shown.
@@ -90,17 +92,20 @@ they need to release the jump button"). On a drill's first open, and on D-pad up
 1. Its lessons, one card each: a few sentences beside what the lesson shows: an example
    recorded from the game's own pictures (as the coach records its target), played in the
    card with the input display, the caption of the frame shown and its cue over the
-   picture, the D-pad stepping a frame (D-up plays or pauses, Y shows it full size); or a
-   table of every character's number, the player's marked. A goes on, B back, START to
-   the drill.
+   picture, the D-pad stepping a frame (D-up plays or pauses, Y shows it full size); or one
+   still picture of it; and a table of every character's number below, if it has one. A
+   goes on, B back, START to the drill. No goal line and no headings over the words (the
+   owner: "We don't need to say WHAT IT IS, just have the info text").
 2. The part now: its example played the same way with its own captions and cues, the
    example's inputs frame by frame below, the parts as chips (L and R choose another).
 3. A part passed `streak` times in a row opens the next, with its own card.
 
-Short hop's lessons: what the jump squat is (the character's squat, frame by frame, "frame 2
-of 3"); every character's (a table from 3 frames to Bowser's 8, the player's marked; the
-window to let go is J - 1); when to let go (the squat frame by frame: green "let go now" on
-frames 1 to J - 1, red "still held: full hop" on frame J).
+Short hop's two lessons (the owner: "a brief introduction of the jump squat and then how to
+short hop"): the jump squat, purely informational (a still of the character in its squat,
+what a jump squat is, how every character's differs and so the time to let go, J - 1, and
+a table of every character's from 3 frames to Bowser's 8, the player's marked); how to
+short hop (the squat frame by frame: green "let go now" on frames 1 to J - 1, red "still
+held: full hop" on frame J, the same thin straight band in every colour).
 
 **The coach shows what went wrong.** After misses in a row (Settings: 2 to 5, or off) its
 card shows the try against the example of the part being played, from the same start (the

@@ -1396,9 +1396,10 @@ def replay_view(part, number, total, name, title="Replay", hints=None,
             hint_rows(hints or REPLAY_HINTS)))
 
 
-def character_table(rows, me, unit="frames"):
-    """Every character's number (a lesson's table: the jump squat), grouped
-    by value, the player's character marked: `rows` [(value, id, name)]."""
+def character_table(rows, me, what="Jump squat"):
+    """Every character's number in a row of columns, one per value, the
+    player's character marked (a lesson's table: the jump squat): `rows`
+    [(value, id, name)]."""
     groups = {}
     for v, cid, name in rows:
         groups.setdefault(v, []).append((cid, name))
@@ -1408,45 +1409,47 @@ def character_table(rows, me, unit="frames"):
         names = ", ".join(
             ('<span class="tme">%s</span>' if cid == me else "%s")
             % esc(name) for cid, name in groups[v])
-        out.append('<div class="trow%s"><div class="tval">%d</div><div '
+        out.append('<div class="tcol%s"><div class="tval">%d</div><div '
                    'class="tnames">%s</div></div>' % (" mine" if mine else "",
                                                       v, names))
-    return ('<div class="ttable"><div class="th">%s, by character</div>%s'
-            '</div>' % (esc(unit.capitalize()), "".join(out)))
+    return ('<div class="th">%s, in frames, by character</div><div '
+            'class="ttable">%s</div>' % (esc(what), "".join(out)))
 
 
 def tutorial_card(v):
     """The tutorial: how to do it, shown (not the coach, which comes after
     misses and is about the try). The coach card's frame with a teal head.
-    A lesson (the concept: what a jump squat is, how it differs from one
-    character to the next, when to let go) or a part of the technique:
-    on the left what it shows, the game's own pictures of its example
-    played large with the input display and a cue on each frame ("let go
-    now"), frame by frame (Client.Play, panel "e"), or a table of every
-    character; on the right its words and the caption of the frame shown;
-    below, the example's inputs frame by frame, and the parts as chips.
-    `v`: title, sub, lead, pic (_picture's) or table (character_table's)
-    or neither, heading, text, timeline, parts [(name, state)], keys
-    [(button, words)]."""
+    A lesson (the concept: what a jump squat is and how it differs from
+    one character to the next; how to short hop) or a part of the
+    technique: on the left the game's own pictures of its example, played
+    large with the input display and a band on each frame ("Let go now"),
+    frame by frame (Client.Play, panel "e"), or one still picture of it;
+    on the right its words and, for a moving example, the caption of the
+    frame shown; below, the example's inputs frame by frame or a table of
+    every character; the parts as chips. `v`: title, sub, pic (_picture's)
+    or None, still, text [paragraphs], timeline, table (character_table's),
+    parts [(name, state)], keys [(button, words)]."""
     if v.get("pic") is not None:
         visual = _picture(v["pic"], "ex", 520.0)
-    elif v.get("table"):
-        visual = v["table"]
     else:
         visual = ('<div class="cpath cnone tpic">The example could not be '
                   'recorded in this game.</div>')
-    side = '<div class="th">%s</div><div class="ttext">%s</div>' % (
-        esc(v.get("heading", "How")), esc(v.get("text", "")))
-    if v.get("pic") is not None:
+    text = v.get("text", [])
+    side = "".join('<div class="ttext">%s</div>' % esc(t)
+                   for t in (text if isinstance(text, list) else [text]))
+    if v.get("pic") is not None and not v.get("still"):
         side += ('<div class="th">This frame</div><div id="cecap" '
                  'class="tcap"/>')
+    below = ""
+    if v.get("timeline") and not v.get("still"):
+        below = coach_grid(v["timeline"], None,
+                           title="THE INPUTS, FRAME BY FRAME", you="pressed")
+    if v.get("table"):
+        below += v["table"]
     chips = "".join(
         '<div class="tchip %s"><div class="tpn">%d</div><div class="tpw">%s'
         '</div></div>' % (state, i + 1, esc(name))
         for i, (name, state) in enumerate(v.get("parts") or []))
-    grid = coach_grid(v.get("timeline"), None,
-                      title="THE INPUTS, FRAME BY FRAME", you="pressed") \
-        if v.get("pic") is not None else ""
     size = 34 if len(v["title"]) <= 26 else 28
     return (
         '<div class="cdim"/><div class="ccard tcard">'
@@ -1454,14 +1457,13 @@ def tutorial_card(v):
         '<div class="un">Tutorial</div></div><div class="ctitle" style='
         '"font-size: %ddp;">%s</div><div class="grow"/><div class="cwhat">'
         '%s</div></div>'
-        '<div class="tlead">%s</div>'
         '<div class="tmain">%s<div class="tside">%s</div></div>'
         '<div class="cmid">%s</div>'
         '<div class="tchips">%s</div>'
         '<div class="grow"/><div class="cfoot">%s</div></div>' % (
             size, esc(v["title"]), esc(v.get("sub", "")).replace("\n",
                                                                 "<br/>"),
-            esc(v.get("lead", "")), visual, side, grid, chips, "".join(
+            visual, side, below, chips, "".join(
                 '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
                                                              esc(w))
                 for b, w in v["keys"])))
