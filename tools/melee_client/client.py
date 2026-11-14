@@ -27,7 +27,10 @@ Needs tools/aurora32/build.sh (with RmlUi) and tools/native_build.py
 tested (tests/client/menu.py).
 """
 import argparse
+import os
 import random
+import shutil
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -41,6 +44,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import characters  # noqa: E402
 import courses  # noqa: E402
+import online  # noqa: E402
 import opponents  # noqa: E402
 import fonts  # noqa: E402
 import screens  # noqa: E402
@@ -62,6 +66,8 @@ STAGE_ORDER = ("final-destination", "battlefield", "yoshis-story",
                "dream-land", "fountain-of-dreams", "pokemon-stadium")
 assert set(STAGE_ORDER) == set(STAGES)
 CPU, NOBODY = "the game's own CPU", "nobody"
+ONLINE = "a friend, online"
+FRAMES_BEFORE_SESSION = 10   # both games, the same frames, nobody's input
 
 # Which panel a direction leads to from each panel of the main menu.
 MAIN_MOVES = {
@@ -310,7 +316,16 @@ class Client:
         self.w.step()
         self.frames += 1
         pressed, moves = self.read()
-        if self.screen in ("match", "versus"):
+        if self.screen == "online_match":
+            ev = self.controls(stages=False)
+            if ev is not None and ev[0] == "column":
+                self.toggle_column()
+            elif ev is not None and ev[0] == "pause":
+                ev = self.pause("online")
+                if ev is not None and ev[0] == "leave":
+                    self.leave_online(ev[1])
+                    return
+        elif self.screen in ("match", "versus"):
             ev = ("leave", "back") if self.game_quit() else \
                 self.controls(stages=False)
             if ev is not None and ev[0] == "column":
@@ -472,6 +487,8 @@ class Client:
                      ("hub", "Back to the course", None)]
         elif kind == "versus":
             rows.append(("opp", "Back to the opponent", None))
+        elif kind == "online":
+            rows.append(("back", "Leave the match", None))
         else:
             rows.append(("back", "Back", None))
         rows.append(("main", "Main menu", None))
@@ -514,7 +531,9 @@ class Client:
             self.pause_focus = rows[at][0]
             self.put("prows", screens.pause_rows(rows, at))
 
-        self.w.freeze(True)
+        frozen = kind != "online"   # online the game goes on: both sides
+        if frozen:
+            self.w.freeze(True)
         self.pause_open = True
         self.w.ui("text ptitle Paused")
         draw()
@@ -566,7 +585,8 @@ class Client:
             self.pause_open = False
             self.pause_focus = None
             self.consume()                  # still frozen while let go
-            self.w.freeze(False)
+            if frozen:
+                self.w.freeze(False)
 
     def playing(self):
         """A match has just been started here: from now on the game ending
@@ -646,7 +666,8 @@ class Client:
         if self.mode == "lab":
             rest.reverse()
             return rest + trained
-        return trained + rest
+        return trained + [(ONLINE, "your friend picks their own "
+                                   "character")] + rest
 
     def opponent_card(self):
         players = self.players()
@@ -709,6 +730,9 @@ class Client:
         """A match against the opponent chosen, played as chosen."""
         opp = self.roster[self.opp_at]
         name, what = self.players()[self.who]
+        if name == ONLINE:
+            self.show_online()
+            return
         stage = STAGE_ORDER[self.stage_at]
         self.say("Loading.")
         self.w.step()
@@ -736,6 +760,223 @@ class Client:
             self.me, opp, name, what, stage.replace("-", " ").title(),
             self.mode == "lab"), START | (DPAD if self.mode == "lab" else 0))
         self.w.capture(False)
+
+    # ---- a friend, online (online.py; the session: src/host/net.c) --------
+
+    def online_rows(self):
+        rows = [("copy", "Copy my code", "to send to your friend"),
+                ("paste", "Paste a friend's code", "a code or ip:port")]
+        for i, f in enumerate(online.friends(self.progress.data)):
+            rows.append(("friend%d" % i, f["name"], "a friend"))
+        return rows
+
+    def show_online(self, status=""):
+        self.menu_music()
+        self.screen = "online"
+        self.w.capture(True)
+        self.online_at = getattr(self, "online_at", 0)
+        if getattr(self, "lobby", None) is None:
+            self.load("online", screens.online_page(
+                "...", [], 0, "Finding your address (a STUN server)..."))
+            self.w.step()
+            try:
+                self.lobby = online.Lobby(
+                    port=self.online_port(),
+                    use_stun=os.environ.get("MELEE_ONLINE_NO_STUN") is None)
+            except Exception as e:
+                self.lobby = None
+                status = "No address: %s. Is this machine online?" % (
+                    str(e)[:80],)
+        rows = self.online_rows()
+        self.online_at = min(self.online_at, len(rows) - 1)
+        self.load("online", screens.online_page(
+            self.lobby.code if self.lobby else "-", rows, self.online_at,
+            status))
+
+    def online_port(self):
+        """The local UDP port: the same each time where it is free, so a
+        router that keeps ports gives the same code every time."""
+        return int(self.progress.data.get("online_port", 47700))
+
+    def write_clipboard(self, text):
+        """The code onto the system clipboard: SDL's (the window's), and
+        xclip's where there is one (an X11 session, or Wayland's X
+        clients); off screen SDL's clipboard does not keep it."""
+        try:
+            self.w.clipboard(text)
+        except NativeError:
+            pass
+        if shutil.which("xclip") and not self.w.display:
+            try:
+                p = subprocess.Popen(
+                    ["timeout", "120", "xclip", "-selection", "clipboard",
+                     "-loops", "1"], stdin=subprocess.PIPE,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    start_new_session=True)
+                p.stdin.write(text.encode())
+                p.stdin.close()
+            except OSError:
+                pass
+
+    def read_clipboard(self):
+        """The clipboard's text: SDL's, else xclip's."""
+        try:
+            text = self.w.clipboard().strip()
+        except NativeError:
+            text = ""
+        if not text and shutil.which("xclip"):
+            env = dict(os.environ)
+            if self.w.display:
+                env["DISPLAY"] = self.w.display
+            try:
+                text = subprocess.run(
+                    ["xclip", "-selection", "clipboard", "-o"], env=env,
+                    capture_output=True, text=True, timeout=2).stdout.strip()
+            except (OSError, subprocess.TimeoutExpired):
+                text = ""
+        return text
+
+    def online_say(self, text):
+        self.online_status = text
+        self.w.ui("text ostatus " + screens.esc(text))
+
+    def close_lobby(self):
+        if getattr(self, "lobby", None) is not None:
+            self.lobby.close()
+            self.lobby = None
+
+    def on_online(self, pressed, moves):
+        rows = self.online_rows()
+        at = self.online_at
+        if moves & UP:
+            at = (at - 1) % len(rows)
+        if moves & DOWN:
+            at = (at + 1) % len(rows)
+        if at != self.online_at:
+            self.online_at = at
+            self.put("orows", screens.online_rows(rows, at))
+        if pressed & B:
+            self.close_lobby()
+            self.show_opponent()
+            return
+        if not pressed & A or self.lobby is None:
+            return
+        ident = rows[self.online_at][0]
+        if ident == "copy":
+            self.write_clipboard(self.lobby.code)
+            self.online_say("Your code is copied: paste it to your friend.")
+        elif ident == "paste":
+            code = self.read_clipboard()
+            try:
+                online.read_code(code)
+            except Exception:
+                self.online_say("The clipboard has no code in it.")
+                return
+            self.online_connect(code)
+        else:
+            f = online.friends(self.progress.data)[int(ident[6:])]
+            self.online_connect(f["code"], f["name"])
+
+    def online_connect(self, code, name=None):
+        """Meet the friend, then the same match on both sides, then the
+        session."""
+        self.online_say("Looking for %s..." % (name or "your friend"))
+        cancelled = []
+
+        def tick():
+            self.w.step()
+            pad = self.w.pads()[self.port]["buttons"]
+            if pad & B:
+                cancelled.append(1)
+                raise online.OnlineError("cancelled")
+        try:
+            met = self.lobby.meet(
+                code, dict(nick=self.nickname(), char=self.me["id"],
+                           color=0),
+                stage=STAGE_ORDER[self.stage_at], delay=2, tick=tick)
+        except online.OnlineError as e:
+            self.online_say("Cancelled." if cancelled else
+                            "Not found: %s. Ask for a new code, or check "
+                            "the address." % str(e)[:60])
+            return
+        them = met["nicks"][1 - met["local"]] or name or "Friend"
+        online.add_friend(self.progress.data, them, code)
+        self.progress.save()
+        self.close_lobby()
+        self.online_match(met, them)
+
+    def nickname(self):
+        return self.progress.data.get("nickname") or "Player"
+
+    def online_match(self, met, them):
+        local, other = met["local"], 1 - met["local"]
+        self.online_say("Found %s: starting the match..." % them)
+        self.w.step()
+        self.online_left_port = self.port
+        self.w.live(self.port, "off")
+        self.w.pad(0)
+        self.w.pad(1)
+        self.w.pace(False)
+        try:
+            self.w.start(met["chars"][0], met["chars"][1], met["stage"],
+                         seed=met["seed"], p2_human=True, settle=False)
+            self.w.step(FRAMES_BEFORE_SESSION)
+        finally:
+            self.w.pace(True)
+        # the person plays the session's local port
+        self.port = local
+        self.w.live(local, self.source)
+        self.w.net("start", local, met["bind"], met["peer"][0],
+                   met["peer"][1], met["delay"])
+        self.online = dict(them=them, met=met, frames=0, said=None)
+        opp = next(c for c in self.roster
+                   if c["id"] == met["chars"][other])
+        self.screen = "online_match"
+        self.playing()
+        self.in_match("versus", screens.versus_rail(
+            self.me, opp, them, "online: a friend",
+            met["stage"].replace("-", " ").title(), False), START | DPAD)
+        self.w.capture(False)
+
+    def on_online_match(self, pressed, moves):
+        o = self.online
+        o["frames"] += 1
+        if o["frames"] % 30 == 0:
+            st = self.w.net("stats")
+            if st["peer_left"]:
+                text = "%s left the match." % o["them"]
+            elif st["desync"]:
+                text = "Out of step with %s at frame %d." % (
+                    o["them"], st["desync_frame"])
+            elif st["silent"] > 180:
+                text = "Nothing heard from %s for %d s." % (
+                    o["them"], st["silent"] // 60)
+            else:
+                text = "Rolled back %d times (deepest %d frames)." % (
+                    st["rollbacks"], st["max_rollback"])
+            if text != o["said"]:
+                o["said"] = text
+                self.bot_state(text)
+            if st["peer_left"] and o.get("left_at") is None:
+                o["left_at"] = o["frames"]
+        if o.get("left_at") is not None and o["frames"] - o["left_at"] > 120:
+            self.leave_online("online", "%s left the match." % o["them"])
+
+    def leave_online(self, to, why="You left the match."):
+        try:
+            self.w.net("stop")
+        except NativeError:
+            pass
+        self.w.live(self.port, "off")
+        self.port = self.online_left_port
+        self.w.live(self.port, self.source)
+        self.w.mask(0)
+        self.has_cover = False
+        self.online = None
+        if to == "main":
+            self.show_main()
+        else:
+            self.show_online(why)
 
     def bot_state(self, text):
         if text != self.bot_said:

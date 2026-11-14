@@ -56,6 +56,36 @@ def rays(points):
         % (x - 9, y, x - 22, y - 5) for x, y in points)
 
 
+def online_page(code, rows, at, status):
+    """Playing a friend online: this side's code, what can be done (rows:
+    (id, label, detail)), and what is happening (`status`)."""
+    items = "".join(
+        '<div class="prow%s"><div>%s</div><div class="grow"/>'
+        '<div class="pv">%s</div></div>' % (
+            " on" if i == at else "", esc(label), esc(detail))
+        for i, (ident, label, detail) in enumerate(rows))
+    return page("Online", (
+        '<div class="onl"><div class="pbox onlbox">'
+        '<div class="ptitle"><div class="un">Play a friend online</div></div>'
+        '<div class="onlwhat">Send your friend your code and paste theirs: '
+        'both games then find each other, without a server.</div>'
+        '<div class="onlcode"><div class="onll">YOUR CODE</div>'
+        '<div id="code" class="onlc">%s</div></div>'
+        '<div id="orows" class="prows">%s</div>'
+        '<div id="ostatus" class="onls">%s</div>'
+        '<div class="phint">%s<div>Choose</div>%s<div>Back</div></div>'
+        '</div></div>' % (esc(code), items, esc(status), key("A", dark=True),
+                          key("B"))), paper=True)
+
+
+def online_rows(rows, at):
+    return "".join(
+        '<div class="prow%s"><div>%s</div><div class="grow"/>'
+        '<div class="pv">%s</div></div>' % (
+            " on" if i == at else "", esc(label), esc(detail))
+        for i, (ident, label, detail) in enumerate(rows))
+
+
 def pause_rows(rows, at):
     """The pause menu's rows: (id, label, value or None); `at` the row in
     focus. A row with the id "-" is a gap."""

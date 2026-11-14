@@ -81,6 +81,12 @@ typedef struct HostMatch {
     int stocks;    ///< stocks each; 0: an endless time match (the default)
     /// Matches entered so far (`state`'s "match").
     unsigned entered;
+    /// Further characters loaded with the match (CharacterKind), so that a
+    /// CPU can become one of them at once (host_match_swap): a drill whose
+    /// scenarios have different opponents, as the overlay's character
+    /// rotation does it (src/melee/tm/rotation). Not all may fit.
+    int preload[8];
+    int preloads;
     /// Matches the game ended itself (L+R+A+Start in its pause, the end of
     /// a stock match), as opposed to a driver asking for another. Each is
     /// followed at once by the same match again, never by the game's own
@@ -99,6 +105,12 @@ int host_live_fighter(const void* gobj);
 void host_match_install(void);
 /// End the current scene and enter the match described by host_match.
 void host_match_start(void);
+/// Make the fighter in `slot` a CPU of `ckind` in the same frame, if the
+/// match loaded that character: 1 replaced, 0 it already was, -1 not
+/// loaded.
+int host_match_swap(int slot, int ckind);
+/// The characters this match can swap to, as "ck ck ..." into `out`.
+void host_match_loaded(char* out, size_t size);
 
 /// Put player `slot`'s fighter standing on the floor at or below (x, y), or
 /// (air) falling from there, facing `facing`, at `percent` damage
@@ -113,6 +125,17 @@ const char* host_rebirth(int slot, float x, float y);
 const char* host_anchor(int slot, int on);
 void host_anchor_frame(void);
 const char* host_set_shield(int slot, float health);
+/// What TM-CE does round loading a savestate (savestate_v1.c), for a new
+/// attempt: the fighters' sounds and the crowd's stopped, the particles,
+/// camera shakes and fighters' items gone, colour overlays off.
+void host_clean(void);
+/// Frames nobody sees or hears until host_quiet(0): no draw pass, no sound,
+/// and (the window) no pacing and the last picture kept. Coming back, the
+/// sounds those frames started are stopped and music they started begins
+/// again from its start.
+void host_quiet(int on);
+int host_quiet_now(void);
+void host_audio_quiet(int on);
 const char* host_place(int slot, float x, float y, float facing, int air,
                        float percent);
 /// The control protocol (control.c), when enabled.
@@ -133,6 +156,7 @@ void host_window_forget(const void* data, size_t size);
 /// running at the console's speed instead of as fast as it goes.
 const char* host_window_live(int port, const char* source);
 void host_window_pace(int on);
+void host_window_quiet(int on);
 void host_window_capture(int on);
 void host_window_mask(unsigned buttons);
 void host_window_scripted(int port, int on);

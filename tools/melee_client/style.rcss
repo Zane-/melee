@@ -299,3 +299,12 @@ span { display: inline; }
 .phint .key { margin-left: 12dp; margin-right: 6dp; }
 .now { color: #F3F6FA; font-weight: 700; margin-top: 4dp; }
 .stageline { margin-bottom: 8dp; }
+
+/* playing a friend online */
+.onl { position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 720dp; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.onlbox { width: 640dp; }
+.onlwhat { font-size: 15dp; margin: 2dp 0dp 12dp 0dp; color: #3A4452; }
+.onlcode { background-color: #12161C; color: #F3F6FA; padding: 10dp 14dp; margin-bottom: 12dp; }
+.onll { font-size: 12dp; letter-spacing: 1dp; color: #A9B4C2; }
+.onlc { font-family: "JetBrains Mono"; font-size: 26dp; font-weight: 700; letter-spacing: 1dp; }
+.onls { min-height: 22dp; margin-top: 10dp; font-size: 15dp; font-weight: 600; }

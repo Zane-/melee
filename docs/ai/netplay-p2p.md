@@ -85,7 +85,15 @@ leave the match. The friend is told when the other leaves and goes back to the o
 screen. The window build paces as usual; when its side is ahead, time sync moves the next
 frame a frame period later (`host_window_delay_frame`); while it waits for the other side's
 inputs it keeps the window alive without presenting (`host_window_idle`).
-`tests/client/online.py`: two clients in two windows, each driven by its own thread.
+`tests/client/online.py` (9): two clients in two windows on two virtual displays, each driven
+by its own thread, meet from each other's codes, play the same match for ten seconds (about
+500 frames: two software-drawn windows run under 60 frames a second), 34 desync checks
+agree, one leaves through its pause menu, the other is told and goes back, each has saved
+the other by nickname. The clipboard: the client copies with SDL's and xclip's and pastes
+from SDL's, else xclip's (`write_clipboard`, `read_clipboard`). On the virtual displays SDL
+keeps nothing (SDL_HasClipboardText is false right after setting it), so the test hands
+each client the other's code through `read_clipboard`; copying and pasting on a real
+desktop (Wayland here) has not been tried.
 
 Not built yet: sound across rollbacks (sound effects of frames played again are dropped, not
 merged), Windows (soft-dirty is Linux's), a relay for the pairs hole punching cannot join,

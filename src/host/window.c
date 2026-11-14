@@ -895,7 +895,9 @@ void host_window_clipboard(char* out, size_t size)
 
 void host_window_set_clipboard(const char* text)
 {
-    SDL_SetClipboardText(text);
+    if (!SDL_SetClipboardText(text)) {
+        host_log("clipboard: %s", SDL_GetError());
+    }
 }
 
 /// A frame of real time with nothing new to show (netplay waits for the
