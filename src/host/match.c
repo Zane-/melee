@@ -143,6 +143,7 @@ static void on_enter(GameModeState* state)
         p->rumble_enabled = 0;
         if (i < 4 && host_match.ckind[i] >= 0) {
             p->ckind = (s8) host_match.ckind[i];
+            p->color = (u8) host_match.color[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
             /* a person's controller rumbles, as the game's own default
                (gm_LoadRumbleEnabled: humans only); whether it reaches
@@ -158,7 +159,6 @@ static void on_enter(GameModeState* state)
     } else {
         rot_deck.count = 0;
     }
-            p->color = (u8) host_match.color[i];
     *HSD_RandSeedPtr = host_match.seed;
     host_match.entered++;
     gm_LoadAnnouncer();
