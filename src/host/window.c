@@ -676,9 +676,25 @@ static void present_wait(void)
 /// game falls behind the clock by that much, and readings are never closer
 /// than about 14.7 ms. (It once caught up on up to 100 ms.) Less than 2 ms
 /// is the ordinary lateness of waking up, made up on the next frame.
+/// When the next frame is due (pace_wait).
+static struct timespec next;
+
+/// The next frame a frame period later than due: netplay's time sync, on
+/// the side that is ahead (net.c).
+void host_window_delay_frame(void)
+{
+    if (next.tv_sec == 0) {
+        return;
+    }
+    next.tv_nsec += 16683350;
+    if (next.tv_nsec >= 1000000000) {
+        next.tv_nsec -= 1000000000;
+        next.tv_sec++;
+    }
+}
+
 static void pace_wait(void)
 {
-    static struct timespec next;
     struct timespec now;
     long long late;
 
@@ -867,6 +883,41 @@ void host_window_audio(const int16_t* frames, int count)
         SDL_ResumeAudioStreamDevice(audio_out);
         audio_started = 1;
     }
+}
+
+/// The system clipboard's text into `out` ("" if none).
+void host_window_clipboard(char* out, size_t size)
+{
+    char* text = SDL_GetClipboardText();
+    snprintf(out, size, "%s", text != NULL ? text : "");
+    SDL_free(text);
+}
+
+void host_window_set_clipboard(const char* text)
+{
+    SDL_SetClipboardText(text);
+}
+
+/// A frame of real time with nothing new to show (netplay waits for the
+/// other side): the window's events, and a little sleep.
+void host_window_idle(void)
+{
+    const AuroraEvent* event;
+    if (!started) {
+        return;
+    }
+    for (event = aurora_update(); event != NULL && event->type != AURORA_NONE;
+         event++)
+    {
+        if (event->type == AURORA_EXIT) {
+            fflush(stdout);
+            host_log("the window was closed");
+            fflush(stderr);
+            _exit(0);
+        }
+    }
+    read_live();
+    SDL_Delay(2);
 }
 
 void host_window_frame(void)

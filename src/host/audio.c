@@ -616,6 +616,9 @@ static void ax_frame(void)
         out[2 * n] = clamp16(left[n]);
         out[2 * n + 1] = clamp16(right[n]);
     }
+    if (host_net_resimulating()) {
+        return; /* a frame played again: it was heard the first time */
+    }
     if (raw != NULL) {
         fwrite(out, sizeof out[0], AX_FRAME * 2, raw);
     }

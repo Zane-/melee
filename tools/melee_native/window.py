@@ -227,6 +227,14 @@ class Window(Native):
         takes the driver's pad: for a demonstration they can stop."""
         self._cmd("script %d %d" % (port, 1 if on else 0))
 
+    def clipboard(self, text=None):
+        """The system clipboard's text, or set it to `text`."""
+        if text is not None:
+            self._cmd("clip set " + text)
+            return text
+        reply = self._cmd("clip")
+        return reply[3:] if reply.startswith("ok ") else ""
+
     def mask(self, buttons=0):
         """Buttons of the live ports the game does not see (a bit mask of
         PAD_* bits); pads() still reports them."""

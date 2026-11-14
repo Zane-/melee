@@ -336,6 +336,73 @@ class Native:
             words = self._cmd("ledge %d %.9g" % (port, percent)).split()
         return float(words[0]), float(words[1])
 
+    def net(self, what, *args):
+        """Rollback netcode (src/host/net.c). "start" local bind peer_ip
+        peer_port delay [lag loss jitter]; "stop"; "stats" (a dict);
+        "hash" (the fighters' and the random seed's hash now); "input" f
+        (the inputs frame f is played with: local and the other side's)."""
+        reply = self._cmd(" ".join(["net", what] + [str(a) for a in args]))
+        w = reply.split()
+        if what == "stats":
+            keys = ("frame", "confirmed", "remote_frame", "rollbacks",
+                    "rolled", "max_rollback", "stalls", "sync_waits",
+                    "sent", "received", "checks", "desync", "desync_frame",
+                    "peer_left", "silent")
+            return {k: int(v) for k, v in zip(keys, w[1:])}
+        if what == "hash":
+            return w[1]
+        if what == "input":
+            v = [int(x) for x in w[1:]]
+            pad = lambda p: dict(buttons=p[0], lx=p[1], ly=p[2], cx=p[3],
+                                 cy=p[4], lt=p[5], rt=p[6])
+            return dict(local=pad(v[0:7]), confirmed=bool(v[7]),
+                        remote=pad(v[8:15]), port=v[15], frame=v[16],
+                        seed=v[17] if len(v) > 17 else None,
+                        drawn=v[18] if len(v) > 18 else None)
+        return None
+
+    def rb(self, what, n=None):
+        """Rollback's frame records (src/host/rollback.c): "start", "stop",
+        "mark" (returns the pages the frame wrote), "back" n (boundaries
+        back; returns the frame then), "stats" (a dict)."""
+        reply = self._cmd("rb %s%s" % (what, "" if n is None else
+                                        " %d" % n)).split()
+        if what == "mark":
+            return int(reply[1])
+        if what == "back":
+            self.frame = int(reply[1])
+            return self.frame
+        if what == "stats":
+            keys = ("marks", "pages", "max_pages", "rewinds", "rewound",
+                    "mark_ms", "max_mark_ms", "rewind_ms")
+            return {k: float(v) for k, v in zip(keys, reply[1:])}
+        return None
+
+    def save(self, slot=0):
+        """The game's whole state into slot `slot` (0 to 31, in the
+        process: rollback's snapshots). Returns its size in bytes."""
+        return int(self._cmd("save %d" % slot).split()[1])
+
+    def load(self, slot=0):
+        """The state saved in `slot`, back."""
+        w = self._cmd("load %d" % slot).split()
+        self.frame = int(w[1])
+
+    def state_hash(self):
+        """(hash of the whole state, arena, statics and heap sizes, heap
+        bytes in use, heap peak)."""
+        w = self._cmd("hash").split()
+        return (w[1],) + tuple(int(x) for x in w[2:])
+
+    def state_diff(self, slot):
+        """None if the state is the one in `slot`, else (region, offset,
+        address) of the first byte that differs (0 arena, 1 statics, 2
+        heap)."""
+        w = self._cmd("hash %d" % slot).split()
+        if w[1] == "same":
+            return None
+        return int(w[1]), int(w[2]), int(w[3], 16)
+
     def sfx(self, n):
         """The game's menu sound n (0 to 10)."""
         self._cmd("sfx %d" % n)

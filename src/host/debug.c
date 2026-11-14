@@ -49,6 +49,17 @@ void host_rng_frame(void)
     ndraws = 0;
 }
 
+/// This frame's draws so far: copies up to `max` return addresses, returns
+/// how many there were.
+int host_rng_callers(void** out, int max)
+{
+    int n = ndraws < MAX_DRAWS ? ndraws : MAX_DRAWS;
+    for (int i = 0; i < n && i < max; i++) {
+        out[i] = callers[i];
+    }
+    return ndraws;
+}
+
 /// The return addresses of this frame's draws, in order, on one line.
 void host_rng_print(void)
 {

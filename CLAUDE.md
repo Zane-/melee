@@ -121,7 +121,7 @@ ninja
 | MexTK ↔ decomp mapping (older reimplementation plan) | `docs/ai/training-mode-port.md` |
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
-| Our own peer-to-peer rollback netcode: feasibility study | `docs/ai/netplay-p2p.md` |
+| Our own peer-to-peer rollback netcode: the study, and what is built (state save/restore, per-frame undo records, the UDP session) | `docs/ai/netplay-p2p.md`; `src/host/{state,gameheap,rollback,net}.c`; `python tests/native/netplay.py` |
 | Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
 | UCF 0.84 in C, and its comparison against Slippi's own code (overlay and native build) | `src/melee/tm/ucf/`, `docs/ai/ucf.md`, `tests/sim/ucf.py`, `tests/native/ucf.py` |
 | The main menu (panels, pages) | `src/melee/tm/menu/`, `tests/sim/menu.py`; "Main menu" in `docs/ai/training-courses.md` |

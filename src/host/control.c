@@ -438,6 +438,163 @@ static void command(char* line)
         } else {
             printf("@ %.9g %.9g\n", x, y);
         }
+    } else if (strcmp(cmd, "clip") == 0) {
+        /* "clip": the clipboard's text, on one line; "clip set TEXT" */
+#ifdef HOST_WINDOW
+        char text[512];
+        if (strncmp(line, "set ", 4) == 0) {
+            host_window_set_clipboard(line + 4);
+            printf("@ ok\n");
+        } else {
+            host_window_clipboard(text, sizeof text);
+            for (char* c = text; *c; c++) {
+                if (*c == '\n' || *c == '\r') {
+                    *c = ' ';
+                }
+            }
+            printf("@ ok %s\n", text);
+        }
+#else
+        printf("@ error clip needs the window build\n");
+#endif
+    } else if (strcmp(cmd, "dump") == 0) {
+        /* "dump PATH": the whole state into a file (state.c) */
+        char path[512] = "";
+        sscanf(line, "%511s", path);
+        if (host_state_dump(path) < 0) {
+            printf("@ error cannot write %s\n", path);
+        } else {
+            printf("@ ok\n");
+        }
+    } else if (strcmp(cmd, "draw") == 0) {
+        /* "draw 1|0": run the draw pass or not (tests) */
+        int on = 1;
+        sscanf(line, "%d", &on);
+        host.draw = on;
+        printf("@ ok\n");
+    } else if (strcmp(cmd, "net") == 0) {
+        /* "net start LOCAL BIND PEER_IP PEER_PORT DELAY [LAG LOSS
+           JITTER]", "net stop", "net stats", "net hash" (net.c) */
+        char what[16] = "", ip[64] = "";
+        int local = 0, bind_port = 0, peer_port = 0, delay = 2;
+        int lag = 0, loss = 0, jitter = 0;
+        sscanf(line, "%15s", what);
+        if (strcmp(what, "start") == 0) {
+            const char* why;
+            sscanf(line, "%15s %d %d %63s %d %d %d %d %d", what, &local,
+                   &bind_port, ip, &peer_port, &delay, &lag, &loss, &jitter);
+            why = host_net_start(local, bind_port, ip, peer_port, delay,
+                                 lag, loss, jitter);
+            if (why != NULL) {
+                printf("@ error %s\n", why);
+            } else {
+                printf("@ ok\n");
+            }
+        } else if (strcmp(what, "stop") == 0) {
+            host_net_stop();
+            printf("@ ok\n");
+        } else if (strcmp(what, "stats") == 0) {
+            char out[256];
+            host_net_report(out, sizeof out);
+            printf("@ ok %s\n", out);
+        } else if (strcmp(what, "hash") == 0) {
+            printf("@ ok %016llx\n", (unsigned long long) host_net_hash());
+        } else if (strcmp(what, "rng") == 0) {
+            char out[1024];
+            unsigned f = 0;
+            sscanf(line, "%15s %u", what, &f);
+            if (host_net_rng(f, out, sizeof out) < 0) {
+                printf("@ error no draws kept for frame %u\n", f);
+            } else {
+                printf("@ ok %s\n", out);
+            }
+        } else if (strcmp(what, "input") == 0) {
+            char out[256];
+            unsigned f = 0;
+            sscanf(line, "%15s %u", what, &f);
+            if (host_net_inputs(f, out, sizeof out) < 0) {
+                printf("@ error no input for frame %u\n", f);
+            } else {
+                printf("@ ok %s\n", out);
+            }
+        } else {
+            printf("@ error net start|stop|stats|hash\n");
+        }
+    } else if (strcmp(cmd, "rb") == 0) {
+        /* "rb start", "rb stop", "rb mark" (a frame boundary: its undo
+           record), "rb back N" (N boundaries back), "rb stats" */
+        char what[16] = "";
+        int n = 0;
+        sscanf(line, "%15s %d", what, &n);
+        if (strcmp(what, "start") == 0) {
+            const char* why = host_rb_start();
+            if (why != NULL) {
+                printf("@ error %s\n", why);
+            } else {
+                printf("@ ok\n");
+            }
+        } else if (strcmp(what, "stop") == 0) {
+            host_rb_stop();
+            printf("@ ok\n");
+        } else if (strcmp(what, "mark") == 0) {
+            printf("@ ok %d\n", host_rb_mark());
+        } else if (strcmp(what, "back") == 0) {
+            if (host_rb_rewind(n) < 0) {
+                printf("@ error cannot go %d back (%d kept)\n", n,
+                       host_rb_kept());
+            } else {
+                printf("@ ok %u\n", host.frame);
+            }
+        } else if (strcmp(what, "stats") == 0) {
+            char line_out[256];
+            host_rb_report(line_out, sizeof line_out);
+            printf("@ ok %s\n", line_out);
+        } else {
+            printf("@ error rb start|stop|mark|back N|stats\n");
+        }
+    } else if (strcmp(cmd, "save") == 0) {
+        /* "save N": the game's whole state into slot N (state.c) */
+        int n = 0;
+        sscanf(line, "%d", &n);
+        if (host_state_save(n) < 0) {
+            printf("@ error no slot %d\n", n);
+        } else {
+            printf("@ ok %zu\n", host_state_size());
+        }
+    } else if (strcmp(cmd, "load") == 0) {
+        /* "load N": the state saved in slot N, back */
+        int n = 0;
+        sscanf(line, "%d", &n);
+        if (host_state_load(n) < 0) {
+            printf("@ error nothing in slot %d\n", n);
+        } else {
+            printf("@ ok %u\n", host.frame);
+        }
+    } else if (strcmp(cmd, "hash") == 0) {
+        /* "hash": the whole state's hash; "hash N": where the state
+           differs first from slot N ("@ ok same", or region, offset and
+           address) */
+        int n = -1, region = -1;
+        long off;
+        if (sscanf(line, "%d", &n) == 1) {
+            off = host_state_diff(n, &region);
+            if (off == -2) {
+                printf("@ error nothing in slot %d\n", n);
+            } else if (off < 0) {
+                printf("@ ok same\n");
+            } else {
+                printf("@ ok %d %ld %#lx\n", region, off,
+                       (unsigned long) host_state_address(region, off));
+            }
+        } else {
+            size_t a, s, h;
+            uint32_t used, top, peak;
+            host_state_sizes(&a, &s, &h);
+            host_game_heap_stats(&used, &top, &peak);
+            printf("@ ok %016llx %zu %zu %zu %u %u\n",
+                   (unsigned long long) host_state_hash(), a, s, h, used,
+                   peak);
+        }
     } else if (strcmp(cmd, "sfx") == 0) {
         /* "sfx N": the game's menu sound N (0 to 10: lbAudioAx_80024030,
            what its menus play: moving, choosing, going back...) */

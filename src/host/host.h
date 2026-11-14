@@ -187,5 +187,41 @@ void host_audio_frame(void);
 const uint8_t* host_aram_peek(uint32_t addr);
 void host_window_audio(const int16_t* frames, int count);
 const char* host_song(void);
+/* state.c: the game's whole state, saved and loaded (rollback) */
+size_t host_state_size(void);
+void host_state_sizes(size_t* arena, size_t* statics, size_t* heap);
+int host_state_save(int slot);
+int host_state_load(int slot);
+int host_state_dump(const char* path);
+long host_state_frame(int slot);
+uint64_t host_state_hash(void);
+long host_state_diff(int slot, int* region);
+uintptr_t host_state_address(int region, long offset);
+void host_game_heap_stats(uint32_t* used, uint32_t* top, uint32_t* peak);
+/* rollback.c: what each frame changed, for going back */
+const char* host_rb_start(void);
+void host_rb_stop(void);
+int host_rb_running(void);
+int host_rb_mark(void);
+int host_rb_rewind(int frames);
+int host_rb_kept(void);
+void host_rb_report(char* out, size_t size);
+/* net.c: rollback netcode */
+int host_net_active(void);
+int host_net_resimulating(void);
+int host_net_boundary(void);
+const char* host_net_start(int local, int bind_port, const char* peer_ip,
+                           int peer_port, int delay, int lag, int loss,
+                           int jitter);
+void host_net_stop(void);
+void host_net_report(char* out, size_t size);
+uint64_t host_net_hash(void);
+int host_net_inputs(uint32_t frame, char* out, size_t size);
+int host_net_rng(uint32_t frame, char* out, size_t size);
+void host_window_idle(void);
+void host_window_delay_frame(void);
+void host_window_clipboard(char* out, size_t size);
+void host_window_set_clipboard(const char* text);
+void host_control_frame(void);
 
 #endif

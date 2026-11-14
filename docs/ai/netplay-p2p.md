@@ -5,9 +5,11 @@ rollback netcode (serverless); please conduct feasibility of this or if we need 
 server (we will need a central server for ranked games, but let's see if peer to peer is
 feasible for simple tandem training and connecting and playing together!)"
 
-Status: a study. Network facts come from a source-reading pass on 2026-11-12 (sources at the
-end; none re-checked by a second reader, nothing run). The numbers about our own build were
-measured here the same day. **No netcode exists.**
+Status: a study (2026-11-12), and since 2026-11-13 **an implementation**: "Built" below.
+Network facts come from a source-reading pass on 2026-11-12 (sources at the end; none
+re-checked by a second reader). The owner, 2026-11-13: "Let's start implementing rollback
+p2p netcode now and get testing", choosing the STUN way of connecting over plain IP and
+port.
 
 ## Answer
 
@@ -26,6 +28,68 @@ that rollback costs almost nothing. It is not playable yet: it has no graphics.
 **A server of ours is needed only for what the owner already expects** (ranked play,
 matchmaking, identity) and optionally to make connecting nicer (codes without pasting) or
 universal (a relay).
+
+## Built (2026-11-13)
+
+The rollback core runs on the native build and is proven headless: two games over UDP on
+one machine, through a simulated network, stay identical to each other and to an offline
+game fed the same inputs.
+
+| Piece | Where | What |
+|-|-|-|
+| The game's whole state in three regions | `src/host/state.c`, `src/host/gameheap.c`, `tools/native_build.py` (`game_state_script`, `gameheap.h`) | The arena (the console's addresses), every static of the game's timeline gathered by the linker into one section (`.game_state`: the game's library, the readers, and the host files whose state is the game's: emulated time, completions, alarms, the disc's and audio RAM's bookkeeping, the AX voices, the archive tables), and a game heap: what was converted object by object from the C library's heap (49 MB of archive data in a match) now comes from one region whose allocator keeps its bookkeeping inside it. Save, load, hash, dump |
+| What each frame changed | `src/host/rollback.c` | A mirror of those regions; at each frame boundary the pages written since (the kernel's soft-dirty bits) go into the frame's undo record with what they held. A frame writes about 120 pages (0.5 MB); recording takes 0.4 ms, going back 0.2 ms. 24 frames kept |
+| The session | `src/host/net.c` | Inputs by frame with an input delay, sent over UDP until acknowledged; the other side's guessed (its last input) until it arrives; a wrong guess goes back to that frame and plays the frames since again as quick loop iterations (no window present, no pacing, their sound discarded) within the same frame of real time; never more than 7 frames past the last input received (the side ahead waits); time sync on the two sides' frame advantage; every 30th frame a hash of the fighters and the random seed, compared once final |
+| Commands | `control.c` | `save`/`load`/`hash`/`dump`, `rb start|stop|mark|back N|stats`, `net start LOCAL BIND PEER_IP PEER_PORT DELAY [LAG LOSS JITTER]`, `net stop|stats|hash|input F|rng F`, `draw 0|1` |
+
+Tests: `tests/native/state.py` (8: a load brings back every byte; the same inputs replay the
+same game for 600 frames, the same whole state), `tests/native/rollback.py` (6: going back
+any number of frames equals the full snapshot there; rolling back 1 to 7 frames after every
+frame and playing them again ends where straight play does), `tests/native/netplay.py`
+(11: no lag, and 4 frames' lag with 3 jitter and 10% loss: about 300 rollbacks a side up to
+7 frames deep, 66 desync checks passed, both sides and the offline game identical).
+
+Found on the way:
+
+- **The session's first frame.** `net start` comes in the middle of an ordinary frame; that
+  frame must not run, or each side plays one more frame with its own pads before the
+  session (main.c).
+- **Drawing changes the game.** A frame played again was first left undrawn. The two sides
+  then drew different frames, and a desync followed: the effect loader and the particles it
+  starts (their scripts draw from the game's one random-number stream) depend on what was
+  drawn (`efAsync`, `hsd_8039930C`). Found by logging who drew random numbers each frame on
+  both sides (`net rng`) after a memory diff of the two (`dump`). A frame played again is
+  now drawn too, so both sides have drawn every frame once; the window shows only the last.
+  Headless that costs nothing; in the window build it is GPU commands that are never shown.
+- A false desync: a hash compared after a wrong guess was known but before the frame was
+  played again. A hash counts once every input before it is known and no rollback before
+  it is pending.
+
+**Connecting** (`tools/melee_client/online.py`, the same day): a UDP socket asks a public
+STUN server (Google's, then Cloudflare's) for its outside address; that and the LAN address
+become a 21-character code (13 bytes in base32) the players paste to each other; a plain
+`ip:port` works as a code too. Both sides send to each other at once (hole punching), then a
+small lobby over the path that worked settles who is port 1 (the lower random nonce), the
+characters, the stage, the seed and the input delay; each closes the socket and the game
+opens the same local port for the session. The client uses port 47700 each time, so a
+router that keeps ports gives the same code every time (this machine's does: 45938 mapped to
+45938). `tests/client/online_lobby.py` (9, one real STUN query with `--stun`).
+
+**In the client** (`client.py`): Versus, your character, then "a friend, online" as who
+plays the opponent: the online screen shows your code (A copies it to the clipboard), pastes
+a friend's code, and lists friends met before (saved by the nickname they sent, with their
+code). Both games then start the agreed match with nobody's input for 10 frames, and the
+session begins with the person's controller on the port the lobby gave them. START opens a
+menu that does not stop the game (stopping one side would desync it): resume, the column,
+leave the match. The friend is told when the other leaves and goes back to the online
+screen. The window build paces as usual; when its side is ahead, time sync moves the next
+frame a frame period later (`host_window_delay_frame`); while it waits for the other side's
+inputs it keeps the window alive without presenting (`host_window_idle`).
+`tests/client/online.py`: two clients in two windows, each driven by its own thread.
+
+Not built yet: sound across rollbacks (sound effects of frames played again are dropped, not
+merged), Windows (soft-dirty is Linux's), a relay for the pairs hole punching cannot join,
+spectators, more than two players.
 
 ## Where the netcode can live
 
@@ -139,13 +203,12 @@ pair-hours. The cost of a relay is the server that hands out its credentials, no
 
 ## Risks and unknowns
 
-- **The native build has no graphics, audio or real controller input.** Everything here is
-  headless until it does (`native-port.md`, next steps). Aurora, the library upstream uses for
-  graphics, has not been built for 32-bit Linux here.
+- ~~The native build has no graphics, audio or real controller input.~~ It has all three
+  since 2026-11-13 (`native-ai.md`).
 - **32-bit only.** The game's code assumes 4-byte pointers. Linux and Windows run 32-bit
   programs; current macOS does not.
-- **Drills are not on the native build.** Tandem *training* needs the course engine there
-  (hooks for the native target), not just a match.
+- ~~Drills are not on the native build.~~ They are (`tools/melee_course/`); tandem training
+  still needs a session that a drill runs in.
 - **Exactness across machines** as above. Two copies of one binary is the supported case.
 - The native build still differs from the console in known ways (`native-port.md`). Both
   players would share those differences, so they do not desync, but it is not yet the game.
@@ -156,11 +219,8 @@ pair-hours. The cost of a relay is the server that hands out its credentials, no
 
 1. **Now, no new code:** two people can already train together through Slippi's direct
    connect with the overlay build (`slippi-tandem.md`), if both have Slippi accounts.
-2. **Snapshot and restore, headless:** archive data in a region of our own; save, run,
-   restore, run again, compare. Then a rollback loop: two instances on one machine over
-   loopback with added latency and packet loss, compared frame by frame with the tools the
-   native build already has.
-3. **A playable native build:** graphics, audio, controllers.
+2. **Snapshot and restore, headless:** done 2026-11-13 ("Built").
+3. **A playable native build:** done 2026-11-13.
 4. **Connect codes:** STUN, the code screen, simultaneous send, LAN discovery, desync
    detection.
 5. **Optional small server:** rendezvous, relay, then ranked.

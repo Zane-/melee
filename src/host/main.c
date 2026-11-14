@@ -91,7 +91,20 @@ void host_frame_tick(void)
 /// reported.
 u8 lb_80019894(void)
 {
+    if (host_net_active()) {
+        /* a netplay session (net.c): a frame, or a wait */
+        if (!host_net_boundary()) {
+            return 0;
+        }
+        fn_800195FC();
+        return HSD_PadGetRawQueueCount();
+    }
     host_frame_tick();
+    if (host_net_active()) {
+        /* a session began during this tick's commands: its first frame
+           is the next tick's, on both sides */
+        return 0;
+    }
     fn_800195FC();
     return HSD_PadGetRawQueueCount();
 }
