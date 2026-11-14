@@ -217,6 +217,16 @@ class Window(Native):
         "text ID RML", "hide", "show", "font PATH", "attr ID NAME VALUE"."""
         self._cmd("ui " + command)
 
+    def scripted(self, port, on=True):
+        """A live port whose person is still read (pads()) while the game
+        takes the driver's pad: for a demonstration they can stop."""
+        self._cmd("script %d %d" % (port, 1 if on else 0))
+
+    def mask(self, buttons=0):
+        """Buttons of the live ports the game does not see (a bit mask of
+        PAD_* bits); pads() still reports them."""
+        self._cmd("mask %x" % buttons)
+
     def capture(self, on=True):
         """Keep the live ports' presses from the game (a menu is up)."""
         self._cmd("capture %d" % (1 if on else 0))

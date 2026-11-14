@@ -131,6 +131,8 @@ void host_window_forget(const void* data, size_t size);
 const char* host_window_live(int port, const char* source);
 void host_window_pace(int on);
 void host_window_capture(int on);
+void host_window_mask(unsigned buttons);
+void host_window_scripted(int port, int on);
 const HostPad* host_window_seen(int port);
 
 /// The last frame's wait for the driver on the control pipe, in ms.

@@ -73,7 +73,29 @@ MAIN_MOVES = {
 
 
 class Leave(Exception):
-    """The player asked to leave what is running."""
+    """Out of a drill or a match, to `to`: "back" (where it came from),
+    "list", "hub", "main", "chars", "opp", or "drill" with `step` (the
+    drill before or after in the course)."""
+
+    def __init__(self, to="back", step=0):
+        super().__init__(to)
+        self.to, self.step = to, step
+
+
+class Abandon(Exception):
+    """The attempt under way stops, not counted: `what` ("scenario",
+    "reset", "guide", "demo", "options", "stage"), `step`."""
+
+    def __init__(self, what, step=0):
+        super().__init__(what)
+        self.what, self.step = what, step
+
+
+# How long a button is held for its other meaning (frames, at 60 a second)
+HOLD_COLUMN = 180      # START: hide or show the column
+HOLD_DRILL = 180       # D-pad left or right: the drill before or after
+HOLD_STAGE = 300       # L or R: the stage before or after (drills with stages)
+DPAD = LEFT | RIGHT | DOWN | UP
 
 
 class Client:
@@ -119,7 +141,16 @@ class Client:
                        if c["id"] == "fox")   # on the character select
         self.last = None              # the character last played
         self.buttons = 0
+        self.pressed_now = self.released = 0
         self.held = {}                # direction -> frames held
+        self.hold = {}                # button bit -> frames held
+        self.used = set()             # bits whose hold already did something
+        self.column_hidden = False    # START held: the column is put away
+        self.pause_open = False       # tests: the pause menu is up
+        self.pause_focus = None       # tests: the row in focus there
+        self.session = None           # the drill's, while one runs
+        self.drill_stages = None      # its stages, when it can change them
+        self.has_cover = False        # the document has the loading cover
         self.start_held = 0
         self.frames = 0
         self.out.mkdir(parents=True, exist_ok=True)
@@ -142,6 +173,15 @@ class Client:
 
     def say(self, text):
         self.w.ui("text desc " + screens.esc(text))
+
+    def loading(self, name):
+        """Loading `name`: on the cover over the game when a match or a
+        drill is on screen (from one drill to the next), else in the
+        menu's description line."""
+        if self.has_cover:
+            self.cover("Loading %s" % name)
+        else:
+            self.say("Loading %s." % name)
 
     def put(self, ident, rml):
         """Replace an element's content (through a file: a list of rows is
@@ -186,7 +226,11 @@ class Client:
         if pad["ly"] > 60:
             dirs |= UP
         pressed = now & ~self.buttons
+        self.released = self.buttons & ~now
+        self.pressed_now = pressed
         self.buttons = now
+        for bit in (START, LEFT, RIGHT, L, R):
+            self.hold[bit] = self.hold.get(bit, 0) + 1 if now & bit else 0
         moves = 0
         for d in (LEFT, RIGHT, DOWN, UP):
             if dirs & d:
@@ -205,9 +249,248 @@ class Client:
         self.w.step()
         self.frames += 1
         pressed, moves = self.read()
-        if self.screen in ("match", "versus") and self.game_quit():
-            self.start_held = 40          # the way out, as if START held
+        if self.screen in ("match", "versus"):
+            ev = ("leave", "back") if self.game_quit() else \
+                self.controls(stages=False)
+            if ev is not None and ev[0] == "column":
+                self.toggle_column()
+                ev = None
+            if ev is not None and ev[0] == "pause":
+                ev = self.pause(self.screen)
+            if ev is not None and ev[0] == "leave":
+                self.leave_match(ev[1])
+                return
         getattr(self, "on_" + self.screen)(pressed, moves)
+
+    def leave_match(self, to):
+        """Out of free play or Versus, chosen in the pause menu."""
+        if self.screen == "versus":
+            if self.bot is not None:
+                self.bot.close()
+                self.bot = None
+            self.w.pad(1 - self.port)
+        self.w.mask(0)
+        self.has_cover = False
+        if to == "main":
+            self.show_main()
+        elif self.screen == "versus":
+            self.show_opponent()
+        elif self.back == "hub":
+            self.show_hub()
+        else:
+            self.show_characters()
+
+    def controls(self, drill=False, stages=False):
+        """What the buttons ask for in a match or a drill, this frame: None
+        or an event. START: tap the pause menu, hold 3 s the column. In a
+        drill the D-pad: up the guide, down a restart, left and right a tap
+        the scenario and held 3 s the drill before or after. With stages, L
+        or R held 5 s: the stage before or after. A hold that did something
+        is not also a tap when let go."""
+        ev = None
+        holds = [(START, HOLD_COLUMN, ("column",))]
+        taps = [(START, ("pause",))]
+        if drill:
+            holds += [(LEFT, HOLD_DRILL, ("drill", -1)),
+                      (RIGHT, HOLD_DRILL, ("drill", 1))]
+            taps += [(LEFT, ("scenario", -1)), (RIGHT, ("scenario", 1))]
+        if stages:
+            holds += [(L, HOLD_STAGE, ("stage", -1)),
+                      (R, HOLD_STAGE, ("stage", 1))]
+        for bit, frames, event in holds:
+            if self.hold.get(bit, 0) == frames and bit not in self.used:
+                self.used.add(bit)
+                ev = event
+        for bit, event in taps:
+            if self.released & bit and bit not in self.used:
+                ev = ev or event
+        for bit in list(self.used):
+            if self.released & bit:
+                self.used.discard(bit)
+        if drill:
+            if self.pressed_now & UP:
+                ev = ("guide",)
+            elif self.pressed_now & DOWN:
+                ev = ("reset",)
+        return ev
+
+    def consume(self):
+        """The buttons now held did something here (closed a menu, chose
+        a row): their release is not a tap, and the game does not see them
+        until they are let go."""
+        for bit in (START, LEFT, RIGHT, UP, DOWN, L, R):
+            if self.buttons & bit:
+                self.used.add(bit)
+        if self.buttons & (A | B | X | Y | START | L | R | DPAD):
+            self.w.capture(True)
+            for _ in range(60):
+                self.w.step()
+                pad = self.w.pads()[self.port]
+                if not pad["buttons"] & (A | B | X | Y | START | L | R | DPAD):
+                    break
+            self.read()
+            self.w.capture(False)
+
+    def toggle_column(self, apply_only=False):
+        """Put the column away (the game's picture in the middle) or back."""
+        if not apply_only:
+            self.column_hidden = not self.column_hidden
+        on = 1 if self.column_hidden else 0
+        self.w.ui("class rail hidden %d" % on)
+        for ident in ("bannerwrap", "cover", "pause"):
+            self.w.ui("class %s mid %d" % (ident, on))
+        self.w.ui("center %d" % on)
+
+    def cover(self, text=None):
+        """The loading cover over the game: shown with `text`, None hides
+        it (nothing if the screen has none)."""
+        if not self.has_cover:
+            return
+        if text is not None:
+            self.w.ui("text covermsg " + screens.esc(text))
+        self.w.ui("class cover on %d" % (1 if text is not None else 0))
+
+    def in_match(self, name, rml, mask):
+        """Load a match's or a drill's screen: the buttons the game does
+        not see (`mask`: START, and the D-pad in drills), the column as
+        the player left it."""
+        self.load(name, rml)
+        self.has_cover = True
+        self.w.mask(mask)
+        if self.column_hidden:
+            self.toggle_column(apply_only=True)
+
+    # ---- the pause menu ----------------------------------------------------------
+
+    def pause_rows(self, kind):
+        """(id, label, value) for the pause menu of `kind` ("drill",
+        "match", "versus"); id "-" is a gap."""
+        rows = [("resume", "Resume", None), ("-", "", None)]
+        s = self.session
+        if kind == "drill" and isinstance(s, course_engine.Session):
+            for i, o in enumerate(s.d.options):
+                rows.append(("opt%d" % i, o.name, o.label(s.opts[i])))
+            if s.d.deck:
+                names = ["Random"] + s.scenario_names()
+                rows.append(("scen", "Scenario",
+                             names[s.common[course_engine.OPT_SCENARIO]]))
+            if s.cpu_port is not None:
+                rows.append(("side", "CPU side", ("Random", "Left", "Right")[
+                    s.common[course_engine.OPT_SIDE]]))
+            if s.d.stages:
+                rows.append(("stage", "Stage", s.d.stage.replace(
+                    "-", " ").title()))
+            rows.append(("-", "", None))
+            rows.append(("guide", "Guide", None))
+            if s.d.reference or type(s.d).build_reference is not \
+                    course_engine.Drill.build_reference:
+                rows.append(("demo", "Watch a demonstration", None))
+        elif kind == "drill" and isinstance(s, tech.Session):
+            rows.append(("tol", "Leniency", "%d frames late" % s.tolerance))
+            rows.append(("-", "", None))
+        if kind == "drill":
+            rows.append(("reset", "Restart", None))
+        rows.append(("column", "Show the column" if self.column_hidden
+                     else "Hide the column", None))
+        rows.append(("-", "", None))
+        if kind == "drill":
+            rows += [("prev", "Previous drill", None),
+                     ("next", "Next drill", None),
+                     ("list", "Back to the drill list", None),
+                     ("hub", "Back to the course", None)]
+        elif kind == "versus":
+            rows.append(("opp", "Back to the opponent", None))
+        else:
+            rows.append(("back", "Back", None))
+        rows.append(("main", "Main menu", None))
+        return rows
+
+    def pause_change(self, ident, step):
+        """Left or right on a setting. Returns whether it is one."""
+        s = self.session
+        if ident.startswith("opt"):
+            i = int(ident[3:])
+            s.opts[i] = (s.opts[i] + step) % s.d.options[i].size()
+        elif ident == "scen":
+            n = len(s.d.deck) + 1
+            s.common[course_engine.OPT_SCENARIO] = \
+                (s.common[course_engine.OPT_SCENARIO] + step) % n
+        elif ident == "side":
+            s.common[course_engine.OPT_SIDE] = \
+                (s.common[course_engine.OPT_SIDE] + step) % 3
+        elif ident == "stage":
+            i = s.d.stages.index(s.d.stage)
+            s.set_stage(s.d.stages[(i + step) % len(s.d.stages)])
+            if self.has_cover:
+                self.w.ui("text stage Stage: " + screens.esc(
+                    s.d.stage.replace("-", " ").title()))
+        elif ident == "tol":
+            s.tolerance = max(0, min(6, s.tolerance + step))
+        else:
+            return False
+        return True
+
+    def pause(self, kind):
+        """Our pause menu over the frozen match, until it is closed (None,
+        or ("options",) when a setting changed) or something is chosen
+        (an event as controls() gives)."""
+        rows = self.pause_rows(kind)
+        at = 0
+        changed = False
+
+        def draw():
+            self.pause_focus = rows[at][0]
+            self.put("prows", screens.pause_rows(rows, at))
+
+        self.w.freeze(True)
+        self.pause_open = True
+        self.w.ui("text ptitle Paused")
+        draw()
+        self.w.ui("class pause on 1")
+        try:
+            while True:
+                if self.person is not None:
+                    self.person(self.w, -3)        # tests: the player
+                self.w.step()
+                pressed, moves = self.read()
+                if self.game_quit():
+                    raise Leave()
+                done = ("options",) if changed else None
+                if pressed & (B | START):
+                    return done
+                if moves & (UP | DOWN):
+                    step = 1 if moves & DOWN else -1
+                    at = (at + step) % len(rows)
+                    while rows[at][0] == "-":
+                        at = (at + step) % len(rows)
+                    draw()
+                if moves & (LEFT | RIGHT):
+                    if self.pause_change(rows[at][0],
+                                         1 if moves & RIGHT else -1):
+                        changed = True
+                        rows = self.pause_rows(kind)
+                        draw()
+                if pressed & A:
+                    ident = rows[at][0]
+                    if ident == "resume":
+                        return done
+                    if ident == "column":
+                        self.toggle_column()
+                        rows = self.pause_rows(kind)
+                        draw()
+                        continue
+                    if ident in ("guide", "demo", "reset"):
+                        return (ident,)
+                    if ident in ("prev", "next"):
+                        return ("drill", -1 if ident == "prev" else 1)
+                    if ident in ("list", "hub", "main", "opp", "back"):
+                        return ("leave", ident)
+        finally:
+            self.w.ui("class pause on 0")
+            self.pause_open = False
+            self.pause_focus = None
+            self.consume()                  # still frozen while let go
+            self.w.freeze(False)
 
     def playing(self):
         """A match has just been started here: from now on the game ending
@@ -372,9 +655,9 @@ class Client:
         self.start_held = 0
         self.playing()
         self.damage = 0
-        self.load("versus", screens.versus_rail(
+        self.in_match("versus", screens.versus_rail(
             self.me, opp, name, what, stage.replace("-", " ").title(),
-            self.mode == "lab"))
+            self.mode == "lab"), START | (DPAD if self.mode == "lab" else 0))
         self.w.capture(False)
 
     def bot_state(self, text):
@@ -412,12 +695,6 @@ class Client:
                                          (10 if pressed & RIGHT else -10)))
                 self.w.place(other, f.pos[0], f.pos[1], f.facing,
                              percent=self.damage)
-        if self.start_held >= 40:
-            if self.bot is not None:
-                self.bot.close()
-                self.bot = None
-            self.w.pad(other)
-            self.show_opponent()
 
     # ---- the course hub -----------------------------------------------------------
 
@@ -552,17 +829,43 @@ class Client:
     # ---- a drill ----------------------------------------------------------------------
 
     def drill_frame(self, game, frame):
-        """Before every frame of a drill: the way out, and (in tests) the
-        stand-in for the player."""
+        """Before every frame of a drill: the controls (controls()), the
+        banner, and (in tests) the stand-in for the player."""
         self.read()
-        if self.start_held >= 40 or self.game_quit():
+        if self.game_quit():
             raise Leave()
+        ev = self.controls(drill=True, stages=bool(self.drill_stages))
+        if ev is not None:
+            self.drill_event(ev)
         if self.banner > 0:
             self.banner -= 1
             if self.banner == 0:
                 self.w.ui("class banner on 0")
         if self.person is not None:
             self.person(game, frame)
+
+    def drill_event(self, ev):
+        kind = ev[0]
+        if kind == "column":
+            self.toggle_column()
+            return
+        if kind == "pause":
+            ev = self.pause("drill")
+            if ev is None:
+                return
+            kind = ev[0]
+        if kind == "drill":
+            raise Leave("drill", ev[1])
+        if kind == "leave":
+            raise Leave(ev[1])
+        course = isinstance(self.session, course_engine.Session)
+        if kind == "scenario" and not (course and self.session.d.deck):
+            return
+        if kind in ("guide", "demo") and not course:
+            return
+        if kind == "stage" and not self.drill_stages:
+            return
+        raise Abandon(kind, ev[1] if len(ev) > 1 else 0)
 
     def show_result(self, result, results):
         ok = bool(result["success"])
@@ -601,19 +904,88 @@ class Client:
         self.put("checks", screens.check_rows(result["checks"]))
         self.put("last", screens.last_squares(results))
         self.put("tl", screens.timeline(result.get("timeline")))
+        self.verdict_colour(ok)
         self.w.ui("class banner on 1")
         self.banner = 100
 
-    def course_drill(self, d):
+    def verdict_colour(self, ok):
+        """Green for a success, red for a failure (None: neither), on the
+        banner and the column."""
+        for ident in ("chip", "banner", "verdict"):
+            self.w.ui("class %s good %d" % (ident, 1 if ok is True else 0))
+            self.w.ui("class %s bad %d" % (ident, 1 if ok is False else 0))
+
+    def banner_say(self, word, text):
+        self.verdict_colour(None)
+        self.w.ui("text bword " + screens.esc(word))
+        self.w.ui("text bmsg " + screens.esc(text.split("\n")[0]))
+        self.w.ui("class banner on 1")
+        self.banner = 100
+
+    def results_now(self):
+        """The verdicts of the drill being played (tests)."""
+        return getattr(self, "live_results", [])
+
+    def drill(self, d):
+        """Play drills until the player leaves for a menu: from one drill
+        the D-pad held, or the pause menu, can go to the one before or
+        after it in the course (left at its end comes round)."""
+        while d is not None:
+            left = self.play_drill(d)
+            d = None
+            self.session = None
+            self.drill_stages = None
+            if left.to != "drill":
+                self.w.mask(0)
+                self.has_cover = False
+            if left.to == "drill":
+                drills = self.drills()
+                at = (self.row[self.part] + left.step) % len(drills)
+                self.focus_row(at)
+                d = drills[at]
+            elif left.to == "hub":
+                self.show_hub()
+            elif left.to == "main":
+                self.show_main()
+            else:
+                self.show_list()
+
+    def play_drill(self, d):
+        """One drill until the player leaves it: returns the Leave."""
+        results = []
+        self.live_results = results
+        try:
+            if self.here[d["id"]] == courses.COURSE:
+                self.course_drill(d, results)
+            else:
+                self.judged_drill(d, results)
+        except Leave as left:
+            return left
+        finally:
+            # kept even when the game goes away mid-drill (the window
+            # closed): the tries so far count
+            self.progress.record(d["id"], self.c["id"], results)
+            self.results = results
+        return Leave()
+
+    def wait_released(self):
+        # The A that started the drill is still down, and A in shield is
+        # a grab: wait for the buttons to be let go before the first try.
+        for _ in range(90):
+            self.w.step()
+            if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
+                break
+
+    def course_drill(self, d, results):
         """A drill on the course engine (tools/melee_course): the overlay's
-        drill, ported. The D-pad is the drill's, as there: up shows the
-        guide (in the column; right there plays a demonstration, up goes
-        on), left and right change scenario, down resets."""
-        self.say("Loading %s." % d["name"])
+        drill, ported."""
+        self.loading(d["name"])
         self.w.step()
 
         def on_load(fn):
-            # the game sets a match up with its own presses, at full speed
+            # the game sets a match up with its own presses, at full speed:
+            # behind the cover
+            self.cover("Loading")
             self.w.live(self.port, "off")
             self.w.pace(False)
             try:
@@ -621,84 +993,81 @@ class Client:
             finally:
                 self.w.live(self.port, self.source)
                 self.w.pace(True)
+                self.cover(None)
 
         drill = course_registry.get(d["id"])
         session = course_engine.Session(
             drill, self.w, person=self.port, character=self.c["id"],
-            live=True, on_load=on_load, seed=random.randrange(1, 1 << 30))
-        for _ in range(90):
-            self.w.step()
-            if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
-                break
+            live=True, on_load=on_load, seed=random.randrange(1, 1 << 30),
+            dpad=False)
+        self.session = session
+        self.drill_stages = drill.stages
+        self.wait_released()
         self.screen = "drill"
-        self.start_held = 0
         self.playing()
         about = " ".join(line for line in drill.help
                          if line and not line.startswith("D-Pad")) or \
             d["goal"]
-        self.load("drill", screens.drill_rail(
-            self.c, d, self.course,
-            about + " D-pad up: the guide."))
+        self.in_match("drill", screens.drill_rail(
+            self.c, d, self.course, about, stages=drill.stages and
+            [drill.stage]), START | DPAD)
         self.w.capture(False)
-        results = []
-        self.live_results = results
         demo = False
-        try:
-            while True:
-                if session.d.deck:
-                    self.w.ui("text why " + screens.esc(
-                        session.scenario_names()[max(session.scenario, 0)]))
-                if demo:
-                    self.w.live(self.port, "off")
-                    session.live = False
-                    self.banner_say("Watch", "the game plays it")
-                try:
-                    result = session.run(each_frame=self.drill_frame,
-                                         demo=demo)
-                finally:
-                    if demo:
-                        self.w.live(self.port, self.source)
-                        session.live = True
+        while True:
+            if session.d.deck:
+                self.w.ui("text why " + screens.esc(
+                    session.scenario_names()[max(session.scenario, 0)]))
+            if demo:
+                # the game plays the reference; the player is still read
+                # (a D-pad press or START stops it)
+                self.w.scripted(self.port, True)
+                session.live = False
+                self.banner_say("Watch", "the game plays it")
+            try:
+                result = session.run(each_frame=self.drill_frame, demo=demo)
+            except Abandon as a:
+                session.flowing = False
                 demo = False
-                self.last_result = result
-                ui = result.get("ui")
-                if ui == "guide":
+                if a.what == "scenario":
+                    session.change_scenario(a.step)
+                    self.banner_say("Next", session.scenario_names()[
+                        session.scenario])
+                elif a.what == "guide":
                     demo = self.course_guide(drill, session)
-                    continue
-                if ui == "scenario":
-                    self.banner_say("Next", result["words"])
-                    continue
-                if ui == "reset":
-                    continue
-                if result.get("demo"):
-                    self.banner_say("Demo", result["words"])
-                elif result.get("skip"):
-                    self.banner_say("Not counted", result["words"])
-                else:
-                    results.append(bool(result["success"]))
-                    self.show_result(result, results)
-                # a moment to read the verdict (the C engine's reset delay),
-                # except where the drill carries on from where you stand
-                for _ in range(0 if drill.flow else 45):
-                    self.drill_frame(self.w, -1)
-                    self.w.step()
-        except Leave:
-            pass
-        finally:
-            # kept even when the game goes away mid-drill (the window
-            # closed): the tries so far count
-            self.progress.record(d["id"], self.c["id"], results)
-            self.results = results
-        self.show_list()
-
-    def results_now(self):
-        """The verdicts of the course drill being played (tests)."""
-        return getattr(self, "live_results", [])
+                elif a.what == "demo":
+                    demo = True
+                elif a.what == "stage":
+                    i = drill.stages.index(drill.stage)
+                    session.set_stage(drill.stages[(i + a.step) %
+                                                   len(drill.stages)])
+                    self.w.ui("text stage Stage: " + screens.esc(
+                        drill.stage.replace("-", " ").title()))
+                    self.banner_say("Stage", drill.stage.replace(
+                        "-", " ").title())
+                continue
+            finally:
+                self.w.scripted(self.port, False)
+                session.live = True
+            demo = False
+            self.last_result = result
+            if result.get("demo"):
+                self.banner_say("Demo", result["words"])
+            elif result.get("skip"):
+                self.banner_say("Not counted", result["words"])
+            else:
+                results.append(bool(result["success"]))
+                self.show_result(result, results)
+            # a moment to read the verdict (the C engine's reset delay),
+            # except where the drill carries on from where you stand
+            for _ in range(0 if drill.flow else 45):
+                self.drill_frame(self.w, -1)
+                self.w.step()
 
     def course_guide(self, drill, session):
-        """The guide, in the column, until D-pad up (go on) or right (watch
-        a demonstration first: returns True)."""
+        """The guide, in the column, until D-pad up or B (go on) or right
+        (watch a demonstration first: returns True)."""
         lines = drill.guide(session.c)
+        self.verdict_colour(None)
         self.w.ui("text verdict Guide")
         # The overlay's guide breaks its lines for a narrow panel, in the
         # middle of sentences; this column wraps by itself: a line that
@@ -716,37 +1085,34 @@ class Client:
         has_demo = bool(drill.reference) or \
             type(drill).build_reference is not \
             course_engine.Drill.build_reference
+        if self.column_hidden:
+            self.toggle_column()            # the guide is in the column
         self.in_guide = True
-        while True:
-            if self.person is not None:
-                self.person(self.w, -2)        # tests: the player
-            self.w.step()
-            pressed, _ = self.read()
-            if self.start_held >= 40 or self.game_quit():
-                raise Leave()
-            # (`pressed` is buttons only: the D-pad's bits, not the stick)
-            if pressed & UP:
-                self.w.ui("class banner on 0")
-                self.in_guide = False
-                return False
-            if pressed & RIGHT and has_demo:
-                self.w.ui("class banner on 0")
-                self.in_guide = False
-                return True
+        try:
+            while True:
+                if self.person is not None:
+                    self.person(self.w, -2)        # tests: the player
+                self.w.step()
+                pressed, _ = self.read()
+                if self.game_quit():
+                    raise Leave()
+                # (`pressed` is buttons only: the D-pad's bits, not the
+                # stick)
+                if pressed & (UP | B):
+                    self.w.ui("class banner on 0")
+                    return False
+                if pressed & RIGHT and has_demo:
+                    self.w.ui("class banner on 0")
+                    return True
+        finally:
+            self.in_guide = False
+            self.consume()
 
-    def banner_say(self, word, text):
-        self.w.ui("text bword " + screens.esc(word))
-        self.w.ui("text bmsg " + screens.esc(text.split("\n")[0]))
-        self.w.ui("class banner on 1")
-        self.banner = 100
-
-    def drill(self, d):
-        """Run a drill until the player leaves it: the scenario's opponent
-        against them, a verdict for each attempt."""
-        if self.here[d["id"]] == courses.COURSE:
-            return self.course_drill(d)
+    def judged_drill(self, d, results):
+        """A drill from a scenario file: a scenario against an opponent, or
+        a tech drill judged by the frame (tools/melee_actor)."""
         sc = scn.load(str(self.here[d["id"]]))
-        self.say("Loading %s." % d["name"])
+        self.loading(d["name"])
         self.w.step()
         # the game sets the match up with its own presses, at full speed
         self.w.live(self.port, "off")
@@ -759,50 +1125,34 @@ class Client:
         finally:
             self.w.live(self.port, self.source)
             self.w.pace(True)
-        # The A that started the drill is still down, and A in shield is
-        # a grab: wait for the buttons to be let go before the first try.
-        for _ in range(90):
-            self.w.step()
-            if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
-                break
+        self.session = session
+        self.wait_released()
         self.screen = "drill"
-        self.start_held = 0
         self.playing()
-        self.load("drill", screens.drill_rail(
-            self.c, d, self.course, sc.get("about", d["goal"])))
+        self.in_match("drill", screens.drill_rail(
+            self.c, d, self.course, sc.get("about", d["goal"])), START | DPAD)
         self.w.capture(False)
-        results = []
-        self.live_results = results
         first = random.randrange(1 << 20)
-        try:
-            while True:
+        while True:
+            try:
                 result = session.run(jitter=3.0, run=first + len(results),
                                      each_frame=self.drill_frame)
-                if result.get("skip"):
-                    # not an attempt (an aerial with no lag to cancel):
-                    # say why, count nothing
-                    self.w.ui("text bword Not counted")
-                    self.w.ui("text bmsg " + screens.esc(
-                        result["words"].split(":")[0]))
-                    self.w.ui("class banner on 1")
-                    self.banner = 100
-                    continue
-                results.append(bool(result["success"]))
-                self.show_result(result, results)
-                # Against an opponent the situation is put back, so the
-                # verdict gets a moment first; a tech drill has nothing to
-                # put back and the player sets the pace.
-                for _ in range(0 if sc.get("tech") else 75):
-                    self.drill_frame(self.w, -1)
-                    self.w.step()
-        except Leave:
-            pass
-        finally:
-            # kept even when the game goes away mid-drill (the window
-            # closed): the tries so far count
-            self.progress.record(d["id"], self.c["id"], results)
-            self.results = results
-        self.show_list()
+            except Abandon:
+                continue
+            if result.get("skip"):
+                # not an attempt (an aerial with no lag to cancel):
+                # say why, count nothing
+                self.banner_say("Not counted",
+                                result["words"].split(":")[0])
+                continue
+            results.append(bool(result["success"]))
+            self.show_result(result, results)
+            # Against an opponent the situation is put back, so the verdict
+            # gets a moment first; a tech drill has nothing to put back and
+            # the player sets the pace.
+            for _ in range(0 if sc.get("tech") else 75):
+                self.drill_frame(self.w, -1)
+                self.w.step()
 
     # ---- free play --------------------------------------------------------------------
 
@@ -820,17 +1170,13 @@ class Client:
         self.screen = "match"
         self.start_held = 0
         self.playing()
-        self.load("match", screens.match_rail(
+        self.in_match("match", screens.match_rail(
             c, self.opponent.replace("-", " ").title(),
-            self.stage.replace("-", " ").title()))
+            self.stage.replace("-", " ").title()), START)
         self.w.capture(False)
 
     def on_match(self, pressed, moves):
-        if self.start_held >= 40:
-            if self.back == "hub":
-                self.show_hub()
-            else:
-                self.show_characters()
+        pass
 
     def run(self, frames=0):
         while not frames or self.frames < frames:

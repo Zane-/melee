@@ -34,6 +34,7 @@ extern "C" {
 void host_log(const char* fmt, ...);
 void aurora_set_ui_full_window(bool value);
 void aurora_set_ui_frame(uint32_t width, uint32_t height);
+void aurora_set_game_centered(bool value);
 void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
@@ -124,6 +125,12 @@ const char* host_ui_command(const char* line)
         }
         document = next;
         document->Show();
+        return nullptr;
+    }
+    if (verb == "center") {
+        /* "center 1": the game's picture in the middle of the window's
+           frame (the column put away); "center 0": at its left */
+        aurora_set_game_centered(word(line) == "1");
         return nullptr;
     }
     if (document == nullptr) {

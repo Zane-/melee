@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 import client  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
+from pausekeys import Chooser, leave  # noqa: E402
 
 
 DRILL = "universal-short-hop"
@@ -110,7 +111,7 @@ def main():
             if state["tries"] == 0 and frame == 0:
                 game.key("x", False)        # the A that started the drill
             if len(c.results_now()) >= len(plans):
-                game.key("Return")          # hold START: leave
+                state.setdefault("out", Chooser(c, "list"))(game)
                 return
             f = game.fighter(0)
             state["idle"] = state["idle"] + 1 if f.state == 14 else 0
@@ -166,11 +167,9 @@ def main():
         tap("x", after=20)
         check("free play starts from the hub",
               c.screen == "match" and w.fighter(0).fp)
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(6)
-        check("and holding START comes back to it", c.screen == "hub")
+        leave(c, w, "back", frames)
+        check("and Back in the pause menu comes back to it",
+              c.screen == "hub")
 
         again = client.Client(w, source="keyboard", save=save, out=tempfile.mkdtemp(prefix="melee-ui-"))
         check("started again, the client still has all of it",

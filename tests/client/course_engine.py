@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 import client  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
+from pausekeys import Chooser, leave  # noqa: E402
 
 DRILL = "fox-shine-oos"
 checks = []
@@ -96,6 +97,9 @@ def main():
                     seen["hold"] = (key, left - 1)
                 return
             step = seen["step"]
+            if step == 0 and frame == 0 and not seen.get("let_go"):
+                game.key("x", False)             # the A that started it
+                seen["let_go"] = True
             if step == 0 and frame >= 0:
                 seen["wait"] += 1
                 if seen["wait"] > 20:
@@ -117,7 +121,7 @@ def main():
                     game.key("s", False)
                     seen["step"] = 4
             elif step == 4:
-                game.key("Return")               # hold START: leave
+                seen.setdefault("out", Chooser(c, "list"))(game)
 
         c.person = person
         tap("x", after=0)

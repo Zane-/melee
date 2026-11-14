@@ -25,7 +25,7 @@ mkdir -p "$out"
 # on a wider screen (aurora_set_ui_frame). The same patch switches on the
 # layer's 4x multisampling (its slanted edges were stair-stepped).
 patch="$root/tools/aurora32/aurora-0001-ui-full-window.patch"
-if ! grep -q aurora_set_ui_frame "$src/include/aurora/aurora.h"; then
+if ! grep -q aurora_set_game_centered "$src/include/aurora/aurora.h"; then
     # an older version of the patch may be in the tree: start again from
     # the files as they came
     for f in $(grep '^+++ b/' "$patch" | sed 's|^+++ b/||'); do

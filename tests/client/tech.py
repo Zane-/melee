@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 import client  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
+from pausekeys import Chooser, leave  # noqa: E402
 
 WAIT, SQUAT = 14, 24
 KEYS = ("c", "s", "Down", "Right", "a")
@@ -166,7 +167,7 @@ def main():
             if k >= len(plans):
                 for key in KEYS:
                     game.key(key, False)
-                game.key("Return")      # hold START: leave
+                state.setdefault("out", Chooser(c, "list"))(game)
                 return
             if state["who"] != k:
                 for key in KEYS:

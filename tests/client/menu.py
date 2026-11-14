@@ -23,6 +23,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
 import window  # noqa: E402
+import pausekeys  # noqa: E402
 from native import CHARACTERS  # noqa: E402
 
 checks = []
@@ -148,11 +149,8 @@ def main():
               abs(w.fighter(0).pos[0] - x0) > 10,
               "moved %.1f" % (w.fighter(0).pos[0] - x0))
 
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(10)
-        check("holding START comes back to the character select",
+        pausekeys.leave(c, w, "back", frames)
+        check("Back in the pause menu comes back to the character select",
               c.screen == "chars" and c.roster[c.at]["id"] == pick)
         x1 = w.fighter(0).pos[0]
         tap("Right")
@@ -167,11 +165,7 @@ def main():
               c.screen == "match" and second != pick and
               w.fighter(0).ckind == CHARACTERS[second],
               "%s, ckind %d" % (second, w.fighter(0).ckind))
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(5)
-        tap("z")
+        pausekeys.leave(c, w, "main", frames)
         check("and the main menu remembers who was played",
               c.screen == "main" and c.last["id"] == second)
         shot("main-after")

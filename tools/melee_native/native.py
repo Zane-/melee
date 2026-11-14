@@ -290,6 +290,12 @@ class Native:
                     break
         return self
 
+    def freeze(self, on=True):
+        """The match stands still (gameplay does not advance) and goes on
+        being drawn: for a menu over it. The game's developers' pause,
+        without its menu."""
+        self._cmd("freeze %d" % (1 if on else 0))
+
     def ucf(self, on=None):
         """UCF 0.84 (src/host/ucf.c): True or False to switch it, None to
         ask. On from the start, as on Slippi."""

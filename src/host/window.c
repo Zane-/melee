@@ -376,10 +376,28 @@ static int paced;
 /// the game is showing underneath.
 static HostPad seen[4];
 static int captured;
+/// Buttons of the live ports the game does not see (the client's own: its
+/// pause on START, its D-pad shortcuts); `pads` still reports them.
+static unsigned masked;
+/// Live ports whose person is read (`pads`) while the game takes the
+/// driver's pad: a demonstration plays for them and they can still stop it.
+static int scripted[4];
+
+void host_window_scripted(int port, int on)
+{
+    if (port >= 0 && port < 4) {
+        scripted[port] = on;
+    }
+}
 
 void host_window_capture(int on)
 {
     captured = on;
+}
+
+void host_window_mask(unsigned buttons)
+{
+    masked = buttons;
 }
 
 const HostPad* host_window_seen(int port)
@@ -584,6 +602,10 @@ static void read_live(void)
             now.connected = 1;
             rest.connected = 1;
             seen[port] = now;
+            if (scripted[port]) {
+                continue; /* the driver's pad stays the game's */
+            }
+            now.buttons &= (uint16_t) ~masked;
             host.pads[port] = captured ? rest : now;
         }
     }

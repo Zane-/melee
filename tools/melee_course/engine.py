@@ -203,6 +203,7 @@ class Drill:
     goal = ""
     part = "tech"                 # tech | neutral | punish | defense
     stage = "final-destination"
+    stages = None                 # the stages it can be played on, if more
     cpu = "marth"                 # the opponent without a deck; None: none
     characters = None             # player characters it is for; None: any
     deck = None                   # [Entry, ...] or None
@@ -599,6 +600,13 @@ class Session:
         if sw == SWITCH_MANUAL:
             return self.scenario
         return self._next(self.scenario)
+
+    def set_stage(self, stage):
+        """Play the drill on another of its stages (from the next attempt:
+        the match is loaded again)."""
+        self.d.stage = stage
+        self.loaded = False
+        self.flowing = False
 
     def scenario_names(self):
         return [e.name for e in self.d.deck] if self.d.deck else [self.d.name]

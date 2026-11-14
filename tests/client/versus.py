@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 import client  # noqa: E402
 import opponents  # noqa: E402
 import window  # noqa: E402
+import pausekeys  # noqa: E402
 
 WAIT = 14
 checks = []
@@ -56,10 +57,7 @@ def main():
             w.shot(os.path.join(args.shots, name + ".png"))
 
     def leave():
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(6)
+        pausekeys.leave(c, w, "opp", frames)
 
     try:
         w = window.Window(window=(1280, 720))
@@ -142,10 +140,10 @@ def main():
               "%d states" % len(seen))
         leave()
 
-        # ---- quitting from the game's pause ------------------------------------
-        # The owner: "pressing start + LRAB crashes the game, it shows the
-        # no memory card screen, then it crashes". L+R+A+Start in the pause
-        # ends the match; the native game used to go on to its own menus.
+        # ---- the client's pause menu ---------------------------------------------
+        # START is the client's: its pause menu over the frozen match, never
+        # the game's own pause (whose L+R+A+Start once took the native game
+        # into its memory card screen: the owner, 2026-11-13).
         for _ in range(len(c.players())):
             if c.players()[c.who][0] == client.NOBODY:
                 break
@@ -153,31 +151,39 @@ def main():
         tap("x", after=20)
         frames(60)
         before = w.state().get("ended", 0)
-        tap("Return", after=20)                  # pause
-        for key in ("a", "s", "x"):              # L, R, A
-            w.key(key)
-        frames(4)
-        w.key("Return")
-        frames(3)
-        w.key("Return", False)
-        for key in ("a", "s", "x"):
-            w.key(key, False)
-        frames(60)
+        seen = dict(open=False, still=None)
+        resume = pausekeys.Chooser(c, "resume")
+        x0 = w.fighter(0).pos[0]
+
+        def during(game, frame):
+            if c.pause_open:
+                seen["open"] = True
+                game.key("Right")            # a frozen match does not move
+                seen["still"] = abs(game.fighter(0).pos[0] - x0) < 0.01
+                game.key("Right", False)
+            resume(game)
+
+        c.person = during
+        for _ in range(60):
+            if resume.done:
+                break
+            if not c.pause_open:
+                resume(w)
+            frames(1)
+        c.person = None
+        check("START opens the client's pause menu, the match frozen "
+              "under it", seen["open"] and seen["still"] is True)
+        w.key("Right")
+        frames(20)
+        w.key("Right", False)
+        check("Resume: the match goes on (not the game's own pause)",
+              abs(w.fighter(0).pos[0] - x0) > 5,
+              "moved %.1f" % abs(w.fighter(0).pos[0] - x0))
+        leave()
         st = w.state()
-        check("L+R+A+Start in the pause leaves the match for the opponent "
-              "screen", c.screen == "opp" and st.get("ended") == before + 1,
-              "%s, ended %s" % (c.screen, st.get("ended")))
-        check("and the game is in a match again, not in its own menus",
-              st["p"][0] is not None and st["p"][1] is not None)
-        tap("x", after=20)
-        frames(60)
-        check("the next match starts as usual", c.screen == "versus" and
-              w.fighter(0).state in (14, 324) or w.fighter(0).airborne,
-              "state %d" % w.fighter(0).state)
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(6)
+        check("Back to the opponent in the pause menu", c.screen == "opp" and
+              st.get("ended") == before, "%s, ended %s" % (
+                  c.screen, st.get("ended")))
 
         # ---- the Lab ---------------------------------------------------------
         tap("z")

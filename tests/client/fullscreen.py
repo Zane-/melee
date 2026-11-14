@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
 import window  # noqa: E402
+import pausekeys  # noqa: E402
 
 checks = []
 
@@ -149,12 +150,7 @@ def main():
               max(sides) < 0.004 and game > 0.02 and rail > 0.02,
               "sides %.3f %.3f, game %.3f, column %.3f" % (
                   sides + (game, rail)))
-        w.key("Return")
-        frames(50)
-        w.key("Return", False)
-        frames(6)
-        tap("z")
-        tap("z")
+        pausekeys.leave(c, w, "main", frames)
         tap("Left")
         check("back at the main menu", c.screen == "main" and
               c.focus == "train", "%s %s" % (c.screen, c.focus))

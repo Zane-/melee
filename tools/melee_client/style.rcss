@@ -246,6 +246,13 @@ span { display: inline; }
 .banner { display: none; height: 30dp; border: 2dp #F3F6FA; transform: skewX(-12deg); flex-direction: row; }
 .banner.on { display: flex; }
 .chip { padding: 0dp 12dp; background-color: #F3F6FA; color: #12161C; display: flex; flex-direction: row; align-items: center; }
+/* the verdict's colour: the palette's green (Defense) and red (Punish) */
+.chip.good { background-color: #22B8A0; color: #FFFFFF; }
+.chip.bad { background-color: #F0643C; color: #FFFFFF; }
+.banner.good { border-color: #22B8A0; }
+.banner.bad { border-color: #F0643C; }
+.verdict.good { color: #22B8A0; }
+.verdict.bad { color: #F0643C; }
 .chip .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 22dp; text-transform: uppercase; letter-spacing: 1dp; }
 .msg { padding: 0dp 14dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
 .msg .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 16dp; text-transform: uppercase; letter-spacing: 1dp; }
@@ -268,3 +275,23 @@ span { display: inline; }
 .pick { display: flex; flex-direction: row; align-items: center; margin: 2dp 0dp 8dp 0dp; font-size: 14dp; font-weight: 600; color: #D5DCE5; }
 .pick .key { margin-right: 8dp; }
 .botstate { margin-top: 12dp; }
+
+/* ---- over the game: the loading cover, the pause menu; the column hidden ---- */
+
+.rail.hidden { display: none; }
+.bannerwrap.mid, .cover.mid, .pause.mid { left: 160dp; }
+.cover { display: none; position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; background-color: #12161C; color: #F3F6FA; flex-direction: row; align-items: center; justify-content: center; }
+.cover.on { display: flex; }
+.cover .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 40dp; text-transform: uppercase; letter-spacing: 1dp; }
+.pause { display: none; position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; background-color: #12161CB4; flex-direction: row; align-items: center; justify-content: center; }
+.pause.on { display: flex; }
+.pbox { width: 540dp; background-color: #E9EDF2; color: #12161C; padding: 18dp 24dp 16dp 24dp; display: flex; flex-direction: column; border-left: 8dp #12161C; }
+.ptitle .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; margin-bottom: 8dp; }
+.prows { display: flex; flex-direction: column; }
+.prow { display: flex; flex-direction: row; align-items: center; height: 30dp; padding: 0dp 12dp; font-size: 16dp; font-weight: 600; }
+.prow.on { background-color: #12161C; color: #F3F6FA; }
+.pv { font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
+.pgap { height: 10dp; }
+.phint { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 13dp; font-weight: 600; color: #4A5361; }
+.phint .key { margin-left: 12dp; margin-right: 6dp; }
+.stageline { margin-bottom: 8dp; }

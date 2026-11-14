@@ -27,6 +27,55 @@ def page(title, body, paper=True):
                 esc(title), "paper" if paper else "", body))
 
 
+def over_game():
+    """What goes over the game's picture in a match or a drill: a cover
+    while a match loads (no fast-forwarding fighters in view), the pause
+    menu, the verdict banner. Each has an id so the column can be hidden
+    and these moved to the middle (Client.toggle_column)."""
+    return (
+        '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
+        'class="banner"><div id="chip" class="chip"><div id="bword" '
+        'class="un">YES</div></div><div class="msg"><div id="bmsg" '
+        'class="un">.</div></div></div></div>'
+        '<div id="cover" class="cover"><div class="un"><div id="covermsg">'
+        'Loading</div></div></div>'
+        '<div id="pause" class="pause"><div class="pbox"><div class="ptitle">'
+        '<div class="un"><div id="ptitle">Paused</div></div></div>'
+        '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
+        '</div>%s<div>Change</div>%s<div>Back to it</div></div></div></div>'
+        % (key("A", dark=True), key("SIDE", wide=True), key("B")))
+
+
+def pause_rows(rows, at):
+    """The pause menu's rows: (id, label, value or None); `at` the row in
+    focus. A row with the id "-" is a gap."""
+    out = []
+    for i, (ident, label, value) in enumerate(rows):
+        if ident == "-":
+            out.append('<div class="pgap"/>')
+            continue
+        out.append(
+            '<div class="prow%s"><div>%s</div><div class="grow"/>%s</div>' % (
+                " on" if i == at else "", esc(label),
+                '<div class="pv">&lt; %s &gt;</div>' % esc(value)
+                if value is not None else ""))
+    return "".join(out)
+
+
+def match_hints(drill=False, stages=False):
+    """The column's controls, in a match or a drill."""
+    rows = [("START", "Pause and settings"),
+            ("HOLD START 3S", "Hide this column")]
+    if drill:
+        rows = [("D-PAD UP", "The guide"),
+                ("D-PAD SIDE", "Scenario. Hold 3s: drill")] + rows
+    if stages:
+        rows.append(("HOLD L/R 5S", "Another stage"))
+    return '<div class="hints">%s</div>' % "".join(
+        '<div class="hintrow">%s<div>%s</div></div>' % (
+            key(k, wide=True), what) for k, what in rows)
+
+
 def key(letter, dark=False, wide=False):
     return '<div class="key%s%s">%s</div>' % (
         " dark" if dark else "", " wide" if wide else "", esc(letter))
@@ -231,12 +280,11 @@ def versus_rail(c, opp, who, what, stage, lab):
         '<div class="fv">%s</div><div class="fl">%s</div></div>'
         '<div class="fact"><div class="fl">Stage</div><div class="fv">%s'
         '</div></div><div id="botstate" class="line botstate"/>'
-        '<div class="grow"/><div class="hints">%s<div class="hintrow">%s'
-        '<div>Pause</div></div><div class="hintrow">%s<div>Back</div></div>'
-        '</div>' % (esc(opp["name"]), esc(who), esc(what), esc(stage), tools,
-                    key("START", wide=True), key("HOLD START", wide=True)))
-    return page("Versus", '<div class="rail">%s<div class="body">%s</div>'
-                '</div>' % (head, body), paper=False)
+        '<div class="grow"/><div class="hints">%s</div>%s' % (
+            esc(opp["name"]), esc(who), esc(what), esc(stage), tools,
+            match_hints()))
+    return page("Versus", over_game() + '<div id="rail" class="rail">%s'
+                '<div class="body">%s</div></div>' % (head, body), paper=False)
 
 
 # ---- in a match ----------------------------------------------------------------
@@ -259,13 +307,11 @@ def match_rail(c, opponent, stage):
         '<div class="line">Against a standing %s on %s. No drill is '
         'running: nothing is judged.</div>'
         '<div class="about"/><div class="stats">%s</div>'
-        '<div class="grow"/><div class="hints"><div class="hintrow">%s'
-        '<div>Pause</div></div><div class="hintrow">%s<div>Back to the menu'
-        '</div></div></div>' % (
-            esc(opponent), esc(stage), stats, key("START", wide=True),
-            key("HOLD START", wide=True)))
-    return page("Free play", '<div class="rail">%s<div class="body">%s</div>'
-                '</div>' % (head, body), paper=False)
+        '<div class="grow"/>%s' % (
+            esc(opponent), esc(stage), stats, match_hints()))
+    return page("Free play", over_game() + '<div id="rail" class="rail">%s'
+                '<div class="body">%s</div></div>' % (head, body),
+                paper=False)
 
 
 # ---- the course hub -----------------------------------------------------------
@@ -471,7 +517,9 @@ def last_squares(results):
         '<div class="sq3 none"/>' for _ in range(10 - len(shown)))
 
 
-def drill_rail(c, d, course, about):
+def drill_rail(c, d, course, about, stages=None):
+    """The column beside a drill. `stages`: the drill's stages when it can
+    change them (with the one it is on first)."""
     part = d["part"]
     total = len(course["parts"][part])
     fg = "#FFFFFF" if part == "Tech" else "#12161C"
@@ -496,12 +544,11 @@ def drill_rail(c, d, course, about):
         'id="rate" class="n">-</div><div class="l">success</div></div><div '
         'class="stat"><div id="best" class="n">0</div><div class="l">best '
         'run</div></div></div>'
-        '<div class="grow"/><div class="hints"><div class="hintrow">%s'
-        '<div>Back to the list</div></div></div>' % (
-            esc(about), last_squares([]), key("HOLD START", wide=True)))
-    banner = ('<div class="bannerwrap"><div id="banner" class="banner">'
-              '<div class="chip"><div id="bword" class="un">YES</div></div>'
-              '<div class="msg"><div id="bmsg" class="un">.</div></div></div>'
-              '</div>')
-    return page("Drill", banner + '<div class="rail">%s<div class="body">%s'
-                '</div></div>' % (head, body), paper=False)
+        '<div class="grow"/>%s%s' % (
+            esc(about), last_squares([]),
+            '<div id="stage" class="line stageline">Stage: %s</div>' % esc(
+                stages[0].replace("-", " ").title()) if stages else "",
+            match_hints(drill=True, stages=bool(stages))))
+    return page("Drill", over_game() + '<div id="rail" class="rail">%s'
+                '<div class="body">%s</div></div>' % (head, body),
+                paper=False)

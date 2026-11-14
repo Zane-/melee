@@ -25,6 +25,8 @@
  *   rng                           callers of the last frame's random draws
  *   fp SLOT                       address of a fighter's data, for "r"
  *   ucf [0|1]                     UCF 0.84 off or on (on by default)
+ *   freeze 0|1                    the match stands still, still drawn
+ *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
  *   shield P HEALTH               a fighter's shield health
  *   ui ...                        the client's interface (ui.cpp)
@@ -64,6 +66,7 @@
 
 #include <melee/ft/fighter.h>
 #include <melee/ft/inlines.h>
+#include <melee/gm/gmscene.h>
 #include <melee/ft/types.h>
 #include <melee/it/types.h>
 #include <melee/pl/player.h>
@@ -587,6 +590,38 @@ static void command(char* line)
         }
 #else
         printf("@ error %s needs the window build\n", cmd);
+#endif
+    } else if (strcmp(cmd, "freeze") == 0) {
+        /* "freeze 1": the match stands still and goes on being drawn (the
+           game's developers' pause, without its menu); "freeze 0" */
+        int on = 1;
+        sscanf(line, "%d", &on);
+        if (on) {
+            gm_SetDbPauseFlag(0);
+        } else {
+            gm_ClearDbPauseFlag(0);
+        }
+        printf("@ ok\n");
+    } else if (strcmp(cmd, "script") == 0) {
+#ifdef HOST_WINDOW
+        /* "script P 1": live port P is read, but the game takes the
+           driver's pad (a demonstration); "script P 0" */
+        int p = 0, on = 1;
+        sscanf(line, "%d %d", &p, &on);
+        host_window_scripted(p, on);
+        printf("@ ok\n");
+#else
+        printf("@ error script needs the window build\n");
+#endif
+    } else if (strcmp(cmd, "mask") == 0) {
+#ifdef HOST_WINDOW
+        /* "mask HEX": buttons of the live ports kept from the game */
+        unsigned buttons = 0;
+        sscanf(line, "%x", &buttons);
+        host_window_mask(buttons);
+        printf("@ ok\n");
+#else
+        printf("@ error mask needs the window build\n");
 #endif
     } else if (strcmp(cmd, "ucf") == 0) {
         /* "ucf 0" or "ucf 1": UCF 0.84 off or on (on from the start);

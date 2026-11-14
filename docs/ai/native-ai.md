@@ -525,6 +525,41 @@ completion callback started the same load again), and after a few different oppo
 sound bank overflowed and an assertion stopped the game. A native patch stores the id
 first (`lbaudio_ax.c` in `PATCHES`). Nineteen opponents and five stages in one game since.
 
+### In a drill or a match: the controls (2026-11-13)
+
+From the owner's play session: "Success should be green, failure red ... (Both on the top
+overlay and the right overlay)", "The right overlay should be dismissable. Let's use start
+for 3 seconds to toggle it. Let's also build a custom pause menu", "Pause should always be
+drill settings", "hold D pad left for 3 second or D pad right for 3 seconds to cycle
+between [drills]", "changing the stage via holding L or R for 5 seconds", and the
+fast-forwarding and teleporting they saw.
+
+| Control | What it does |
+|-|-|
+| START tap | The client's pause menu over the frozen match (`freeze`: the game's developers' pause, which stops gameplay and goes on drawing). In a drill: the drill's own settings (its options from the C, the scenario, the CPU's side, the stage where it has several), the guide, a demonstration, restart, hide the column, the drill before or after, the drill list, the course, the main menu. In free play and Versus: resume, the column, back, main menu. A setting changed is in force from the next try |
+| START held 3 s | The column away, the game's picture in the middle of the window (`center` in the interface: `aurora_set_game_centered` in the Aurora patch); again to bring it back |
+| D-pad up / down | The guide / a restart (drills) |
+| D-pad left or right | A tap: the scenario before or after; held 3 s: the drill before or after in the course |
+| L or R held 5 s | The stage before or after, in a drill that has several stages (`Drill.stages`) |
+
+START and the D-pad never reach the game in a drill (`mask`; in free play and Versus
+START only), so the game's own pause and taunts do not happen. A button that did
+something in a menu is not a tap when let go, and the game does not see it until it is
+(`Client.consume`): the A that chose "Resume" once came out as a jab. During a
+demonstration the game takes the script's pad and the player is still read (`script`), so
+a D-pad press or START stops it. Verdicts are green or red (the palette's Defense and
+Punish colours) on the banner and in the column. A match loaded inside a drill (another
+opponent from the deck, another stage) is behind a "Loading" cover over the game.
+
+The jumps the owner saw: the course engine reloaded the match before every try of a drill
+without an opponent, and the tech judge moved a player standing more than 50 units out
+back to the start; both are gone (commit 73c814112).
+
+`tests/client/controls.py` (8): the column away and back (pictures: black at both sides),
+a setting changed in the pause menu and in force on the next try, a failure in red on the
+banner (a picture), D-pad right held 3 s to the next drill. The other client tests leave
+through the pause menu now (`tests/client/pausekeys.py`).
+
 ### Closing the window (2026-11-13)
 
 The owner: "the game still seems to freeze on closing as well" (a desktop dialog,
