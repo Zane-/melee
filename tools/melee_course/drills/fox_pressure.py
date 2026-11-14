@@ -15,7 +15,7 @@ is the frame of the down-B:
     6 frames later. Marth's shieldstun ends on frame 9.
 """
 from melee_course.engine import (
-    A, B, X, Z, Drill, Ref, leniency_option, KNEEBEND, LANDING, CATCH,
+    A, B, L, R, X, Y, Z, Drill, Option, Ref, Row, leniency_option, KNEEBEND, LANDING, CATCH,
     CATCH_PULL, CATCH_DASH, CATCH_WAIT, GUARD_SET_OFF, CAPTURE_PULLED_HI,
     ATTACK_AIR_N, ATTACK_AIR_LW, FOX_SHINE_FIRST, FOX_SHINE_LAST)
 
@@ -97,6 +97,18 @@ class FoxShineGrab(Drill):
         place(c)
         self.v = dict(frame=0, on_shield=False, grab_frame=0)
 
+    def timeline(self, c):
+        late = c.leniency(SG_OPT_LENIENCY)
+        return ([Row("Shine", state=lambda st: st == SHINE_GROUND_START,
+                     perfect=(1,)),
+                 Row("Jump", buttons=X | Y, perfect=(SG_GRAB_FRAME - 1,),
+                     window=(SG_GRAB_FRAME - 1, SG_GRAB_FRAME - 1 + late)),
+                 Row("Grab", buttons=Z, perfect=(SG_GRAB_FRAME,),
+                     window=(SG_GRAB_FRAME, SG_GRAB_FRAME + late))],
+                "The shine's hit on the shield holds Fox 3 frames: the jump "
+                "works from frame %d, the grab from %d."
+                % (SG_GRAB_FRAME - 1, SG_GRAB_FRAME))
+
     def think(self, c):
         v = self.v
         lenient = c.leniency(SG_OPT_LENIENCY)
@@ -108,6 +120,7 @@ class FoxShineGrab(Drill):
         if c.phase == SG_WAIT:
             if c.state == SHINE_GROUND_START and c.state_frames == 1:
                 c.set_phase(SG_SHINE)
+                c.tl_begin()
                 v["frame"] = 1
                 v["on_shield"] = c.cpu_state == GUARD_SET_OFF
             elif c.state in (CATCH, CATCH_DASH):
@@ -154,6 +167,7 @@ class FoxShineGrab(Drill):
 
 NS_MARK_LAND = 1
 NS_OPT_LENIENCY = 0
+NS_TL_LAND = 10          # the landing's frame on the timeline
 NS_WAIT, NS_AIR, NS_LAND, NS_AFTER = range(4)
 
 
@@ -171,7 +185,15 @@ class FoxNairShine(Drill):
     cpu = "marth"
     characters = ("fox",)
     flow = True
-    options = (leniency_option(),)
+    OPT_HOLD = 1
+    # The owner (2026-11-13): "For aerial into shine the opponent should be
+    # intangible in their shield so the player can't push them around the
+    # stage!" The shield still takes the hits (the drill is about them);
+    # the opponent is held where it stands (host `anchor`). Native only.
+    options = (leniency_option(),
+               Option("Opponent", ["Held in place", "Pushed back"], 0,
+                      "Held in place: your hits do not push the shield "
+                      "across the stage, try after try."))
     help = ("Aerial into shine: short hop neutral air on the",
             "shield, L-cancel, shine as you land.",
             "D-Pad up: guide. D-Pad down: reset.")
@@ -198,7 +220,23 @@ class FoxNairShine(Drill):
 
     def setup(self, c):
         place(c)
+        if c.opt(self.OPT_HOLD) == 0:
+            c.anchor_cpu()
         self.v = _ns_state()
+
+    def timeline(self, c):
+        v = self.v
+        if not v.get("land_frame"):
+            return None
+        free = NS_TL_LAND + v["lag"]       # the first frame after the lag
+        return ([Row("Press", buttons=L | R | Z, trigger=True,
+                     window=(NS_TL_LAND - 6, NS_TL_LAND)),
+                 Row("Land", state=is_aerial_landing, perfect=(NS_TL_LAND,)),
+                 Row("Shine", state=lambda st: st == SHINE_GROUND_START,
+                     perfect=(free,), window=(free, free + c.leniency(
+                         NS_OPT_LENIENCY)))],
+                "You land on frame %d; the shine is due on the first frame "
+                "after the landing lag." % NS_TL_LAND)
 
     def no_l_cancel(self, c):
         c.result(False, "No L-cancel: %d frames lag: L, R or Z as you land"
@@ -233,6 +271,7 @@ class FoxNairShine(Drill):
             if is_aerial_landing(c.state):
                 c.mark(NS_MARK_LAND)
                 c.set_phase(NS_LAND)
+                c.tl_begin(back=NS_TL_LAND - 1)
                 v["land_frame"] = v["frame"]
                 v["land_state"] = c.state
                 v["lag"] = 1

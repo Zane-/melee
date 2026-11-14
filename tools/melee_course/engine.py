@@ -125,6 +125,74 @@ class Ref:
 REF_LEAD = 3
 MAX_MARKS = 8
 
+# ---- a timeline of the attempt ------------------------------------------------------
+
+# An analog trigger past this (0..255) counts as a press (the game's light
+# shield threshold, 43 of the pad's raw range).
+TRIGGER_PRESS = 43
+TIMELINE_MAX = 30         # frames a column has room for
+
+
+# A stick past this (raw, of the 80 the game reads as 1.0) is a smash: the
+# game's 0.6625 for a fast fall or a smash attack.
+STICK_SMASH = 53
+
+
+def tapped_down(e):
+    """The control stick went down past a smash this frame (a fast fall)."""
+    return e["ly"] <= -STICK_SMASH < e["ply"]
+
+
+def smashed_up(e):
+    """An up smash input this frame: the C-stick up, or A with the stick
+    up."""
+    return (e["cy"] >= STICK_SMASH > e["pcy"]) or (
+        e["down"] & A and e["ly"] >= STICK_SMASH)
+
+
+class Row:
+    """A row of a drill's timeline (the owner, 2026-11-13: "Frame perfect
+    jump-cancelled shine should have frame timings visualized ... We should
+    make that standard"). Frames count from the drill's frame 1
+    (`Ctx.tl_begin`). What the player did on a frame is one of:
+
+    - `buttons`: a press of any of these buttons on that frame (with
+      `trigger`, an analog L or R press past TRIGGER_PRESS too);
+      `held=True`: every frame they are held;
+    - `state`: a predicate on the fighter's state: the frames a state it
+      accepts began (`entered`) or every frame it is in (`entered=False`).
+
+    - `test`: a predicate on the frame's record (`tapped_down`,
+      `smashed_up`);
+    - `frames`: the frames themselves, as the drill counted them
+      (`Ctx.tl_frame`), for what the record does not show (a laser).
+
+    `perfect` are the frame-perfect frames, `window` (first, last) the
+    frames that count."""
+
+    def __init__(self, label, buttons=0, trigger=False, held=False,
+                 state=None, entered=True, test=None, frames=None,
+                 perfect=(), window=None, start=1):
+        self.label, self.buttons, self.trigger = label, buttons, trigger
+        self.held, self.state, self.entered = held, state, entered
+        self.test = test
+        self.frames = None if frames is None else list(frames)
+        self.start = start        # frames before it are not this row's
+        self.perfect = tuple(perfect)
+        self.window = window
+
+    def hit(self, e):
+        """Did frame record `e` (Session.tl_log) do this row?"""
+        if self.test is not None:
+            return bool(self.test(e))
+        if self.state is not None:
+            return self.state(e["state"]) and (e["entered"] or
+                                               not self.entered)
+        if self.held:
+            return bool(e["held"] & self.buttons)
+        return bool(e["down"] & self.buttons) or (
+            self.trigger and e["trig_down"])
+
 
 def cpu_axis(v):
     """A CPU's stick value as the raw pad value that reads the same.
@@ -227,6 +295,24 @@ class Drill:
 
     def build_reference(self, c):
         return self.reference
+
+    def timeline(self, c):
+        """The attempt's timeline, if the drill has one: (rows, note), rows
+        a list of Row. Called when the attempt ends; frames count from
+        `c.tl_begin()`."""
+        return None
+
+    def rays(self, c):
+        """Light rays on the stage the player goes to (targets): a list of
+        (x, y) stage points, drawn by the client over the picture."""
+        return []
+
+    def status(self, c):
+        """A line on what is asked of the player now, shown above the
+        verdict: the scenario of a deck by default."""
+        if self.deck and c.entry is not None:
+            return c.entry.name
+        return None
 
     def guide(self, c):
         """Lines of the guide (the C engine shows up to eight)."""
@@ -413,6 +499,13 @@ class Ctx:
     def set_shield(self, port, health):
         self.n.shield(port, health)
 
+    def anchor_cpu(self):
+        """Hold the CPU where it stands until the next placement: nothing
+        pushes it sideways (a hit on its shield, the player's body)."""
+        if self.s.cpu_port is not None:
+            self.n.anchor(self.s.cpu_port, True)
+            self.s.anchored = True
+
     # ---- the CPU's controller, this frame -----------------------------------------------
 
     def cpu_press(self, buttons=0, lx=None, ly=None, cx=None, cy=None,
@@ -471,6 +564,17 @@ class Ctx:
 
     def measure(self, measured, target):
         self.s.measure = (measured, target)
+
+    def tl_begin(self, back=0):
+        """The timeline's frame 1 is this frame (or `back` frames ago): the
+        frame the drill's own count starts at."""
+        self.s.tl_start = max(0, len(self.s.tl_log) - 1 - back)
+
+    def tl_frame(self):
+        """This frame's number on the timeline (0 before tl_begin)."""
+        if self.s.tl_start is None:
+            return 0
+        return len(self.s.tl_log) - self.s.tl_start
 
     def report(self, key, value):
         self.s.report[key] = value
@@ -540,9 +644,13 @@ class Session:
         self.demo_pass = 0
         self.demo_count = 0
         self.flowing = False      # a flow drill carrying on from a verdict
+        # a fighter is held in place (anchor); at first, as far as this
+        # session knows (another drill on the same match may have held one)
+        self.anchored = True
         self.bag, self.bag_pos = [], 0
         self.player_pad = dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
         self.prev_buttons = 0
+        self.live_pad = None      # a live pad, sampled for the frame to come
         drill.init()
         first = drill.deck[0].cpu if drill.deck else drill.cpu
         self._load(first)
@@ -638,6 +746,46 @@ class Session:
                                lt=0, rt=trigger)
         self._set_pad(self.person, self.player_pad)
 
+    def _timeline(self):
+        """The attempt's timeline as the client draws it (screens.timeline):
+        frames from 1, a row for each of the drill's Row."""
+        if self.tl_start is None:
+            return None
+        got = self.d.timeline(self.c)
+        if not got:
+            return None
+        rows, note = got
+        log = self.tl_log[self.tl_start:]
+        want = 1
+        out = []
+        for r in rows:
+            you = r.frames if r.frames is not None else \
+                [i + 1 for i, e in enumerate(log)
+                 if i + 1 >= r.start and r.hit(e)]
+            out.append(dict(label=r.label, you=you, perfect=list(r.perfect),
+                            window=list(r.window) if r.window else None))
+            want = max([want] + list(r.perfect) +
+                       ([r.window[1]] if r.window else []))
+        # every frame up to the verdict, or past the last frame due
+        seen = max([0] + [y for row in out for y in row["you"]])
+        hi = max(want + 2, min(len(log), want + 6), seen)
+        # a long attempt (eight shines): its last TIMELINE_MAX frames
+        lo = max(1, hi - TIMELINE_MAX + 1)
+        n = hi - lo + 1
+        for row in out:
+            row["you"] = [y - lo + 1 for y in row["you"] if lo <= y <= hi]
+            row["perfect"] = [y - lo + 1 for y in row["perfect"]
+                              if lo <= y <= hi]
+            w = row["window"]
+            if w and (w[1] < lo or w[0] > hi):
+                row["window"] = None
+            elif w:
+                row["window"] = [max(w[0], lo) - lo + 1,
+                                 min(w[1], hi) - lo + 1]
+        labels = [str(f) if n <= 12 or f % 5 == 0 else ""
+                  for f in range(lo, hi + 1)]
+        return dict(frames=n, rows=out, note=note, labels=labels)
+
     def _play_reference(self, ref, marks):
         """A demonstration: the player's pad is the reference script
         (PlayReference)."""
@@ -720,6 +868,9 @@ class Session:
         c.cpu = Fighter(st["p"][self.cpu_port]) \
             if self.cpu_port is not None and st["p"][self.cpu_port] else None
         c._pad = dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
+        if self.anchored:
+            self.n.anchor(-1, False)      # a drill holds whom it places
+            self.anchored = False
         d.setup(c)
 
     def run(self, jitter=0.0, run=0, each_frame=None, demo=None,
@@ -765,6 +916,9 @@ class Session:
         self.messages = []
         self.marks = [-1] * MAX_MARKS
         self.attempt_frame = 0
+        self.tl_log = []
+        self.tl_start = None
+        trig_before = False
         ref = None
         if d.flow and self.flowing and not demo_pass:
             c.phase = c.timer = 0
@@ -804,12 +958,31 @@ class Session:
             c.state_frames += 1
             c.cpu_state = c.cpu.state if c.cpu else -1
             if self.live:
-                held = n.pads()[self.person]["buttons"]
+                # A person's pad as `pads` reports it between two frames
+                # is the one sampled for the coming frame; the frame just
+                # played used the one before it, which is what this frame's
+                # state answers to (a press and the jump squat it starts
+                # come on the same frame, as with a scripted pad).
+                now = n.pads()[self.person]
+                pad = self.live_pad if self.live_pad is not None else now
+                self.live_pad = now
             else:
-                held = self.player_pad["buttons"]
+                pad = self.player_pad
+            held = pad["buttons"]
             c.down = held & ~self.prev_buttons
             c.held = held
             self.prev_buttons = held
+            trig = max(pad.get("lt", 0), pad.get("rt", 0)) >= TRIGGER_PRESS
+            last = self.tl_log[-1] if self.tl_log else None
+            self.tl_log.append(dict(
+                down=c.down, held=held, state=c.state,
+                entered=c.state_frames == 1, trig=trig,
+                trig_down=trig and not trig_before,
+                lx=pad.get("lx", 0), ly=pad.get("ly", 0),
+                cx=pad.get("cx", 0), cy=pad.get("cy", 0),
+                ply=last["ly"] if last else 0,
+                pcy=last["cy"] if last else 0))
+            trig_before = trig
             c.hmn_hit = c.me.percent > hmn_percent
             c.cpu_hit = bool(c.cpu) and c.cpu.percent > cpu_percent
             hmn_percent = c.me.percent
@@ -857,6 +1030,10 @@ class Session:
                    frames=frame, demo=bool(demo_pass), checks=[],
                    messages=list(self.messages),
                    ui=self.ui[0] if self.ui else None)
+        if not self.ui:
+            tl = self._timeline()
+            if tl:
+                out["timeline"] = tl
         if self.ui:
             self.flowing = False
             if self.ui[0] == "scenario":

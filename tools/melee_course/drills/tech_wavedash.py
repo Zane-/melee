@@ -10,8 +10,8 @@ dodge one frame late = 1 frame of jump, then the air dodge, then the
 landing; a dodge during jump squat does nothing and the jump comes out.
 """
 from melee_course.engine import (
-    R, X, Drill, Ref, leniency_option, KNEEBEND, JUMP_F, JUMP_B, ESCAPE_AIR,
-    LANDING_FALL_SPECIAL)
+    L, R, X, Y, Drill, Ref, Row, leniency_option, KNEEBEND, JUMP_F, JUMP_B,
+    ESCAPE_AIR, LANDING_FALL_SPECIAL)
 
 # Special landing after an air dodge: the wavedash's lag.
 LANDING_FRAMES = 10
@@ -59,6 +59,17 @@ class TechWavedash(Drill):
         c.place_solo(0.0)
         self.v = dict(jump_frames=0, start_x=0.0)
 
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        late = c.leniency(OPT_LENIENCY)
+        return ([Row("Jump", buttons=X | Y, perfect=(1,), window=(1, 1)),
+                 Row("Dodge", buttons=L | R, trigger=True, perfect=(js + 1,),
+                     window=(js + 1, js + 1 + late)),
+                 Row("Slide", state=lambda st: st == LANDING_FALL_SPECIAL,
+                     perfect=(js + 1,))],
+                "Jump squat is %d frames: dodge on frame %d, the first in the "
+                "air." % (js, js + 1))
+
     def think(self, c):
         v = self.v
         lenient = c.leniency(OPT_LENIENCY)
@@ -66,6 +77,7 @@ class TechWavedash(Drill):
         if c.phase == WAIT:
             if c.state == KNEEBEND:
                 c.set_phase(SQUAT)
+                c.tl_begin()
                 v["jump_frames"] = 0
                 v["start_x"] = c.me.pos[0]
             return

@@ -49,6 +49,37 @@ DRAWS = {
 }
 
 
+# Drills the owner asked to change on the native build after the overlay's
+# specs were written (2026-11-13): the options that play them as the C does,
+# so the specs still prove the rest. By option name, before the spec's own.
+NATIVE_AS_C = {
+    # levels 1 to 4 ("1 is shortest ... 4 is longest"); the C took any
+    # shortening
+    "fox-illusion-shorten": {"Level": 5},
+    # up to 5 frames late; the C's default was 2
+    "fox-waveshine": {"Leniency": 2},
+    # starts falling to the ledge; the C's on it
+    "universal-ledgedash": {"Start": 0},
+    # the shielding opponent held in place; the C's was pushed back
+    "fox-shffl-nair-shine": {"Opponent": 1},
+}
+# The same for the common options (by index): a deck the C did not have.
+NATIVE_AS_C_COMMON = {
+    # platforms and starts in turn; the C's: Battlefield's left platform,
+    # standing (the deck's first)
+    "universal-shield-drop": {engine.OPT_SCENARIO: 1},
+}
+
+
+# Specs of the C's behaviour that the owner changed on the native build
+# (2026-11-13); tests/course/native_changes.py checks the new behaviour.
+SUPERSEDED = {
+    "universal-dash-dance/six": "the dance is no longer cut at six dashes",
+    "universal-dash-dance/stop": "a dance of one switch now counts",
+    "universal-dash-dance/demo_fox": "the demonstration dances all twenty",
+}
+
+
 def character(name):
     return BY_NUMBER[tmtest.ident(tmtest.CKIND, name, "character")]
 
@@ -116,7 +147,8 @@ def session_for(spec, game, name=None):
     hmn = character(spec.get("hmn", "fox"))
     if spec.get("cpu") and not drill.deck and drill.cpu:
         drill.cpu = character(spec["cpu"])
-    common, options = {}, {}
+    common = dict(NATIVE_AS_C_COMMON.get(spec["drill"], {}))
+    options = dict(NATIVE_AS_C.get(spec["drill"], {}))
     for idx, val in spec.get("options", []):
         if idx < engine.OPT_COMMON_COUNT:
             common[idx] = val
@@ -250,6 +282,11 @@ def main():
                        for e in spec.get("inputs", [])):
                     print("n/a   %s/%s  (Training Mode's pause menu)" %
                           (d, name))
+                    continue
+                why = SUPERSEDED.get("%s/%s" % (d, name))
+                if why:
+                    print("n/a   %s/%s  (changed natively: %s)" % (d, name,
+                                                                  why))
                     continue
                 total += 1
                 try:

@@ -279,7 +279,10 @@ span { display: inline; }
 /* ---- over the game: the loading cover, the pause menu; the column hidden ---- */
 
 .rail.hidden { display: none; }
-.bannerwrap.mid, .cover.mid, .pause.mid { left: 160dp; }
+.bannerwrap.mid, .cover.mid, .pause.mid, .rays.mid { left: 160dp; }
+.rays { position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; }
+.ray { position: absolute; top: 0dp; width: 18dp; decorator: vertical-gradient(#9CF0FF00 #9CF0FFB4); }
+.rayfoot { position: absolute; width: 44dp; height: 10dp; border-radius: 5dp; background-color: #C8F8FFC8; }
 .cover { display: none; position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; background-color: #12161C; color: #F3F6FA; flex-direction: row; align-items: center; justify-content: center; }
 .cover.on { display: flex; }
 .cover .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 40dp; text-transform: uppercase; letter-spacing: 1dp; }
@@ -294,4 +297,5 @@ span { display: inline; }
 .pgap { height: 10dp; }
 .phint { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 13dp; font-weight: 600; color: #4A5361; }
 .phint .key { margin-left: 12dp; margin-right: 6dp; }
+.now { color: #F3F6FA; font-weight: 700; margin-top: 4dp; }
 .stageline { margin-bottom: 8dp; }

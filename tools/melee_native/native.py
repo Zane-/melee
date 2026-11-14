@@ -290,6 +290,12 @@ class Native:
                     break
         return self
 
+    def project(self, x, y, z=0.0):
+        """Where stage point (x, y, z) is in the picture: (sx, sy) in the
+        game's 640x480, y down, through the match camera."""
+        w = self._cmd("project %.3f %.3f %.3f" % (x, y, z)).split()
+        return float(w[1]), float(w[2])
+
     def freeze(self, on=True):
         """The match stands still (gameplay does not advance) and goes on
         being drawn: for a menu over it. The game's developers' pause,
@@ -312,6 +318,18 @@ class Native:
         else:
             words = self._cmd("ledge %d %.9g" % (port, percent)).split()
         return float(words[0]), float(words[1])
+
+    def anchor(self, port, on=True):
+        """Hold a fighter where it stands: nothing pushes it sideways (a
+        hit on its shield, a body) until released or another match.
+        `port` -1 releases every one."""
+        self._cmd("anchor %d %d" % (port, 1 if on else 0))
+
+    def rebirth(self, port, x, y):
+        """Put a fighter on a respawn platform at (x, y), waiting as after
+        losing a stock (it leaves with any input, or falls after a
+        while)."""
+        self._cmd("rebirth %d %.9g %.9g" % (port, x, y))
 
     def shield(self, port, health=60.0):
         """Set a fighter's shield health (60 is full)."""

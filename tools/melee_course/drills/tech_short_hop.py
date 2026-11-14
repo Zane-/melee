@@ -9,7 +9,7 @@ reads the result off the first airborne frame's upward speed (short hop
 and full hop speeds from the character's frame data).
 """
 from melee_course.engine import (
-    X, Y, Drill, Ref, KNEEBEND, JUMP_F, JUMP_B)
+    X, Y, Drill, Ref, Row, KNEEBEND, JUMP_F, JUMP_B)
 
 WAIT, SQUAT = range(2)
 
@@ -45,6 +45,7 @@ class TechShortHop(Drill):
             if c.state != KNEEBEND:
                 return
             c.set_phase(SQUAT)
+            c.tl_begin()
             v["held"] = 0
             # fall through: count this frame too
         if c.state == KNEEBEND:
@@ -62,6 +63,14 @@ class TechShortHop(Drill):
         else:
             # left jump squat some other way (hit, special...)
             c.set_phase(WAIT)
+
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        return ([Row("Held", buttons=X | Y, held=True, perfect=(1,),
+                     window=(1, js - 1)),
+                 Row("Air", state=lambda st: st in (JUMP_F, JUMP_B),
+                     perfect=(js + 1,))],
+                "Jump squat is %d frames: let go by frame %d." % (js, js - 1))
 
 
 DRILLS = [TechShortHop]

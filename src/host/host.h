@@ -109,6 +109,9 @@ int host_left_ledge(float* x, float* y);
 /// Player `slot` hanging on that ledge, as after a fresh grab of it (full
 /// ledge intangibility), with that much damage.
 const char* host_ledge(int slot, float percent);
+const char* host_rebirth(int slot, float x, float y);
+const char* host_anchor(int slot, int on);
+void host_anchor_frame(void);
 const char* host_set_shield(int slot, float health);
 const char* host_place(int slot, float x, float y, float facing, int air,
                        float percent);

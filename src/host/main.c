@@ -71,6 +71,7 @@ void host_frame_tick(void)
     host_window_frame();
 #endif
     host_control_frame();
+    host_anchor_frame();
     host_rng_frame();
     if (host.on_frame != NULL) {
         host.on_frame();

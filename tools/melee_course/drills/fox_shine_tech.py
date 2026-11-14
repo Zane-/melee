@@ -18,8 +18,8 @@ These are Fox's numbers: Falco's jump squat is 5 and his shine differs, so
 the drills are offered to Fox only until Falco's are measured.
 """
 from melee_course.engine import (
-    B, R, X, Y, Drill, Option, Ref, leniency_option, KNEEBEND, JUMP_F,
-    JUMP_B, JUMP_AERIAL_F, JUMP_AERIAL_B, LANDING_FALL_SPECIAL)
+    B, L, R, X, Y, Drill, Option, Ref, Row, leniency_option, KNEEBEND,
+    JUMP_F, JUMP_B, JUMP_AERIAL_F, JUMP_AERIAL_B, LANDING_FALL_SPECIAL)
 from melee_course.drills.tech_wavedash import (
     JUMP_TIMEOUT as WD_JUMP_TIMEOUT, DODGE_TIMEOUT as WD_DODGE_TIMEOUT,
     MIN_SLIDE as WD_MIN_SLIDE)
@@ -92,6 +92,7 @@ class FoxJcShine(Drill):
         if c.phase == self.WAIT:
             if c.state == GROUND_START and c.state_frames == 1:
                 c.set_phase(self.SHINE)
+                c.tl_begin()
                 v["frame"] = 1
                 v["first_press"] = 0
         elif c.phase == self.SHINE:
@@ -118,6 +119,15 @@ class FoxJcShine(Drill):
                 else:
                     c.set_phase(self.WAIT)  # a shine alone: ignore
 
+    def timeline(self, c):
+        lenient = c.leniency(self.OPT_LENIENCY)
+        return ([Row("Shine", buttons=B, perfect=(1,), window=(1, 1)),
+                 Row("Jump", buttons=X | Y, perfect=(JC_FRAME,),
+                     window=(JC_FRAME, JC_FRAME + lenient)),
+                 Row("Jumped", state=lambda st: st == KNEEBEND)],
+                "The shine is frame 1; a jump before frame %d is ignored."
+                % JC_FRAME)
+
 
 # ---- fox-waveshine ----------------------------------------------------------
 
@@ -131,7 +141,11 @@ class FoxWaveshine(Drill):
     flow = True
     OPT_LENIENCY = 0
     WAIT, SHINE, SQUAT, AIR, LAND = range(5)
-    options = (leniency_option(),)
+    # "Waveshine training needs more tolerance for slowness. Let's do up
+    # to 5 frames late!" (the owner, 2026-11-13): frames late, 0 to 5.
+    options = (Option("Leniency", ["Frame Perfect", "1 Frame", "2 Frames",
+                                   "3 Frames", "4 Frames", "5 Frames"], 5,
+                      "How many frames late the landing still counts."),)
     help = ("Waveshine: down+B, jump 3 frames later, air dodge",
             "into the ground 3 frames after that.",
             "D-Pad up: guide. D-Pad down: reset.")
@@ -155,9 +169,25 @@ class FoxWaveshine(Drill):
         c.place_solo(0.0)
         self.v = dict(frame=0, land_frame=0, start_x=0.0)
 
+    def lenient(self, c):
+        return c.opt(self.OPT_LENIENCY)       # the value is the frames
+
+    def timeline(self, c):
+        late = self.lenient(c)
+        return ([Row("Shine", buttons=B, perfect=(1,), window=(1, 1)),
+                 Row("Jump", buttons=X | Y, perfect=(JC_FRAME,),
+                     window=(JC_FRAME, JC_FRAME + late)),
+                 Row("Dodge", buttons=L | R, trigger=True,
+                     perfect=(WAVESHINE_LAND,),
+                     window=(WAVESHINE_LAND, WAVESHINE_LAND + late)),
+                 Row("Slide", state=lambda st: st == LANDING_FALL_SPECIAL,
+                     perfect=(WAVESHINE_LAND,))],
+                "Slide: the landing; frame-perfect is free on frame %d."
+                % WAVESHINE_FREE)
+
     def think(self, c):
         v = self.v
-        lenient = c.leniency(self.OPT_LENIENCY)
+        lenient = self.lenient(c)
 
         if c.phase != self.WAIT:
             v["frame"] += 1
@@ -165,6 +195,7 @@ class FoxWaveshine(Drill):
         if c.phase == self.WAIT:
             if c.state == GROUND_START and c.state_frames == 1:
                 c.set_phase(self.SHINE)
+                c.tl_begin()
                 v["frame"] = 1
                 v["start_x"] = c.me.pos[0]
             return
@@ -203,8 +234,9 @@ class FoxWaveshine(Drill):
             if slide < WD_MIN_SLIDE:
                 c.result(False, "No slide\nangle the stick sideways")
             elif late > lenient:
-                c.result(False, "Slow: landed on frame %d\nwant frame %d"
-                         % (v["land_frame"], WAVESHINE_LAND))
+                c.result(False, "Slow: landed %d late\non frame %d, up "
+                         "to %d late counts" % (late, v["land_frame"],
+                                                lenient))
             elif late == 0:
                 c.result(True, "Perfect waveshine\nfree on frame %d"
                          % v["frame"])
@@ -285,6 +317,7 @@ class FoxMultishine(Drill):
         if c.phase == self.WAIT:
             if c.state == GROUND_START and c.state_frames == 1:
                 c.set_phase(self.CHAIN)
+                c.tl_begin()
                 v.update(shines=1, since=1, worst=0, air_time=0)
         elif c.phase == self.CHAIN:
             v["since"] += 1
@@ -322,6 +355,20 @@ class FoxMultishine(Drill):
                     self.end(c, "Stopped at %d of %d")
             else:
                 self.end(c, "Chain ended at %d of %d")
+
+    def timeline(self, c):
+        # the perfect chain: shines on 1, 7, 15, 23...; the first jump 3
+        # after the first shine, the others 5 after a shine (once Fox has
+        # landed), 3 before the next; as far as this chain got
+        n = min(self.want(c), self.v.get("shines", 1) + 1)
+        shines = [1] + [1 + GAP_FIRST + GAP_NEXT * k for k in range(n - 1)]
+        jumps = [JC_FRAME] + [f + 5 for f in shines[1:n - 1]]
+        return ([Row("Shine", state=lambda st: st in (GROUND_START,
+                                                      AIR_START),
+                     perfect=shines),
+                 Row("Jump", buttons=X | Y, perfect=jumps)],
+                "A shine every %d frames after the first gap of %d."
+                % (GAP_NEXT, GAP_FIRST))
 
 
 DRILLS = [FoxJcShine, FoxWaveshine, FoxMultishine]

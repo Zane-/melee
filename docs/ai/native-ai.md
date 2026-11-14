@@ -516,8 +516,8 @@ The client (`client.py`, `course_drill`) plays a ported drill when a course list
 four tech drills judged by the frame (`data/scenarios/tech-*.json`, with their input
 timeline) keep that judge. In a drill the D-pad is the drill's, as in the overlay: up shows
 the guide in the column (right there plays a demonstration, up goes on), left and right
-change the opponent's scenario, down resets. Not there yet: the drills' options (CPU
-damage, leniency, what counts as a success): each plays with the C's defaults.
+change the opponent's scenario, down resets. A drill's options (CPU damage, leniency, what
+counts as a success) are in the client's pause menu (START), below.
 
 Found on the way, fixed: every character's sounds were loaded twice (a disc read completes
 inside the request here, before the sound manager had stored the load's id, so its
@@ -559,6 +559,46 @@ back to the start; both are gone (commit 73c814112).
 a setting changed in the pause menu and in force on the next try, a failure in red on the
 banner (a picture), D-pad right held 3 s to the next drill. The other client tests leave
 through the pause menu now (`tests/client/pausekeys.py`).
+
+### Drills the owner changed, and timelines (2026-11-13)
+
+From the owner's play session, done natively first (the overlay's C drills keep their old
+behaviour; `tests/course/specs.py` plays these the C's way where an option can,
+`NATIVE_AS_C`, and marks the three dash dance specs whose behaviour changed, `SUPERSEDED`):
+
+| Drill | Change |
+|-|-|
+| Short hop double laser | An attempt is one short hop: grabbing the ledge, a double jump or an aerial drops it ("It also counts stuff off the ledge too!": a laser from a ledge jump made a pair with the hop's) |
+| Dash dance (was "Dash dance and pivot") | No count to reach: the dance's direction switches are counted, it ends as a success when the player stops or acts, a failure when they run; the longest dance is kept. Light rays come down on the stage (option Targets): reach one and the next comes down where the camera shows it |
+| Jump-cancel grab (was "... and up smash") | An up smash is not counted. **Jump-cancel up smash** is a new drill below it (`universal-jc-upsmash`, native only) |
+| Shield drop | A deck of nine starts: the left, top or right platform, standing on it, dropping onto it, or jumping up to it from the floor; Battlefield, Yoshi's Story, Dream Land, Fountain of Dreams (L or R held 5 s, or the pause menu) |
+| Waveshine | Up to 5 frames late counts (its own Leniency option, 0 to 5, default 5) |
+| Aerial into shine | The shielding opponent is held in place (option Opponent): the host clears its sideways speeds, shield pushback among them, at every frame boundary (`anchor`) |
+| Ledgedash | Starts on the ledge, falling to it (the default), on the stage by it, or on a respawn platform (host `rebirth`, as TM-CE's ledgedash event), or any of them; a regrab is a refresh, not a failure |
+| Shortened Illusion | Levels 1 to 4, the frame of the window the second B is on (1 the shortest, 4 the longest), in turn or one of them |
+
+`tests/course/native_changes.py` (62 checks) plays each change; `tests/client/drills.py`
+(9) checks the ray on screen, a stage change with R held and a timeline in the client.
+
+**Timelines are standard** ("Frame perfect jump-cancelled shine should have frame timings
+visualized as well. We should make that standard"). A drill's `timeline(c)` gives rows
+(`engine.Row`: a button pressed or held, an analog trigger, a state entered, a stick tap,
+or frames the drill counted) with the frame-perfect frames and the window that counts; the
+engine logs every frame's inputs and states and builds the result's `timeline`, which the
+column draws under the verdict as the tech judge's. Frame 1 is the drill's own (the shine,
+the jump, the drop); a long attempt shows its last 30 frames. Drills with one: short hop,
+L-cancel, SHFFL, wavedash, JC grab, JC up smash, shield drop, waveshine, shine-grab,
+aerial into shine, ledgedash, JC shine, multishine, SHDL, Illusion, shine out of shield.
+A line under the drill's description says what is asked now (`Drill.status`: the deck's
+scenario, the Illusion level, the rays reached).
+
+Found on the way: a live pad, as `pads` reports it between frames, is the one sampled for
+the coming frame, so the engine saw a press a frame before the state it starts (on a
+timeline, Jump on 5 and the jump squat on 6). The engine now takes the previous reading
+(`Session.live_pad`); scripted pads were right already.
+
+Host additions: `project X Y` (a stage point in the picture, through the match camera, as
+the name tags do), `rebirth P X Y`, `anchor P 1|0`.
 
 ### Closing the window (2026-11-13)
 

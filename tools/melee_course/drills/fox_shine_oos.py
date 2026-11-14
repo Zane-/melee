@@ -9,7 +9,8 @@ attacks once the player holds shield. The player jumps out of shield and
 shines on the first airborne frame; optionally follows up.
 """
 from melee_course.engine import (
-    A, B, X, R, Drill, Entry, In, Option, Ref, ESCAPE_AIR,
+    A, B, L, X, Y, R, Drill, Entry, In, Option, Ref, Row, STICK_SMASH,
+    ESCAPE_AIR,
     LANDING_FALL_SPECIAL, ATTACK_HI4, GUARD, GUARD_ON, GUARD_SET_OFF,
     FOX_SHINE_FIRST, FOX_SHINE_LAST)
 
@@ -113,6 +114,18 @@ class FoxShineOos(Drill):
                          % (c.entry.name, -sc.advantage))
         return lines
 
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        shine = self.perfect(c)
+        return ([Row("Shield", test=lambda e: e["held"] & (L | R) or
+                     e["trig"]),
+                 Row("Jump", test=lambda e: e["down"] & (X | Y) or (
+                     e["ly"] >= STICK_SMASH > e["ply"]), perfect=(1,)),
+                 Row("Shine", state=lambda st: FOX_SHINE_FIRST <= st <=
+                     FOX_SHINE_LAST, perfect=(shine,))],
+                "Frame 1 is the first out of shieldstun: jump, then down+B "
+                "%d later (jump squat), frame %d." % (js, shine))
+
     def setup(self, c):
         sc = c.entry.data
         hmn_x = -c.side * 10.0
@@ -169,6 +182,8 @@ class FoxShineOos(Drill):
                 v["stun_end"] = v["attack_frame"] - 1
                 v["distance"] = abs(cpu.pos[0] - me.pos[0])
                 c.mark(MARK_STUN_END, back=1)
+                # the timeline's frames are out-of-shield frames
+                c.tl_begin()
             if v["shine_frame"] < 0 and is_shine(me):
                 v["shine_frame"] = v["attack_frame"]
             if c.hmn_hit:

@@ -139,7 +139,8 @@ def main():
               demo.get("full_words", "none"))
         check("a try holding only shield fails and is counted",
               seen["tries"] == [False], str(seen["tries"]))
-        check("holding START goes back to the list", c.screen == "list")
+        check("the pause menu's Back to the drill list goes back to it",
+              c.screen == "list")
         p = c.progress.drill(DRILL)
         check("the try is in the save", p.get("tries") == 1, str(p))
         bad = [line.strip()[:160] for line in w.log

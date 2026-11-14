@@ -14,7 +14,8 @@ the input.
     instead of 79. A press 18 frames after or earlier does nothing.
 """
 from melee_course.engine import (
-    B, X, Drill, Ref, WAIT, KNEEBEND, LANDING)
+    B, X, Y, Drill, Option, Ref, Row, WAIT, KNEEBEND, JUMP_F, JUMP_B, FALL,
+    LANDING, FOX_BLASTER_FIRST, FOX_BLASTER_LAST)
 from melee_course.drills.tech_movement import AIR_TIMEOUT as MV_AIR_TIMEOUT
 
 # Fox's blaster and Illusion states (ftFox/forward.h): three ground laser
@@ -75,7 +76,8 @@ class FoxShdl(Drill):
 
     @staticmethod
     def _clear():
-        return dict(short_hop=0, frame=0, first_laser=0, lasers=0, items=0)
+        return dict(short_hop=0, frame=0, first_laser=0, lasers=0, items=0,
+                    shots=[])
 
     def setup(self, c):
         c.place_solo(0.0)
@@ -88,6 +90,8 @@ class FoxShdl(Drill):
         if c.phase == self.WAIT:
             if c.state == KNEEBEND:
                 c.set_phase(self.SQUAT)
+                c.tl_begin()
+                self.v["shots"] = []
         elif c.phase == self.SQUAT:
             if c.state != KNEEBEND:
                 self.v = self._clear()
@@ -105,9 +109,19 @@ class FoxShdl(Drill):
         v["frame"] += 1
         if items > v["items"]:
             v["lasers"] += items - v["items"]
+            v["shots"].append(c.tl_frame())
         if v["first_laser"] == 0 and \
                 LASER_AIR_START <= c.state <= LASER_AIR_END:
             v["first_laser"] = v["frame"]
+        # "It also counts stuff off the ledge too! (i.e. jump from ledge
+        # single laser)" (the owner, 2026-11-13): an attempt is one short
+        # hop. Anything but its rise, fall and lasers (the ledge, a double
+        # jump, an aerial) is not one; the C kept counting until a landing,
+        # so a laser from a ledge jump made a pair with the first.
+        if not (c.state in (JUMP_F, JUMP_B, FALL, LANDING, WAIT) or
+                FOX_BLASTER_FIRST <= c.state <= FOX_BLASTER_LAST):
+            c.set_phase(self.WAIT)
+            return
         if c.state in (LANDING, WAIT) or v["frame"] > MV_AIR_TIMEOUT:
             c.measure(v["lasers"], 2)
             c.report("lasers", v["lasers"])
@@ -125,6 +139,15 @@ class FoxShdl(Drill):
             else:
                 c.set_phase(self.WAIT)       # a plain jump: ignore
 
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        return ([Row("Jump", buttons=X | Y, held=True, perfect=(1,),
+                     window=(1, js - 1)),
+                 Row("B", buttons=B, perfect=(js + 1,)),
+                 Row("Laser", frames=self.v.get("shots", ()))],
+                "First B on frame %d, the first in the air; B again while "
+                "the first laser is out." % (js + 1))
+
 
 # ---- fox-illusion-shorten ---------------------------------------------------
 
@@ -132,6 +155,20 @@ ILL_DASH_FULL = 4       # dash frames of an Illusion not shortened
 ILL_PRESS_FIRST = 19    # frames after side-B the press works from
 ILL_PRESS_LAST = 22
 ILL_TIMEOUT = 120
+# "For shortened illusion we should do 1, 2, 3, 4, 1 is shortest, 2 is
+# frame 2 mid shorten, 3 is frame 3 mid shorten, and 4 is longest!" (the
+# owner, 2026-11-13): level k is a press on the k-th frame of the window,
+# ILL_PRESS_FIRST - 1 + k frames after the side-B.
+ILL_LEVELS = 4
+LEVEL_CYCLE, LEVEL_ANY = 0, 5
+
+
+def press_level(press):
+    """The level of a press `press` frames after the side-B (0: outside
+    the window)."""
+    if ILL_PRESS_FIRST <= press <= ILL_PRESS_LAST:
+        return press - ILL_PRESS_FIRST + 1
+    return 0
 
 
 class FoxIllusionShorten(Drill):
@@ -143,14 +180,20 @@ class FoxIllusionShorten(Drill):
     characters = ("fox",)
     flow = True
     WAIT, START, DASH = range(3)
+    OPT_LEVEL = 0
+    options = (Option("Level", ["1 to 4 in turn", "1 (shortest)", "2", "3",
+                                "4 (longest)", "Any"], 0,
+                      "Which shortened Illusion counts: the frame of the "
+                      "window the second B is on."),)
     help = ("Shortened Illusion: side+B, then B again as the",
             "dash begins (19 to 22 frames later).",
             "D-Pad up: guide. D-Pad down: reset.")
-    # Side-B, then B 20 frames later: the shortest Illusion.
-    reference = [
-        Ref(0, 10, 1, 127, 0, buttons=B),
-        Ref(0, 30, 1, buttons=B),
-    ]
+    def build_reference(self, c):
+        # Side-B, then B on the level's frame (any level: 20 frames later,
+        # as the C's reference)
+        want = self.level(c) or 2
+        return [Ref(0, 10, 1, 127, 0, buttons=B),
+                Ref(0, 10 + ILL_PRESS_FIRST - 1 + want, 1, buttons=B)]
 
     def guide(self, c):
         return ["Fox Illusion (side+B) always travels the same",
@@ -159,8 +202,38 @@ class FoxIllusionShorten(Drill):
                 "ledge or the stage and be harder to predict.",
                 "Press B %d to %d frames after the side+B."
                 % (ILL_PRESS_FIRST, ILL_PRESS_LAST),
-                "The earlier in that window, the shorter.",
-                "Earlier than that, the press is ignored."]
+                "Level 1 is the window's first frame (shortest),",
+                "level 4 its last. Earlier, the press is ignored."]
+
+    def init(self):
+        self.target = 1             # in turn: the level asked for next
+
+    def level(self, c):
+        """The level asked for (0: any)."""
+        opt = c.opt(self.OPT_LEVEL)
+        if opt == LEVEL_ANY:
+            return 0
+        return self.target if opt == LEVEL_CYCLE else opt
+
+    def status(self, c):
+        want = self.level(c)
+        if not want:
+            return "Any level: B %d to %d frames after side+B" % (
+                ILL_PRESS_FIRST, ILL_PRESS_LAST)
+        return "Level %d: B %d frames after side+B" % (
+            want, ILL_PRESS_FIRST - 1 + want)
+
+    def timeline(self, c):
+        want = self.v.get("want", 0)
+        perfect = (ILL_PRESS_FIRST + want,) if want else ()
+        return ([Row("Side+B", state=lambda st: st == ILLUSION_START,
+                     perfect=(1,)),
+                 Row("B", buttons=B, perfect=perfect, start=2,
+                     window=(ILL_PRESS_FIRST + 1, ILL_PRESS_LAST + 1)),
+                 Row("Dash", state=lambda st: st == ILLUSION_DASH,
+                     entered=False)],
+                "Side+B is frame 1: B on frames %d to %d is levels 1 to 4."
+                % (ILL_PRESS_FIRST + 1, ILL_PRESS_LAST + 1))
 
     def setup(self, c):
         c.place_solo(0.0)
@@ -176,7 +249,8 @@ class FoxIllusionShorten(Drill):
         if c.phase == self.WAIT:
             if c.state == ILLUSION_START and c.state_frames == 1:
                 c.set_phase(self.START)
-                v.update(frame=1, press=0, dash=0)
+                c.tl_begin()
+                v.update(frame=1, press=0, dash=0, want=self.level(c))
             elif c.state == ILLUSION_AIR_FIRST and c.state_frames == 1:
                 c.result(False, "Use it on the ground here")
             return
@@ -213,12 +287,26 @@ class FoxIllusionShorten(Drill):
                     c.result(False, "Too late: B %d frames after\n"
                              "want %d or sooner"
                              % (v["press"], ILL_PRESS_LAST))
-            elif v["dash"] <= 1:
-                c.result(True, "Shortest Illusion\nB %d frames after"
-                         % v["press"])
             else:
-                c.result(True, "Shortened: %d of 4 dash\n"
-                         "frames, B %d after" % (v["dash"], v["press"]))
+                self.judge_level(c, press_level(v["press"]))
+
+    def judge_level(self, c, got):
+        """A shortened Illusion of level `got` (1 to 4; 0 if the press was
+        not in the window, which the game should not shorten for)."""
+        want = self.v["want"]
+        dash = self.v["dash"]
+        c.report("level", got)
+        if want == 0 or got == want:
+            if c.opt(self.OPT_LEVEL) == LEVEL_CYCLE:
+                self.target = self.target % ILL_LEVELS + 1
+            c.result(True, "Level %d Illusion\nB %d frames after, %d of "
+                     "4 dash frames" % (got, self.v["press"], dash))
+        elif got < want:
+            c.result(False, "Level %d: B %d early\nwant level %d"
+                     % (got, want - got, want))
+        else:
+            c.result(False, "Level %d: B %d late\nwant level %d"
+                     % (got, got - want, want))
 
 
 DRILLS = [FoxShdl, FoxIllusionShorten]

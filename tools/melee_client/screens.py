@@ -33,6 +33,7 @@ def over_game():
     menu, the verdict banner. Each has an id so the column can be hidden
     and these moved to the middle (Client.toggle_column)."""
     return (
+        '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
         'class="un">YES</div></div><div class="msg"><div id="bmsg" '
@@ -44,6 +45,15 @@ def over_game():
         '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
         '</div>%s<div>Change</div>%s<div>Back to it</div></div></div></div>'
         % (key("A", dark=True), key("SIDE", wide=True), key("B")))
+
+
+def rays(points):
+    """Light rays coming down on the stage (a drill's targets): `points`
+    are where each meets the floor in the game's picture, in dp."""
+    return "".join(
+        '<div class="ray" style="left: %ddp; height: %ddp;"/>'
+        '<div class="rayfoot" style="left: %ddp; top: %ddp;"/>'
+        % (x - 9, y, x - 22, y - 5) for x, y in points)
 
 
 def pause_rows(rows, at):
@@ -532,6 +542,7 @@ def drill_rail(c, d, course, about, stages=None):
                 d["number"], total, size, esc(d["name"])))
     body = (
         '<div class="line">%s</div>'
+        '<div id="status" class="line now"/>'
         '<div class="try"><div class="row"><div class="lbl">THIS TRY</div>'
         '<div class="grow"/><div id="n" class="lbl">0</div></div>'
         '<div id="verdict" class="verdict">Go</div>'

@@ -1,5 +1,5 @@
 """universal-l-cancel, universal-shffl, universal-dash-dance,
-universal-jc-grab.
+universal-jc-grab, universal-jc-upsmash.
 
 Port of src/tmce/events/course/drills/tech_movement.inc.h (specs:
 data/courses/universal.md).
@@ -19,8 +19,9 @@ Measured with Fox in the simulator (2026-11-12):
 import struct
 
 from melee_course.engine import (
-    L, R, Z, A, X, Drill, Option, Ref, WAIT, TURN, DASH, RUN, KNEEBEND,
-    LANDING, ATTACK_AIR_N, ATTACK_AIR_LW, LANDING_AIR_N, LANDING_AIR_LW,
+    L, R, Z, A, X, Y, Drill, Option, Ref, Row, tapped_down, smashed_up,
+    WAIT, TURN, DASH, RUN, KNEEBEND, JUMP_F, JUMP_B, LANDING, ATTACK_DASH,
+    ATTACK_HI4, ATTACK_AIR_N, ATTACK_AIR_LW, LANDING_AIR_N, LANDING_AIR_LW,
     CATCH, CATCH_DASH)
 
 AERIALS = ("nair", "fair", "bair", "uair", "dair")
@@ -54,6 +55,9 @@ def is_fast_fall(c):
 TRIGGERS = L | R | Z
 # Latest and earliest frames before landing a trigger press counts.
 LCANCEL_WINDOW = 6
+# The landing's frame on the L-cancel timeline: room for the window and a
+# press or two too early before it.
+TL_LAND = 10
 AIR_TIMEOUT = 150
 
 
@@ -205,6 +209,7 @@ class TechLCancel(Drill):
                 v["press_frame"] = v["air_frame"]
             if is_aerial_landing(c.state):
                 c.set_phase(self.LAND)
+                c.tl_begin(back=TL_LAND - 1)
                 v["land_frame"] = v["air_frame"]
                 v["land_state"] = c.state
                 v["lag"] = 1
@@ -242,6 +247,13 @@ class TechLCancel(Drill):
             else:
                 c.result(False, "Too late: %d frames after\nlanding"
                          % -before)
+
+    def timeline(self, c):
+        return ([Row("Press", buttons=TRIGGERS, trigger=True,
+                     window=(TL_LAND - LCANCEL_WINDOW, TL_LAND)),
+                 Row("Land", state=is_aerial_landing, perfect=(TL_LAND,))],
+                "You land on frame %d: L, R or Z on frames %d to %d."
+                % (TL_LAND, TL_LAND - LCANCEL_WINDOW, TL_LAND))
 
 
 # ---- universal-shffl --------------------------------------------------------
@@ -285,6 +297,7 @@ class TechShffl(Drill):
         if c.phase == self.WAIT:
             if c.state == KNEEBEND:
                 c.set_phase(self.SQUAT)
+                c.tl_begin()
             return
 
         if c.phase == self.SQUAT:
@@ -347,25 +360,58 @@ class TechShffl(Drill):
                 c.result(True, "SHFFL!\nacting again after %d frames"
                          % total)
 
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        land = js + self.v["land_frame"] if self.v.get("land_frame") else 0
+        return ([Row("Jump", buttons=X | Y, held=True, perfect=(1,),
+                     window=(1, js - 1)),
+                 Row("Aerial", state=is_aerial),
+                 Row("Fall", test=tapped_down),
+                 Row("Press", buttons=TRIGGERS, trigger=True,
+                     window=(land - LCANCEL_WINDOW, land) if land else None),
+                 Row("Land", state=is_aerial_landing)],
+                "Jump: frames held. Fall: taps down. Press: the 7 frames "
+                "to the landing.")
+
 
 # ---- universal-dash-dance ---------------------------------------------------
 
-DD_COUNTS = (4, 6, 10, 20)
+# Owner, 2026-11-13: "Dash dance and pivot should just be Dash dance. Also we
+# shouldn't count for 6, let's just record the count of direction switches
+# and show the user their longest dash dance hold! We should also build in
+# targets (i.e. little light rays that come down on the stage) for the user
+# to target so they can build in moving towards a target while dash
+# dancing!" A dance is two dashes or more; it ends when the player stops or
+# does something else (a success: so many switches) or runs (a failure:
+# the turn came too late). Native only: the overlay's C drill still counts
+# to a number of dashes.
+
+def plural(n, word):
+    return "%d %s" % (n, word if n == 1 else word + (
+        "es" if word.endswith("ch") else "s"))
+
+
+DD_IDLE = 2               # frames of standing a dash may run out into
+TARGET_REACH = 7.0        # how near the middle of a ray counts as reaching it
+TARGET_NEAR, TARGET_FAR = 20.0, 50.0   # a new ray, from where the player is
+TARGET_MARGIN = 60        # of the picture's 640: a ray this far inside
+TARGET_EDGE = 70.0        # rays stay this far inside the stage's middle
 
 
 class TechDashDance(Drill):
     id = "universal-dash-dance"
     name = "Dash Dance"
-    goal = "Dash back and forth without ever running"
+    goal = "Dash back and forth without running"
     part = "tech"
     cpu = None
     flow = True
-    OPT_COUNT = 0
+    OPT_TARGETS = 0
     WAIT, DANCE = range(2)
-    options = (Option("Dashes", ["4", "6", "10", "20"], 1,
-                      "How many dashes in a row count as a success."),)
+    options = (Option("Targets", ["On", "Off"], 0,
+                      "Light rays on the stage to dance toward: reach one "
+                      "and the next comes down."),)
     help = ("Dash dance: dash left and right, turning before",
-            "the dash becomes a run.",
+            "the dash becomes a run. Dance to the light rays.",
             "D-Pad up: guide. D-Pad down: reset.")
     # Seven frames each way, twenty times: short enough for every
     # character's dash.
@@ -379,51 +425,117 @@ class TechDashDance(Drill):
                 "Flick the stick fully left and right. Hold a",
                 "direction too long and you run, and turning",
                 "around out of a run is slow.",
-                "The verdict shows your longest dash in frames."]
+                "A light ray on the stage: dance your way to it.",
+                "Each turn counts; your longest dance is kept."]
+
+    def init(self):
+        self.best = 0             # the most switches in one dance
+        self.target = None        # the ray's x, while targets are on
+        self.reached = 0          # rays reached, all dances
+
+    def targets_on(self, c):
+        return c.opt(self.OPT_TARGETS) == 0 and not c.is_demo
+
+    def status(self, c):
+        best = "longest dance: %d switches" % self.best if self.best else \
+            "no dance yet"
+        if self.targets_on(c):
+            return "Rays reached: %d. %s" % (self.reached, best[0].upper()
+                                             + best[1:])
+        return best[0].upper() + best[1:]
+
+    def rays(self, c):
+        """Where light rays come down on the stage now: [(x, y)]."""
+        if not self.targets_on(c) or self.target is None:
+            return []
+        return [(self.target, 0.0)]
+
+    def new_target(self, c):
+        """A ray TARGET_NEAR to TARGET_FAR from the player, on the stage
+        and in the picture: the camera is not always centred on a lone
+        fighter (a ray 37 units away was once off the screen)."""
+        x = c.me.pos[0]
+        best = None
+        for _ in range(12):
+            d = TARGET_NEAR + c.randi(int(TARGET_FAR - TARGET_NEAR) + 1)
+            t = x + (d if c.randi(2) else -d)
+            if not -TARGET_EDGE <= t <= TARGET_EDGE:
+                continue
+            best = t
+            if self.in_view(c, t):
+                break
+        if best is None:
+            best = max(-TARGET_EDGE, min(TARGET_EDGE, -x))
+        self.target = best
+
+    @staticmethod
+    def in_view(c, x):
+        """Is stage point (x, 0) well inside the picture?"""
+        try:
+            sx, _ = c.n.project(x, 0.0)
+        except Exception:         # a game without the command
+            return True
+        return TARGET_MARGIN <= sx <= 640 - TARGET_MARGIN
 
     def setup(self, c):
         c.place_solo(0.0)
-        self.v = dict(dashes=0, length=0, longest=0, idle=0)
+        self.v = dict(dashes=0, length=0, longest=0, idle=0, reached=0)
 
-    def fail(self, c, fmt):
-        want = DD_COUNTS[c.opt(self.OPT_COUNT)]
-        c.measure(self.v["dashes"], want)
-        c.report("dashes", self.v["dashes"])
-        c.result(False, fmt % (self.v["dashes"], want))
+    def end(self, c, ran):
+        v = self.v
+        switches = v["dashes"] - 1
+        record = switches > self.best
+        self.best = max(self.best, switches)
+        c.measure(switches, self.best)
+        c.report("dashes", v["dashes"])
+        c.report("switches", switches)
+        c.report("longest", v["longest"])
+        c.report("best", self.best)
+        rays = ", %s" % plural(v["reached"], "ray") \
+            if self.targets_on(c) else ""
+        if ran:
+            c.result(False, "Ran after %s%s\nturn sooner"
+                     % (plural(switches, "switch"), rays))
+        else:
+            c.result(True, "%s%s\n%s" % (
+                plural(switches, "switch"), rays,
+                "a new best" if record and switches > 1
+                else "best %d" % self.best))
 
     def think(self, c):
         v = self.v
-        want = DD_COUNTS[c.opt(self.OPT_COUNT)]
+        if self.targets_on(c):
+            if self.target is None:
+                self.new_target(c)
+            elif c.state in (DASH, TURN) and \
+                    abs(c.me.pos[0] - self.target) <= TARGET_REACH:
+                self.reached += 1
+                v["reached"] += 1
+                self.new_target(c)
         if c.phase == self.WAIT:
             if c.state == DASH:
                 c.set_phase(self.DANCE)
-                v.update(dashes=1, length=1, longest=1, idle=0)
+                v.update(dashes=1, length=1, longest=1, idle=0, reached=0)
         elif c.phase == self.DANCE:
             if c.state == DASH:
                 if c.state_frames == 1:
                     v["dashes"] += 1
                     v["length"] = 0
-                    if v["dashes"] >= want:
-                        c.measure(v["dashes"], want)
-                        c.report("dashes", v["dashes"])
-                        c.report("longest", v["longest"])
-                        c.result(True, "%d dashes\nlongest %d frames"
-                                 % (v["dashes"], v["longest"]))
-                        return
                 v["length"] += 1
                 v["idle"] = 0
                 if v["length"] > v["longest"]:
                     v["longest"] = v["length"]
             elif c.state == TURN:
                 pass                # the frame between two dashes
-            elif c.state == RUN and v["dashes"] < 2:
-                c.set_phase(self.WAIT)  # just running
             elif c.state == RUN:
-                self.fail(c, "Ran after %d of %d dashes\nturn sooner")
-            elif c.state == WAIT and self._idle(v) <= 2:
+                if v["dashes"] < 2:
+                    c.set_phase(self.WAIT)  # just running
+                else:
+                    self.end(c, ran=True)
+            elif c.state == WAIT and self._idle(v) <= DD_IDLE:
                 pass                # a dash that ran out: allowed for a moment
             elif v["dashes"] >= 2:
-                self.fail(c, "Stopped after %d of %d dashes")
+                self.end(c, ran=False)
             else:
                 c.set_phase(self.WAIT)  # one dash is not a dance
 
@@ -477,8 +589,10 @@ class TechJcGrab(Drill):
         elif c.phase == self.MOVING:
             if c.state == KNEEBEND:
                 c.set_phase(self.SQUAT)
+                c.tl_begin()
                 v["squat_frames"] = 1
             elif c.state == CATCH_DASH:
+                c.tl_begin()
                 c.result(False, "Dash grab\njump first, then Z")
             elif c.state not in (DASH, RUN, TURN, CATCH_DASH):
                 c.set_phase(self.WAIT)  # did something else
@@ -492,9 +606,103 @@ class TechJcGrab(Drill):
                 c.measure(v["squat_frames"], 1)
                 c.result(True, "JC grab!\nZ %d after the jump"
                          % v["squat_frames"])
+            elif c.state == ATTACK_HI4:
+                # "JC grab and up smash should just be JC grab. If I
+                # upsmash it says failure" (the owner, 2026-11-13): the up
+                # smash has its own drill, next in the course
+                c.retry("Up smash: not counted\nthe JC up smash drill "
+                        "is next")
             else:
                 c.result(False, "Jumped: Z too late\nwithin %d frames"
                          % (c.fd.jump_squat - 1))
 
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        return ([Row("Jump", buttons=X | Y, perfect=(1,), window=(1, 1)),
+                 Row("Grab", buttons=Z, perfect=(2,), window=(2, js))],
+                "Jump squat is %d frames: Z on frames 2 to %d. Z with the "
+                "jump is the dash grab." % (js, js))
 
-DRILLS = [TechLCancel, TechShffl, TechDashDance, TechJcGrab]
+
+# ---- universal-jc-upsmash ---------------------------------------------------
+
+class TechJcUpsmash(Drill):
+    """Up smash out of a run: a run cannot be cancelled into a smash, but
+    jump squat can. Jump, then up smash (C-stick up, or A with the stick
+    up) during jump squat. Asked for by the owner (2026-11-13) as its own
+    drill below the JC grab; native only (no C drill in the overlay)."""
+    id = "universal-jc-upsmash"
+    name = "Jump-Cancelled Up Smash"
+    goal = "Up smash out of a run"
+    part = "tech"
+    cpu = None
+    flow = True
+    WAIT, MOVING, SQUAT = range(3)
+    help = ("JC up smash: while running, jump and up smash",
+            "during jump squat (C-stick up).",
+            "D-Pad up: guide. D-Pad down: reset.")
+    # Dash for 14 frames, jump, the C-stick up on the next frame.
+    reference = [
+        Ref(0, 10, 16, 127, 0),
+        Ref(0, 24, 1, buttons=X),
+        Ref(0, 25, 2, cy=127),
+    ]
+
+    def guide(self, c):
+        js = c.fd.jump_squat
+        return ["A run cannot turn into an up smash; a jump can.",
+                "Jump, then up smash before you leave the ground:",
+                "the jump is cancelled into the smash.",
+                "1. Dash or run.   2. Jump (X or Y).",
+                "3. C-stick up (or A with the stick up) within",
+                "   %d frames after the jump." % (js - 1),
+                "Jump squat is %d frames; later is an up air." % js]
+
+    def setup(self, c):
+        c.place_solo(-30.0)
+        self.v = dict(squat_frames=0)
+
+    def think(self, c):
+        v = self.v
+        if c.phase == self.WAIT:
+            if c.state in (DASH, RUN):
+                c.set_phase(self.MOVING)
+        elif c.phase == self.MOVING:
+            if c.state == KNEEBEND:
+                c.set_phase(self.SQUAT)
+                c.tl_begin()
+                v["squat_frames"] = 1
+            elif c.state == ATTACK_DASH:
+                c.tl_begin()
+                c.result(False, "Dash attack\njump first, then up smash")
+            elif c.state == ATTACK_HI4:
+                c.retry("Up smash out of the dash\nnow from a run: jump "
+                        "first")
+            elif c.state not in (DASH, RUN, TURN):
+                c.set_phase(self.WAIT)
+        elif c.phase == self.SQUAT:
+            if c.state == KNEEBEND:
+                v["squat_frames"] += 1
+            elif c.state == ATTACK_HI4:
+                c.measure(v["squat_frames"], 1)
+                c.result(True, "JC up smash!\nsmash %d after the jump"
+                         % v["squat_frames"])
+            elif c.state in (CATCH,):
+                c.retry("A grab: not counted\nthis drill is the up smash")
+            elif is_aerial(c.state) or c.state in (JUMP_F, JUMP_B):
+                c.result(False, "Jumped: up smash too late\nwithin %d "
+                         "frames" % (c.fd.jump_squat - 1))
+            else:
+                c.set_phase(self.WAIT)
+
+    def timeline(self, c):
+        js = c.fd.jump_squat
+        return ([Row("Jump", buttons=X | Y, perfect=(1,), window=(1, 1)),
+                 Row("Smash", test=smashed_up, perfect=(2,),
+                     window=(2, js))],
+                "Jump squat is %d frames: up smash on frames 2 to %d."
+                % (js, js))
+
+
+DRILLS = [TechLCancel, TechShffl, TechDashDance, TechJcGrab,
+          TechJcUpsmash]

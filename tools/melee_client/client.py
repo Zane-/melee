@@ -149,6 +149,8 @@ class Client:
         self.pause_open = False       # tests: the pause menu is up
         self.pause_focus = None       # tests: the row in focus there
         self.session = None           # the drill's, while one runs
+        self.status_text = None       # the drill's status line shown
+        self.rays_html = ""           # the drill's light rays shown
         self.drill_stages = None      # its stages, when it can change them
         self.has_cover = False        # the document has the loading cover
         self.start_held = 0
@@ -337,7 +339,7 @@ class Client:
             self.column_hidden = not self.column_hidden
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("bannerwrap", "cover", "pause"):
+        for ident in ("bannerwrap", "cover", "pause", "rays"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
 
@@ -841,8 +843,39 @@ class Client:
             self.banner -= 1
             if self.banner == 0:
                 self.w.ui("class banner on 0")
+        self.show_status()
+        self.show_rays()
         if self.person is not None:
             self.person(game, frame)
+
+    def show_rays(self):
+        """A drill's light rays (targets), where the camera shows them."""
+        s = self.session
+        if not isinstance(s, course_engine.Session):
+            return
+        points = []
+        for x, y in s.d.rays(s.c):
+            try:
+                sx, sy = self.w.project(x, y)
+            except Exception:       # no match yet
+                continue
+            # the game's 640x480 is 960x720 dp here
+            points.append((int(sx * 1.5), int(sy * 1.5)))
+        html = screens.rays(points)
+        if html != self.rays_html:
+            self.rays_html = html
+            self.put("rays", html)
+
+    def show_status(self):
+        """The line on what the drill asks now (its scenario, the level of
+        an Illusion), when it changes."""
+        s = self.session
+        if not isinstance(s, course_engine.Session):
+            return
+        text = s.d.status(s.c) or ""
+        if text != self.status_text:
+            self.status_text = text
+            self.w.ui("text status " + screens.esc(text))
 
     def drill_event(self, ev):
         kind = ev[0]
@@ -893,7 +926,9 @@ class Client:
                 ("best", best), ("bword", "Success" if ok else "Failure"),
                 # the banner has room for the first clause only
                 ("bmsg", screens.esc(words.split(":")[0])),
-                ("why", screens.esc(words) if "timeline" in result
+                ("why", screens.esc(result.get("full_words", words)
+                                    .replace("\n", "; "))
+                 if result.get("timeline")
                  else screens.esc("%s. Frame %d, perfect %d." % (
                      result["scenario"], result["measured"],
                      result["target"]))
@@ -1013,10 +1048,9 @@ class Client:
             [drill.stage]), START | DPAD)
         self.w.capture(False)
         demo = False
+        self.status_text = None
+        self.rays_html = None
         while True:
-            if session.d.deck:
-                self.w.ui("text why " + screens.esc(
-                    session.scenario_names()[max(session.scenario, 0)]))
             if demo:
                 # the game plays the reference; the player is still read
                 # (a D-pad press or START stops it)

@@ -64,7 +64,9 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <melee/cm/camera.h>
 #include <melee/ft/fighter.h>
+#include <melee/lb/lbvector.h>
 #include <melee/ft/inlines.h>
 #include <melee/gm/gmscene.h>
 #include <melee/ft/types.h>
@@ -435,6 +437,32 @@ static void command(char* line)
         } else {
             printf("@ %.9g %.9g\n", x, y);
         }
+    } else if (strcmp(cmd, "anchor") == 0) {
+        /* "anchor P 1": player P is held where it stands (nothing pushes
+           it sideways) until "anchor P 0" or another match; "anchor -1"
+           lets every one go */
+        int p = -1, on = 1;
+        const char* why;
+        sscanf(line, "%d %d", &p, &on);
+        why = host_anchor(p, on);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
+    } else if (strcmp(cmd, "rebirth") == 0) {
+        /* "rebirth P X Y": player P waiting on a respawn platform at
+           (X, Y), as after losing a stock */
+        int p = 0;
+        float x = 0.0F, y = 0.0F;
+        const char* why;
+        sscanf(line, "%d %f %f", &p, &x, &y);
+        why = host_rebirth(p, x, y);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "shield") == 0) {
         int p = 0;
         float health = 60.0F;
@@ -591,6 +619,24 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "project") == 0) {
+        /* "project X Y [Z]": where a point of the stage is in the picture,
+           in the game's 640x480 (y down), through the match camera, as the
+           name tags over the fighters are placed (ifnametag.c) */
+        float x = 0, y = 0, z = 0;
+        HSD_GObj* cam = Camera_80030A50();
+        sscanf(line, "%f %f %f", &x, &y, &z);
+        if (cam == NULL || cam->hsd_obj == NULL) {
+            printf("@ error no camera\n");
+        } else {
+            Vec3 at = { x, y, z };
+            Vec3 out;
+            if (lbVector_WorldToScreen(cam->hsd_obj, &at, &out, 0) == NULL) {
+                printf("@ error not projected\n");
+            } else {
+                printf("@ ok %.2f %.2f\n", out.x, out.y);
+            }
+        }
     } else if (strcmp(cmd, "freeze") == 0) {
         /* "freeze 1": the match stands still and goes on being drawn (the
            game's developers' pause, without its menu); "freeze 0" */

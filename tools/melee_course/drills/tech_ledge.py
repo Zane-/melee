@@ -11,9 +11,10 @@ host does not report. `LedgeIntang` counts it the way the game does
 (see there).
 """
 from melee_course.engine import (
-    A, B, R, X, Drill, Option, Ref, CLIFF_CATCH, CLIFF_WAIT, WAIT, KNEEBEND,
-    JUMP_AERIAL_F, JUMP_AERIAL_B, LANDING, ESCAPE_F, ESCAPE_B, ESCAPE,
-    ATTACK_AIR_N, ATTACK_AIR_LW, FOX_FIREFOX_FIRST, FOX_FIREFOX_LAST)
+    A, B, L, R, X, Y, Drill, Entry, Option, Ref, Row, CLIFF_CATCH, CLIFF_WAIT, WAIT,
+    KNEEBEND, JUMP_AERIAL_F, JUMP_AERIAL_B, LANDING, ESCAPE_F, ESCAPE_B,
+    ESCAPE, ATTACK_AIR_N, ATTACK_AIR_LW, FOX_FIREFOX_FIRST, FOX_FIREFOX_LAST,
+    STICK_SMASH)
 
 LANDING_FALL_SPECIAL = 43
 CLIFF_CLIMB_SLOW, CLIFF_JUMP_QUICK2 = 254, 263   # the ledge options
@@ -97,9 +98,24 @@ TIMEOUT = 200
 
 # ---- universal-ledgedash ----------------------------------------------------
 
-LD_HANG, LD_OFF, LD_LAND = range(3)
-LD_OPT_NEED = 0
+LD_HANG, LD_OFF, LD_LAND, LD_START = range(4)
+LD_OPT_NEED, LD_OPT_START = range(2)
 LD_NEEDS = (1, 5, 10, 15)
+# Where an attempt starts (TM-CE's ledgedash event, "Starting Position").
+# The owner (2026-11-13): "Ledgedash judging intangibility while spawning
+# them on the platform is not fair. We need options for this tech drill
+# like uncle punches ... where to spawn from (platform, air, ledge, etc.).
+# A refresh shouldn't count as a failure either. That is the whole point!"
+# Away from the ledge the player grabs it themselves, and may drop and
+# regrab it (a refresh) before the ledgedash. Native only: the overlay's C
+# drill starts on the ledge and counts a regrab as a failure.
+LD_START_LEDGE, LD_START_FALLING, LD_START_STAGE, LD_START_PLATFORM, \
+    LD_START_RANDOM = range(5)
+LD_START_NAMES = ("Ledge", "Falling", "Stage", "Respawn platform", "Random")
+LD_FALL_OUT, LD_FALL_ABOVE = 8.0, 20.0     # falling: from the ledge
+LD_STAGE_IN = 12.0                         # stage: from the ledge
+LD_PLATFORM_IN, LD_PLATFORM_ABOVE = 45.0, 30.0
+LD_START_TIMEOUT = 900   # frames to reach the ledge before "not counted"
 
 # Timings from a sweep in the simulator (2026-11-12): with Fox, jump 1 and
 # air dodge 4 frames after the drop land in 15 frames.
@@ -125,11 +141,18 @@ class TechLedgedash(Drill):
         Option("Intangible Frames", ["1", "5", "10", "15"], 0,
                "How many intangible frames you must still have when you "
                "can act on the stage."),
+        Option("Start", list(LD_START_NAMES), LD_START_FALLING,
+               "Where each try starts: on the ledge, falling to it, on "
+               "the stage by it, or on a respawn platform. Grab the "
+               "ledge yourself; drop and regrab to refresh."),
     )
     help = ("Ledgedash: let go of the ledge, double jump, and",
             "air dodge onto the stage.",
             "D-Pad up: guide. D-Pad down: reset.")
-    reference = LD_REFERENCE
+
+    def build_reference(self, c):
+        # from the ledge only: the demonstration starts there
+        return LD_REFERENCE
 
     def guide(self, c):
         return ["Hanging on the ledge you cannot be hit for a",
@@ -141,16 +164,66 @@ class TechLedgedash(Drill):
                 "The verdict shows the intangible frames you",
                 "had left when you could act."]
 
+    def start(self, c):
+        start = c.opt(LD_OPT_START)
+        if c.is_demo:
+            return LD_START_LEDGE
+        if start == LD_START_RANDOM:
+            return c.randi(LD_START_RANDOM)
+        return start
+
+    def status(self, c):
+        name = LD_START_NAMES[self.v.get("start", self.start(c))]
+        refresh = self.v.get("refreshes", 0)
+        return "Start: %s%s" % (name.lower(), "; %d refresh%s" % (
+            refresh, "" if refresh == 1 else "es") if refresh else "")
+
     def setup(self, c):
-        c.place_on_ledge()
         self.lint = LedgeIntang()
-        self.lint.place()
-        self.v = dict(frame=0, jumped=False)
+        start = self.start(c)
+        self.v = dict(frame=0, jumped=False, start=start, refreshes=0,
+                      intang=[])
+        ledge = c.ledge_pos() or (-85.6, 0.0)
+        if start == LD_START_LEDGE:
+            c.place_on_ledge()
+            self.lint.place()
+            c.set_phase(LD_HANG)
+            return
+        if start == LD_START_FALLING:
+            c.place_in_air(c.s.person, ledge[0] - LD_FALL_OUT,
+                           ledge[1] + LD_FALL_ABOVE, 1.0)
+        elif start == LD_START_STAGE:
+            c.n.place(c.s.person, ledge[0] + LD_STAGE_IN, ledge[1], -1, False)
+        else:
+            c.n.rebirth(c.s.person, ledge[0] + LD_PLATFORM_IN,
+                        ledge[1] + LD_PLATFORM_ABOVE)
+        c.side, c.toward = 1.0, -1.0
+        c.set_phase(LD_START)
+
+    def timeline(self, c):
+        return ([Row("Jump", test=lambda e: e["down"] & (X | Y) or (
+                     e["ly"] >= STICK_SMASH > e["ply"]),
+                     perfect=(1 + LD_REF_JUMP,)),
+                 Row("Dodge", buttons=L | R, trigger=True,
+                     perfect=(1 + LD_REF_DODGE,)),
+                 Row("Land", state=lambda st: st == LANDING_FALL_SPECIAL),
+                 Row("Intang", frames=self.v.get("intang", ()))],
+                "Frame 1: you let go. Intang: still intangible. The marks "
+                "are the demonstration's (Fox).")
 
     def think(self, c):
         v = self.v
         self.lint.frame(c)
         need = LD_NEEDS[c.opt(LD_OPT_NEED)]
+        if c.phase == LD_START:
+            # on the way to the ledge: nothing counts yet
+            if on_ledge(c.state):
+                c.set_phase(LD_HANG)
+            elif c.fell():
+                c.retry("Fell before the ledge\nnot counted")
+            elif c.timer > LD_START_TIMEOUT:
+                c.retry("Not on the ledge yet\nnot counted")
+            return
         if c.phase == LD_HANG:
             if on_ledge(c.state) or c.state < 0:
                 return
@@ -159,9 +232,13 @@ class TechLedgedash(Drill):
                                 "let go: stick down or away")
                 return
             c.set_phase(LD_OFF)
+            c.tl_begin()
             v["frame"] = 0
             v["jumped"] = False
+            v["intang"] = []
             # fall through
+        if c.phase in (LD_OFF, LD_LAND) and self.lint.left > 0:
+            v["intang"].append(c.tl_frame())
         if c.phase == LD_OFF:
             v["frame"] += 1
             if is_double_jump(c.state):
@@ -169,7 +246,9 @@ class TechLedgedash(Drill):
             if c.state == LANDING_FALL_SPECIAL:
                 c.set_phase(LD_LAND)
             elif on_ledge(c.state):
-                c.result(False, "Back on the ledge")
+                # a refresh: back on the ledge for its intangibility
+                v["refreshes"] += 1
+                c.set_phase(LD_HANG)
             elif c.state in (LANDING, WAIT):
                 c.report("galint", self.lint.left)
                 c.result(False, "Landed without the air dodge: "
@@ -185,9 +264,13 @@ class TechLedgedash(Drill):
             c.measure(left, need)
             c.report("galint", left)
             c.report("total", v["frame"])
+            refreshed = " after %d refresh%s" % (
+                v["refreshes"], "" if v["refreshes"] == 1 else "es") \
+                if v["refreshes"] else ""
+            c.report("refreshes", v["refreshes"])
             if left >= need:
                 c.result(True, "Ledgedash! %d intangible frames left, "
-                               "%d in all" % (left, v["frame"]))
+                               "%d in all%s" % (left, v["frame"], refreshed))
             elif left > 0:
                 c.result(False, "Only %d intangible frames left, need %d"
                          % (left, need))
@@ -306,8 +389,35 @@ class FoxLedgeStall(Drill):
 # Battlefield's left platform.
 SD_PLATFORM_X = -38.8
 SD_PLATFORM_ABOVE = 40.0
+
+# The owner (2026-11-13): "The drill should simply cycle the player between
+# platforms and different scenarios (i.e. have them jump to a platform then
+# shield drop, spawn them above the platform, etc.). We should also build
+# in different stages for this". Native only. The platforms' middles and
+# heights, found by dropping Fox onto each stage (2026-11-13; Fountain of
+# Dreams' side platforms move, so a start there finds them wherever they
+# are). A start puts the player above the middle and lets the game find the
+# floor below.
+SD_PLATFORMS = {
+    "battlefield": {"left": (-38.8, 27.2), "top": (0.0, 54.4),
+                    "right": (38.8, 27.2)},
+    "yoshis-story": {"left": (-43.0, 23.5), "top": (0.0, 42.0),
+                     "right": (43.0, 23.5)},
+    "dream-land": {"left": (-46.0, 30.1), "top": (0.0, 51.4),
+                   "right": (47.0, 30.2)},
+    "fountain-of-dreams": {"left": (-35.0, 19.9), "top": (0.0, 42.8),
+                           "right": (34.0, 16.2)},
+}
+SD_STAGES = tuple(SD_PLATFORMS)
+SD_STANDING, SD_ABOVE, SD_BELOW = range(3)
+SD_HOW = ("standing on it", "dropping onto it", "jumping up to it")
+SD_DECK = [Entry(None, (side, how), "%s platform, %s" % (
+    side.title(), SD_HOW[how]))
+    for how in range(3) for side in ("left", "top", "right")]
+SD_FROM_ABOVE = 25.0     # dropping onto it: this far above it
 # Frames after the drop in which an aerial is credited to it.
 SD_AERIAL_WINDOW = 20
+SD_TL_DROP = 9           # the drop's frame on the timeline
 
 SD_WAIT, SD_SHIELD, SD_DROP = range(3)
 
@@ -322,6 +432,8 @@ class TechShieldDrop(Drill):
     goal = "Fall through a platform straight out of shield"
     part = "tech"
     stage = "battlefield"
+    stages = SD_STAGES
+    deck = SD_DECK
     cpu = None
     help = ("Shield drop: in shield, stick fully sideways, then",
             "down to the diagonal notch. Attack as you fall.",
@@ -350,8 +462,33 @@ class TechShieldDrop(Drill):
                 "3. Attack as you fall."]
 
     def setup(self, c):
-        c.place_on_platform(SD_PLATFORM_X, SD_PLATFORM_ABOVE)
+        side, how = c.entry.data if c.entry else ("left", SD_STANDING)
+        if c.is_demo:
+            how = SD_STANDING      # the demonstration starts standing
+        plats = SD_PLATFORMS.get(self.stage, SD_PLATFORMS["battlefield"])
+        x, y = plats[side]
+        if side == "left" and self.stage == "battlefield":
+            x = SD_PLATFORM_X      # where the C drill stands
+        facing = 1.0 if x <= 0 else -1.0       # toward the middle
+        if how == SD_STANDING:
+            # above the platform's highest place; the floor below it
+            c.place_on_platform(x, y + 10.0 if side == "top" else 40.0,
+                                facing)
+        elif how == SD_ABOVE:
+            c.place_in_air(c.s.person, x, y + SD_FROM_ABOVE, facing)
+        else:
+            c.n.place(c.s.person, x, 0.0, facing, False)
+        c.side, c.toward = facing, -facing
         self.v = dict(frame=0)
+
+    def timeline(self, c):
+        return ([Row("Shield", test=lambda e: e["held"] & (L | R) or
+                     e["trig"]),
+                 Row("Drop", state=lambda st: st == PASS,
+                     perfect=(SD_TL_DROP,)),
+                 Row("Aerial", state=is_aerial, perfect=(SD_TL_DROP + 1,))],
+                "Frame %d: you drop through. An aerial on frame %d is the "
+                "soonest." % (SD_TL_DROP, SD_TL_DROP + 1))
 
     def think(self, c):
         v = self.v
@@ -365,6 +502,7 @@ class TechShieldDrop(Drill):
                 return
             if c.state == PASS:
                 c.set_phase(SD_DROP)
+                c.tl_begin(back=SD_TL_DROP - 1)
                 v["frame"] = 0
             elif c.state == ESCAPE:
                 c.result(False, "Spot dodge: stop at the diagonal notch")

@@ -87,12 +87,12 @@ def main():
         check("A opens the part's drills, as the course file lists them",
               c.screen == "list" and courses.PARTS[c.part] == "Tech" and
               names[:3] == ["Short hop", "L-cancel", "SHFFL"] and
-              len(names) == 16, "%d drills" % len(names))
+              len(names) == 17, "%d drills" % len(names))
         every = [d["id"] for part in c.course["parts"].values()
                  for d in part]
         missing = [d for d in every if d not in c.here]
         check("every drill of the course plays here", not missing and
-              len(every) == 46, "%d drills, %d not" % (len(every),
+              len(every) == 47, "%d drills, %d not" % (len(every),
                                                       len(missing)))
         row = c.row[c.part]
         shot("drills")
