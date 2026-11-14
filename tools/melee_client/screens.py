@@ -133,11 +133,25 @@ DPAD = {"D-UP": ("up",), "D-DOWN": ("down",), "D-LEFT": ("left",),
         "SIDE": ("left", "right"), "D-PAD": ()}
 
 
+# SmashWiki's GameCube button icons, when the client could fetch them
+# (buttons.py): button name -> picture. Without them, the glyphs above.
+BUTTONS = {}
+
+
 def key(letter, dark=False, wide=False):
-    """A button: a GameCube button drawn as one, a D-pad direction as the
-    cross, anything else (a keyboard's key) as a key cap. (`dark`, `wide`:
-    for a key cap only.)"""
+    """A button: a GameCube button as SmashWiki's icon of it (or drawn as
+    one), a D-pad direction as the cross, anything else (a keyboard's key) as
+    a key cap. `dark`: the button sits on a light panel (START's label is
+    then dark; a key cap's edge too). `wide`: a key cap's."""
     name = letter.upper()
+    if name == "SIDE":
+        name = "D-SIDE"
+    icon = name
+    if name == "START" and not dark:
+        icon = "START-LIGHT"
+    if icon in BUTTONS:
+        return '<img class="gcimg %s" src="%s"/>' % (
+            name.lower(), picture(BUTTONS[icon]))
     if name in GLYPH:
         label = "START" if name == "START" else name
         return '<div class="gc %s"><div>%s</div></div>' % (GLYPH[name],

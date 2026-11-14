@@ -74,7 +74,20 @@ span { display: inline; }
 .dpad .down { left: 8dp; top: 15dp; width: 8dp; height: 9dp; }
 .dpad .left { left: 0dp; top: 8dp; width: 9dp; height: 8dp; }
 .dpad .right { left: 15dp; top: 8dp; width: 9dp; height: 8dp; }
-.hint .glyphs, .hintrow .glyphs { margin-right: 4dp; }
+.hint .glyphs { margin-right: 4dp; }
+/* a column of the sidebar's buttons, so that what they do lines up */
+.hintrow .glyphs { width: 44dp; margin-right: 6dp; justify-content: center; }
+.hintrow .glyphs .gcimg, .hintrow .glyphs .gc, .hintrow .glyphs .dpad { margin-right: 2dp; }
+/* SmashWiki's icons of the buttons (buttons.py), when the client has them,
+   cut to the button: each a height, its width its own shape's. As on the
+   controller, A is the largest and B smaller; START carries its label. */
+.gcimg { height: 24dp; margin-right: 8dp; }
+.gcimg.a { height: 27dp; }
+.gcimg.b { height: 21dp; }
+.gcimg.x, .gcimg.y, .gcimg.c { height: 22dp; }
+.gcimg.z { height: 14dp; }
+.gcimg.l, .gcimg.r { height: 18dp; }
+.gcimg.start { height: 27dp; }
 
 /* ---- panels ----------------------------------------------------------- */
 
@@ -195,7 +208,7 @@ img { display: inline-block; }
 .abody .parts { margin-top: 4dp; }
 .abody .part { height: 22dp; }
 .cos { display: flex; flex-direction: row; align-items: center; height: 46dp; margin-top: 10dp; }
-.cos .key, .cos .gc { margin-right: 12dp; }
+.cos .key, .cos .gc, .cos .gcimg { margin-right: 12dp; }
 .cchip { position: relative; width: 36dp; height: 44dp; margin-right: 8dp; box-sizing: border-box; border: 2dp #4A5361; transform: skewX(-12deg); overflow: hidden; clip: always; }
 .cchip.on { border-color: #F3F6FA; }
 .cpin { position: absolute; left: -6dp; right: -6dp; top: 0dp; bottom: 0dp; transform: skewX(12deg); }
@@ -253,7 +266,7 @@ img { display: inline-block; }
 /* ---- a part's drills ----------------------------------------------------- */
 
 .tabs { position: absolute; left: 54dp; top: 120dp; width: 780dp; height: 40dp; display: flex; flex-direction: row; align-items: center; }
-.tabs .key, .tabs .gc { margin: 0dp 12dp 0dp 6dp; }
+.tabs .key, .tabs .gc, .tabs .gcimg { margin: 0dp 12dp 0dp 6dp; }
 .ptab { height: 40dp; padding: 0dp 22dp; margin-right: 10dp; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; border: 3dp #00000000; }
 .ptab.on { border-color: #12161C; }
 .ptab .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 23dp; text-transform: uppercase; letter-spacing: 1dp; }
@@ -288,7 +301,7 @@ img { display: inline-block; }
 .donebtn .box { border-color: #F3F6FA; }
 .donebtn.on { background-color: #F3F6FA; color: #12161C; }
 .donebtn.on .box { border-color: #12161C; background-color: #12161C; }
-.donebtn .key, .donebtn .gc { margin-right: 0dp; }
+.donebtn .key, .donebtn .gc, .donebtn .gcimg { margin-right: 0dp; }
 .go.off { background-color: #2B3340; color: #A9B4C2; }
 .go.off .key { border-color: #A9B4C2; }
 
@@ -340,7 +353,7 @@ img { display: inline-block; }
 
 .big2 { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; line-height: 1.05em; text-transform: uppercase; }
 .pick { display: flex; flex-direction: row; align-items: center; margin: 2dp 0dp 8dp 0dp; font-size: 14dp; font-weight: 600; color: #D5DCE5; }
-.pick .key, .pick .gc { margin-right: 8dp; }
+.pick .key, .pick .gc, .pick .gcimg { margin-right: 8dp; }
 .botstate { margin-top: 12dp; }
 
 /* ---- over the game: the pause menu; the column hidden ---- */
@@ -360,7 +373,7 @@ img { display: inline-block; }
 .pv { font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
 .pgap { height: 10dp; }
 .phint { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 13dp; font-weight: 600; color: #4A5361; }
-.phint .key, .phint .gc, .phint .dpad { margin-left: 12dp; margin-right: 6dp; }
+.phint .key, .phint .gc, .phint .dpad, .phint .gcimg { margin-left: 12dp; margin-right: 6dp; }
 .now { color: #F3F6FA; font-weight: 700; margin-top: 4dp; }
 .stageline { margin-bottom: 8dp; }
 

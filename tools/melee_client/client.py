@@ -43,6 +43,7 @@ sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
 sys.path.insert(0, str(ROOT / "tools"))
 
 import art  # noqa: E402
+import buttons  # noqa: E402
 import characters  # noqa: E402
 import courses  # noqa: E402
 import online  # noqa: E402
@@ -173,6 +174,8 @@ class Client:
         # minute): her place shows her emblem until then
         art.ensure()
         self.art_job = art.render_sheik_later()
+        # SmashWiki's GameCube button icons, fetched the first time
+        screens.BUTTONS.update(buttons.ensure())
         for f in fonts.fonts():
             self.w.ui("font " + str(f))
         self.w.live(port, source)

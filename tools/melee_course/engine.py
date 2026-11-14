@@ -961,7 +961,13 @@ class Session:
         c.state_frames = 0
         c.held = c.down = 0
         c.cpu_state = -1
-        self.n.pad(self.person)
+        if not self.live:
+            # A person's pad is theirs. A neutral one sent here was read as
+            # letting go, and what they still held as pressed anew on the
+            # attempt's first frame: a C-stick held down through the reset
+            # (for ASDI down) became a down smash every time (the owner,
+            # 2026-11-13).
+            self.n.pad(self.person)
         if self.cpu_port is not None:
             self.n.pad(self.cpu_port)
         self.n.seed(attempt_seed & 0xFFFFFFFF or 1)
