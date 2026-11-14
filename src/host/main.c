@@ -71,10 +71,21 @@ void host_frame_tick(void)
     host_window_frame();
 #endif
     host_control_frame();
+    host_frame_tick_rest();
+}
+
+/// What a frame boundary does after the driver's commands. Also where a
+/// boundary goes on once a lookahead (ahead.c), begun by one of those
+/// commands, has been undone. The first frame of a lookahead runs it too,
+/// without its sound and per-frame hook: those are real time's.
+void host_frame_tick_rest(void)
+{
     host_anchor_frame();
-    host_audio_frame();
+    if (!host_ahead_active()) {
+        host_audio_frame();
+    }
     host_rng_frame();
-    if (host.on_frame != NULL) {
+    if (host.on_frame != NULL && !host_ahead_active()) {
         host.on_frame();
     }
     if (host.max_frames != 0 && host.frame > host.max_frames) {
@@ -91,6 +102,17 @@ void host_frame_tick(void)
 /// reported.
 u8 lb_80019894(void)
 {
+    if (host_ahead_active()) {
+        /* a frame played ahead; or the lookahead is over, the game is back
+           at the boundary its command was read at, and that boundary goes
+           on: more commands, then the rest of it (ahead.c) */
+        if (!host_ahead_boundary()) {
+            host_control_resume();
+            host_frame_tick_rest();
+        }
+        fn_800195FC();
+        return HSD_PadGetRawQueueCount();
+    }
     if (host_net_active()) {
         /* a netplay session (net.c): a frame, or a wait */
         if (!host_net_boundary()) {

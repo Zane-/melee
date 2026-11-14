@@ -247,5 +247,11 @@ void host_window_delay_frame(void);
 void host_window_clipboard(char* out, size_t size);
 void host_window_set_clipboard(const char* text);
 void host_control_frame(void);
+/* ahead.c: the next frames played with a planned pad, then undone */
+int host_ahead_active(void);
+const char* host_ahead_begin(const char* line);
+int host_ahead_boundary(void);
+void host_frame_tick_rest(void);
+void host_control_resume(void);
 
 #endif

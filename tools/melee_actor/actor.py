@@ -35,6 +35,7 @@ plays an opponent's script against a player's (scenario.py).
 # Action states the actor reasons about (src/melee/ft/kinds/ftCommon/forward.h,
 # counted from 0). Only what the steps below need.
 WAIT = 14
+WALKS = (15, 16, 17)             # slow, middle, fast
 TURN = 18
 DASH = 20
 RUN = 21
@@ -102,11 +103,57 @@ STAGE_LIMIT = {"final-destination": 78.0, "battlefield": 61.0,
                "fountain-of-dreams": 56.0, "pokemon-stadium": 80.0}
 
 
+JUMP_F, JUMP_B = 25, 26
+AIR_ATTACK_FIRST, AIR_ATTACK_LAST = 65, 69     # nair .. dair
+AIR_LANDING_FIRST, AIR_LANDING_LAST = 70, 74   # their landing lag
+
+# Aerials, by what is pressed. "front" and "back" are the actor's facing
+# (an aerial does not turn it round). A nair is A with the stick at rest
+# for that frame: A with the stick held is a directional aerial.
+AERIALS = {
+    "nair": dict(buttons=["A"], rest=True),
+    "fair": dict(cstick="front"),
+    "bair": dict(cstick="back"),
+    "uair": dict(cstick=(0, 1)),
+    "dair": dict(cstick=(0, -1)),
+}
+# Frames X is held: a short hop lets go inside the jump squat, a full hop
+# holds through the longest one (Bowser's 8).
+HOPS = {"short": 1, "full": 9}
+# Grounded moves `strike` knows, frame by frame ("toward" as in MOVES). A
+# tilt rests the stick first: moved and pressed together it is a smash.
+STRIKES = {
+    "jab": [dict(buttons=["A"])],
+    "ftilt": [dict(stick=("toward*0.4", 0))] * TILT_SETTLE +
+             [dict(buttons=["A"], stick=("toward*0.4", 0))],
+    "utilt": [dict(stick=(0, 0.4))] * TILT_SETTLE +
+             [dict(buttons=["A"], stick=(0, 0.4))],
+    "dtilt": [dict(stick=(0, -0.4))] * TILT_SETTLE +
+             [dict(buttons=["A"], stick=(0, -0.4))],
+    "fsmash": [dict(cstick=("toward", 0))],
+    "usmash": [dict(cstick=(0, 1))],
+    "dsmash": [dict(cstick=(0, -1))],
+    "grab": [dict(buttons=["Z"])],
+}
+# Frames a lookahead goes on after the input, at most: long enough for any
+# common attack's hitboxes to have come and gone.
+STRIKE_LOOK = 30
+# Frames an aerial approach dashes away for when the target is too close
+# for any jump-in to land, before it looks again.
+RETREAT = 10
+# Lookaheads a step may make in one frame. Each costs about 5 ms on the
+# unoptimised build; a live game has about 16 for everything.
+LOOK_BUDGET = 3
+
+
 class StepFailed(Exception):
     pass
 
 
 _reach = None
+# (character, aerial, hop) -> when it leaves the ground, lands, and has
+# the aerial's hitbox out (Actor._hop_profile)
+_PROFILES = {}
 
 
 def reach_table():
@@ -145,6 +192,11 @@ class Actor:
         self.other = other
         self.frame = 0
         self.log = []
+        # lookaheads (ahead.py): how many, their time, at most per frame
+        self.looks = 0
+        self.look_ms = 0.0
+        self.look_budget = LOOK_BUDGET
+        self._budget_at, self._budget_used = -1, 0
 
     # ---- what the actor sees ------------------------------------------------
 
@@ -378,6 +430,357 @@ class Actor:
                 break
         raise StepFailed("holding nobody" if not thrown else
                          "the throw never ended")
+
+    # ---- attacks that connect: the game is asked first (ahead.py) ---------------
+    #
+    # An attack in a drill is there to be answered: shielded, dodged, beaten
+    # to the punch. If it can miss by itself, because the player walked a
+    # step, the drill teaches nothing. So these steps commit only to inputs
+    # the game, played ahead with the player holding what they hold now,
+    # says will land; until then they move, wait or re-aim. What the
+    # player does after the commitment is theirs to do.
+
+    def _look(self, pads, stop=1):
+        """Play per-frame `pads` (resolved) ahead; an Outlook."""
+        if not hasattr(self.sim, "_cmd"):
+            raise StepFailed("looking ahead needs the native build")
+        try:
+            from melee_actor.ahead import compress, look
+        except ImportError:
+            from ahead import compress, look
+        if self._budget_at != self.frame:
+            self._budget_at, self._budget_used = self.frame, 0
+        self._budget_used += 1
+        self.looks += 1
+        out = look(self.sim, self.port, self.target, compress(pads), stop)
+        self.look_ms += out.ms
+        return out
+
+    def _can_look(self):
+        return self._budget_at != self.frame or \
+            self._budget_used < self.look_budget
+
+    def _along(self, out, toward):
+        """How far past the target (+) or short of it (-) the nearest
+        hitbox of a missed look came, measured toward the target."""
+        facing = out.rows[out.near].a_facing if out.near is not None else 1
+        return out.gx * facing * toward
+
+    def _aerial_pads(self, move, hop, s, p, length, toward, facing):
+        """A jump-in, frame by frame: X on frame 0 (held for the hop), the
+        stick at `s` toward the target all along, the aerial on frame `p`."""
+        spec = AERIALS[move]
+        pads = []
+        for i in range(length):
+            pad = dict(stick=(s * toward, 0.0))
+            buttons = ["X"] if i < HOPS[hop] else []
+            if i == p:
+                buttons += spec.get("buttons", [])
+                if spec.get("rest"):
+                    pad["stick"] = (0.0, 0.0)
+                cs = spec.get("cstick")
+                if cs == "front":
+                    pad["cstick"] = (facing, 0.0)
+                elif cs == "back":
+                    pad["cstick"] = (-facing, 0.0)
+                elif cs is not None:
+                    pad["cstick"] = cs
+            if buttons:
+                pad["buttons"] = buttons
+            pads.append(pad)
+        return pads
+
+    def _hop_profile(self, move, hop):
+        """When this fighter leaves the ground and lands with this hop,
+        and how many frames after the button `move` has a hitbox out: looked
+        at once (straight up, so nothing is hit), then remembered."""
+        key = (self.me().ckind, move, hop)
+        if key in _PROFILES:
+            return _PROFILES[key]
+        toward, facing = self.toward(), self.me().facing
+        prof = None
+        for p in (9, 4):
+            out = self._look(self._aerial_pads(move, hop, 0.0, p, 90, toward,
+                                               facing), stop=0)
+            rows = out.rows
+            air = next((i for i, r in enumerate(rows) if r.a_air), None)
+            if air is None:
+                break
+            land = next((i for i in range(air, len(rows))
+                         if not rows[i].a_air), len(rows))
+            hit = [i for i in range(p, land) if rows[i].a_hitbox]
+            if hit:
+                prof = dict(air=air, land=land, first=hit[0] - p,
+                            last=hit[-1] - p)
+                break
+        if prof is None:
+            raise StepFailed("%s from a %s hop never had a hitbox out"
+                             % (move, hop))
+        _PROFILES[key] = prof
+        return prof
+
+    def _plan_aerial(self, move, hop, connect, prof):
+        """Look for a jump-in that lands if begun now: a generator that
+        yields when this frame's looks are spent (it goes on next frame,
+        from the situation then) and returns (plan, out) when one lands
+        (plan: the _jump_in parameters; the look that found it is of the
+        frame it returns on), else (None, why): "far" or "close"."""
+        toward, facing = self.toward(), self.me().facing
+        late = prof["land"] - 2 - prof["first"]
+        times = [p for p in (late, late - 3, late - 6) if p >= prof["air"]]
+        if not times:
+            times = [prof["air"]]
+        length = prof["land"] + 2
+
+        def attempt(s, p):
+            plan = dict(move=move, hop=hop, s=s, p=p, length=length,
+                        toward=self.toward(), facing=self.me().facing)
+            return plan, self._look(self._jump_in(plan))
+
+        why = "close"
+        for p in times:
+            # Where the hitbox comes, along the line to the target, is
+            # about linear in the drift: full in, none, then in between
+            # (or away, then in between) by where the two straddle zero.
+            tried = []
+            for s in (1.0, 0.0, None, -1.0, None):
+                if s is None:
+                    pts = sorted(tried)
+                    s = next((s0 + (s1 - s0) * -a0 / (a1 - a0)
+                              for (s0, a0), (s1, a1) in zip(pts, pts[1:])
+                              if a0 <= 0 <= a1 and a1 != a0), None)
+                    if s is None or any(abs(s - q) < 0.02 for q, _ in pts):
+                        continue
+                elif tried and s == -1.0 and min(a for _, a in tried) <= 0:
+                    continue          # straddled already: no need to back off
+                while not self._can_look():
+                    yield
+                plan, out = attempt(s, p)
+                if out.connects(connect):
+                    return plan, out
+                if out.gap >= 900 or out.contact is not None:
+                    break             # no hitbox came, or they hit first
+                along = self._along(out, toward)
+                tried.append((s, along))
+                if s == 1.0 and along < 0:
+                    # short even drifting in all the way: too far now (an
+                    # earlier swing reaches less far still)
+                    return None, "far"
+        return None, why
+
+    def do_aerial(self, move="nair", hop="short", connect="any",
+                  track="air", timeout=600, fallback=True, **_):
+        """Jump in with `move` ("nair", "fair", "bair", "uair", "dair")
+        from a "short" or "full" hop, so that it lands: hits the target or
+        its shield (`connect`: "any", "hit", "shield"). On the ground, each
+        frame the jump is looked at before it is made; while it would miss,
+        the actor closes in (too far) or holds (too close). `track`: "air"
+        keeps re-aiming the drift in the air until the hitbox is out and
+        gone; "jump" commits to the plan at the jump, so a player who
+        moves after seeing the jump makes it miss (that is the counterplay
+        a wavedash-back drill teaches). `fallback`: after `timeout` frames
+        with nothing found, jump in anyway rather than fail."""
+        if move not in AERIALS or hop not in HOPS:
+            raise StepFailed("no aerial %r from a %r hop" % (move, hop))
+        need = -1.0 if move == "bair" else 1.0
+        plan = out = search = None
+        waited = 0
+        prof = None
+        moving = {}
+        retreat = 0
+        for waited in _frames(timeout):
+            me = self.me()
+            want = need * self.toward()
+            idle = self.grounded_idle(me) or me.state in (DASH, RUN) + WALKS
+            if me.airborne or not idle:
+                yield {}
+                continue
+            if retreat > 0:
+                # too close for any jump-in: dash off a little, come again
+                retreat -= 1
+                search = None
+                away = -self.toward()
+                if abs(me.pos[0] + away * 6) > self.limit:
+                    retreat = 0
+                yield dict(stick=(away, 0)) if retreat > 0 else {}
+                continue
+            if me.facing != want:
+                if me.state in (DASH, RUN):
+                    yield dict(stick=(want, 0))     # dash back the other way
+                else:
+                    yield dict(stick=(want * 0.3, 0))      # turn round
+                continue
+            if prof is None:
+                prof = self._hop_profile(move, hop)
+            if search is None:
+                search = self._plan_aerial(move, hop, connect, prof)
+            try:
+                next(search)
+                yield moving                     # still looking
+                continue
+            except StopIteration as done:
+                search = None
+                plan, why = done.value
+            if plan is not None:
+                out = why
+                break
+            going_off = abs(me.pos[0] + self.toward() * 4) > self.limit
+            if why == "far" and not going_off and \
+                    (move != "bair" or abs(self.dx()) > 45):
+                # close in at a dash: from a walk the stick goes back to
+                # the middle for a frame first, or it only walks faster
+                moving = {} if me.state in WALKS and abs(self.dx()) > 30 \
+                    else dict(stick=(self.toward(), 0))
+            elif why == "close" and move != "bair":
+                retreat = RETREAT
+                moving = {}
+            else:
+                moving = {}
+            yield moving
+        if plan is None:
+            if not fallback:
+                raise StepFailed("never found a %s that lands" % move)
+            prof = prof or self._hop_profile(move, hop)
+            plan = dict(move=move, hop=hop, s=1.0,
+                        p=max(prof["air"], prof["land"] - 2 - prof["first"]),
+                        length=prof["land"] + 2, toward=self.toward(),
+                        facing=self.me().facing)
+        result = dict(waited=waited, foreseen=out.contact if out else None,
+                      drift_planned=round(plan["s"], 2))
+        before = dict(percent=self.them().percent, own=self.me().percent)
+        contact = None
+        for i in range(plan["length"]):
+            if track == "air" and i > 0 and contact is None and \
+                    self._can_look() and self.me().airborne:
+                plan = self._reaim(plan, i, connect)
+            yield self._jump_in(plan)[i]
+            contact = contact or self._contact(before)
+        for _ in _frames(60):                  # the landing, its lag
+            contact = contact or self._contact(before)
+            if self.grounded_idle(self.me()):
+                break
+            yield {}
+        result.update(contact=contact, drift=round(plan["s"], 2),
+                      pressed=plan["p"])
+        return result
+
+    def _jump_in(self, plan):
+        return self._aerial_pads(plan["move"], plan["hop"], plan["s"],
+                                 plan["p"], plan["length"], plan["toward"],
+                                 plan["facing"])
+
+    def _reaim(self, plan, i, connect):
+        """In the air, `i` frames into a jump-in: the plan with its drift
+        changed if the target has moved so that it would now miss. The
+        press stays on its frame."""
+        out = self._look(self._jump_in(plan)[i:])
+        if out.connects(connect) or out.contact == "beaten" or \
+                out.gap >= 900:
+            return plan
+        toward = plan["toward"]
+        along = self._along(out, toward)
+        s = plan["s"]
+        s2 = 1.0 if along < 0 else -1.0
+        if s2 == s or not self._can_look():
+            return plan
+        alt = dict(plan, s=s2)
+        o2 = self._look(self._jump_in(alt)[i:])
+        if o2.connects(connect) or o2.gap >= 900:
+            return alt if o2.connects(connect) else plan
+        a2 = self._along(o2, toward)
+        best, err = (alt, abs(a2)) if abs(a2) < abs(along) else \
+            (plan, abs(along))
+        if a2 * along < 0 and self._can_look():
+            mid = dict(plan, s=s + (s2 - s) * along / (along - a2))
+            o3 = self._look(self._jump_in(mid)[i:])
+            if o3.connects(connect):
+                return mid
+            if o3.gap < 900 and abs(self._along(o3, toward)) < err:
+                best = mid
+        return best
+
+    def _contact(self, before):
+        """What has happened since `before`: "hit", "shield", "beaten"."""
+        me, them = self.me(), self.them()
+        if me.percent > before["own"]:
+            return "beaten"
+        if them.percent > before["percent"]:
+            return "hit"
+        if them.hitlag > 0 and them.state in (GUARD_ON, GUARD, GUARD_OFF,
+                                              GUARD_STUN, GUARD_REFLECT):
+            return "shield"
+        return None
+
+    def do_strike(self, move, connect="any", timeout=600, fallback=False,
+                  **_):
+        """A grounded attack ("jab", "ftilt", "utilt", "dtilt", "fsmash",
+        "usmash", "dsmash", "grab") that lands: each frame the actor
+        could start it, the game is asked whether it would hit the target
+        or its shield; until it would, the actor walks in (runs from far)
+        or waits. `fallback`: after `timeout`, swing anyway."""
+        if move not in STRIKES:
+            raise StepFailed("no strike %r" % move)
+        before = None
+        go = None
+        waited = 0
+        for waited in _frames(timeout):
+            me = self.me()
+            dist = abs(self.dx())
+            if me.airborne or not (self.grounded_idle(me) or
+                                   me.state in (DASH, RUN) + WALKS):
+                yield {}
+                continue
+            going_off = abs(me.pos[0] + self.toward() * 4) > self.limit
+            if me.state in (DASH, RUN):
+                # out of a run, A is a dash attack: run or stop first
+                if dist > 40 and not going_off:
+                    yield dict(stick=(self.toward(), 0))
+                else:
+                    yield {}
+                continue
+            if me.facing != self.toward():
+                yield dict(stick=(self.toward() * 0.3, 0))
+                continue
+            if not self._can_look():
+                yield {}
+                continue
+            pads = [self._resolve(p) for p in STRIKES[move]]
+            out = self._look(pads + [{}] * STRIKE_LOOK)
+            if out.connects(connect):
+                go = (pads, out)
+                break
+            along = self._along(out, self.toward()) if out.gap < 900 \
+                else None
+            if along is not None and along < 0 and not going_off:
+                if dist > 40:
+                    yield dict(stick=(self.toward(), 0))       # run in
+                else:
+                    yield dict(stick=(self.toward() * 0.45, 0))  # walk in
+            else:
+                yield {}
+        if go is None:
+            if not fallback:
+                raise StepFailed("never close enough for a %s that lands"
+                                 % move)
+            go = ([self._resolve(p) for p in STRIKES[move]], None)
+        pads, out = go
+        before = dict(percent=self.them().percent, own=self.me().percent)
+        contact = None
+        for pad in pads:
+            yield pad
+            contact = contact or self._contact(before)
+        states = []
+        for _ in _frames(120):
+            contact = contact or self._contact(before)
+            me = self.me()
+            if me.state not in states:
+                states.append(me.state)
+            if len(states) > 1 and self.grounded_idle(me):
+                break
+            yield {}
+        return dict(waited=waited, contact=contact,
+                    foreseen=out.contact if out else None,
+                    distance=round(abs(self.dx()), 1))
 
     def do_wait(self, frames=None, until=None, timeout=600, **_):
         """Wait a number of frames, or until a condition holds:

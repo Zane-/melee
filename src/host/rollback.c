@@ -60,6 +60,7 @@ static int newest = -1; ///< the record of the last frame
 static int kept;        ///< records that can be gone back through
 static int running;
 static int pagemap = -1, clear = -1;
+static pid_t opened_by; ///< the process pagemap and clear are of
 static uint64_t* entries;
 static size_t entries_cap;
 static struct {
@@ -120,15 +121,22 @@ const char* host_rb_start(void)
     void* heap;
     uint32_t top;
 
-    if (running) {
+    if (running && opened_by == getpid()) {
         return NULL;
     }
-    if (pagemap < 0) {
+    if (pagemap < 0 || opened_by != getpid()) {
+        /* /proc/self is the process that opened it: a process restored
+           from a snapshot (control.c) opens its own, and starts over */
+        if (pagemap >= 0) {
+            close(pagemap);
+            close(clear);
+        }
         pagemap = open("/proc/self/pagemap", O_RDONLY);
         clear = open("/proc/self/clear_refs", O_WRONLY);
         if (pagemap < 0 || clear < 0) {
             return "no /proc/self/pagemap or clear_refs";
         }
+        opened_by = getpid();
     }
     host_game_heap_extent(&heap, &top);
     regions[LOW].start = (uint8_t*) 0x80000000u;

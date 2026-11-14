@@ -23,6 +23,10 @@
  *                                 random seed it is set up with
  *   state                         frame, random seed and both fighters
  *   rng                           callers of the last frame's random draws
+ *   ahead PORT TARGET STOP N BUTTONS LX LY CX CY L R [N ...]
+ *                                 the next frames played with PORT's pads
+ *                                 (others hold theirs), seen and undone:
+ *                                 "@ ok MS ROW;..." (ahead.c)
  *   fp SLOT                       address of a fighter's data, for "r"
  *   ucf [0|1]                     UCF 0.84 off or on (on by default)
  *   freeze 0|1                    the match stands still, still drawn
@@ -581,6 +585,16 @@ static void command(char* line)
         } else {
             printf("@ error rb start|stop|mark|back N|stats\n");
         }
+    } else if (strcmp(cmd, "ahead") == 0) {
+        /* "ahead PORT TARGET STOP N BUTTONS LX LY CX CY L R [N ...]": the
+           next frames played with PORT's planned pads, then undone; the
+           reply, what they showed, comes when they have been (ahead.c) */
+        const char* why = host_ahead_begin(line);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            steps_left = 1; /* this boundary goes on: the frames run */
+        }
     } else if (strcmp(cmd, "save") == 0) {
         /* "save N": the game's whole state into slot N (state.c) */
         int n = 0;
@@ -975,6 +989,25 @@ static void command(char* line)
         printf("@ error unknown command %s\n", cmd);
     }
     fflush(stdout);
+}
+
+/// After a lookahead (ahead.c): the game is back at the boundary whose
+/// "ahead" command started it, and the reply has been printed. Commands are
+/// read on from there until one lets a frame go, as if "ahead" had replied
+/// at once.
+void host_control_resume(void)
+{
+    char line[2048];
+
+    steps_left = 0;
+    while (steps_left == 0) {
+        if (!read_line(line, sizeof line)) {
+            snap_drop_all();
+            host_stub_report();
+            host_quit();
+        }
+        command(line);
+    }
 }
 
 void host_control_frame(void)
