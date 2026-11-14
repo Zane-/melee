@@ -213,14 +213,20 @@ def hint_rows(rows):
 
 
 def match_hints(drill=False, stages=False):
-    """The sidebar's controls, in a match or a drill."""
-    rows = [("START", "Pause"), ("START", "Hold: hide sidebar")]
-    if drill:
-        rows = [("D-UP", "Guide"), ("D-SIDE", "Scenario"),
-                ("D-SIDE", "Hold: change drill")] + rows
-    if stages:
-        rows.append(("L R", "Hold: change stage"))
-    return '<div class="hints">%s</div>' % hint_rows(rows)
+    """The sidebar's controls: in a drill three, side by side at its foot
+    (the owner, 2026-11-14: "We don't need the button guides. Let's just
+    pin three hints to the bottom in one row so it doesn't take up too much
+    screen. Let's use Dpad up for tutorial and then keep scenario and hold:
+    change drill hints, but get rid of pause and hide sidebar"); in a match
+    none (START still pauses, and held hides the sidebar). `stages` is no
+    longer shown (L or R held still changes the stage)."""
+    if not drill:
+        return ""
+    return '<div class="hbar">%s</div>' % "".join(
+        '<div class="hcell"><div class="glyphs">%s</div><div class="hl">%s'
+        '</div></div>' % (key(b), esc(what))
+        for b, what in (("D-UP", "Tutorial"), ("D-SIDE", "Scenario"),
+                        ("D-SIDE", "Hold: change drill")))
 
 
 # The GameCube controller's buttons, as they look on it: A green and large,

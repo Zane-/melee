@@ -267,6 +267,12 @@ img { display: inline-block; }
 .rail .hints { display: flex; flex-direction: column; font-size: 14dp; font-weight: 600; }
 .rail .hintrow { display: flex; flex-direction: row; align-items: center; margin-top: 8dp; }
 .rail .key.wide { margin-right: 10dp; }
+/* a drill's three controls, side by side at the sidebar's foot */
+.rail .hbar { display: flex; flex-direction: row; margin-top: 12dp; padding-top: 10dp; border-top: 1dp #2B3340; }
+.rail .hcell { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; font-size: 12dp; font-weight: 600; color: #D5DCE5; }
+.rail .hcell .glyphs { height: 28dp; margin: 0dp 0dp 4dp 0dp; justify-content: center; }
+.rail .hcell .gcimg, .rail .hcell .dpad { margin: 0dp; }
+.rail .hcell .hl { line-height: 1.2em; }
 
 /* ---- the course hub ---------------------------------------------------- */
 

@@ -724,7 +724,7 @@ class Client:
         rows.append(("inputs", "Input display",
                      self.INPUT_WORDS[self.settings["inputs"]], "input"))
         if course:
-            rows.append(("guide", "Guide", None, "guide"))
+            rows.append(("guide", "Tutorial", None, "guide"))
         rows.append(("column", "Show sidebar" if self.column_hidden
                      else "Hide sidebar", None, "sidebar"))
         if kind == "versus":
@@ -2027,7 +2027,7 @@ class Client:
         (watch a demonstration first: returns True)."""
         lines = drill.guide(session.c)
         self.verdict_colour(None)
-        self.w.ui("text verdict Guide")
+        self.w.ui("text verdict Tutorial")
         # The overlay's guide breaks its lines for a narrow panel, in the
         # middle of sentences; this column wraps by itself: a line that
         # does not end a sentence goes on the one before.
@@ -2039,7 +2039,8 @@ class Client:
             else:
                 parts.append(line.strip())
         self.w.ui("text why " + "<br/>".join(screens.esc(p) for p in parts))
-        self.banner_say("Guide", "D-pad right: demonstration. D-pad up: "
+        self.banner_say("Tutorial", "D-pad right: demonstration. D-pad "
+                        "up: "
                         "close")
         self.banner = 0
         has_demo = bool(drill.reference) or \
