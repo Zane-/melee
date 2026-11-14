@@ -22,19 +22,43 @@ A character course replaces a universal drill with its own when the technique di
 materially (Peach's float cancel, Yoshi's parry, Mr. Game & Watch's aerials that cannot be
 L-cancelled, Ice Climbers' desynced wavedash).
 
-## Tech
+## Tech skill
+
+Movement and Fundamentals: the Tech skill subcourses every character shares (owner,
+2026-11-14); a character's own techniques are its course's Character subcourse. Written in
+the drill format (`docs/ai/drill-format.md`).
+
+### Movement
 
 | id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
 |-|-|-|-|-|-|
-| `universal-short-hop` | Short hop | Short hop ten times in a row; press length shown | [short hop](../techniques/short-hop.md) | - | implemented: `drills/tech_short_hop.inc.h`; simulator and Dolphin specs pass (2026-11-12). Press length shown in the verdict |
-| `universal-l-cancel` | L-cancel | L-cancel whiffed, hit and shielded aerials | [L-cancel](../techniques/l-cancel.md) | `lcancel` | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) |
-| `universal-shffl` | SHFFL | All four components with per-component feedback | [SHFFL](../techniques/shffl.md), [fast fall](../techniques/fast-fall.md) | `lcancel` | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) |
-| `universal-wavedash` | Wavedash | Air dodge on the first airborne frame at a chosen angle | [wavedash](../techniques/wavedash.md), [waveland](../techniques/waveland.md) | `wavedash` | implemented: `drills/tech_wavedash.inc.h`; simulator and Dolphin specs pass (2026-11-12). Chosen length / angle not built |
-| `universal-dash-dance` | Dash dance | Dash back and forth without running; switches counted, the longest dance shown | [dash dance](../techniques/dash-dance.md), [pivot](../techniques/pivot.md) | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): switches counted, longest dance kept, light-ray targets; the C still counts to a number of dashes |
-| `universal-jc-grab` | Jump-cancel grab | Standing grab out of a run | [jump cancel](../techniques/jump-cancel.md) | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): an up smash is not counted (its own drill below) |
-| `universal-jc-upsmash` | Jump-cancel up smash | Up smash out of a run | [jump cancel](../techniques/jump-cancel.md) | - | native only (2026-11-13): `tools/melee_course/drills/tech_movement.py`; no C drill in the overlay |
-| `universal-ledgedash` | Ledgedash | Onto the stage with intangibility left | [ledgedash](../techniques/ledgedash.md) | `ledgedash` | implemented on Final Destination's left ledge: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Fox only checked. Native (2026-11-13): starts on the ledge, falling, on the stage or on a respawn platform; a regrab is a refresh, not a failure |
-| `universal-shield-drop` | Shield drop (Axe method) | Hold the stick fully left or right in shield, roll down to the diagonal notch, drop into an aerial | [shield drop](../techniques/shield-drop.md) | legacy Shield Drop | implemented on Battlefield's left platform: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Native (2026-11-13): left, top and right platforms, standing, dropping onto it or jumping up to it, on four stages (L/R held 5 s) |
+| `universal-short-hop` | Short hop | Short hop ten times in a row | [short hop](../techniques/short-hop.md) | - | drill format: `data/drills/universal-short-hop.json` |
+| `universal-fast-fall` | Fast fall | Fast fall at the top of a jump | - | - | drill format: `data/drills/universal-fast-fall.json` |
+| `universal-dash-dance` | Dash dance | Dash back and forth without breaking into a run | [dash dance](../techniques/dash-dance.md), [pivot](../techniques/pivot.md) | - | planned (drill format) |
+| `universal-wavedash` | Wavedash | Air dodge into the ground on the first frame in the air | [wavedash](../techniques/wavedash.md), [waveland](../techniques/waveland.md) | `wavedash` | planned (drill format) |
+| `universal-waveland` | Waveland | Air dodge into the stage or a platform as you land | - | - | planned (drill format) |
+| `universal-pivot` | Pivot | Turn around out of a dash and stand still | - | - | planned (drill format) |
+| `universal-ledgedash` | Ledgedash | Land on the stage from the ledge with invincibility left | [ledgedash](../techniques/ledgedash.md) | `ledgedash` | planned (drill format) |
+
+### Fundamentals
+
+| id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
+|-|-|-|-|-|-|
+| `universal-l-cancel` | L-cancel | Halve an aerial's landing lag | [L-cancel](../techniques/l-cancel.md) | `lcancel` | planned (drill format) |
+| `universal-shffl` | SHFFL | Short hop, aerial, fast fall and L-cancel in one motion | [SHFFL](../techniques/shffl.md), [fast fall](../techniques/fast-fall.md) | `lcancel` | planned (drill format) |
+| `universal-jc-grab` | Jump-cancel grab | A standing grab out of a dash | [jump cancel](../techniques/jump-cancel.md) | - | planned (drill format) |
+| `universal-jc-upsmash` | Jump-cancel up smash | An up smash out of a dash | [jump cancel](../techniques/jump-cancel.md) | - | planned (drill format) |
+| `universal-di` | Directional Influence (DI) | Change your launch angle with the control stick | - | - | planned (drill format) |
+| `universal-sdi` | Smash DI (SDI) | Move out of a multi-hit attack during hitlag | - | - | planned (drill format) |
+| `universal-asdi` | Automatic SDI (ASDI) | Shift your position at the end of hitlag | - | - | planned (drill format) |
+| `universal-shield-drop` | Shield drop | Drop through a platform out of shield | [shield drop](../techniques/shield-drop.md) | legacy Shield Drop | planned (drill format) |
+| `universal-edge-cancel` | Edge cancel | Slide off the edge during an aerial's landing lag | - | - | planned (drill format) |
+| `universal-slide-off` | Slide off | Slide off a platform during landing lag | - | - | planned (drill format) |
+
+Not in a subcourse yet (it was planned before the owner's list of 2026-11-14):
+
+| id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
+|-|-|-|-|-|-|
 | `universal-powershield` | Powershield | Reflect projectiles, powershield physical hits | [powershield](../techniques/powershield.md) | `powershield` | planned |
 
 ## Punish

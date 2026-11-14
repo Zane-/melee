@@ -38,7 +38,7 @@
         "title": "Fast fall",
         "text": [
           "After the top of a jump, tap the control stick down and {char} falls at full fast-fall speed at once.",
-          "The game checks for the tap only while {char} is falling, and counts the stick only if it reached down within the last 3 frames. Down pressed earlier and held does nothing. The earliest fast fall is the frame after the top: frame {FA+1} of a full hop."
+          "The game checks for the tap only while {char} is falling, and counts the stick only if it reached down within the last 3 frames. Down pressed earlier and held does nothing. The earliest fast fall is the frame after the top: frame {SA+1} of a short hop, frame {FA+1} of a full hop."
         ],
         "show": {
           "example": {
@@ -131,7 +131,7 @@
     "kind": "jump_kind"
   },
   "verdict": {
-    "success": "Fast fall, {after_top_frames} after the top."
+    "success": "Fast fall from a {kind} hop, {after_top_frames} after the top."
   },
   "checks": {
     "fast fell": {
@@ -149,20 +149,12 @@
       "words": "{frames} after the top",
       "headline": "Late fast fall",
       "fix": "Tap down as the rise stops. The stick may reach down up to 2 frames before the top, but no earlier."
-    },
-    "short hop": {
-      "measure": "kind",
-      "equals": "short",
-      "expect": "A short hop",
-      "words": "a {measure} hop",
-      "headline": "Full hop",
-      "fix": "Tap X or Y: release it within {J-1} frames."
     }
   },
   "parts": [
     {
       "name": "Fast fall",
-      "teach": "Full hop, then tap the control stick down once {char} starts to fall.",
+      "teach": "Jump, short hop or full hop, then tap the control stick down once {char} starts to fall.",
       "example": [
         {
           "press": "jump",
@@ -190,94 +182,42 @@
       "coach": {
         "rows": [
           {
-            "label": "Down",
+            "label": "Jump",
+            "button": "jump",
+            "held": true,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "Down, short hop",
             "stick": "down",
             "perfect": [
-              "FA"
+              "SA"
             ],
             "window": [
-              "FA",
-              "FA+30"
+              "SA-2",
+              "SA+30"
             ]
-          }
-        ],
-        "note": "{char} reaches the top of a full hop on frame {FA}."
-      }
-    },
-    {
-      "name": "At the top",
-      "teach": "Full hop, then tap down at the top (frame {FA}). The fast fall starts on the next frame.",
-      "example": [
-        {
-          "press": "jump",
-          "frame": 1,
-          "hold": "J+2"
-        },
-        {
-          "stick": [
-            0,
-            -1
-          ],
-          "frame": "FA",
-          "hold": 3
-        }
-      ],
-      "marks": {
-        "1": "Frame 1: jump pressed",
-        "FA": "Frame {FA}: the top. Down tapped",
-        "FA+1": "Fast falling"
-      },
-      "cues": [
-        {
-          "frames": [
-            "J+1",
-            "FA-3"
-          ],
-          "words": "Rising",
-          "kind": "info"
-        },
-        {
-          "frames": [
-            "FA-2",
-            "FA+1"
-          ],
-          "words": "Tap down now",
-          "kind": "go"
-        },
-        {
-          "frames": [
-            "FA+2",
-            "FA+30"
-          ],
-          "words": "Fast falling",
-          "kind": "info"
-        }
-      ],
-      "checks": [
-        "fast fell",
-        "at the top"
-      ],
-      "streak": 3,
-      "coach": {
-        "rows": [
+          },
           {
-            "label": "Down",
+            "label": "Down, full hop",
             "stick": "down",
             "perfect": [
               "FA"
             ],
             "window": [
               "FA-2",
-              "FA+1"
+              "FA+30"
             ]
           }
         ],
-        "note": "{char} reaches the top of a full hop on frame {FA}."
+        "note": "{char} reaches the top of a short hop on frame {SA} and of a full hop on frame {FA}."
       }
     },
     {
-      "name": "From a short hop",
-      "teach": "Short hop, then tap down at the top (frame {SA}). A short hop's top comes sooner than a full hop's.",
+      "name": "At the top",
+      "teach": "Jump, then tap down at the top: frame {SA} of a short hop, frame {FA} of a full hop. The fast fall starts on the next frame.",
       "example": [
         {
           "press": "jump",
@@ -295,15 +235,40 @@
       ],
       "marks": {
         "1": "Frame 1: jump pressed and released",
-        "SA": "Frame {SA}: the top. Down tapped",
-        "SA+1": "Fast falling"
+        "SA": "Frame {SA}: the top of the short hop. Down tapped",
+        "SA+1": "Frame {SA+1}: fast falling"
       },
+      "cues": [
+        {
+          "frames": [
+            "J+1",
+            "SA-3"
+          ],
+          "words": "Rising",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "SA-2",
+            "SA+1"
+          ],
+          "words": "Tap down now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "SA+2",
+            "SA+30"
+          ],
+          "words": "Fast falling",
+          "kind": "info"
+        }
+      ],
       "checks": [
-        "short hop",
         "fast fell",
         "at the top"
       ],
-      "streak": 5,
+      "streak": 3,
       "coach": {
         "rows": [
           {
@@ -312,14 +277,10 @@
             "held": true,
             "perfect": [
               1
-            ],
-            "window": [
-              1,
-              "J-1"
             ]
           },
           {
-            "label": "Down",
+            "label": "Down, short hop",
             "stick": "down",
             "perfect": [
               "SA"
@@ -328,9 +289,20 @@
               "SA-2",
               "SA+1"
             ]
+          },
+          {
+            "label": "Down, full hop",
+            "stick": "down",
+            "perfect": [
+              "FA"
+            ],
+            "window": [
+              "FA-2",
+              "FA+1"
+            ]
           }
         ],
-        "note": "{char} reaches the top of a short hop on frame {SA}."
+        "note": "{char} reaches the top of a short hop on frame {SA} and of a full hop on frame {FA}."
       }
     }
   ],
@@ -388,7 +360,26 @@
   "coach": {
     "rows": [
       {
-        "label": "Down",
+        "label": "Jump",
+        "button": "jump",
+        "held": true,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "Down, short hop",
+        "stick": "down",
+        "perfect": [
+          "SA"
+        ],
+        "window": [
+          "SA-2",
+          "SA+1"
+        ]
+      },
+      {
+        "label": "Down, full hop",
         "stick": "down",
         "perfect": [
           "FA"
@@ -399,6 +390,6 @@
         ]
       }
     ],
-    "note": "{char} reaches the top of a full hop on frame {FA}."
+    "note": "{char} reaches the top of a short hop on frame {SA} and of a full hop on frame {FA}."
   }
 }

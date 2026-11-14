@@ -117,8 +117,12 @@ class JsonDrill(Drill):
         self.stage = sc.get("stage", "final-destination")
         chars = spec.get("characters", "all")
         self.characters = None if chars == "all" else tuple(chars)
-        # a tech drill alone: the player sets the pace, nothing is reset
-        self.flow = self.cpu is None
+        # a tech drill alone on the ground: the player sets the pace,
+        # nothing is reset. One that starts on the ledge, in the air or on
+        # a platform resets after each attempt: it cannot be walked back to
+        self.flow = self.cpu is None and all(
+            set(s.get("player", {})) <= {"x", "facing", "percent"}
+            for s in spec["scenarios"])
         self.help = (spec["goal"], "D-Pad up: tutorial. D-Pad down: reset.")
         self.part_index = 0
         self.streak = 0
