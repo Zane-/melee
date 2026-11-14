@@ -59,6 +59,10 @@ DEFINES = ["-DTARGET_PC", "-Dbool=int"]
 # linked here defines everything its copy in libmelee.a does, so that copy
 # is never pulled in.)
 VANILLA = {
+    # Which music the game last started (audio.c, host_pstream_start): the
+    # client puts the stage's back after its menu music.
+    "melee/lb/lbaudio_ax.c": [
+        "-DHSD_AudioPStreamStartChParam=host_pstream_start"],
     "melee/gm/gmmain.c": ["-Dmain=game_main"],
     "melee/lb/lb_0195.c": ["-Dlb_80019894=lb_80019894_vanilla"],
     "melee/lb/lbcardnew.c": [],

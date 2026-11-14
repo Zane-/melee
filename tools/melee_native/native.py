@@ -55,6 +55,23 @@ def _json(text):
     return json.loads(text)
 
 
+def _songs():
+    """The game's music files in the order its music numbers count them
+    (lbaudio_ax.c, hps_files)."""
+    try:
+        text = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "..", "..", "src", "melee", "lb",
+                                 "lbaudio_ax.c")).read()
+        at = text.index("hps_files[] = {")
+        return re.findall(r'"([^"]+)"', text[at:text.index("};", at)])
+    except (OSError, ValueError):
+        return []
+
+
+SONGS = _songs()
+MENU_SONG = "menu01.hps"
+
+
 class NativeError(RuntimeError):
     pass
 
@@ -318,6 +335,28 @@ class Native:
         else:
             words = self._cmd("ledge %d %.9g" % (port, percent)).split()
         return float(words[0]), float(words[1])
+
+    def sfx(self, n):
+        """The game's menu sound n (0 to 10)."""
+        self._cmd("sfx %d" % n)
+
+    def sound(self, sound_id, volume=127, pan=64):
+        """Play sound effect `sound_id` as the game does."""
+        self._cmd("sound %d %d %d" % (sound_id, volume, pan))
+
+    def bgm(self, n):
+        """Music n of the game's list (52: the main menu's); -1 stops it."""
+        self._cmd("bgm %d" % n)
+
+    def song(self):
+        """The music file the game started last ("menu01.hps"), or None."""
+        name = self._cmd("bgm").strip()
+        return None if name == "-" else name
+
+    def play_song(self, name):
+        """Start music file `name` ("ystory.hps") through the game."""
+        if name in SONGS:
+            self.bgm(SONGS.index(name))
 
     def anchor(self, port, on=True):
         """Hold a fighter where it stands: nothing pushes it sideways (a

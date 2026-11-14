@@ -45,6 +45,7 @@ import opponents  # noqa: E402
 import fonts  # noqa: E402
 import screens  # noqa: E402
 import window  # noqa: E402
+import native  # noqa: E402
 from native import STAGES, NativeError  # noqa: E402
 from melee_actor import scenario as scn  # noqa: E402
 from melee_actor import tech  # noqa: E402
@@ -150,6 +151,7 @@ class Client:
         self.pause_focus = None       # tests: the row in focus there
         self.session = None           # the drill's, while one runs
         self.status_text = None       # the drill's status line shown
+        self.game_song = None         # the music a match had (sound below)
         self.rays_html = ""           # the drill's light rays shown
         self.drill_stages = None      # its stages, when it can change them
         self.has_cover = False        # the document has the loading cover
@@ -192,7 +194,63 @@ class Client:
         path.write_text(rml)
         self.w.ui("file %s %s" % (ident, path))
 
+    # ---- sound: the game's menu sounds and music -------------------------------
+
+    # lbAudioAx_80024030's sounds, as the game's own menus use them
+    # (mn/inlines.h: sfxBack, sfxForward, sfxMove)
+    SFX_BACK, SFX_FORWARD, SFX_MOVE = 0, 1, 2
+
+    def sfx(self, n):
+        try:
+            self.w.sfx(n)
+        except Exception:             # a build without sound commands
+            pass
+
+    def menu_music(self):
+        """The main menu's music on the menu screens (the owner: "the main
+        menu music"); the match's is kept to put back."""
+        try:
+            now = self.w.song()
+            if now != native.MENU_SONG:
+                if now is not None:
+                    self.game_song = now
+                self.w.bgm(native.SONGS.index(native.MENU_SONG))
+        except Exception:
+            pass
+
+    def match_music(self):
+        """Into a match or a drill: its stage's music again, if the menus
+        had replaced it (a new match starts its own)."""
+        try:
+            if self.w.song() == native.MENU_SONG:
+                if self.game_song is not None:
+                    self.w.play_song(self.game_song)
+                else:
+                    self.w.bgm(-1)
+        except Exception:
+            pass
+
+    def menu_sounds(self, before, pressed):
+        """After a menu screen's frame: forward or back when the screen
+        changed on A or B, a move when the focus moved."""
+        after = self.where()
+        if after == before:
+            return
+        if after[0] != before[0]:
+            if pressed & B:
+                self.sfx(self.SFX_BACK)
+            elif pressed & (A | START):
+                self.sfx(self.SFX_FORWARD)
+        else:
+            self.sfx(self.SFX_MOVE)
+
+    def where(self):
+        """Where the menus are: the screen and what is in focus on it."""
+        return (self.screen, self.focus, self.at, self.hub_at, self.opp_at,
+                tuple(self.row), getattr(self, "part", None))
+
     def show_main(self):
+        self.menu_music()
         self.screen = "main"
         self.w.capture(True)
         last = (self.last["name"], self.last["color"]) if self.last else None
@@ -201,6 +259,7 @@ class Client:
         self.say(self.about(self.focus))
 
     def show_characters(self):
+        self.menu_music()
         self.screen = "chars"
         self.w.capture(True)
         self.load("characters",
@@ -262,7 +321,17 @@ class Client:
             if ev is not None and ev[0] == "leave":
                 self.leave_match(ev[1])
                 return
+        before = self.where()
+        if self.screen not in ("match", "versus") and pressed & (A | START):
+            # choosing: the sound now, before what it opens (a drill runs
+            # inside the list's frame)
+            self.sfx(self.SFX_FORWARD)
+            pressed_sound = A | START
+        else:
+            pressed_sound = 0
         getattr(self, "on_" + self.screen)(pressed, moves)
+        if before[0] not in ("match", "versus"):
+            self.menu_sounds(before, pressed & ~pressed_sound)
 
     def leave_match(self, to):
         """Out of free play or Versus, chosen in the pause menu."""
@@ -359,6 +428,7 @@ class Client:
         self.load(name, rml)
         self.has_cover = True
         self.w.mask(mask)
+        self.match_music()
         if self.column_hidden:
             self.toggle_column(apply_only=True)
 
@@ -459,20 +529,24 @@ class Client:
                     raise Leave()
                 done = ("options",) if changed else None
                 if pressed & (B | START):
+                    self.sfx(self.SFX_BACK)
                     return done
                 if moves & (UP | DOWN):
                     step = 1 if moves & DOWN else -1
                     at = (at + step) % len(rows)
                     while rows[at][0] == "-":
                         at = (at + step) % len(rows)
+                    self.sfx(self.SFX_MOVE)
                     draw()
                 if moves & (LEFT | RIGHT):
                     if self.pause_change(rows[at][0],
                                          1 if moves & RIGHT else -1):
+                        self.sfx(self.SFX_MOVE)
                         changed = True
                         rows = self.pause_rows(kind)
                         draw()
                 if pressed & A:
+                    self.sfx(self.SFX_FORWARD)
                     ident = rows[at][0]
                     if ident == "resume":
                         return done
@@ -584,6 +658,7 @@ class Client:
             "Start" if self.mode == "lab" else "Fight")
 
     def show_opponent(self):
+        self.menu_music()
         self.screen = "opp"
         self.w.capture(True)
         if self.who is None or self.who >= len(self.players()):
@@ -715,6 +790,7 @@ class Client:
             part, courses.ABOUT[part][2])
 
     def show_hub(self):
+        self.menu_music()
         self.screen = "hub"
         self.w.capture(True)
         c = self.roster[self.at]
@@ -781,6 +857,7 @@ class Client:
         self.row[self.part], self.top[self.part] = at, top
 
     def show_list(self):
+        self.menu_music()
         self.screen = "list"
         self.w.capture(True)
         part = courses.PARTS[self.part]

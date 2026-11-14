@@ -25,6 +25,9 @@ typedef struct DiscFile {
     /// the host's byte order (see words_until).
     uint32_t words;
     int words_known;
+    /// A music stream (.hps): where its block headers are (see hps_heads).
+    uint32_t* heads;
+    int nheads;
 } DiscFile;
 
 static DiscFile* files;
@@ -239,10 +242,80 @@ static uint32_t words_until(DiscFile* f)
     return f->words;
 }
 
+/* A music stream (.hps, read by the synth's stream player, synth.c): a
+ * 0x80-byte header (rate, channels, each channel's AX address and ADPCM
+ * settings, read as words) and a chain of blocks, each a 0x20-byte header
+ * of words (its size, end address, the next block's offset, each channel's
+ * loop context) and sample data, which goes to audio RAM as it is. The
+ * headers' offsets come from following the chain once. */
+#define HPS_HEADER 0x80u
+#define HPS_BLOCK_HEADER 0x20u
+
+static void hps_heads(DiscFile* f)
+{
+    FILE* fp;
+    uint32_t at = HPS_HEADER;
+    int cap = 0;
+
+    if (f->heads != NULL || f->nheads < 0) {
+        return;
+    }
+    f->nheads = -1;
+    fp = fopen(f->host_path, "rb");
+    if (fp == NULL) {
+        return;
+    }
+    f->nheads = 0;
+    while (at != 0xFFFFFFFFu && at + HPS_BLOCK_HEADER <= f->size) {
+        uint8_t head[HPS_BLOCK_HEADER];
+        int seen = 0;
+        for (int i = 0; i < f->nheads; i++) {
+            seen |= f->heads[i] == at;
+        }
+        if (seen || fseek(fp, (long) at, SEEK_SET) != 0 ||
+            fread(head, 1, sizeof head, fp) != sizeof head)
+        {
+            break; /* the loop back to the looping block, or the end */
+        }
+        if (f->nheads == cap) {
+            cap = cap != 0 ? cap * 2 : 64;
+            f->heads = realloc(f->heads, (size_t) cap * sizeof *f->heads);
+        }
+        f->heads[f->nheads++] = at;
+        at = be32(head + 8);
+    }
+    fclose(fp);
+}
+
+static void swap_words(uint8_t* buf, uint32_t offset, uint32_t length,
+                       uint32_t from, uint32_t to)
+{
+    for (uint32_t at = from; at + 4 <= to; at += 4) {
+        if (at >= offset && at + 4 <= offset + length) {
+            uint32_t v = be32(buf + (at - offset));
+            memcpy(buf + (at - offset), &v, 4);
+        }
+    }
+}
+
 static void to_host_words(DiscFile* f, uint8_t* buf, uint32_t offset,
                           uint32_t length)
 {
-    uint32_t until = words_until(f);
+    const char* dot = strrchr(f->path, '.');
+    uint32_t until;
+
+    if (dot != NULL && strcasecmp(dot, ".hps") == 0) {
+        hps_heads(f);
+        swap_words(buf, offset, length, 0, HPS_HEADER);
+        for (int i = 0; i < f->nheads; i++) {
+            uint32_t h = f->heads[i];
+            if (h < offset + length && h + HPS_BLOCK_HEADER > offset) {
+                swap_words(buf, offset, length, h, h + HPS_BLOCK_HEADER);
+            }
+        }
+        return;
+    }
+    until = words_until(f);
     for (uint32_t at = 0; at + 4 <= length && offset + at + 4 <= until;
          at += 4)
     {

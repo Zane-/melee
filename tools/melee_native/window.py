@@ -88,7 +88,7 @@ def leftovers():
 class Window(Native):
     def __init__(self, gpu=False, size=(800, 600), verbose=False,
                  timeout=120, state_dir=None, real=False, vsync=False,
-                 window=(640, 480), fullscreen=None):
+                 window=(640, 480), fullscreen=None, sound_file=None):
         """`fullscreen`: True or False; None is "as it was last left" on a
         real display and False on a virtual one (a test must not start
         the way someone left their game); "remembered" asks for that on
@@ -121,6 +121,9 @@ class Window(Native):
         elif fullscreen is not None:
             env["MELEE_FULLSCREEN"] = "1" if fullscreen else "0"
         env["MELEE_WINDOW_SIZE"] = "%dx%d" % self.window
+        if sound_file is not None:
+            # what the game sounds like, 16-bit stereo at 32 kHz (tests)
+            env["MELEE_AUDIO_RAW"] = str(sound_file)
         try:
             super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
                              env=env)
@@ -160,6 +163,8 @@ class Window(Native):
         env = {k: v for k, v in os.environ.items()
                if k not in ("WAYLAND_DISPLAY", "XAUTHORITY")}
         env.update(DISPLAY=self.display, SDL_VIDEODRIVER="x11",
+                   # off screen is off the speakers too
+                   SDL_AUDIO_DRIVER="dummy",
                    XDG_DATA_HOME=str(state), XDG_CACHE_HOME=str(state),
                    XDG_CONFIG_HOME=str(state),
                    # its own shader cache: the one beside the executable

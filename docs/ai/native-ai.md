@@ -96,8 +96,8 @@ sleeper stays, so a snapshot can be restored any number of times.
 AI-driven training has a person in it. Until 2026-11-13 the native build had no graphics
 and no controller, and everything here was developed with a stand-in for the player: an
 actor script or a policy. It now draws and reads a person's input (the next three
-sections), but no person has played it: it has only been run on a virtual display. It has
-no sound.
+sections). (Since then the owner plays it on their desktop, and it has sound: "Sound"
+below.)
 
 ### The window: the graphics stack builds and runs 32-bit (probe, 2026-11-13)
 
@@ -632,6 +632,58 @@ Found on the way, not fixed: a stock match (`match ... stocks`, new) does not en
 fighter loses its last stock. The fighter stays dead and nothing follows; probably the
 end-of-game sequence waits for something the native build does not have (sound).
 
+### Sound (2026-11-13)
+
+The owner: "audio doesn't work at all. Let's add the native sound effects to our menu
+navigation + button clicks as well as the main menu music and ensure in-game audio works
+as well!"
+
+The game's sound code is decompiled and runs as it is: Melee's lbAudio, sysdolphin's
+AXDriver (sound scripts) and synth (voices, sound banks, music streams). Under it the
+console has Nintendo's AX library and the DSP, which every 5 ms reads 64 voice parameter
+blocks, decodes DSP-ADPCM from audio RAM, resamples to 32 kHz and mixes. That layer was a
+stub (one shared dummy voice); it is C now, in the host: `src/host/audio.c`.
+
+| Piece | What it does |
+|-|-|
+| Voices | 64, given out by priority (a higher one drops the lowest, whose callback the synth gets), freed, and set the way the game sets them: addresses, ADPCM coefficients and loop context, resampling ratio, volume and its ramp, left/right mix |
+| Mixer | Every 5 ms of game time (3.34 per frame at 59.94): the game's AX callback (its sound scripts), then each playing voice decoded (ADPCM, PCM16, PCM8), resampled linearly, looped or stopped at its end address, mixed to stereo |
+| Output | The window build: SDL's default device, 32 kHz stereo, started once 64 ms is queued, new sound dropped when 200 ms is waiting. `MELEE_AUDIO=0` turns it off; `MELEE_AUDIO_RAW=FILE` writes the mix to a file instead (tests, any build) |
+| Not done | The aux buses (reverb, chorus, delay: AXFX is a no-op), surround, ITD |
+
+Two things the data needed:
+
+- **Words.** The disc layer gives sound files to the game in 32-bit words of host order
+  (`dvd.c`), so a pair of 16-bit fields in them (an address's high and low half, two
+  ADPCM coefficients) is one word with the first field in its top half. The game reads
+  some of these pairs as one word itself (a voice's current address, the ratio it
+  writes). The AX calls read structures that come from files by the word, and keep the
+  ones the game builds (volume, mix) as fields.
+- **Music streams** (`.hps`) were not converted at all: the stream player reads the file's
+  0x80-byte header and each block's 0x20-byte header as words and sends the sample data
+  to audio RAM. `dvd.c` now walks a stream's block chain once and swaps exactly those
+  headers.
+
+Headless, sound stays off unless a file is asked for: every voice is the old dummy block,
+which nothing writes to, so the game takes the same paths as before (`compare.py
+--tolerance 1e-4` identical; nothing in the sound code draws random numbers).
+
+`tests/native/audio.py` (7): the main menu's music, as the game streams it block by block,
+correlates 1.0000 on both channels with an independent decoder of the file (written in the
+test) over four seconds, at 0.70 of the file's level (the game's volume); stopping it fades
+to silence; a menu sound plays and ends; a match makes sound.
+
+The client (`client.py`, "sound"): the main menu's music (`menu01.hps`, song 52) on every
+menu screen; the game's own menu sounds as its menus use them (`mn/inlines.h`: back 0,
+forward 1, move 2): forward on A, back on B, a move when the focus moves (none when it
+cannot), the same in the pause menu. A match keeps its stage's music (the game picks it,
+sometimes at random, so the client does not); the host remembers which song the game last
+started (`bgm` with no number, `host_pstream_start`), and going back into play from the
+menus on the same match puts it back. Off screen the harness uses SDL's dummy audio driver:
+no test reaches the speakers. `tests/client/sound.py` (12).
+
+Host commands: `sfx N` (menu sound), `sound ID [VOL [PAN]]`, `bgm N` / `bgm -1` / `bgm`.
+
 ### How it feels: UCF, and when the controller is read (2026-11-13)
 
 The owner, after playing: "I also feel like the gameplay feels slightly off; I am not sure
@@ -674,7 +726,7 @@ Where that stands, honestly:
 
 | Part of "everything" | Native today | Missing |
 |-|-|-|
-| The game itself | Runs, draws, takes a GameCube controller; identical to the console's code on the compared matches | Sound. Known differences (`native-port.md`) |
+| The game itself | Runs, draws, takes a GameCube controller, plays its sound and music; identical to the console's code on the compared matches | Reverb and the other sound effects buses. Known differences (`native-port.md`) |
 | Menus | Main menu, character select, opponent and stage choice | Nicknames, the vanilla menus' other modes |
 | Courses | Fox's hub and lists; 6 of his 46 drills play; the done mark | 40 Fox drills, the guide and demonstration, every other character's course |
 | Versus | A match against a trained model, the CPU or nobody, six stages | Stocks, timer, result; 3 and 4 players; items |

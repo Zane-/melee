@@ -18,9 +18,8 @@ want to build in direct AI integration and the actor system to build AI-driven t
 The overlay build below is what can be played today and stays correct, but scripts,
 policies and models that drive the game are built against the native build first:
 `docs/ai/native-ai.md`. Its window variant draws, runs at the console's speed, reads a
-controller or the keyboard and has menus of its own (`python tools/melee_client/client.py`),
-but that has only been checked on a virtual display, it has no sound, and no course
-drills run on it yet.
+controller or the keyboard, has sound and menus of its own, and plays every course drill
+(`python tools/melee_client/client.py`); the owner plays it on their desktop.
 
 ## Facts that shape every task
 
@@ -145,11 +144,12 @@ ninja
 | The native client: menus, character select, course hub, drill list, drills with a verdict; 16:9 with the game at 4:3; fullscreen (F11) centred on any screen shape | `python tools/melee_client/client.py`; `tools/melee_client/`, `src/host/ui.cpp`; `tests/client/menu.py`, `tests/client/course.py`, `tests/client/fullscreen.py` (`--shots DIR`); "The client" in `docs/ai/native-ai.md` |
 | A trained slippi-ai model as the opponent in the native client (Versus, the Lab) | `tools/melee_client/opponents.py`, `tools/melee_actor/policy_server.py`; `tests/client/versus.py` |
 | The course drills on the native build: the overlay's engine and drills ported to Python, proven by the overlay's own specs | `tools/melee_course/` (engine.py, drills/), `python tests/course/specs.py [DRILL]`; "The courses on the native build" in `docs/ai/native-ai.md` |
+| Sound in the native build: the AX voices and mixer, music streams, menu sounds and music in the client | `src/host/audio.c`, `tests/native/audio.py`, `tests/client/sound.py`; "Sound" in `docs/ai/native-ai.md` |
 | Drills the owner changed natively (dash dance, shield drop, ledgedash, Illusion...), timelines in every timing drill | `tools/melee_course/drills/`, `python tests/course/native_changes.py`, `tests/client/drills.py`; "Drills the owner changed" in `docs/ai/native-ai.md` |
 | Make a course drill play in the native client | port it to `tools/melee_course/drills/` (it then plays on the course engine), or a file in `data/scenarios/` with `"drill": "<course drill id>"`: a scenario (skill `actor-scenario`) or a tech drill (`"tech"`, judged on the player's inputs by frame: `tools/melee_actor/tech.py`, `tests/actor/tech.py`) |
 | Which controllers the native client sees; the GameCube adapter, read directly | `python tools/melee_client/client.py --devices`; `src/host/gcadapter.c`, `tests/native/gcadapter.py` |
 | Train against a scenario yourself on the native build (verdicts in the terminal) | `python tools/melee_actor/train.py data/scenarios/FILE.json`; `tests/actor/train.py` |
-| Play the native build yourself (a window on your desktop; no sound yet) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
+| Play the native build yourself (a window on your desktop, with sound) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
 | A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |

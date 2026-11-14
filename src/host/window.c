@@ -828,6 +828,47 @@ static void timing(double game, double end, double begin, double shown)
     }
 }
 
+/* --- sound ----------------------------------------------------------------
+ * The mixer (audio.c) hands over 16-bit stereo at 32 kHz as the game's time
+ * passes; SDL resamples it for the device. Off screen (a test, a harness)
+ * SDL_AUDIO_DRIVER=dummy keeps it off the desktop's speakers. When the
+ * device is behind by more than a fifth of a second (the game runs ahead of
+ * it: unpaced, or a frame rate above 59.94), the new sound is dropped. */
+
+static SDL_AudioStream* audio_out;
+static int audio_failed, audio_started;
+
+/// Bytes the device is given before it starts playing (64 ms): a frame
+/// that comes late then does not leave it empty.
+#define AUDIO_LEAD (32000 * 4 * 64 / 1000)
+
+void host_window_audio(const int16_t* frames, int count)
+{
+    if (audio_out == NULL && !audio_failed) {
+        SDL_AudioSpec spec = { SDL_AUDIO_S16, 2, 32000 };
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO) ||
+            (audio_out = SDL_OpenAudioDeviceStream(
+                 SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL)) ==
+                NULL)
+        {
+            host_log("no sound: %s", SDL_GetError());
+            audio_failed = 1;
+            return;
+        }
+    }
+    if (audio_out == NULL) {
+        return;
+    }
+    if (SDL_GetAudioStreamQueued(audio_out) > 32000 * 4 / 5) {
+        return;
+    }
+    SDL_PutAudioStreamData(audio_out, frames, count * 4);
+    if (!audio_started && SDL_GetAudioStreamQueued(audio_out) >= AUDIO_LEAD) {
+        SDL_ResumeAudioStreamDevice(audio_out);
+        audio_started = 1;
+    }
+}
+
 void host_window_frame(void)
 {
     static double last, shown;

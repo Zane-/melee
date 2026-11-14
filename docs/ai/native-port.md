@@ -111,7 +111,7 @@ Known differences, none investigated to the end:
 | CPU players | Not compared: both players are driven by pads in every run |
 | Menus, other modes | Only the memory card prompt and the debug VS match have run |
 | `--draw` | Asserts in the first frame (a position out of range) |
-| Audio | Sound files are loaded with their headers in host order; nothing plays, nothing was checked |
+| Audio | Plays in the window build (`src/host/audio.c`: AX in C, `native-ai.md`, "Sound"); the main menu's music decodes to the file's samples exactly. No reverb or chorus (the aux buses) |
 
 ## What made it work: seven kinds of dependence on the console
 
@@ -244,4 +244,4 @@ steps, a trainer, then a window). What was listed here before still stands behin
 4. Graphics, audio and input for a playable build. Since 2026-11-13 the window build
    (`native_build.py --window`) draws matches through Aurora, runs at the console's speed
    and reads a controller or the keyboard (`native-ai.md`, "The game draws" and "A person
-   at the controls"); checked on a virtual display only. No sound yet.
+   at the controls"); sound since the same day ("Sound" there).

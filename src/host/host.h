@@ -182,5 +182,10 @@ void host_frame_tick(void);
 /// and begin the next.
 void host_window_init(void);
 void host_window_frame(void);
+/* audio.c: sound */
+void host_audio_frame(void);
+const uint8_t* host_aram_peek(uint32_t addr);
+void host_window_audio(const int16_t* frames, int count);
+const char* host_song(void);
 
 #endif

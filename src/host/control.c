@@ -66,6 +66,7 @@
 
 #include <melee/cm/camera.h>
 #include <melee/ft/fighter.h>
+#include <melee/lb/lbaudio_ax.h>
 #include <melee/lb/lbvector.h>
 #include <melee/ft/inlines.h>
 #include <melee/gm/gmscene.h>
@@ -437,6 +438,39 @@ static void command(char* line)
         } else {
             printf("@ %.9g %.9g\n", x, y);
         }
+    } else if (strcmp(cmd, "sfx") == 0) {
+        /* "sfx N": the game's menu sound N (0 to 10: lbAudioAx_80024030,
+           what its menus play: moving, choosing, going back...) */
+        int n = 0;
+        sscanf(line, "%d", &n);
+        if (n < 0 || n > 10) {
+            printf("@ error menu sounds are 0 to 10\n");
+        } else {
+            lbAudioAx_80024030(n);
+            printf("@ ok\n");
+        }
+    } else if (strcmp(cmd, "sound") == 0) {
+        /* "sound ID [VOLUME [PAN]]": sound effect ID, as the game plays
+           one (volume 0 to 127, pan 0 to 127, 64 the middle) */
+        int id = 0, vol = 0x7F, pan = 0x40;
+        sscanf(line, "%d %d %d", &id, &vol, &pan);
+        printf("@ ok %d\n", lbAudioAx_800237A8(id, vol, pan));
+    } else if (strcmp(cmd, "bgm") == 0) {
+        /* "bgm N": music N of the game's list (lbaudio_ax.c, hps_files:
+           52 is the main menu's); "bgm -1": the music stops */
+        int n = -1;
+        if (sscanf(line, "%d", &n) != 1) {
+            /* "bgm": the music the game started last */
+            printf("@ %s\n", host_song()[0] ? host_song() : "-");
+            fflush(stdout);
+            return;
+        }
+        if (n < 0) {
+            lbAudioAx_800236DC();
+        } else {
+            lbAudioAx_80023F28(n);
+        }
+        printf("@ ok\n");
     } else if (strcmp(cmd, "anchor") == 0) {
         /* "anchor P 1": player P is held where it stands (nothing pushes
            it sideways) until "anchor P 0" or another match; "anchor -1"

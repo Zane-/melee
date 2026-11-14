@@ -72,6 +72,7 @@ void host_frame_tick(void)
 #endif
     host_control_frame();
     host_anchor_frame();
+    host_audio_frame();
     host_rng_frame();
     if (host.on_frame != NULL) {
         host.on_frame();

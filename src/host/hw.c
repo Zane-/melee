@@ -42,6 +42,16 @@ static uint8_t* aram_at(uint32_t addr, uint32_t length)
     return aram + addr;
 }
 
+/// Audio RAM at `addr` for the mixer (audio.c): NULL past its end or
+/// before anything was put there.
+const uint8_t* host_aram_peek(uint32_t addr)
+{
+    if (aram == NULL || addr >= HOST_ARAM_SIZE) {
+        return NULL;
+    }
+    return aram + addr;
+}
+
 u32 ARInit(u32* stack_index_addr, u32 num_entries)
 {
     (void) stack_index_addr;
@@ -376,18 +386,6 @@ void GXProject(f32 x, f32 y, f32 z, const f32 mtx[3][4], const f32* pm,
     *sz = vp[5] + (wc * (zc * (vp[5] - vp[4])));
 }
 #endif /* !HOST_WINDOW */
-
-/* --- audio: every voice is one block nobody listens to ------------------ */
-
-static uint8_t voice[0x400];
-
-void* AXAcquireVoice(u32 priority, void* callback, u32 user)
-{
-    (void) priority;
-    (void) callback;
-    (void) user;
-    return voice;
-}
 
 /* --- memory card: none inserted ----------------------------------------- */
 
