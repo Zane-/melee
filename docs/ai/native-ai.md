@@ -662,10 +662,14 @@ right change it ("A Choose, D-pad Change"). Demonstration left the pause menu (i
 on the approved board): the guide's D-pad right still plays it, and the coach's replay
 shows it.
 
-**Coach** (`tools/melee_client/coach.py`, `Client.coach`, `Client.coach_tech`,
-`screens.coach_card`): after N misses in a row in any drill that plays in the client, the
-course engine's and the four judged by the frame (`settings["coach"]`: off or 2 to 5,
-default 3; Settings > Display and the pause menu), a card over the frozen game:
+**Coach** (`tools/melee_client/coach.py`, `Client.coach`, `screens.coach_card`): after N
+misses in a row in any drill that plays in the client (the course engine's, the drill
+format's included: `tests/client/short_hop.py`; `settings["coach"]`: off or 2 to 5,
+default 3; Settings > Display and the pause menu), a card over the frozen game. Until
+7982edee4 the four drills judged by the frame (`tools/melee_actor/tech.py`) had a coach of
+their own (`Client.coach_tech`); it went with that judge when the drills restarted in the
+drill format (`docs/ai/drill-format.md`), and what this section says of tech drills is
+its history:
 - the headline: the judge's own when it gives one (a tech drill: "Jump held 2 frames too
   long", "Air dodge 3 frames late", "L 2 frames early"), else the first timeline row off
   its window ("Dodge 5 frames late", "No jump in time"), else the drill's verdict;
@@ -734,7 +738,8 @@ view|box` (`Native.frames_*`; `frames rec RING MASK` names the ports to follow).
 leaves them alone. A game built before `frames.c` makes the card fall back to drawn paths
 (the player's position frame by frame).
 
-**Tech drills: saved states.** A drill judged by the frame (`tech.py`) has no reset: the
+**Tech drills: saved states** (removed in 7982edee4 with the tech judge; kept as how it
+was done). A drill judged by the frame (`tech.py`) has no reset: the
 player sets the pace. While the player is between attempts the client saves the game's
 state every 12 frames into slots 30 and 31 in turn (3 to 6 ms each, 69 MB; only with the
 coach on), and records the try frame by frame as the course engine's drills are
