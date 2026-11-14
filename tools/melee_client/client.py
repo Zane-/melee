@@ -2121,6 +2121,7 @@ class Client:
             return fmt.text(t, nums, **more)
         lessons = spec["tutorial"].get("lessons", []) if intro else []
         k = 0
+        skipped = False     # START: out of the tutorial, to the drill
         while k < len(lessons):
             le = lessons[k]
             show = le.get("show") or {}
@@ -2174,8 +2175,11 @@ class Client:
                 self.tutorial_example(drill, session, ex["inputs"],
                                       ex.get("marks", {}), T(le["title"]))
             elif what == "skip":
+                # (the owner: START "should just exit the tutorial", not
+                # open the part's card, which looked like another lesson)
+                skipped = True
                 break
-        while True:
+        while not skipped:
             part = drill.part_now
             n, i = len(drill.parts), drill.part_index
             result, seq = self.tutorial_seq(drill, session, part["example"],
@@ -2351,7 +2355,8 @@ class Client:
         nums = drill.nums(session.c)
         at = {}
         for f, words in marks.items():
-            at[int(fmt.value(f, nums))] = fmt.text(words, nums)
+            fr = int(fmt.value(f, nums))
+            at[fr] = fmt.text(words, nums, f=fr)    # ({f}: its frame)
         pressed_on = {}
         for i in inputs:
             f = int(fmt.value(i["frame"], nums))

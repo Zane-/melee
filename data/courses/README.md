@@ -52,7 +52,7 @@ includes: [universal]    # other course files whose drills this course pulls in
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 12 | `fox-jc-shine` | Frame-perfect jump-cancelled shine | Jump out of shine on the first possible frame, every time | none | 8 | `fox-multishine` | [tech](../characters/fox.md#jump-cancelled-shine) | specified |
+| 12 | `fox-jc-shine` | Frame-perfect jump-cancelled shine | Jump out of shine on the first possible frame | none | 8 | `fox-multishine` | [tech](../characters/fox.md#jump-cancelled-shine) | specified |
 
 ### Jump-cancelled shine
 
@@ -61,7 +61,7 @@ id: fox-jc-shine               # <character>-<kebab>, unique across all courses
 part: tech
 status: planned                # planned | specified | implemented | verified
 order: 12
-goal: Jump out of shine on the first possible frame, every time.
+goal: Jump out of shine on the first possible frame.
 requires: [fox-waveshine]      # drill ids that should be comfortable first
 leads_to: fox-multishine
 knowledge: [../characters/fox.md#jump-cancelled-shine]   # where the facts are

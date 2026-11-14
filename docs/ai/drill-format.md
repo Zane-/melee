@@ -140,7 +140,7 @@ played it.
    frames of jump squat, where short or full is decided. Any jump passes it, once.
 2. **Tap, do not hold**: let go within J - 1 frames. Checks: jumped with a button (not the
    stick), let go in the squat, a short hop. Three in a row.
-3. **Every time**: ten short hops in a row.
+3. **Ten in a row**: ten short hops in a row.
 
 No CPU; the camera follows Fox, eased, further out than the normal camera's close zoom on a
 lone fighter (220; the owner asked for "a little" further than the first 180). The

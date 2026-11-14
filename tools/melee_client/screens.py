@@ -1175,9 +1175,9 @@ def online_panel(ident, nick, port, friends, at, router):
         return (_panel_head("Your code's port", "UDP, on this machine") +
                 '<div class="sbig">%d</div>' % port +
                 '<div class="spara">%s</div>' % esc(
-                    "The port your code points at. A router that keeps it "
-                    "gives the same code every time. Change it only if "
-                    "another program uses %d." % port))
+                    "The port your code points at. If your router keeps "
+                    "this port, your code stays the same. Change it only "
+                    "if another program uses %d." % port))
     if ident == "friends":
         cards = "".join(
             '<div class="fcard%s"><div class="fini"><div class="un">%s</div>'
