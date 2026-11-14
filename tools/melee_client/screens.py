@@ -706,7 +706,7 @@ LAB = ("lab", "lab", "Lab", "Any opponent, any stage. Nothing is judged.",
 def hub(c, course, here, progress, left):
     """`here`: ids of the drills that play in this client. `left`: the
     drill last played, if it is one of this course's."""
-    from courses import ABOUT, PARTS
+    from courses import ABOUT, PARTS, title
     slabs = []
     for i, part in enumerate(PARTS):
         drills = course["parts"][part]
@@ -724,7 +724,8 @@ def hub(c, course, here, progress, left):
             '</div>' % (
                 i, PART_CLASS[part], mark("p%d" % i, PART_CLASS[part]),
                 '<div class="first">START HERE</div>' if i == 0 else "",
-                part, esc(ABOUT[part][0]), squares, done, len(drills),
+                esc(title(part)), esc(ABOUT[part][0]), squares, done,
+                len(drills),
                 esc(nxt["name"]) if nxt else "complete"))
     if left:
         tail = (
@@ -758,6 +759,26 @@ def hub(c, course, here, progress, left):
 ROWS = 8
 
 
+def rows_for(course, part):
+    """The drill rows a part's list shows at once: one fewer when it has
+    subcourses, for their headings (two at most in view, each half a
+    row)."""
+    return ROWS - 1 if any(d.get("sub") for d in course["parts"][part]) \
+        else ROWS
+
+
+def place_of(course, d):
+    """Where a drill is, as its card says it: ("MOVEMENT", its number, how
+    many) in a subcourse, else (the part's name, ...)."""
+    from courses import title
+    if d.get("sub"):
+        same = [x for x in course["parts"][d["part"]]
+                if x.get("sub") == d["sub"]]
+        return d["sub"].upper(), d["number"], len(same)
+    return title(d["part"]).upper(), d["number"], len(course["parts"][
+        d["part"]])
+
+
 def _percent(d):
     return "%d%%" % round(100.0 * d["yes"] / d["tries"]) if d["tries"] \
         else "-"
@@ -767,7 +788,13 @@ def list_rows(course, part, here, progress, at, top):
     """The rows in view: `at` is the drill in focus, `top` the first row
     shown."""
     out = []
-    for i, d in enumerate(course["parts"][part][top:top + ROWS], top):
+    sub = None
+    for i, d in enumerate(course["parts"][part][top:top + rows_for(
+            course, part)], top):
+        if d.get("sub") and d["sub"] != sub:
+            # the subcourse's heading: over its first row in view
+            sub = d["sub"]
+            out.append('<div class="rsub"><div>%s</div></div>' % esc(sub))
         p = progress.drill(d["id"])
         out.append(
             '<div class="r%s"><div class="c-n"><div class="cap" style='
@@ -788,7 +815,7 @@ def list_rows(course, part, here, progress, at, top):
 def list_detail(course, d, here, progress):
     from courses import refer
     part = d["part"]
-    total = len(course["parts"][part])
+    place, number, total = place_of(course, d)
     size = 52 if len(d["name"]) <= 12 else 38 if len(d["name"]) <= 20 else 28
     fg = "#FFFFFF" if part == "Tech" else "#12161C"
     facts = []
@@ -810,8 +837,8 @@ def list_detail(course, d, here, progress):
         'class="goal">%s</div>%s<div class="grow"/><div class="donebtn%s">'
         '<div class="box%s"/><div>%s</div><div class="grow"/>%s</div>'
         '<div class="go%s"><div class="un">%s<div>%s</div></div></div></div>'
-        % (PART_COLOR[part], PART_COLOR[part], fg, part.upper(),
-           d["number"], total, size, esc(d["name"]), esc(d["goal"]),
+        % (PART_COLOR[part], PART_COLOR[part], fg, esc(place),
+           number, total, size, esc(d["name"]), esc(d["goal"]),
            "".join(facts), " on" if done else "", " on" if done else "",
            "Done. Press again to undo" if done else "Mark as done",
            key("Y", dark=done), "" if plays else " off",
@@ -820,14 +847,14 @@ def list_detail(course, d, here, progress):
 
 
 def drill_list(c, course, part, here, progress, at, top):
-    from courses import PARTS
+    from courses import PARTS, title
     drills = course["parts"][part]
     tabs = "".join(
         '<div class="ptab %s%s"><div class="un">%s · %d</div></div>' % (
-            PART_CLASS[p], " on" if p == part else "", p,
+            PART_CLASS[p], " on" if p == part else "", title(p),
             len(course["parts"][p])) for p in PARTS)
     body = (
-        header(["Train", c["name"], part],
+        header(["Train", c["name"], title(part)],
                tag=(c["name"], c["color"], c["fg"])) +
         '<div class="tabs">' + key("L", dark=True, wide=True) + tabs +
         key("R", dark=True, wide=True) + '</div>'
@@ -899,15 +926,15 @@ def drill_rail(c, d, course, about, stages=None):
     """The column beside a drill. `stages`: the drill's stages when it can
     change them (with the one it is on first)."""
     part = d["part"]
-    total = len(course["parts"][part])
+    label, number, total = place_of(course, d)
     fg = "#FFFFFF" if part == "Tech" else "#12161C"
     size = 40 if len(d["name"]) <= 12 else 32 if len(d["name"]) <= 20 else 24
     head = ('<div class="top" style="background-color: %s"/><div class='
             '"slant" style="background-color: %s"/><div class="head" style='
             '"color: %s"><div class="tags">%s · %d OF %d</div><div class='
             '"dname" style="font-size: %ddp">%s</div></div>' % (
-                PART_COLOR[part], PART_COLOR[part], fg, part.upper(),
-                d["number"], total, size, esc(d["name"])))
+                PART_COLOR[part], PART_COLOR[part], fg, esc(label),
+                number, total, size, esc(d["name"])))
     body = (
         '<div class="line">%s</div>'
         '<div id="status" class="line now"/>'
@@ -1491,7 +1518,7 @@ EXAMPLE_HINTS = [("D-SIDE", "Frame by frame"), ("A", "Play, pause"),
 
 
 def replay_view(part, number, total, name, title="Replay", hints=None,
-                legend=True):
+                legend=True, label=None):
     """The replay of a try (or a drill's example, played for the tutorial:
     `title`, `hints`): the game's picture left clear, a line at the top,
     the frames along the bottom, and a column of its own over the drill's
@@ -1513,7 +1540,8 @@ def replay_view(part, number, total, name, title="Replay", hints=None,
         'OF 1</div></div><div id="rpad" class="rpad"/><div id="rsay" '
         'class="rsay"/><div class="grow"/><div class="hints">%s</div></div>'
         '</div>' % (
-            esc(title), leg, PART_COLOR[part], fg, part.upper(), number,
+            esc(title), leg, PART_COLOR[part], fg,
+            esc(label or part.upper()), number,
             total, esc(title.upper()), esc(name),
             hint_rows(hints or REPLAY_HINTS)))
 

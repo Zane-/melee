@@ -1546,7 +1546,7 @@ class Client:
                 "you choose. Nothing is judged."
         part = courses.PARTS[int(self.hub_at[1])]
         return "%s: %s Every part is open from the start." % (
-            part, courses.ABOUT[part][1])
+            courses.title(part), courses.ABOUT[part][1])
 
     def show_hub(self):
         self.menu_music()
@@ -1611,8 +1611,9 @@ class Client:
         top = self.top[self.part]
         if at < top:
             top = at
-        if at >= top + screens.ROWS:
-            top = at - screens.ROWS + 1
+        shown = screens.rows_for(self.course, courses.PARTS[self.part])
+        if at >= top + shown:
+            top = at - shown + 1
         self.row[self.part], self.top[self.part] = at, top
 
     def show_list(self):
@@ -2367,10 +2368,11 @@ class Client:
         n = last + 6                        # a few frames after the last mark
         lead = course_engine.REF_LEAD + REF_START - 1   # frame 0 of it
         d = self.drill_now or {"part": "Tech", "number": 1, "name": name}
-        total = len(self.course["parts"][d["part"]]) if self.course else 1
+        label, number, total = screens.place_of(self.course, d) \
+            if self.course and self.drill_now else ("TECH SKILL", 1, 1)
         self.put("replay", screens.replay_view(
-            d["part"], d["number"], total, name, title="Example",
-            hints=screens.EXAMPLE_HINTS, legend=False))
+            d["part"], number, total, name, title="Example",
+            hints=screens.EXAMPLE_HINTS, legend=False, label=label))
         shown = self.column_hidden
         if shown:
             self.column_hidden = False
@@ -2838,9 +2840,10 @@ class Client:
         back to the coach (the canvas's "Coach: replay of your try")."""
         d = self.drill_now or {"part": "Tech", "number": 1, "name":
                                drill.name}
-        total = len(self.course["parts"][d["part"]]) if self.course else 1
-        self.put("replay", screens.replay_view(d["part"], d["number"], total,
-                                               d["name"]))
+        label, number, total = screens.place_of(self.course, d) \
+            if self.course and self.drill_now else ("TECH SKILL", 1, 1)
+        self.put("replay", screens.replay_view(d["part"], number, total,
+                                               d["name"], label=label))
         shown = self.column_hidden
         if shown:                   # the replay's column is the drill's
             self.column_hidden = False

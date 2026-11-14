@@ -1,0 +1,404 @@
+{
+  "id": "universal-fast-fall",
+  "name": "Fast fall",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Fast fall at the top of a jump.",
+  "why": "A fast fall drops you at your character's fast-fall speed at once instead of building up to it. You get back to the ground sooner after a jump or an aerial, so you are open to attack for less time.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 140,
+      "height": 10
+    },
+    "what": "A fast fall is a tap of the control stick down while falling. The fall speed changes at once to the character's fast-fall speed.",
+    "expect": "Each jump is judged when you fast fall or land: whether you fast fell, and how many frames after the top of the jump.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": "SA",
+        "hold": 3
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released",
+      "SA": "Frame {SA}: the top of the short hop. Stick tapped down",
+      "SA+1": "Frame {SA+1}: fast falling"
+    },
+    "lessons": [
+      {
+        "title": "Fast fall",
+        "text": [
+          "After the top of a jump, tap the control stick down and {char} falls at full fast-fall speed at once.",
+          "The game checks for the tap only while {char} is falling, and counts the stick only if it reached down within the last 3 frames. Down pressed earlier and held does nothing. The earliest fast fall is the frame after the top: frame {FA+1} of a full hop."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": "J+2"
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "FA",
+                "hold": 3
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: jump pressed",
+              "J+1": "Rising: a fast fall cannot start yet",
+              "FA": "Frame {FA}: the top. Stick tapped down",
+              "FA+1": "Frame {FA+1}: fast falling"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "J+1",
+                  "FA-3"
+                ],
+                "words": "Rising",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "FA-2",
+                  "FA+1"
+                ],
+                "words": "Tap down now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "FA+2",
+                  "FA+30"
+                ],
+                "words": "Fast falling",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      "fast_fall",
+      "lands"
+    ]
+  },
+  "measures": {
+    "fast_fell": {
+      "happened": "fast_fall"
+    },
+    "after_top": {
+      "frames": [
+        "apex",
+        "fast_fall"
+      ]
+    },
+    "kind": "jump_kind"
+  },
+  "verdict": {
+    "success": "Fast fall, {after_top_frames} after the top."
+  },
+  "checks": {
+    "fast fell": {
+      "measure": "fast_fell",
+      "equals": true,
+      "expect": "A fast fall",
+      "words": "landed without one",
+      "headline": "No fast fall",
+      "fix": "Tap the control stick down after the top of the jump. The game ignores a stick that reached down more than 3 frames before {char} started to fall."
+    },
+    "at the top": {
+      "measure": "after_top",
+      "at_most": 2,
+      "expect": "Fast fall within 2 frames of the top",
+      "words": "{frames} after the top",
+      "headline": "Late fast fall",
+      "fix": "Tap down as the rise stops. The stick may reach down up to 2 frames before the top, but no earlier."
+    },
+    "short hop": {
+      "measure": "kind",
+      "equals": "short",
+      "expect": "A short hop",
+      "words": "a {measure} hop",
+      "headline": "Full hop",
+      "fix": "Tap X or Y: release it within {J-1} frames."
+    }
+  },
+  "parts": [
+    {
+      "name": "Fast fall",
+      "teach": "Full hop, then tap the control stick down once {char} starts to fall.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "FA+4",
+          "hold": 2
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed",
+        "FA": "Frame {FA}: the top",
+        "FA+4": "Frame {FA+4}: down tapped. Fast falling"
+      },
+      "checks": [
+        "fast fell"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down",
+            "stick": "down",
+            "perfect": [
+              "FA"
+            ],
+            "window": [
+              "FA",
+              "FA+30"
+            ]
+          }
+        ],
+        "note": "{char} reaches the top of a full hop on frame {FA}."
+      }
+    },
+    {
+      "name": "At the top",
+      "teach": "Full hop, then tap down at the top (frame {FA}). The fast fall starts on the next frame.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "FA",
+          "hold": 3
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed",
+        "FA": "Frame {FA}: the top. Down tapped",
+        "FA+1": "Fast falling"
+      },
+      "cues": [
+        {
+          "frames": [
+            "J+1",
+            "FA-3"
+          ],
+          "words": "Rising",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "FA-2",
+            "FA+1"
+          ],
+          "words": "Tap down now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "FA+2",
+            "FA+30"
+          ],
+          "words": "Fast falling",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "fast fell",
+        "at the top"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down",
+            "stick": "down",
+            "perfect": [
+              "FA"
+            ],
+            "window": [
+              "FA-2",
+              "FA+1"
+            ]
+          }
+        ],
+        "note": "{char} reaches the top of a full hop on frame {FA}."
+      }
+    },
+    {
+      "name": "From a short hop",
+      "teach": "Short hop, then tap down at the top (frame {SA}). A short hop's top comes sooner than a full hop's.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed and released",
+        "SA": "Frame {SA}: the top. Down tapped",
+        "SA+1": "Fast falling"
+      },
+      "checks": [
+        "short hop",
+        "fast fell",
+        "at the top"
+      ],
+      "streak": 5,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": true,
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "J-1"
+            ]
+          },
+          {
+            "label": "Down",
+            "stick": "down",
+            "perfect": [
+              "SA"
+            ],
+            "window": [
+              "SA-2",
+              "SA+1"
+            ]
+          }
+        ],
+        "note": "{char} reaches the top of a short hop on frame {SA}."
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no fast fall",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        }
+      ],
+      "fails": "fast fell"
+    },
+    {
+      "name": "down held from before the top",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+2",
+          "hold": 60
+        }
+      ],
+      "fails": "fast fell"
+    },
+    {
+      "name": "late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "FA+5",
+          "hold": 2
+        }
+      ],
+      "fails": "at the top"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Down",
+        "stick": "down",
+        "perfect": [
+          "FA"
+        ],
+        "window": [
+          "FA-2",
+          "FA+1"
+        ]
+      }
+    ],
+    "note": "{char} reaches the top of a full hop on frame {FA}."
+  }
+}

@@ -54,25 +54,69 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
 
 ### The words
 
-- **Events**: `{"enters": STATE}` (jump_squat, wait, landing, air_dodge...), `"airborne"`.
-- **Measures**: `"jump_kind"` (short or full: the rise speed on the first frame in the air
-  against the character's two jump speeds), `{"held": BUTTON}` (frames held from the
-  attempt's first frame). Buttons: A B X Y Z L R, `jump` (X or Y), `shield` (L or R).
-- **Expectations**: `equals`, `at_most`, `at_least`, `within: [lo, hi]`.
-- **Inputs**: `{"press": BUTTON, "frame": F, "hold": H}`, `{"stick": [x, y], ...}`,
-  `{"cstick": [x, y], ...}`, `{"trigger": "L"|"R", "amount": 0..1, ...}`. Frame 1 is the
-  attempt's first; stick x positive is forward.
+All of them are defined in `tools/melee_drills/format.py` (checked) and played by
+`tools/melee_drills/drill.py`. A word a drill needs and this list lacks is added there, with
+its proof, never written into one drill's file.
+
+- **Numbers** a drill may name (in any number or `{expression}` in words): `J` (jump squat),
+  `LAND` (normal landing lag), `FA` / `SA` (the frame, counting the jump's press as 1, on
+  which a full jump / a short hop reaches its top: the first frame falling), `{char}`.
+- **States** (`STATES`): the game's action states by name, a tuple being a group any of whose
+  states counts: `wait turn dash run run_brake jump_squat jump double_jump fall special_fall
+  squat landing landing_special up_smash nair fair bair uair dair aerial aerial_landing
+  shield grab dash_grab air_dodge platform_drop teeter ledge ledge_catch ledge_hang`, and
+  Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
+  shine_ground`.
+- **Events** (when something happens, frame by frame): `start`, `end`, `airborne`, `lands`,
+  `apex` (the first frame not rising), `fast_fall`, `hit` (damage taken), `hitlag_end`;
+  `{"enters": S, "from": S2}`, `{"leaves": S, "to": S2}`, `{"pressed": B}`,
+  `{"released": B}`, `{"stick": D}` / `{"cstick": D}` (D: `up down forward back neutral`,
+  past the game's 0.6625, forward being where the fighter faces), `{"frame": N}` (the
+  attempt's frame N); any of them with `"in_air": true` or `"on_ground": true`; a list is
+  any of its events.
+- **Measures**: `"jump_kind"` (short or full), `{"held": B}` (frames held from frame 1),
+  `{"frames": [E1, E2]}` (from E1 to the first E2 after it; the same event twice: to its
+  next time; `"last": true`: from the last E1 before E2), `{"frame_of": E}`,
+  `{"happened": E}`, `{"count": E}`, `{"value": F, "at": E}` (F: `x y dx dy vx vy percent
+  state facing hitlag turned`; dx, dy from frame 1, dx toward where the fighter faced),
+  `{"distance": [E1, E2], "axis": "x"|"y"|"xy"}`, `{"frames_while": C, "from": E}` (C:
+  `invulnerable airborne grounded hitlag` or `{"in": S}`: consecutive frames from E),
+  `{"angle": "stick"|"velocity", "at": E}` (degrees, 0 forward, 90 up; velocity: how the
+  fighter moved on the next frame, knockback included). A measure of something that never
+  happened is none, and fails any check.
+- **Buttons**: A B X Y Z L R, `jump` (X or Y), `shield` (L or R), `lcancel` (L, R or Z; a
+  light trigger press counts).
+- **Expectations**: `equals` (a number, word or true/false), `at_most`, `at_least`,
+  `within: [lo, hi]`.
+- **Inputs**: `{"press": B, "frame": F, "hold": H}`, `{"stick": [x, y], ...}`,
+  `{"cstick": [x, y], ...}`, `{"trigger": "L"|"R", "amount": 0..1, ...}`; entries on the
+  same frame combine (down-B: a stick and a press). Frame 1 is the attempt's first; stick x
+  positive is forward. A full hop's jump is held `J+2` frames (a fixed 6 is a short hop for
+  Bowser).
+- **Attempt**: `start` and `judge` (events), `cancel` (events that drop it uncounted; by
+  default, leaving the start's state on the ground), `limit` (frames, default 150),
+  `timeout` (`judge` or `drop` at the limit). A part may change any of them (`attempt`).
+- **Scenarios**: `stage` (`final-destination battlefield yoshis-story dream-land
+  fountain-of-dreams pokemon-stadium`), `player` (`{"x"}` on the ground, `"above": Y` on
+  what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
+  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`. A part names
+  its scenario by index (`"scenario"`).
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
-  from another drill sleeps: out of play, out of the picture).
+  from another drill sleeps: out of play, out of the picture). Or `{"character", "x",
+  "facing": "player"|"away", "percent", "inputs", "every"}`: a CPU that plays `inputs` from
+  the frame after each reset (stick x toward the player), again every `every` frames.
 - **Lessons**: `{"title", "text", "show", "characters"}`; `text` is a paragraph or a list
-  of them; `show` is `{"example": {"inputs", "marks", "cues"}}` (played frame by frame
-  from the game's own pictures, each frame captioned) or `{"still": {"inputs", "frame",
+  of them; `show` is `{"example": {"inputs", "marks", "cues"}}` (played frame by frame from
+  the game's own pictures, each frame captioned) or `{"still": {"inputs", "frame",
   "cue"}}` (one picture of that example, its frame `frame`, with a cue `{"words", "kind"}`);
   `characters` (optional) is a number shown for every character in a table below, the
   player's marked (`"jump_squat"`).
 - **Cues**: `{"frames": [lo, hi], "words", "kind": "go" | "late" | "info"}`: a band of
-  colour and words over the example's picture on those frames ("Let go now: short hop" in
-  green, "Still held: full hop" in red); `{f}` in the words is the frame shown.
+  colour and words over the example's picture on those frames ("Release now: short hop" in
+  green, "Held here: full hop" in red); `{f}` in the words is the frame shown.
+- **Coach rows** (the drill's `coach`, or a part's own `coach`): `{"label", "button": B,
+  "held"}`, `{"label", "stick": "down"|"up"}` (a tap) or `{"label", "state": S}` (entered),
+  each with `perfect` and `window` frames.
 - **Cameras**: `"normal"` (the match camera), `"stage"` (the whole stage, still),
   `{"follow": "player", "distance": D, "height": H}`: the game's own free camera (the pause
   camera's) on the player, its eye D in front and H above; Training Mode's "Zoom" is 140
@@ -86,6 +130,15 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
   Measured through the window build (a stage point's move in the picture): a short hop
   9.8 px a frame at most and 146 px in all before, 0.35 and 2.3 after; a full hop 13.4 and
   291 before, 1.7 and 23 after; a dash is still followed, smoothly.
+
+### Finding the numbers in the game
+
+`python tools/melee_drills/probe.py <drill> [--part N] [--char C] [--inputs '[...]']` plays
+inputs in the drill's scenario and prints every frame (state, air, position, speed, hitlag,
+invulnerability, stick). A drill's frames come from this and the decomp, not memory: the
+fast fall's rule (`ftCommon_CheckFallFast`: falling, the stick past 0.6625, and reached
+there within the last 3 frames) and its top (the speed reaches 0.00 a hair above zero for
+characters whose jump speed divides evenly by their gravity, so a tap is held 3 frames).
 
 ## Tutorial and coach
 

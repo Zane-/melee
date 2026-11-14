@@ -18,6 +18,20 @@ ROOT = Path(__file__).resolve().parents[2]
 PARTS = ("Tech", "Punish", "Defense", "Neutral")
 SAVE = ROOT / "save" / "client.json"
 
+# a part as it is named on screen and in the course files (the owner,
+# 2026-11-14: "rename Tech to Tech skill"); the key stays (saves, styles)
+TITLE = {"Tech": "Tech skill"}
+
+# a part's subcourses, in order: `### NAME` sections of the part, each with
+# its own plan table (the owner, 2026-11-14: Tech skill split into
+# "Movement, Fundamentals, and Character")
+SUBCOURSES = {"Tech": ("Movement", "Fundamentals", "Character")}
+
+
+def title(part):
+    """A part's name on screen: "Tech skill"."""
+    return TITLE.get(part, part)
+
 # part: (what it trains, as the hub says it; the same in a few words, as the
 # drill list's footer says it). Plain words: the owner, 2026-11-13, asked
 # for "professional neutral language" and no taglines.
@@ -40,7 +54,8 @@ def _clean(cell):
 
 def load(cid):
     """{"id", "summary", "parts": {part: [drill, ...]}, "by_id"} or None.
-    A drill: number, id, name, goal, cpu, requires, leads, part."""
+    A drill: number, id, name, goal, cpu, requires, leads, part, sub (its
+    subcourse, "" for a part without them)."""
     path = ROOT / "data" / "courses" / (cid + ".md")
     if not path.exists():
         return None
@@ -50,17 +65,27 @@ def load(cid):
     course = dict(id=cid, summary=m.group(1).strip() if m else "", parts={},
                   by_id={})
     for part in PARTS:
-        m = re.search(r"^## " + part + r"\s*$(.*?)(?=^## |\Z)", text,
+        names = "|".join(re.escape(n) for n in {part, title(part)})
+        m = re.search(r"^## (?:" + names + r")\s*$(.*?)(?=^## |\Z)", text,
                       re.M | re.S)
         drills = []
-        for row in re.findall(r"^\| (\d+) \|(.*)\|\s*$", m.group(1) if m
-                              else "", re.M):
-            cells = [_clean(c) for c in row[1].split("|")]
+        subs = SUBCOURSES.get(part, ())
+        sub = ""
+        for line in (m.group(1) if m else "").splitlines():
+            head = re.match(r"^### (.+?)\s*$", line)
+            if head and head.group(1) in subs:
+                sub = head.group(1)
+                continue
+            row = re.match(r"^\| (\d+) \|(.*)\|\s*$", line)
+            if not row:
+                continue
+            cells = [_clean(c) for c in row.group(2).split("|")]
             if len(cells) < 6:
                 continue
-            drill = dict(number=int(row[0]), id=cells[0], name=cells[1],
-                         goal=cells[2], cpu=cells[3], requires=cells[4],
-                         leads=cells[5], part=part)
+            drill = dict(number=int(row.group(1)), id=cells[0],
+                         name=cells[1], goal=cells[2], cpu=cells[3],
+                         requires=cells[4], leads=cells[5], part=part,
+                         sub=sub)
             drills.append(drill)
             course["by_id"][drill["id"]] = drill
         course["parts"][part] = drills

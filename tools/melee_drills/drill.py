@@ -12,13 +12,94 @@ The parts: the drill teaches one part at a time (`part`); a part passed
 `streak` times in a row opens the next. A result says which part it was,
 whether it was passed, and which comes next.
 """
-from melee_course.engine import Drill, Ref, Row
+import math
+
+from melee_course.engine import Drill, Ref, Row, STICK_SMASH
 
 from melee_drills import format as F
 
 WAIT, ATTEMPT = 0, 1
 LIMIT = 150               # frames an attempt may last before it is dropped
 REF_START = 10            # the demonstration's frame 1, after its lead
+
+
+def _in(state, s):
+    """Is action state `state` the named state `s` (or one of its group)?"""
+    want = F.STATES[s]
+    return state in want if isinstance(want, tuple) else state == want
+
+
+def _region(x, y, d):
+    """Is the stick (raw, 80 = full; x toward where the fighter faces) in
+    direction `d`, past a smash (the game's 0.6625)?"""
+    if d == "down":
+        return y <= -STICK_SMASH
+    if d == "up":
+        return y >= STICK_SMASH
+    if d == "forward":
+        return x >= STICK_SMASH
+    if d == "back":
+        return x <= -STICK_SMASH
+    return abs(x) < STICK_SMASH and abs(y) < STICK_SMASH
+
+
+def holds(e, f, fd):
+    """Does event `e` (format.py's events) happen on frame record `f`
+    (Frame: its "p" the frame before it, None on the first one seen)?"""
+    if isinstance(e, list):
+        return any(holds(x, f, fd) for x in e)
+    p = f["p"]
+    if isinstance(e, str):
+        if e == "start":
+            return f["i"] == 0
+        if e == "end":
+            return f.get("last", False)
+        if p is None:
+            return False
+        if e == "airborne":
+            return f["air"] and not p["air"]
+        if e == "lands":
+            return not f["air"] and p["air"]
+        if e == "apex":
+            return f["air"] and f["vy"] <= 0.0 < p["vy"]
+        if e == "fast_fall":
+            # a fast fall sets the fall speed to the character's own at
+            # once; an ordinary fall only reaches terminal speed, slower
+            ff = -fd.fastfall_velocity * 0.98
+            return f["air"] and f["vy"] <= ff < p["vy"]
+        if e == "hit":
+            return f["percent"] > p["percent"]
+        if e == "hitlag_end":
+            return f["hitlag"] <= 0.0 < p["hitlag"]
+        return False
+    if e.get("in_air") and not f["air"]:
+        return False
+    if e.get("on_ground") and f["air"]:
+        return False
+    if "frame" in e:
+        return f["i"] == int(F.value(e["frame"], f["nums"])) - 1
+    if p is None:
+        return False
+    if "enters" in e:
+        return _in(f["state"], e["enters"]) and \
+            not _in(p["state"], e["enters"]) and \
+            ("from" not in e or _in(p["state"], e["from"]))
+    if "leaves" in e:
+        return not _in(f["state"], e["leaves"]) and \
+            _in(p["state"], e["leaves"]) and \
+            ("to" not in e or _in(f["state"], e["to"]))
+    if "pressed" in e:
+        bits = F.BUTTONS[e["pressed"]]
+        return bool(f["held"] & bits) and not p["held"] & bits
+    if "released" in e:
+        bits = F.BUTTONS[e["released"]]
+        return not f["held"] & bits and bool(p["held"] & bits)
+    for k, (x, y) in (("stick", ("lx", "ly")), ("cstick", ("cx", "cy"))):
+        if k in e:
+            now = _region(f[x] * f["facing"], f[y], e[k])
+            was = _region(p[x] * p["facing"], p[y], e[k])
+            return now and not was
+    return False
 
 
 class JsonDrill(Drill):
@@ -30,8 +111,9 @@ class JsonDrill(Drill):
         self.goal = spec["goal"]
         self.part = spec["part"]
         sc = spec["scenarios"][0]
-        self.cpu = None if sc.get("opponent", "none") == "none" else \
-            sc["opponent"]
+        op = sc.get("opponent", "none")
+        # the opponent's character (loaded with the match), or None
+        self.cpu = op["character"] if isinstance(op, dict) else None
         self.stage = sc.get("stage", "final-destination")
         chars = spec.get("characters", "all")
         self.characters = None if chars == "all" else tuple(chars)
@@ -46,6 +128,11 @@ class JsonDrill(Drill):
 
     def nums(self, c):
         return F.names(c.fd, c.fd.id.replace("-", " ").title())
+
+    def scenario(self):
+        """The scenario the part now is taught in (its "scenario", else
+        the first)."""
+        return self.spec["scenarios"][self.part_now.get("scenario", 0)]
 
     @property
     def parts(self):
@@ -63,10 +150,37 @@ class JsonDrill(Drill):
     # ---- the course runtime's hooks ------------------------------------------------
 
     def setup(self, c):
-        sc = self.spec["scenarios"][0]
-        c.place_solo(float(sc["player"]["x"]))
+        sc = self.scenario()
+        nums = self.nums(c)
+        pl = sc["player"]
+        pct = float(F.value(pl.get("percent", 0), nums))
+        facing = -1 if pl.get("facing") == "left" else 1
+        if pl.get("ledge"):
+            c.place_on_ledge(pct)
+        elif "above" in pl:
+            c.place_on_platform(float(pl["x"]), float(F.value(
+                pl["above"], nums)), facing, pct)
+        elif pl.get("air"):
+            c.side, c.toward = 1.0, -1.0
+            c.place_in_air(c.s.person, float(pl["x"]),
+                           float(F.value(pl.get("y", 30), nums)), facing,
+                           pct)
+        else:
+            c.side, c.toward = 1.0, -1.0
+            c.n.place(c.s.person, float(pl["x"]), 0.0, facing, False, pct)
+        op = sc.get("opponent", "none")
+        if isinstance(op, dict):
+            x = float(op["x"])
+            toward = -1 if x > float(pl.get("x", 0)) else 1
+            c.place_cpu(x, -toward if op.get("facing") == "away" else
+                        toward, float(F.value(op.get("percent", 0), nums)))
+            self.op_refs = inputs_to_refs(op.get("inputs", []), nums, 1) \
+                if op.get("inputs") else []
+            self.op_toward = toward
+        else:
+            self.op_refs = []
         self.camera(c.n, c.s.person)
-        self.v = dict(rec=[])
+        self.v = dict(rec=[], last=None)
 
     filming = False     # the client recording the tutorial's examples
 
@@ -76,7 +190,7 @@ class JsonDrill(Drill):
         camera back when the drill is left). A game built before the camera
         command keeps its own camera."""
         from native import NativeError
-        cam = self.spec["scenarios"][0].get("camera", "normal")
+        cam = self.scenario().get("camera", "normal")
         if self.filming:            # the tutorial's examples: its own
             cam = self.spec["tutorial"].get("camera", cam)
         try:
@@ -104,52 +218,132 @@ class JsonDrill(Drill):
     def timeline(self, c):
         nums = self.nums(c)
         rows = []
-        for r in self.spec["coach"].get("rows", []):
+        coach = self.part_now.get("coach", self.spec["coach"])
+        for r in coach.get("rows", []):
+            kw = {}
+            if "button" in r:
+                kw = dict(buttons=F.BUTTONS[r["button"]],
+                          held=r.get("held", True))
+            elif "stick" in r:
+                d = r["stick"]
+                kw = dict(test=lambda e, d=d: (
+                    e["ly"] <= -STICK_SMASH < e["ply"]) if d == "down" else
+                    (e["ly"] >= STICK_SMASH > e["ply"]))
+            else:
+                st = r["state"]
+                kw = dict(state=lambda s, st=st: _in(s, st),
+                          entered=not r.get("held", False))
             rows.append(Row(
-                F.text(r["label"], nums), buttons=F.BUTTONS[r["button"]],
-                held=r.get("held", True),
+                F.text(r["label"], nums),
                 perfect=tuple(int(F.value(x, nums))
                               for x in r.get("perfect", [1])),
                 window=tuple(int(F.value(x, nums)) for x in r["window"])
-                if "window" in r else None))
-        return rows, F.text(self.spec["coach"].get("note", ""), nums)
+                if "window" in r else None, **kw))
+        return rows, F.text(coach.get("note", ""), nums)
 
     # ---- an attempt, frame by frame ------------------------------------------------
 
-    def _happened(self, event, c, rec):
-        if event == "airborne":
-            return c.me.airborne
-        state = F.STATES[event["enters"]]
-        return c.state == state and c.state_frames == 1
+    def _frame(self, c):
+        """This frame as the events and measures read it."""
+        me = c.me
+        log = c.s.tl_log[-1] if c.s.tl_log else {}
+        held = c.held
+        if log.get("trig"):
+            held |= F.BUTTONS["L"]  # (a light press: as L, for L-cancels)
+        return dict(state=me.state, air=me.airborne, x=me.pos[0],
+                    y=me.pos[1], vx=me.vel[0], vy=me.vel[1],
+                    facing=1 if me.facing >= 0 else -1,
+                    percent=me.percent, hitlag=me.hitlag,
+                    invulnerable=me.invulnerable, held=held,
+                    lx=log.get("lx", 0), ly=log.get("ly", 0),
+                    cx=log.get("cx", 0), cy=log.get("cy", 0),
+                    p=self.v.get("last"), i=-1, nums=self.v.get("nums"))
+
+    def _opponent(self, c):
+        """The opponent's inputs this frame (its "inputs", frame 1 the
+        first after the reset, again every "every" frames); stick x
+        toward the player."""
+        if not self.op_refs:
+            return
+        op = self.scenario()["opponent"]
+        t = c.timer
+        if op.get("every"):
+            t = (t - 1) % op["every"] + 1
+        for r in self.op_refs:
+            # (a Ref's sticks are a script's -127..127, as cpu_press takes
+            # them; frame 1 the first after the reset: the example's frame
+            # f is the opponent's f + 13, REF_LEAD and REF_START)
+            if r.frame <= t < r.frame + (r.hold or 1):
+                c.cpu_press(r.buttons,
+                            int(r.lx * self.op_toward) if r.lx else None,
+                            int(r.ly) if r.ly else None,
+                            int(r.cx * self.op_toward) if r.cx else None,
+                            int(r.cy) if r.cy else None,
+                            r.trigger or None)
+
+    def attempt(self):
+        """The part's attempt: the drill's, with what the part changes."""
+        a = dict(self.spec["attempt"])
+        a.update(self.part_now.get("attempt", {}))
+        return a
 
     def think(self, c):
-        a = self.spec["attempt"]
+        a = self.attempt()
         v = self.v
+        v["nums"] = v.get("nums") or self.nums(c)
+        self._opponent(c)
+        f = self._frame(c)
+        if c.phase == WAIT and f["p"] is not None:
+            f["p"]["p"] = None      # (no chain of every frame since)
+        v["last"] = f
         if c.phase == WAIT:
-            if not self._happened(a["start"], c, None):
+            f["i"] = 0
+            if not holds(a["start"], f, c.fd):
                 return
             c.set_phase(ATTEMPT)
             c.tl_begin()
             v["rec"] = []
         rec = v["rec"]
-        rec.append(dict(state=c.state, air=c.me.airborne, vy=c.me.vel[1],
-                        held=c.held, down=c.down))
-        if self._happened(a["judge"], c, rec):
+        f["i"] = len(rec)
+        rec.append(f)
+        if holds(a["judge"], f, c.fd):
             self._judge(c, rec)
             return
-        start = a["start"]
-        left = isinstance(start, dict) and "enters" in start and \
-            c.state != F.STATES[start["enters"]]
-        if (left and not c.me.airborne) or len(rec) > LIMIT:
-            # it went another way (a hit, a jump-cancelled move): not an
-            # attempt at this
+        cancel = a.get("cancel")
+        if cancel is None:
+            # by default: an attempt that began on entering a state and
+            # left it on the ground went another way (a hit, a jump-
+            # cancelled move)
+            start = a["start"]
+            cancel = {"leaves": start["enters"], "on_ground": True} \
+                if isinstance(start, dict) and "enters" in start else []
+        if cancel and holds(cancel, f, c.fd):
             c.set_phase(WAIT)
+        elif len(rec) > a.get("limit", LIMIT):
+            if a.get("timeout") == "judge":
+                self._judge(c, rec)
+            else:
+                c.set_phase(WAIT)
+
+    @staticmethod
+    def _index(e, rec, fd, after=0):
+        """The first frame of `rec` from `after` on that event `e` holds
+        on, or None."""
+        for k in range(after, len(rec)):
+            if holds(e, rec[k], fd):
+                return k
+        return None
 
     def _measure(self, m, c, rec):
+        fd = c.fd
+        rec[-1]["last"] = True
         if m == "jump_kind":
-            vy = rec[-1]["vy"]
+            # the rise on the first frame in the air: a short hop's speed
+            # or a full jump's
+            k = self._index("airborne", rec, fd)
+            vy = rec[k if k is not None else -1]["vy"]
             return "short" if vy < (c.fd.hop_v + c.fd.jump_v) / 2 else "full"
-        if isinstance(m, dict) and "held" in m:
+        if "held" in m:
             bits = F.BUTTONS[m["held"]]
             n = 0
             for r in rec:
@@ -157,12 +351,98 @@ class JsonDrill(Drill):
                     break
                 n += 1
             return n
+        if "frames" in m:
+            first, second = m["frames"]
+            if m.get("last"):
+                # from the last [0] up to the first [1]: the L press that
+                # counted, not an earlier one
+                b = self._index(second, rec, fd)
+                if b is None:
+                    return None
+                a = next((k for k in range(b, -1, -1)
+                          if holds(first, rec[k], fd)), None)
+                return None if a is None else b - a
+            a = self._index(first, rec, fd)
+            # the same event twice: its next time (a shine to the next)
+            b = None if a is None else self._index(
+                second, rec, fd, a + 1 if first == second else a)
+            return None if b is None else b - a
+        if "frame_of" in m:
+            k = self._index(m["frame_of"], rec, fd)
+            return None if k is None else k + 1
+        if "happened" in m:
+            return self._index(m["happened"], rec, fd) is not None
+        if "count" in m:
+            return sum(1 for f in rec if holds(m["count"], f, fd))
+        if "value" in m:
+            k = self._index(m.get("at", "end"), rec, fd)
+            if k is None:
+                return None
+            f, first = rec[k], rec[0]
+            if m["value"] == "turned":
+                return f["facing"] != first["facing"]
+            if m["value"] == "dx":
+                return round((f["x"] - first["x"]) * first["facing"], 2)
+            if m["value"] == "dy":
+                return round(f["y"] - first["y"], 2)
+            v = f[m["value"]]
+            return round(v, 2) if isinstance(v, float) else v
+        if "distance" in m:
+            a = self._index(m["distance"][0], rec, fd)
+            b = None if a is None else self._index(m["distance"][1], rec, fd,
+                                                   a)
+            if b is None:
+                return None
+            dx = rec[b]["x"] - rec[a]["x"]
+            dy = rec[b]["y"] - rec[a]["y"]
+            axis = m.get("axis", "x")
+            return round(abs(dx) if axis == "x" else abs(dy) if axis == "y"
+                         else math.hypot(dx, dy), 2)
+        if "frames_while" in m:
+            k = self._index(m.get("from", "start"), rec, fd)
+            if k is None:
+                return None
+            cond = m["frames_while"]
+            n = 0
+            for f in rec[k:]:
+                if isinstance(cond, dict):
+                    ok = _in(f["state"], cond["in"])
+                elif cond == "invulnerable":
+                    ok = f["invulnerable"]
+                elif cond == "airborne":
+                    ok = f["air"]
+                elif cond == "grounded":
+                    ok = not f["air"]
+                else:
+                    ok = f["hitlag"] > 0
+                if not ok:
+                    break
+                n += 1
+            return n
+        if "angle" in m:
+            k = self._index(m.get("at", "end"), rec, fd)
+            if k is None:
+                return None
+            f = rec[k]
+            if m["angle"] == "stick":
+                x, y = f["lx"] * f["facing"], f["ly"]
+                if abs(x) < 8 and abs(y) < 8:
+                    return None
+            else:
+                # how it moved on the next frame (knockback included)
+                if k + 1 >= len(rec):
+                    return None
+                x = (rec[k + 1]["x"] - f["x"]) * f["facing"]
+                y = rec[k + 1]["y"] - f["y"]
+            return round(math.degrees(math.atan2(y, x)))
         raise F.DrillError("unknown measure %r" % (m,))
 
     def _check(self, name, c, rec, nums, measured):
         ck = self.spec["checks"][name]
         got = measured[ck["measure"]]
-        if "equals" in ck:
+        if got is None:
+            ok = False      # it never happened: nothing to compare
+        elif "equals" in ck:
             ok = got == ck["equals"]
         elif "at_most" in ck:
             ok = got <= F.value(ck["at_most"], nums)
@@ -171,9 +451,12 @@ class JsonDrill(Drill):
         else:
             lo, hi = (F.value(x, nums) for x in ck["within"])
             ok = lo <= got <= hi
-        more = dict(measure=got)
-        if isinstance(got, int):
+        more = dict(measure="none" if got is None else
+                    "yes" if got is True else "no" if got is False else got)
+        if isinstance(got, int) and not isinstance(got, bool):
             more["frames"] = F.plural(got)
+        else:
+            more["frames"] = more["measure"]
         more.update(self._named(measured))
         return dict(name=name, passed=bool(ok), measured=got,
                     expect=F.text(ck.get("expect", name), nums, **more),
@@ -187,9 +470,10 @@ class JsonDrill(Drill):
         """The measures as words may name them: {held}, {held_frames}."""
         out = {}
         for k, v in measured.items():
-            out[k] = v
-            if isinstance(v, int):
-                out[k + "_frames"] = F.plural(v)
+            out[k] = "none" if v is None else "yes" if v is True else \
+                "no" if v is False else v
+            out[k + "_frames"] = F.plural(v) if isinstance(v, int) and \
+                not isinstance(v, bool) else out[k]
         return out
 
     def _judge(self, c, rec):

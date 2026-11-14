@@ -306,11 +306,13 @@ img { display: inline-block; }
 
 .tabs { position: absolute; left: 54dp; top: 120dp; width: 780dp; height: 40dp; display: flex; flex-direction: row; align-items: center; }
 .tabs .key, .tabs .gc, .tabs .gcimg { margin: 0dp 12dp 0dp 6dp; }
-.ptab { height: 40dp; padding: 0dp 22dp; margin-right: 10dp; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; border: 3dp #00000000; }
+.ptab { height: 40dp; padding: 0dp 16dp; margin-right: 8dp; white-space: nowrap; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; border: 3dp #00000000; }
 .ptab.on { border-color: #12161C; }
-.ptab .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 23dp; text-transform: uppercase; letter-spacing: 1dp; }
+.ptab .un { white-space: nowrap; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 21dp; text-transform: uppercase; letter-spacing: 1dp; }
 .listhead { position: absolute; left: 48dp; top: 172dp; width: 780dp; height: 28dp; box-sizing: border-box; padding: 0dp 14dp; display: flex; flex-direction: row; align-items: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 13dp; color: #4A5361; }
 .rows { position: absolute; left: 48dp; top: 200dp; width: 780dp; height: 416dp; }
+/* a subcourse's heading over its rows (Tech skill: Movement...) */
+.rsub { height: 22dp; margin-bottom: 4dp; padding-left: 14dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; color: #4A5361; text-transform: uppercase; letter-spacing: 1dp; display: flex; flex-direction: row; align-items: flex-end; }
 .r { height: 48dp; margin-bottom: 4dp; box-sizing: border-box; padding: 0dp 14dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; }
 .r.on { background-color: #12161C; color: #F3F6FA; }
 .c-n { width: 56dp; box-sizing: border-box; display: flex; flex-direction: row; align-items: center; }

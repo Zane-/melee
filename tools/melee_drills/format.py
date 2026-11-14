@@ -53,23 +53,61 @@ DIR = os.path.join(ROOT, "data", "drills")
 
 PARTS = ("tech", "neutral", "punish", "defense")
 
-# action states by name (ftCo_MS_*, as the game numbers them)
+# action states by name (ftCo_MS_* and Fox's ftFx_MS_*, as the game numbers
+# them: src/melee/ft/kinds/ftCommon/forward.h, ftFox/forward.h); a tuple is
+# a group, any of whose states counts
 STATES = {
-    "wait": 14, "jump_squat": 24, "jump_f": 25, "jump_b": 26,
-    "landing": 42, "landing_special": 43, "air_dodge": 236,
+    "wait": 14, "turn": 18, "turn_run": 19, "dash": 20, "run": 21,
+    "run_brake": 23, "jump_squat": 24, "jump_f": 25, "jump_b": 26,
+    "jump": (25, 26), "double_jump": (27, 28),
+    "fall": (29, 30, 31, 32, 33, 34), "special_fall": (35, 36, 37),
+    "squat": (39, 40), "landing": 42, "landing_special": 43,
+    "up_smash": 63, "nair": 65, "fair": 66, "bair": 67, "uair": 68,
+    "dair": 69, "aerial": (65, 66, 67, 68, 69),
+    "aerial_landing": (70, 71, 72, 73, 74),
+    "shield": (178, 179, 180, 181, 182), "grab": 212, "dash_grab": 214,
+    "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),
+    "ledge": (252, 253), "ledge_catch": 252, "ledge_hang": 253,
+    # Fox
+    "laser": (341, 342, 343, 344, 345, 346),
+    "illusion": (347, 348, 349, 350, 351, 352),
+    "illusion_dash": (348, 351), "illusion_end": (349, 352),
+    "firefox_charge": (353, 354), "firefox": (355, 356),
+    "firefox_any": (353, 354, 355, 356, 357, 358, 359),
+    "shine": (360, 361, 362, 363, 364, 365, 366, 367, 368, 369),
+    "shine_ground": (360, 361, 362, 363, 364),
 }
 
 BUTTONS = {
     "A": 0x100, "B": 0x200, "X": 0x400, "Y": 0x800, "Z": 0x10,
     "R": 0x20, "L": 0x40, "jump": 0x400 | 0x800, "shield": 0x20 | 0x40,
+    # what L-cancels: L, R (a light press past the trigger threshold too)
+    # or Z
+    "lcancel": 0x20 | 0x40 | 0x10,
 }
-BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R"}
+BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
+                "lcancel": "L, R or Z"}
 
-EVENTS = ("enters", "airborne")
-MEASURES = ("jump_kind", "held")
+# events: when something happened, frame by frame. A word, or a dict of one
+# kind (with "in_air" / "on_ground": true to require either, "from" / "to"
+# a state for enters / leaves), or a list of them (any)
+SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
+                 "hit", "hitlag_end")
+EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
+               "frame")
+EVENT_MODS = ("in_air", "on_ground", "from", "to")
+DIRECTIONS = ("up", "down", "forward", "back", "neutral")
+EVENTS = SIMPLE_EVENTS + EVENT_KINDS
+MEASURES = ("jump_kind", "held", "frames", "frame_of", "happened", "count",
+            "value", "distance", "frames_while", "angle")
+# what a "value" measure reads at an event: dx, dy from the attempt's first
+# frame (dx toward where the player faced then)
+FIELDS = ("x", "y", "dx", "dy", "vx", "vy", "percent", "state", "facing",
+          "hitlag", "turned")
+CONDITIONS = ("invulnerable", "airborne", "grounded", "hitlag")
 EXPECTS = ("equals", "at_most", "at_least", "within")
 INPUTS = ("press", "stick", "cstick", "trigger")
-OPPONENTS = ("none",)
+OPPONENTS = ("none",)       # or {"character", "x", "inputs", ...}
 CUE_KINDS = ("go", "late", "info")
 # a character's numbers a lesson can list for every character: its name in
 # expressions, where it is in data/framedata/<id>.json
@@ -85,6 +123,9 @@ TOP = {
     "checks": dict, "verdict": dict, "parts": list, "coach": dict,
 }
 OPTIONAL = {"characters": (str, list), "mistakes": list}
+PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent")
+OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every")
+ATTEMPT_KEYS = ("start", "judge", "cancel", "limit", "timeout")
 
 
 class DrillError(Exception):
@@ -95,8 +136,15 @@ class DrillError(Exception):
 
 def names(fd, char_name=""):
     """The numbers a drill may name, for one character (its frame data,
-    melee_course.engine.FighterData)."""
-    return {"J": fd.jump_squat, "char": char_name or fd.id}
+    melee_course.engine.FighterData): J its jump squat, LAND its normal
+    landing lag, FA and SA the frames (from the jump's press, frame 1) on
+    which a full jump and a short hop reach their top: the first frame
+    falling (the rise lasts its speed over gravity, after the squat)."""
+    import math
+    return {"J": fd.jump_squat, "LAND": fd.landing_lag,
+            "FA": fd.jump_squat + math.ceil(fd.jump_v / fd.gravity) + 1,
+            "SA": fd.jump_squat + math.ceil(fd.hop_v / fd.gravity) + 1,
+            "char": char_name or fd.id}
 
 
 _OPS = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Add, ast.Sub, ast.Mult,
@@ -155,8 +203,8 @@ def _problems(spec):
             out.append("%s: %s" % (where, what))
         return cond
 
-    test = {"J": 3, "char": "Fox", "measure": "x", "frames": "2 frames",
-            "f": 1}
+    test = {"J": 3, "LAND": 4, "FA": 20, "SA": 12, "char": "Fox",
+            "measure": "x", "frames": "2 frames", "f": 1}
     for m in spec.get("measures", {}) if isinstance(spec.get("measures"),
                                                      dict) else ():
         test[m] = 2
@@ -203,20 +251,69 @@ def _problems(spec):
             extra = set(inp) - {k, "frame", "hold", "amount"}
             need(not extra, w, "unknown %s" % ", ".join(sorted(extra)))
 
+    def state(v, where):
+        need(v in STATES, where, "unknown state %r" % (v,))
+
     def event(e, where):
-        if e == "airborne":
+        if isinstance(e, list):
+            need(len(e) > 0, where, "an empty list of events")
+            for i, x in enumerate(e):
+                event(x, "%s[%d]" % (where, i))
             return
-        if need(isinstance(e, dict) and len(e) == 1, where,
-                "an event: %s" % ", ".join(EVENTS)):
-            k, v = next(iter(e.items()))
-            if need(k == "enters", where, "unknown event %r" % k):
-                need(v in STATES, where, "unknown state %r" % v)
+        if isinstance(e, str):
+            need(e in SIMPLE_EVENTS, where, "unknown event %r" % e)
+            return
+        if not need(isinstance(e, dict), where,
+                    "an event: %s" % ", ".join(EVENTS)):
+            return
+        kinds = [k for k in EVENT_KINDS if k in e]
+        if not need(len(kinds) == 1, where, "one of %s" %
+                    ", ".join(EVENT_KINDS)):
+            return
+        k = kinds[0]
+        v = e[k]
+        if k in ("enters", "leaves"):
+            state(v, where)
+        elif k in ("pressed", "released"):
+            need(v in BUTTONS, where, "unknown button %r" % (v,))
+        elif k in ("stick", "cstick"):
+            need(v in DIRECTIONS, where, "%s: one of %s" % (
+                k, ", ".join(DIRECTIONS)))
+        else:
+            num(v, where + ".frame")
+        for m in ("from", "to"):
+            if m in e:
+                state(e[m], where + "." + m)
+        extra = set(e) - {k} - set(EVENT_MODS)
+        need(not extra, where, "unknown %s" % ", ".join(sorted(extra)))
 
     def marks(m, where):
         if need(isinstance(m, dict), where, "{frame: words} expected"):
             for f, w in m.items():
                 num(f, "%s[%s]" % (where, f))
                 words(w, "%s[%s]" % (where, f))
+
+    def coach_block(co, where):
+        """A coach's rows (button, stick or state; window, perfect) and
+        note: the drill's, or a part's own."""
+        for i, r in enumerate(co.get("rows", [])):
+            w = "%s.rows[%d]" % (where, i)
+            words(r.get("label"), w + ".label")
+            kinds = [k for k in ("button", "stick", "state") if k in r]
+            if need(len(kinds) == 1, w, "one of button, stick, state"):
+                k = kinds[0]
+                if k == "button":
+                    need(r["button"] in BUTTONS, w, "unknown button")
+                elif k == "stick":
+                    need(r["stick"] in ("down", "up"), w,
+                         "stick: down or up")
+                else:
+                    state(r["state"], w + ".state")
+            for x in r.get("window", []):
+                num(x, w + ".window")
+            for x in r.get("perfect", []):
+                num(x, w + ".perfect")
+        words(co.get("note", ""), where + ".note")
 
     for k, typ in TOP.items():
         need(k in spec, "drill", "no %r" % k) and \
@@ -296,26 +393,100 @@ def _problems(spec):
     for i, sc in enumerate(spec["scenarios"]):
         w = "scenarios[%d]" % i
         need(isinstance(sc.get("name"), str), w, "no name")
-        need(sc.get("opponent") in OPPONENTS, w, "opponent: one of %s"
-             % ", ".join(OPPONENTS))
-        need(isinstance(sc.get("player", {}).get("x"), (int, float)), w,
-             "player: {\"x\": number}")
+        pl = sc.get("player", {})
+        if need(isinstance(pl, dict), w, "player: {...}"):
+            if pl.get("ledge"):
+                need(pl["ledge"] in ("left", "right", True), w,
+                     "player.ledge: left or right")
+            else:
+                need(isinstance(pl.get("x"), (int, float)), w,
+                     'player: {"x": number}')
+            for k in ("y", "above", "percent"):
+                if k in pl:
+                    num(pl[k], "%s.player.%s" % (w, k))
+            if "facing" in pl:
+                need(pl["facing"] in ("left", "right"), w,
+                     "player.facing: left or right")
+            extra = set(pl) - set(PLAYER_KEYS)
+            need(not extra, w, "player: unknown %s" % ", ".join(sorted(extra)))
+        op = sc.get("opponent", "none")
+        if isinstance(op, dict):
+            need(isinstance(op.get("character"), str), w,
+                 "opponent.character: a character id")
+            need(isinstance(op.get("x"), (int, float)), w,
+                 "opponent.x: a number")
+            if "facing" in op:
+                need(op["facing"] in ("player", "away"), w,
+                     "opponent.facing: player or away")
+            if "percent" in op:
+                num(op["percent"], w + ".opponent.percent")
+            if "inputs" in op:
+                inputs(op["inputs"], w + ".opponent.inputs")
+            if "every" in op:
+                need(isinstance(op["every"], int) and op["every"] > 0, w,
+                     "opponent.every: frames")
+            extra = set(op) - set(OPPONENT_KEYS)
+            need(not extra, w, "opponent: unknown %s" %
+                 ", ".join(sorted(extra)))
+        else:
+            need(op in OPPONENTS, w, "opponent: none, or a character")
         camera(sc.get("camera", "normal"), w)
 
     a = spec["attempt"]
     event(a.get("start"), "attempt.start")
     event(a.get("judge"), "attempt.judge")
+    if "cancel" in a:
+        event(a["cancel"], "attempt.cancel")
+    if "limit" in a:
+        need(isinstance(a["limit"], int) and a["limit"] > 0,
+             "attempt.limit", "frames")
+    if "timeout" in a:
+        need(a["timeout"] in ("judge", "drop"), "attempt.timeout",
+             "judge or drop")
+    extra = set(a) - set(ATTEMPT_KEYS)
+    need(not extra, "attempt", "unknown %s" % ", ".join(sorted(extra)))
 
     for name, m in spec["measures"].items():
         w = "measures[%r]" % name
         need(re.match(r"^[a-z_]+$", name) is not None, w,
              "a name of lower case letters and _")
         if m == "jump_kind":
-            pass
-        elif isinstance(m, dict) and set(m) == {"held"}:
+            continue
+        kinds = [k for k in MEASURES if isinstance(m, dict) and k in m]
+        if not need(len(kinds) == 1, w, "unknown measure %r" % (m,)):
+            continue
+        k = kinds[0]
+        if k == "held":
             need(m["held"] in BUTTONS, w, "unknown button %r" % m["held"])
-        else:
-            out.append("%s: unknown measure %r" % (w, m))
+        elif k in ("frames", "distance"):
+            if need(isinstance(m[k], list) and len(m[k]) == 2, w,
+                    "%s: [event, event]" % k):
+                event(m[k][0], w + "[0]")
+                event(m[k][1], w + "[1]")
+            if k == "distance" and "axis" in m:
+                need(m["axis"] in ("x", "y", "xy"), w, "axis: x, y or xy")
+            if "last" in m:
+                need(m["last"] is True and k == "frames", w,
+                     'last: true (frames: from the last [0] before [1])')
+        elif k in ("frame_of", "happened", "count"):
+            event(m[k], w)
+        elif k == "value":
+            need(m["value"] in FIELDS, w, "value: one of %s" %
+                 ", ".join(FIELDS))
+            event(m.get("at", "end"), w + ".at")
+        elif k == "frames_while":
+            cond = m["frames_while"]
+            if isinstance(cond, dict):
+                need(set(cond) == {"in"}, w, 'frames_while: {"in": STATE}')
+                state(cond.get("in"), w)
+            else:
+                need(cond in CONDITIONS, w, "frames_while: one of %s" %
+                     ", ".join(CONDITIONS))
+            event(m.get("from", "start"), w + ".from")
+        elif k == "angle":
+            need(m["angle"] in ("stick", "velocity"), w,
+                 "angle: stick or velocity")
+            event(m.get("at", "end"), w + ".at")
     words(spec["verdict"].get("success"), "verdict.success")
 
     for name, c in spec["checks"].items():
@@ -349,6 +520,20 @@ def _problems(spec):
             need(c in spec["checks"], w, "no check %r" % c)
         need(isinstance(p.get("streak"), int) and p["streak"] >= 1, w,
              "streak: a whole number from 1")
+        if "coach" in p:
+            coach_block(p["coach"], w + ".coach")
+        if "attempt" in p:
+            pa = p["attempt"]
+            for k in ("start", "judge", "cancel"):
+                if k in pa:
+                    event(pa[k], "%s.attempt.%s" % (w, k))
+            extra = set(pa) - set(ATTEMPT_KEYS)
+            need(not extra, w + ".attempt", "unknown %s" %
+                 ", ".join(sorted(extra)))
+        if "scenario" in p:
+            need(isinstance(p["scenario"], int) and
+                 0 <= p["scenario"] < len(spec["scenarios"]), w,
+                 "scenario: an index of the drill's scenarios")
 
     for i, m in enumerate(spec.get("mistakes", [])):
         w = "mistakes[%d]" % i
@@ -356,18 +541,7 @@ def _problems(spec):
         inputs(m.get("inputs"), w + ".inputs")
         need(m.get("fails") in spec["checks"], w, "fails: a check's name")
 
-    co = spec["coach"]
-    for i, r in enumerate(co.get("rows", [])):
-        w = "coach.rows[%d]" % i
-        words(r.get("label"), w + ".label")
-        need(r.get("button") in BUTTONS, w, "unknown button")
-        if "window" in r:
-            for x in r["window"]:
-                num(x, w + ".window")
-        if "perfect" in r:
-            for x in r["perfect"]:
-                num(x, w + ".perfect")
-    words(co.get("note", ""), "coach.note")
+    coach_block(spec["coach"], "coach")
     return out
 
 

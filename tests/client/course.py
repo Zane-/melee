@@ -91,19 +91,24 @@ def main():
         tap("Left")
         tap("x")
         names = [d["name"] for d in c.drills()]
-        check("A opens the part's drills, as the course file lists them",
+        subs = [d["sub"] for d in c.drills()]
+        check("A opens Tech skill's drills, as the course file lists them, "
+              "in its three subcourses",
               c.screen == "list" and courses.PARTS[c.part] == "Tech" and
-              names[:3] == ["Short hop", "L-cancel", "SHFFL"] and
-              len(names) == 17, "%d drills" % len(names))
+              courses.title("Tech") == "Tech skill" and
+              names[:3] == ["Short hop", "Fast fall", "Dash dance"] and
+              len(names) == 27 and subs[0] == "Movement" and
+              subs[-1] == "Character" and "Fundamentals" in subs,
+              "%d drills" % len(names))
         every = [d["id"] for part in c.course["parts"].values()
                  for d in part]
         playable = [d for d in every if d in c.here]
         # (the drills were wiped 2026-11-14 and come back one at a time in
         # the drill format, docs/ai/drill-format.md: the course lists them
         # all, and the ones written in it play)
-        check("the course lists its 48 drills, and every one written in the "
+        check("the course lists its 58 drills, and every one written in the "
               "drill format plays here",
-              len(every) == 48 and "universal-short-hop" in playable and
+              len(every) == 58 and "universal-short-hop" in playable and
               all(d in c.here for d in fmt.ids() if d in every),
               "%d of %d playable: %s" % (len(playable), len(every),
                                          ", ".join(playable)))

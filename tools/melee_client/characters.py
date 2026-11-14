@@ -77,7 +77,9 @@ def _course(cid):
     text = path.read_text()
     counts = {}
     for part in PARTS:
-        m = re.search(r"^## " + part + r"\s*$(.*?)(?=^## |\Z)", text,
+        # (a part's heading may be its name on screen: "## Tech skill")
+        names = part + ("|Tech skill" if part == "Tech" else "")
+        m = re.search(r"^## (?:" + names + r")\s*$(.*?)(?=^## |\Z)", text,
                       re.M | re.S)
         counts[part] = len(re.findall(r"^\| \d+ \|", m.group(1), re.M)) \
             if m else 0
