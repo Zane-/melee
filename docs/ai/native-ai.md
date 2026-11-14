@@ -669,7 +669,9 @@ default 3; Settings > Display and the pause menu), a card over the frozen game:
 - the headline: the judge's own when it gives one (a tech drill: "Jump held 2 frames too
   long", "Air dodge 3 frames late", "L 2 frames early"), else the first timeline row off
   its window ("Dodge 5 frames late", "No jump in time"), else the drill's verdict;
-- the try against the target, played side by side in the game's own pictures (below):
+- the try against the target, played side by side in the game's own pictures (below; the
+  Y replay paces itself the same way, the timeline at half speed and the rest at the
+  game's):
   from 8 frames before the timeline to a moment after the try ended, at the game's speed
   and the timeline's frames at half of it, a short stop on the last frame and again (at
   first the timeline went at a quarter, each picture held four frames, with a longer
@@ -682,8 +684,7 @@ default 3; Settings > Display and the pause menu), a card over the frozen game:
   column for the frame is marked as it plays. **Frame by frame**: the D-pad (or the
   stick) left and right step both panels a frame back or on and pause there, up plays on
   ("frame by frame controls too so they can really see what the inputs should be like vs.
-  what they are doing!"). Each panel is cropped to where the fighters were all through
-  it (the player alone in a tech drill). The target of a course-engine drill is its
+  what they are doing!"). Each panel's pictures follow the fighters (below). The target of a course-engine drill is its
   demonstration played unseen (`quiet`) from the same situation: the same scenario, the
   same draws (`Session.run` with the try's `scenario_index`; run 0 draws the same
   numbers), and the session put back afterwards (`keep_session`/`restore_session`: the
@@ -706,14 +707,22 @@ stood.
 **The game's own pictures** (`src/host/frames.c`; the owner, 2026-11-14: "doesn't seem we
 have a robust animation system as well, chain grab doesn't have any visuals. Need to ensure
 this is generic and works across the board"). While a drill plays, each frame the game
-draws is copied out of its frame buffer at 480 by 360 (`GXCopyTex` at the frame boundary,
-before Aurora ends the frame) into a ring of the last 300: Aurora keeps a copy as a GPU
+draws, the part of it where the fighters are, is copied out of its frame buffer at 576 by
+432 (`GXCopyTex` at the frame boundary, before Aurora ends the frame) into a ring of the
+last 240. The part follows the fighters as a camera would (`follow_them`: both fighters,
+or in a tech drill the player alone; the floor below one in the air kept in, so a hop's
+height shows; room above their heads and more below for the panel's tag and input
+display; wide enough for a 16:9 panel from the middle of the 4:3; no narrower than 224 of
+the game's 640; wider at once, narrower slowly). At first the whole picture was copied at
+480 by 360 and a panel showed a part of it enlarged, about 130 pixels high on the owner's
+720-line window ("Looks like 240p resolution!", 2026-11-14); a part a third of the picture
+across is now copied at about the window's own resolution. Aurora keeps a copy as a GPU
 texture under the address it was copied "to", and those addresses are a static array of
 `frames.c` that nothing writes. A second patch to Aurora
 (`tools/aurora32/aurora-0002-copy-views.patch`) lets RmlUi draw such a copy wherever a
 document says `<img src="gxcopy://N">` (`aurora_rmlui_copy_view`: which copy view N shows,
 looked up when drawn, so nothing is cached or uploaded), and keeps copies to the ring at
-that size whatever the window's (`aurora_set_copy_exact`): 0.7 MB each, 370 MB for both
+that size whatever the window's (`aurora_set_copy_exact`): 1 MB each, 480 MB for both
 rings full. A copy is made in `GX_TF_RGB565`, which Aurora converts with the alpha set to
 1, so the picture is opaque under RmlUi's blending. Ring 0 is the live game; ring 1 a run
 played unseen, which `quiet 2` draws without showing (the window keeps its last picture,
@@ -721,7 +730,7 @@ no sound, no pacing) where `quiet 1` does not draw at all. Each picture keeps wh
 fighters were on screen (their feet and 20 units above, per port), for the crop. A
 picture's number is the frame number a driver is told after stepping it, so what the
 driver read of the game then is what the picture shows. Control: `frames rec|clear|range|
-view|box` (`Native.frames_*`). The rings are not part of the game's state: a state load
+view|box` (`Native.frames_*`; `frames rec RING MASK` names the ports to follow). The rings are not part of the game's state: a state load
 leaves them alone. A game built before `frames.c` makes the card fall back to drawn paths
 (the player's position frame by frame).
 

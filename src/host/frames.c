@@ -5,17 +5,29 @@
  * robust animation system ... Need to ensure this is generic and works
  * across the board"). Whatever the drill, its pictures are the game's own.
  *
- * Each frame drawn, while a ring is recording, the picture is copied out of
- * the game's frame buffer at a reduced size (GXCopyTex). Aurora keeps each
- * copy as a texture on the GPU under the address it was "copied to"; nothing
- * is written there. The addresses are this file's: a ring is SLOTS of them,
- * reused in turn, so a ring holds the last SLOTS frames. RmlUi draws one
- * where a document says "gxcopy://VIEW" (tools/aurora32's second patch).
- * Copies to these addresses keep one size at any window size
- * (aurora_set_copy_exact): about 0.7 MB each, 370 MB for both rings full.
+ * Each frame drawn, while a ring is recording, the part of the picture
+ * where the fighters are is copied out of the game's frame buffer
+ * (GXCopyTex). Aurora keeps each copy as a texture on the GPU under the
+ * address it was "copied to"; nothing is written there. The addresses are
+ * this file's: a ring is SLOTS of them, reused in turn, so a ring holds the
+ * last SLOTS frames. RmlUi draws one where a document says "gxcopy://VIEW"
+ * (tools/aurora32's second patch). Copies to these addresses keep one size
+ * at any window size (aurora_set_copy_exact): 1 MB each, 480 MB for both
+ * rings full.
  *
- *   frames rec RING        copy each frame drawn into ring RING (0 or 1);
- *                          -1: none. The reply: the frame number now
+ * The part copied follows the fighters as a camera would (follow): it takes
+ * them all in with room round them (above their heads most), wide enough
+ * for the 16:9 panels to show them from the middle of its 4:3, and no closer
+ * than about three times the game's own view; it widens at once and narrows
+ * slowly. At first the whole picture was copied, at 480x360, and the panels
+ * showed a part of it enlarged: "Looks like 240p resolution!" (the owner,
+ * 2026-11-14). Now a part a third of the picture across is copied at about
+ * the window's own resolution.
+ *
+ *   frames rec RING [M]    copy each frame drawn into ring RING (0 or 1),
+ *                          following the fighters of the ports in mask M
+ *                          (bit 0 port 1; all if not given); -1: none. The
+ *                          reply: the frame number now
  *   frames clear RING      forget a ring's pictures
  *   frames range RING      "LO HI": the oldest and newest frames kept, or
  *                          "-1 -1"
@@ -49,9 +61,11 @@
 #include <sysdolphin/baselib/gobj.h>
 
 #define RINGS 2
-#define SLOTS 300
-#define WIDTH 480
-#define HEIGHT 360
+#define SLOTS 240
+#define WIDTH 576 /* a copy's size, in pixels: 4:3 */
+#define HEIGHT 432
+#define CLOSEST 224.0F /* the narrowest part copied, of the game's 640 */
+#define ROOM 44.0F     /* round the fighters, in the game's units */
 
 void aurora_rmlui_copy_view(int view, const void* dest);
 void aurora_set_copy_exact(const void* begin, const void* end);
@@ -68,9 +82,20 @@ static struct {
 } ring[RINGS];
 
 static int recording = -1;
+static int follow = 15; ///< the ports the part copied follows
 
-/// Where each port's fighter is in the picture: its feet and a point above
-/// them, through the match camera (as "project" in control.c).
+/// The part of the picture each ring copies: its middle and width (its
+/// height is three quarters of that); `on` 0 until its first copy.
+static struct {
+    float cx, cy, w;
+    int on;
+} view[RINGS];
+
+/// Where each port's fighter is in the picture: its feet, a point above
+/// them and, in the air above the stage's floor, the floor below it (a
+/// part that followed only the fighter rose with a jump, and a full hop
+/// looked no higher than a short one), through the match camera (as
+/// "project" in control.c).
 static void fighters_box(float (*boxes)[4])
 {
     HSD_GObj* cam = Camera_80030A50();
@@ -88,9 +113,15 @@ static void fighters_box(float (*boxes)[4])
             box[0] = -1.0F;
             continue;
         }
-        for (k = 0; k < 2; k++) {
+        for (k = 0; k < 3; k++) {
             Vec3 at = { fp->cur_pos.x, fp->cur_pos.y + 20.0F * k,
                         fp->cur_pos.z };
+            if (k == 2) {
+                if (fp->cur_pos.y <= 0.0F) {
+                    break;
+                }
+                at.y = 0.0F; /* the main floor of every legal stage */
+            }
             Vec3 out;
             if (lbVector_WorldToScreen(cam->hsd_obj, &at, &out, 0) == NULL) {
                 continue;
@@ -106,12 +137,77 @@ static void fighters_box(float (*boxes)[4])
     }
 }
 
+static float clampf(float v, float lo, float hi)
+{
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
+/// Where ring `r` copies from this frame (left, top, width, height in the
+/// game's 640x480): the fighters followed, as a camera follows them.
+static void follow_them(int r, float (*boxes)[4], float* out)
+{
+    float x0 = 1e9F, y0 = 1e9F, x1 = -1e9F, y1 = -1e9F, w, cx, cy;
+    int port, any = 0;
+
+    for (port = 0; port < 4; port++) {
+        const float* b = boxes[port];
+        if (!(follow & (1 << port)) || b[0] < 0.0F) {
+            continue;
+        }
+        x0 = b[0] < x0 ? b[0] : x0;
+        y0 = b[1] < y0 ? b[1] : y0;
+        x1 = b[2] > x1 ? b[2] : x1;
+        y1 = b[3] > y1 ? b[3] : y1;
+        any = 1;
+    }
+    if (any) {
+        x0 -= ROOM;
+        x1 += ROOM;
+        y0 -= ROOM * 0.9F;
+        y1 += ROOM * 1.6F; /* the panel's tags and input display */
+        w = x1 - x0;
+        if ((y1 - y0) * 16.0F / 9.0F > w) {
+            w = (y1 - y0) * 16.0F / 9.0F;
+        }
+        w = clampf(w, CLOSEST, 640.0F);
+        cx = (x0 + x1) * 0.5F;
+        cy = (y0 + y1) * 0.5F;
+    } else {
+        w = 640.0F;
+        cx = 320.0F;
+        cy = 240.0F;
+    }
+    if (!view[r].on) {
+        view[r].cx = cx;
+        view[r].cy = cy;
+        view[r].w = w;
+        view[r].on = 1;
+    } else {
+        /* wider at once, narrower slowly; the middle eased */
+        view[r].w = w > view[r].w ? w : view[r].w + (w - view[r].w) * 0.06F;
+        view[r].cx += (cx - view[r].cx) * 0.25F;
+        view[r].cy += (cy - view[r].cy) * 0.25F;
+        if (any) {
+            /* the fighters kept in, whatever the easing */
+            float half = view[r].w * 0.5F, band = view[r].w * 0.28125F;
+            view[r].cx = clampf(view[r].cx, x1 - half, x0 + half);
+            view[r].cy = clampf(view[r].cy, y1 - band, y0 + band);
+        }
+    }
+    out[2] = (float) ((int) view[r].w & ~1);
+    out[3] = (float) ((int) (out[2] * 0.75F) & ~1);
+    out[0] = clampf(view[r].cx - out[2] * 0.5F, 0.0F, 640.0F - out[2]);
+    out[1] = clampf(view[r].cy - out[3] * 0.5F, 0.0F, 480.0F - out[3]);
+}
+
 /// At each frame boundary, before the frame is ended (window.c): the
-/// picture just drawn, into the ring recording, if any.
+/// picture just drawn, the part where the fighters are, into the ring
+/// recording, if any.
 void host_frames_capture(void)
 {
     static int exact;
     int r = recording;
+    float part[4];
 
     if (r < 0 || !host.draw) {
         return;
@@ -120,11 +216,13 @@ void host_frames_capture(void)
         aurora_set_copy_exact(keys, (const char*) keys + sizeof keys);
         exact = 1;
     }
-    GXSetTexCopySrc(0, 0, 640, 480);
+    fighters_box(ring[r].box[ring[r].next]);
+    follow_them(r, ring[r].box[ring[r].next], part);
+    GXSetTexCopySrc((u16) part[0], (u16) part[1], (u16) part[2],
+                    (u16) part[3]);
     GXSetTexCopyDst(WIDTH, HEIGHT, GX_TF_RGB565, GX_FALSE);
     GXCopyTex(&keys[r][ring[r].next], GX_FALSE);
     ring[r].frame[ring[r].next] = host.frame;
-    fighters_box(ring[r].box[ring[r].next]);
     ring[r].next = (ring[r].next + 1) % SLOTS;
     if (ring[r].count < SLOTS) {
         ring[r].count++;
@@ -155,8 +253,13 @@ const char* host_frames_command(const char* line)
     sscanf(line, "%15s%n", verb, &used);
     line += used;
     if (strcmp(verb, "rec") == 0) {
-        sscanf(line, "%d", &r);
+        int mask = 15;
+        sscanf(line, "%d %d", &r, &mask);
         recording = r >= 0 && r < RINGS ? r : -1;
+        if (recording >= 0 && mask != follow) {
+            view[recording].on = 0;
+        }
+        follow = mask;
         snprintf(reply, sizeof reply, "%u", host.frame);
         return reply;
     }
@@ -205,6 +308,7 @@ const char* host_frames_command(const char* line)
     if (strcmp(verb, "clear") == 0) {
         ring[r].count = 0;
         ring[r].next = 0;
+        view[r].on = 0;
         return "ok";
     }
     if (strcmp(verb, "range") == 0) {

@@ -210,13 +210,14 @@ def crop(boxes, box=(PATH_W, PATH_H), margin=36.0, least=200.0):
     """The part of the game's picture a panel shows: every box (where the
     fighters were, x0 y0 x1 y1 in the game's 640x480) with a margin, at
     the panel's shape, no closer than `least` wide, inside the picture.
-    (left, top, width, height) in the game's units; the whole picture's
-    middle band without boxes."""
+    (left, top, width, height) in the game's units; without boxes, as
+    much of the middle of the picture as the panel's shape takes."""
     aspect = float(box[0]) / box[1]
     boxes = [b for b in boxes if b is not None]
     if not boxes:
-        w = GAME_W
-        return 0.0, (GAME_H - w / aspect) / 2, w, w / aspect
+        w = min(GAME_W, GAME_H * aspect)
+        h = w / aspect
+        return (GAME_W - w) / 2, (GAME_H - h) / 2, w, h
     x0 = min(b[0] for b in boxes) - margin
     x1 = max(b[2] for b in boxes) + margin
     y0 = min(b[1] for b in boxes) - margin

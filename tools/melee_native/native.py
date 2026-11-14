@@ -376,13 +376,15 @@ class Native:
         lab.dat on the disc (tools/tmce_disc.py)."""
         return self._cmd("inputs %d" % mask)
 
-    def frames_rec(self, ring):
+    def frames_rec(self, ring, follow=15):
         """Each frame drawn from now on copied into ring `ring` (0 or 1; -1:
-        none), which keeps the last 300 (src/host/frames.c, the window
-        build): the game's past pictures, for the coach. Returns the frame
-        number now. A picture's frame is the number `step()` gives after
-        stepping it: what the game reads then is what it shows."""
-        return int(self._cmd("frames rec %d" % ring))
+        none), which keeps the last 240 (src/host/frames.c, the window
+        build): the game's past pictures, for the coach; the part of the
+        picture where the fighters of the ports in `follow` are (bit 0 port
+        1), as a camera would follow them. Returns the frame number now. A
+        picture's frame is the number `step()` gives after stepping it:
+        what the game reads then is what it shows."""
+        return int(self._cmd("frames rec %d %d" % (ring, follow)))
 
     def frames_clear(self, ring):
         """Forget a ring's pictures."""

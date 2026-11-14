@@ -1858,6 +1858,10 @@ class Client:
         self.coach_misses = 0
         self.track = None
         self.tech_saves = []
+        # the pictures follow both fighters; in a drill judged by the frame
+        # the player alone (the opponent only stands there)
+        self.pic_follow = (3 if self.here[d["id"]] == courses.COURSE
+                           else 1 << self.port)
         self.pictures_rec(0)
         try:
             if self.here[d["id"]] == courses.COURSE:
@@ -1886,7 +1890,7 @@ class Client:
         try:
             if ring == 1:
                 self.w.frames_clear(1)
-            self.w.frames_rec(ring)
+            self.w.frames_rec(ring, getattr(self, "pic_follow", 15))
             self.pictures = True
         except NativeError:
             self.pictures = False
@@ -2194,20 +2198,14 @@ class Client:
         return seq if first is not None else []
 
     def pic_panel(self, view, ring, seq, mask=15, tall=False):
-        """A panel of the game's pictures (screens._picture): the part of
-        the picture where the fighters of the ports in `mask` were, all
-        through `seq`; `tall` with no timeline below it."""
+        """A panel of the game's pictures (screens._picture): each already
+        the part of the game's picture where the fighters were (frames.c
+        follows them), shown whole at the panel's shape from its middle;
+        `tall` with no timeline below it."""
         if not seq:
             return None
-        boxes = []
-        for e in seq:
-            if e["pic"] is not None:
-                try:
-                    boxes.append(self.w.frames_box(ring, e["pic"], mask))
-                except NativeError:
-                    pass
         return dict(view=view, tall=tall, crop=coach.crop(
-            boxes, (coach.PATH_W, coach.TALL_H if tall else coach.PATH_H)))
+            [], (coach.PATH_W, coach.TALL_H if tall else coach.PATH_H)))
 
     def coach_view(self, result, track, target, target_track, fix_lines=(),
                    target_words=None, mask=15):
@@ -2564,26 +2562,41 @@ class Client:
             self.put("rscrub", screens.replay_scrub(n, f, you, perfect,
                                                     labels))
 
+        def keys(j):
+            """The player's buttons: "back", "mode", "on" (a frame on,
+            paused) or None."""
+            if self.person is not None:
+                self.person(self.w, -5)    # tests: the player
+            pressed, moves = self.read()
+            if self.game_quit():
+                raise Leave()
+            if pressed & B:
+                return "back"
+            if pressed & Y:
+                return "mode"
+            if pressed & A:
+                state["paused"] = not state["paused"]
+            if moves & LEFT and j > slow_from:
+                raise self.Seek(j - 1)
+            if moves & RIGHT and state["paused"]:
+                return "on"
+            return None
+
         def wait(frames, j):
+            """Frames with the game still (more while paused), the
+            buttons read; none at the game's own speed: read only."""
+            if frames <= 0 and not state["paused"]:
+                end = keys(j)
+                return end if end in ("back", "mode") else None
             self.w.freeze(True)
             try:
                 while frames > 0:
                     frames -= 1
-                    if self.person is not None:
-                        self.person(self.w, -5)    # tests: the player
                     self.w.step()
-                    pressed, moves = self.read()
-                    if self.game_quit():
-                        raise Leave()
-                    if pressed & B:
-                        return "back"
-                    if pressed & Y:
-                        return "mode"
-                    if pressed & A:
-                        state["paused"] = not state["paused"]
-                    if moves & LEFT and j > slow_from:
-                        raise self.Seek(j - 1)
-                    if moves & RIGHT and state["paused"]:
+                    end = keys(j)
+                    if end in ("back", "mode"):
+                        return end
+                    if end == "on":
                         return None             # a frame on
                     if state["paused"]:
                         frames = max(frames, 1)     # until a press
@@ -2612,8 +2625,10 @@ class Client:
                 if seek is not None:
                     state["paused"] = True
             show(j, pad)
+            # the timeline's frames at half the speed, the rest at the
+            # game's
             slow = 0 <= j - begin < n
-            end = wait((3 if slow else 1) if not state["paused"] else 1, j)
+            end = wait((1 if slow else 0) if not state["paused"] else 1, j)
             if end:
                 return end
             self.w.step()
@@ -2726,28 +2741,36 @@ class Client:
                 self.w.quiet(2 if on else 0)
                 state["quiet"] = on
 
+        def keys(frame):
+            """The player's buttons: True for a frame on (paused)."""
+            if self.person is not None:
+                self.person(self.w, -5)    # tests: the player
+            pressed, moves = self.read()
+            if self.game_quit():
+                raise Leave()
+            if pressed & B:
+                raise Leave("replay-back")
+            if pressed & Y:
+                raise Leave("replay-mode")
+            if pressed & A:
+                state["paused"] = not state["paused"]
+            if moves & LEFT:
+                raise self.Seek(frame - 1)
+            return bool(moves & RIGHT and state["paused"])
+
         def wait(frames, frame):
             """Frames with the game still (more while paused): the
-            player's buttons read."""
+            player's buttons read. None at the game's own speed: read,
+            nothing held."""
+            if frames <= 0 and not state["paused"]:
+                keys(frame)
+                return
             self.w.freeze(True)
             try:
                 while frames > 0:
                     frames -= 1
-                    if self.person is not None:
-                        self.person(self.w, -5)    # tests: the player
                     self.w.step()
-                    pressed, moves = self.read()
-                    if self.game_quit():
-                        raise Leave()
-                    if pressed & B:
-                        raise Leave("replay-back")
-                    if pressed & Y:
-                        raise Leave("replay-mode")
-                    if pressed & A:
-                        state["paused"] = not state["paused"]
-                    if moves & LEFT:
-                        raise self.Seek(frame - 1)
-                    if moves & RIGHT and state["paused"]:
+                    if keys(frame):
                         return          # a frame on
                     if state["paused"]:
                         frames = max(frames, 1)     # until a press
@@ -2778,7 +2801,10 @@ class Client:
                     raise Leave("replay-back")
                 return
             show(frame, pad)
-            wait(3 if not state["paused"] else 1, frame)
+            # the timeline's frames at half the speed, the rest at the
+            # game's (a quarter, all through, was "choppy": the owner)
+            slow = start <= frame < start + n
+            wait((1 if slow else 0) if not state["paused"] else 1, frame)
 
         self.w.scripted(self.port, True)
         session.live = False
