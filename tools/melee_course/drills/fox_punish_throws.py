@@ -2,7 +2,8 @@
 fox-uthrow-uair, fox-uthrow-chaingrab, fox-kill-confirm.
 
 Port of src/tmce/events/course/drills/fox_punish_throws.inc.h (specs:
-data/courses/fox.md, Punish 5, 6, 11), with the Floaty, FastFaller and
+data/courses/fox.md, Punish 5, 6, 11; the chain grab changed natively, see
+its section), with the Floaty, FastFaller and
 KillConfirm decks of src/tmce/events/course/desc.c.
 
 The CPU stands in grab range. Once thrown or hit it holds a DI direction
@@ -10,7 +11,7 @@ The CPU stands in grab range. Once thrown or hit it holds a DI direction
 first frame it can: a follow-up that is not true does not land.
 """
 from melee_course.engine import (
-    X, Z, Drill, Entry, Option, Ref, WAIT, DEAD_LAST, THROW_F, THROW_HI,
+    A, X, Z, Drill, Entry, Option, Ref, WAIT, DEAD_LAST, THROW_F, THROW_HI,
     THROW_LW, CAPTURE_PULLED_HI, ATTACK_AIR_HI, ATTACK_HI3, ATTACK_DASH)
 from melee_course.drills.fox_punish import (
     FPR_DISTANCE, cpu_grabbed, is_double_jump, is_jump, is_shine)
@@ -235,18 +236,45 @@ class FoxUthrowUair(Drill):
 
 
 # ---- fox-uthrow-chaingrab ---------------------------------------------------
+#
+# The chain goes on until the player drops it (the owner, 2026-11-13: "Chain
+# grab training should go until the player drops their combo (don't reset on
+# one throw, let them cook! we should even let them tech chase, if they miss
+# the follow up though reset)"). Any throw, regrab or hit keeps it going. The
+# CPU DIs while it is stuck, techs (in place, away, in) or misses the tech
+# when it comes down in tumble, gets up, rolls or attacks from the floor, and
+# jumps away as soon as it is free: a regrab that is not true does not land.
+# Free for CG_AWAY frames, a double jump, or the player hit by its getup
+# attack ends the chain; the attempt says how long it was.
 
 CG_OPT_PERCENT, CG_OPT_COUNT = range(2)
 CG_MARK_GRAB, CG_MARK_RELEASE = 1, 2
 CG_WAIT, CG_HELD, CG_THROW, CG_CHASE = range(4)
 CG_COUNTS = (1, 2, 3, 5)
 CG_REF_GRAB = 5           # from a sweep in the simulator
+CG_AWAY = 10              # frames free: it has jumped and is away
+CG_TIMEOUT = 400          # frames in one chase with nothing happening
+CG_GETUP_WAIT = 20        # frames lying down after a missed tech
+CG_TECH_HEIGHT = 12.0     # the tech is pressed when this close to the floor
+CG_TECHS = ("tech in place", "tech away", "tech in", "missed tech")
+CG_PLACE, CG_AWAY_TECH, CG_IN, CG_MISS = range(4)
+DOWN_BOUND_U, DOWN_SPOT_D = 183, 198
+DOWN_WAITS = (184, 192)   # DownWaitU, DownWaitD
+PASSIVE, PASSIVE_STAND_B = 199, 201
+DAMAGE_FALL = 38
+DAMAGE_FLY_HI, DAMAGE_FLY_ROLL = 87, 91
+R = 0x20
+
+
+def _downed(state):
+    return DOWN_BOUND_U <= state <= DOWN_SPOT_D or \
+        PASSIVE <= state <= PASSIVE_STAND_B
 
 
 class FoxUthrowChaingrab(Drill):
     id = "fox-uthrow-chaingrab"
     name = "Chain Grab Fastfallers"
-    goal = "Regrab Fox and Falco out of up throw"
+    goal = "Regrab Fox and Falco until you drop it"
     part = "punish"
     cpu = "falco"
     characters = ("fox",)
@@ -254,11 +282,12 @@ class FoxUthrowChaingrab(Drill):
     options = (
         Option("CPU Percent", count=151, default=20, fmt="%d%%",
                desc="The CPU's damage at the start of each attempt."),
-        Option("Regrabs", ["1", "2", "3", "5"], 0,
-               "How many regrabs in a row count as a success."),
+        Option("Count From", ["1", "2", "3", "5"], 0,
+               "Regrabs that make a chain a success. It goes on until "
+               "you drop it either way."),
     )
-    help = ("Grab, up throw, and grab them again as they land,",
-            "before they can jump away.",
+    help = ("Grab, up throw, and grab them again as they land;",
+            "keep going. Tech chase them when they hit the floor.",
             "D-Pad up: guide. D-Pad down: reset.")
     # Grab, up throw, grab again.
     reference = [
@@ -271,32 +300,81 @@ class FoxUthrowChaingrab(Drill):
     def guide(self, c):
         return ["Fox and Falco fall so fast that an up throw",
                 "puts them back on the ground before they can",
-                "act. Grab them again as they land.",
+                "act. Grab them again as they land, and again.",
                 "1. Grab, then stick up.",
                 "2. Watch which way they drift (DI) and move",
                 "   under them. Turn round if they go behind.",
                 "3. Grab just before they would be free.",
-                "It stops working as their percent climbs."]
+                "As their percent climbs they land in tumble:",
+                "watch the tech (in place, away, in, or none)",
+                "and grab them as they get up. The chain goes on",
+                "until they get away."]
 
     def setup(self, c):
         self.th = Escape()
         self.th.place(c, float(c.opt(CG_OPT_PERCENT)), None)
-        self.v = dict(regrabs=0)
+        self.v = dict(regrabs=0, hits=0, free=0, frame=0, pressed=False,
+                      down=0, tech=c.randi(4), getup=c.randi(4), techs=[])
 
-    def end(self, c, success, fmt):
+    def end(self, c, why):
+        v = self.v
         want = CG_COUNTS[c.opt(CG_OPT_COUNT)]
-        regrabs = self.v["regrabs"]
+        regrabs = v["regrabs"]
         c.measure(regrabs, want)
         c.report("regrabs", regrabs)
+        c.report("hits", v["hits"])
         c.report("di", self.th.di)
-        args = (regrabs, want)[:fmt.count("%d")]
-        c.result(success, fmt % args)
+        chain = "%d regrab%s" % (regrabs, "" if regrabs == 1 else "s")
+        if v["hits"]:
+            chain += ", %d hit%s" % (v["hits"], "" if v["hits"] == 1 else "s")
+        if v["techs"]:
+            c.message("Tech chased: " + ", ".join(v["techs"]))
+        if regrabs >= want:
+            c.result(True, "Chain grab! %s\n%s" % (chain, why))
+        else:
+            c.result(False, "%s\n%s" % (chain.capitalize(), why))
+
+    def _cpu(self, c):
+        """The CPU getting away: DI while stuck, the tech as it comes down
+        in tumble, a getup from the floor, a jump as soon as it is free."""
+        th, v, cpu = self.th, self.v, c.cpu
+        st = c.cpu_state
+        if cpu.airborne and (st == DAMAGE_FALL or
+                             DAMAGE_FLY_HI <= st <= DAMAGE_FLY_ROLL):
+            # a tumble: the tech, once, near the floor and falling
+            if v["tech"] != CG_MISS:
+                if v["tech"] == CG_AWAY_TECH:
+                    c.cpu_press(lx=int(-127 * c.toward))
+                elif v["tech"] == CG_IN:
+                    c.cpu_press(lx=int(127 * c.toward))
+                if not v["pressed"] and cpu.vel[1] < 0 and \
+                        cpu.pos[1] < CG_TECH_HEIGHT:
+                    c.cpu_press(R)
+                    v["pressed"] = True
+        if _downed(st):
+            v["free"] = 0
+            if st in DOWN_WAITS:
+                v["down"] += 1
+                if v["down"] > CG_GETUP_WAIT:
+                    # stand, roll away, roll in, or the getup attack
+                    if v["getup"] == 0:
+                        c.cpu_press(ly=127)
+                    elif v["getup"] == 1:
+                        c.cpu_press(lx=int(-127 * c.toward))
+                    elif v["getup"] == 2:
+                        c.cpu_press(lx=int(127 * c.toward))
+                    elif v["down"] & 1:
+                        c.cpu_press(A)
+            return
+        stuck = cpu.hitstun > 0 or \
+            CAPTURE_PULLED_HI <= st <= THROWN_LW_WOMEN
+        th.cpu_escape(c)          # DI while stuck; the jump once free
+        v["free"] = 0 if stuck else v["free"] + 1
 
     def think(self, c):
         th, v = self.th, self.v
         if c.cpu is None:
             return
-        want = CG_COUNTS[c.opt(CG_OPT_COUNT)]
         if c.phase == CG_WAIT:
             if cpu_grabbed(c):
                 c.mark(CG_MARK_GRAB)
@@ -304,34 +382,47 @@ class FoxUthrowChaingrab(Drill):
             elif c.cpu_hit:
                 c.result(False, "Start with a grab")
         elif c.phase == CG_HELD:
-            if c.state == THROW_HI:
+            if is_throw(c.state):
                 c.set_phase(CG_THROW)
                 th.pick_di(c)
-            elif is_throw(c.state):
-                self.end(c, False, "Use the up throw\n%d of %d regrabs")
+                v["pressed"] = False
+                v["down"] = 0
+                v["tech"] = c.randi(4)
+                v["getup"] = c.randi(4)
             elif not cpu_grabbed(c) and c.timer > 3:
-                self.end(c, False, "They broke out\n%d of %d regrabs")
+                self.end(c, "Dropped: they broke out of the grab")
         elif c.phase == CG_THROW:
             th.cpu_escape(c)
-            if c.state != THROW_HI:
+            if not is_throw(c.state):
                 c.mark(CG_MARK_RELEASE)
                 c.set_phase(CG_CHASE)
                 th.frame = 0
+                v["free"] = 0
         elif c.phase == CG_CHASE:
             th.frame += 1
-            th.cpu_escape(c)
+            self._cpu(c)
+            st = c.cpu_state
+            if PASSIVE <= st <= PASSIVE_STAND_B and v["pressed"] and \
+                    CG_TECHS[v["tech"]] not in v["techs"][-1:]:
+                v["techs"].append(CG_TECHS[v["tech"]])
+            elif DOWN_BOUND_U <= st <= DOWN_SPOT_D and v["tech"] == CG_MISS \
+                    and "missed tech" not in v["techs"][-1:]:
+                v["techs"].append("missed tech")
             if cpu_grabbed(c):
                 v["regrabs"] += 1
-                if v["regrabs"] >= want:
-                    self.end(c, True, "Chain grab!\n%d regrabs")
-                else:
-                    c.set_phase(CG_HELD)
+                c.set_phase(CG_HELD)
             elif c.cpu_hit:
-                self.end(c, False, "Hit, not a regrab\n%d of %d regrabs")
-            elif th.frame > 4 and cpu_escaped(c):
-                self.end(c, False, "They got away\n%d of %d regrabs")
-            elif th.frame > UA_TIMEOUT:
-                self.end(c, False, "No regrab\n%d of %d regrabs")
+                v["hits"] += 1
+                v["free"] = 0
+                th.frame = 0
+            elif c.hmn_hit:
+                self.end(c, "Dropped: hit by their getup attack")
+            elif is_double_jump(st):
+                self.end(c, "Dropped: they jumped away")
+            elif v["free"] >= CG_AWAY:
+                self.end(c, "Dropped: they were free")
+            elif th.frame > CG_TIMEOUT:
+                self.end(c, "Dropped")
 
 
 # ---- fox-kill-confirm -------------------------------------------------------
