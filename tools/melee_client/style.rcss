@@ -487,9 +487,11 @@ img { display: inline-block; }
 .pvk.on { opacity: 1; }
 /* the port, in its colour, quiet ("reduce the size of the P1 tag and make
    it a little more transparent so it is more subtle") */
-.pvp { position: absolute; height: 7dp; line-height: 7dp; border-radius: 2dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 5.5dp; font-weight: 600; color: #FFFFFF; opacity: 0.7; }
-.cpic.tpic .pvp { height: 8dp; line-height: 8dp; font-size: 6.5dp; }
-.gpad .pvp { height: 9dp; line-height: 9dp; font-size: 7dp; }
+/* (a capital sits low in its line: the line a little shorter than the
+   tag, the rest below it, so that "P1" is in the tag's middle) */
+.pvp { position: absolute; height: 5.5dp; line-height: 5.5dp; padding-bottom: 1.5dp; border-radius: 2dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 5.5dp; font-weight: 600; color: #FFFFFF; opacity: 0.7; }
+.cpic.tpic .pvp { height: 6.2dp; line-height: 6.2dp; padding-bottom: 1.8dp; font-size: 6.5dp; }
+.gpad .pvp { height: 7dp; line-height: 7dp; padding-bottom: 2dp; font-size: 7dp; }
 .pvp.p1 { background-color: #E5484D; }
 .pvp.p2 { background-color: #3E7BFA; }
 .pvp.p3 { background-color: #F5BE1B; color: #12161C; }

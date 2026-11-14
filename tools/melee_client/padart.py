@@ -54,7 +54,7 @@ TRAVEL = {"S": 16.0, "C": 18.0}
 PRESS = 0.0             # the triggers light; they do not move
 # the port's label: its middle and foot, as shares of the box (above
 # START/PAUSE)
-LABEL = ((300 + MARGIN) / SHELL_W, (118 + MARGIN) / SHELL_H)
+LABEL = ((300 + MARGIN) / SHELL_W, (106 + MARGIN) / SHELL_H)
 
 LIT = ("A", "B", "X", "Y", "Z", "ST", "DU", "DD", "DL", "DR")
 LAYERS = ("BASE", "L-LIT", "R-LIT") + LIT + ("S", "C")
