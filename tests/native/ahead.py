@@ -132,6 +132,30 @@ def main():
         check("in a process restored from a snapshot it still undoes "
               "everything", n.state_hash() == h2, repr(out))
 
+        # A frame played ahead that would end the scene (here the pause
+        # menu's L+R+A+Start): the lookahead stops there, nothing is ended.
+        n.pad(0, buttons=["START"])
+        n.step()
+        n.pad(0)
+        for _ in range(10):
+            n.step()
+        h3 = n.state_hash()
+        ended = n.state()["ended"]
+        out = look(n, 0, 1, [(1, dict(buttons=["L", "R", "A"])),
+                             (30, dict(buttons=["L", "R", "A", "START"],
+                                       l=1.0, r=1.0))], stop=0)
+        same = n.state_hash() == h3
+        n.pad(0, buttons=["START"])
+        n.step()
+        n.pad(0)
+        for _ in range(30):
+            n.step()
+        check("a lookahead that would end the match stops short and ends "
+              "nothing", same and len(out.rows) < 31 and
+              n.state()["ended"] == ended and n.fighter(1).fp,
+              "%d of 31 frames played, match ended %s -> %s" % (
+                  len(out.rows), ended, n.state()["ended"]))
+
         # What it costs.
         t = time.perf_counter()
         for _ in range(20):

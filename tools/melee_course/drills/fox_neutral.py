@@ -14,11 +14,16 @@ difficulty.
 
 fox-wavedash-back-punish and fox-anti-air: the CPU stands at a scenario's
 start distance and, after a wait the player cannot predict, jumps in with
-an aerial.
+an aerial. Natively, by default (option Opponent: Reactive,
+melee_course/react.py), the jump-in is the same table played by the Melee
+Actor: it moves back to the scenario's distance from wherever the player
+went during the wait, looks ahead, and jumps once the aerial would land.
+The drill's clock (attack_frame) starts at the jump either way.
 """
 from melee_course.engine import (
     A, R, X, Drill, Entry, In, Option, Ref, ATTACK_AIR_B, ATTACK_HI3,
     ATTACK_HI4, CAPTURE_PULLED_HI, GUARD_SET_OFF, LANDING_FALL_SPECIAL)
+from melee_course.react import FIXED, Opponent, opponent_option, sequence
 
 # ftCo_MS_CaptureFoot (src/melee/ft/kinds/ftCommon/forward.h): the last of
 # the states of a fighter being held.
@@ -251,7 +256,7 @@ class FoxWhiffPunish(Drill):
 
 AP_MARK_ATTACK, AP_MARK_CLOSE = 1, 2
 AP_WAIT, AP_ATTACK = range(2)
-AP_OPT_PERCENT = 0
+AP_OPT_PERCENT, AP_OPT_OPPONENT = range(2)
 AP_WAIT_MIN = 40
 AP_WAIT_SPAN = 60
 
@@ -263,9 +268,14 @@ class _Approach(Drill):
     cpu = "captain-falcon"
     characters = ("fox",)
     live_marks = True
-    options = (percent_option(),)
+    options = (percent_option(), opponent_option())
+    # The reactive opponent in the air: "jump" commits to the jump-in as
+    # designed (the player answers what they saw: the jump); "air" keeps
+    # its drift on the player, as a person drifting onto a target does.
+    track = "jump"
 
     def setup(self, c):
+        self.opp = None
         gap = c.entry.data.reach
         hmn_x = -c.side * gap / 2
         c.place(hmn_x, hmn_x + c.side * gap, False,
@@ -274,19 +284,40 @@ class _Approach(Drill):
         self.v = dict(
             wait=AP_WAIT_MIN if c.is_demo
             else AP_WAIT_MIN + c.randi(AP_WAIT_SPAN),
-            attack_frame=0, wavedash=0)
+            attack_frame=0, wavedash=0, placed=None)
 
     def advance(self, c):
         """Runs the wait and the CPU's script. True while the approach is
-        on (ap_Advance)."""
+        on (ap_Advance). The reactive opponent, after the wait, may move
+        and wait some more before it jumps; the approach is on from the
+        jump."""
         v = self.v
+        sc = c.entry.data
+        fixed = c.opt(AP_OPT_OPPONENT) == FIXED
+        if c.s.attempt_frame == 3:
+            # the spacing the jump-in was designed from, as placed
+            v["placed"] = abs(c.cpu.pos[0] - c.me.pos[0])
         if c.phase == AP_WAIT:
             if c.timer < v["wait"]:
                 return False
+            if not fixed:
+                if self.opp is None:
+                    self.opp = Opponent(c, [dict(
+                        do="sequence", inputs=sequence(sc.inputs),
+                        distance=v["placed"] or sc.reach,
+                        tolerance=0.75,
+                        precision=0.2,
+                        track=self.track)])
+                self.opp.frame(c)
+                if self.opp.committed is None:
+                    return False
             c.mark(AP_MARK_ATTACK)
             c.set_phase(AP_ATTACK)
             v["attack_frame"] = 0
-        c.script(c.entry.data.inputs, v["attack_frame"])
+        elif not fixed:
+            self.opp.frame(c)
+        if fixed:
+            c.script(sc.inputs, v["attack_frame"])
         v["attack_frame"] += 1
         return True
 
@@ -378,6 +409,7 @@ class FoxAntiAir(_Approach):
     name = "Anti-Air"
     goal = "Beat a jump-in with up tilt, up smash or back air"
     deck = ANTI_AIR_DECK
+    track = "air"
     help = ("Anti-air: beat the jump-in with up tilt, up smash",
             "or back air before it reaches you.",
             "D-Pad up: guide. D-Pad down: reset.")

@@ -6,13 +6,18 @@ data/courses/fox.md, Punish 1), with the Shine OoS event's deck
 
 The CPU (a scenario of the deck: a character, an attack, a spacing)
 attacks once the player holds shield. The player jumps out of shield and
-shines on the first airborne frame; optionally follows up.
+shines on the first airborne frame; optionally follows up. Natively, by
+default (option Opponent: Reactive, melee_course/react.py), the attack is
+the same table played by the Melee Actor: it gets back to the scenario's
+spacing from wherever the player went, looks ahead, and commits once the
+attack would land on the shield; the attack's clock starts there.
 """
 from melee_course.engine import (
     A, B, L, X, Y, R, Drill, Entry, In, Option, Ref, Row, STICK_SMASH,
     ESCAPE_AIR,
     LANDING_FALL_SPECIAL, ATTACK_HI4, GUARD, GUARD_ON, GUARD_SET_OFF,
     FOX_SHINE_FIRST, FOX_SHINE_LAST)
+from melee_course.react import FIXED, Opponent, opponent_option, sequence
 
 TOWARD, AWAY = 127, -127
 
@@ -54,12 +59,15 @@ DECK = [
           "Jigglypuff - Bair (early)"),
 ]
 
+# The attempt frame the placement has settled by (overlapping bodies take
+# a few frames to push apart).
+PLACED_AT = 3
 SHINE_STARTUP = 1          # the shine's hitbox is out on its first frame
 PUNISH_TIMEOUT = 60
 FOLLOWUP_TIMEOUT = 90
 MARK_STUN_END = 1
 WAIT_SHIELD, ATTACK, PUNISH, FOLLOWUP = range(4)
-OPT_SUCCESS, OPT_DELAY, OPT_PERCENT = range(3)
+OPT_SUCCESS, OPT_DELAY, OPT_PERCENT, OPT_OPPONENT = range(4)
 GOAL_SHINE, GOAL_ANY_HIT, GOAL_USMASH, GOAL_WAVESHINE_USMASH = range(4)
 DELAY_RANDOM, DELAY_SHORT, DELAY_LONG = range(3)
 
@@ -84,6 +92,7 @@ class FoxShineOos(Drill):
                "How long the CPU waits after you shield."),
         Option("CPU Percent", count=151, default=20, fmt="%d%%",
                desc="The CPU's damage at the start of each attempt."),
+        opponent_option(),
     )
     help = ("Hold shield. When the attack hits your shield, jump out",
             "of shield and shine on the first frame of the jump.",
@@ -127,6 +136,7 @@ class FoxShineOos(Drill):
                 "%d later (jump squat), frame %d." % (js, shine))
 
     def setup(self, c):
+        self.opp = None
         sc = c.entry.data
         hmn_x = -c.side * 10.0
         cpu_x = hmn_x + c.side * sc.distance
@@ -136,7 +146,7 @@ class FoxShineOos(Drill):
             delay=10 if delay == DELAY_SHORT else 40 if delay == DELAY_LONG
             else 8 + c.randi(40),
             attack_frame=0, stun_end=-1, shine_frame=-1, wavedash=False,
-            distance=0.0)
+            distance=0.0, placed=None)
 
     def oos_frame(self):
         return self.v["shine_frame"] - self.v["stun_end"]
@@ -158,8 +168,27 @@ class FoxShineOos(Drill):
         v, me, cpu = self.v, c.me, c.cpu
         sc = c.entry.data
         c.set_shield(c.s.person, 60.0)
+        if c.s.attempt_frame == PLACED_AT:
+            # where the placement left them, settled (bodies push apart: a
+            # deck distance of 4 is 7): the spacing the attack was designed
+            # at, unless the player has moved by then
+            v["placed"] = abs(cpu.pos[0] - me.pos[0])
         if c.phase >= ATTACK:
-            c.script(sc.inputs, v["attack_frame"])
+            if c.opt(OPT_OPPONENT) == FIXED:
+                c.script(sc.inputs, v["attack_frame"])
+            else:
+                if self.opp is None:
+                    self.opp = Opponent(c, [dict(
+                        do="sequence", inputs=sequence(sc.inputs),
+                        distance=v["placed"] or sc.distance,
+                        tolerance=1.0,
+                        face="away" if sc.face_away else "toward")])
+                self.opp.frame(c)
+                if self.opp.committed is None:
+                    # still walking in or waiting for the attack to land:
+                    # the attack's clock has not started
+                    c.timer = 0
+                    return
             v["attack_frame"] += 1
         if c.phase == WAIT_SHIELD:
             if me.state in (GUARD, GUARD_ON):

@@ -62,6 +62,9 @@ before believing a script: one passing run says little.
 | `oos` `move` | out of shield: `grab` (shield grab), `usmash` (jump cancelled), `jump` |
 | `wait` `frames` or `until` | `target_grounded`, `target_airborne`, `target_idle`, `target_attacking`, `target_swung` (its hitbox came out and went), `target_frame:N`, `in_range:N` |
 | `hold` `frames` `buttons` `stick` | hold an input (shield, crouch) |
+| `aerial` `move` `hop` | a jump-in that lands: `nair fair bair uair dair`, `short` or `full` hop. The game is played ahead before it jumps (src/host/ahead.c); it closes in, waits or backs off until a jump-in lands, then commits. `track`: `air` re-aims the drift until the hitbox is gone, `jump` commits at the jump (so running on seeing the jump beats it); `connect`: `any` (hit or shield), `hit`, `shield`; `lcancel` |
+| `strike` `move` | a grounded attack that lands: `jab ftilt utilt dtilt fsmash usmash dsmash grab`, pressed on the frame the game says it lands; walks or runs in until then |
+| `sequence` `inputs` `distance` | a designed attack frame by frame (pads, a stick x as `"toward*k"`), started where it lands: back to `distance` from wherever the player went, from a standstill, checked ahead, then played as designed. How the course drills' opponents react (tools/melee_course/react.py) |
 | `{"expect": ...}` inside a script | `target_hit`, `target_not_hit`, `hit`, `not_hit`, `in_range:N` |
 | `{"choose": [script, ...], "weights": [...]}` | run one of the branches in its place, a different one from run to run (by run number): an opponent that shields, jabs or rolls after its attack |
 
@@ -69,9 +72,13 @@ Scripts say what is to be achieved, never which frame. If a script needs a frame
 to work, the step or condition it lacks is the thing to write: a generator method `do_x`
 on `Actor` that yields one pad per frame, or a branch in `_condition`, with a scenario that
 shows it. `approach` is for standing somewhere exactly and is slow (it walks the last 18
-units); to hit someone in time use `rush`. There is no jump-in, aerial, dash dance,
-wavedash or step that is interrupted by being attacked yet; an opponent "shields when it
-can" by a `hold` with R after its attack.
+units); to hit someone in time use `rush`. An opponent's attack that is meant to be
+answered (shielded, dodged, beaten) should be `aerial`, `strike` or `sequence`: they commit
+only when the game, played ahead with the player holding what they hold, says the attack
+lands, so a player cannot dodge the drill by stepping aside before it (docs/ai/melee-actor.md,
+"Attacks that land"). They need the native build. There is no dash dance, wavedash or step
+that is interrupted by being attacked yet; an opponent "shields when it can" by a `hold`
+with R after its attack.
 
 A run ends when the player's script ends; the opponent's being cut short (it was grabbed)
 is not a failure. Scenarios meant as drills go in `data/scenarios/`; ones that only test

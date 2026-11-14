@@ -215,12 +215,112 @@ predict Phillip's next step from simulator games and see how often it agrees. (3
 step library has to be good first: a director can only be as good as its steps, and the
 naive ones just went 0 for 5.
 
+## Attacks that land: the actor looks ahead (2026-11-13)
+
+The owner: "I want every scenario to be reactive to the player's inputs (i.e. if the CPU
+is supposed to throw out an aerial, it will throw out one that WILL connect (and the human
+player has to do the counterplay), otherwise you have holes in scenarios where the CPU is
+too rigid and the human just messes up the scenario by dashing forward, back, etc."
+
+**The rule.** The opponent commits to an attack only when the game itself, played ahead
+with the player holding what they hold now, says the attack lands: hits them or meets
+their shield. Until then it moves, waits or re-aims. What the player does after the
+commitment is theirs, and that is the counterplay a drill teaches (shield it, wavedash out
+of it, hit the opponent first).
+
+**How the game is asked.** `ahead PORT TARGET STOP N PAD [N PAD ...]` (`src/host/ahead.c`)
+plays the next frames with PORT's planned pads while every other port keeps its pad (a
+person's live pad too: the guess rollback netcode makes), undrawn and unheard. It reports
+each frame (both fighters, and how near PORT's hitboxes came to TARGET's hurtboxes and on
+which side), then undoes the frames with the rollback records (`rollback.c`), all within the
+one frame of real time the command came in. The boundary it came in at then reads commands
+on as if the reply had come at once. Python: `tools/melee_actor/ahead.py` (`look()`, and an
+`Outlook`: hit, shield, beaten to it, or a miss with its distance and side).
+
+| Build | A lookahead |
+|-|-|
+| headless, unoptimised | 0.6 ms + 0.07 ms a frame (a 30-frame look about 3 ms) |
+| window, unoptimised, off screen | about 3.5 ms + 0.07 ms a frame (20 frames 4.5 ms, 70 frames 8.3 ms); a drawn frame about 6 ms |
+
+So headless an actor may look several times a frame (`LOOK_BUDGET` 3); in a match a person
+plays, once (`melee_course/react.py`), and a search goes on over the next frames.
+
+**Steps** (`tools/melee_actor/actor.py`):
+
+| Step | What it does | Used by |
+|-|-|-|
+| `sequence` `inputs` `distance` | a designed attack, frame by frame (a drill's C table, converted by `react.sequence`), started where it lands: gets to the designed spacing from wherever the player went (letting go of a walk or run when the game says the slide stops there; one-frame taps for the last fraction), from a standstill, facing the right way; looks ahead; commits when it lands. `track` "air" keeps its drift on target in the air | the course drills |
+| `aerial` `move` `hop` | a jump-in from scratch: searches the drift (full in, none, then in between by where the two straddle the target) and the press frame (late, then earlier), across frames when its looks run out; closes in when too far, backs off when too close; `track` "air" or "jump"; `lcancel` | scenarios written from an instruction |
+| `strike` `move` | a grounded attack (jab, tilts, smashes, grab) pressed on the frame it lands; walks or runs in until then | the same |
+
+Each records the frame it committed on (`Actor.committed`): a drill's clock starts there.
+
+**Why drills replay their own tables instead of `aerial`.** The first conversion used
+`aerial`, and the attack landed, but the counterplay stopped working (the wavedash-back
+demonstration succeeded 2 times of 12). `aerial` picks its own timing (late press, full
+drift), which reaches further than the drill's designed Falcon nair; the drill's landing
+frame, its guide's numbers and its demonstration all assume the designed one. What has to
+react is where and when the designed attack starts, not the attack.
+
+**In the drills.** A drill gets an option Opponent: Reactive (the default) or Fixed timing
+(the C's table on its frames, which the overlay's specs check: `tests/course/specs.py`
+pins it in `NATIVE_AS_C`). Converted: `fox-wavedash-back-punish` (commits at the jump),
+`fox-anti-air` (re-aims in the air), `fox-shine-oos`. `tests/course/reactive.py`: the player
+stays put, dashes in, dashes out or walks away (and turns back) during the opponent's wait,
+then either does nothing or the drill's own demonstration:
+
+| Drill | Not answered, the attack lands | Answered, the drill says success |
+|-|-|-|
+| Wavedash back punish | Reactive 12 of 12, Fixed 10 | Reactive 12 of 12, Fixed 7 |
+| Anti-air | Reactive 16 of 16, Fixed 15 | Reactive 16 of 16, Fixed 14 |
+| Shine out of shield | Reactive 36 of 36, Fixed 19 | Reactive 36 of 36, Fixed 12 |
+
+(Fixed "succeeds" against a player who moved mostly because its attack missed them.) For
+the free steps, `tests/actor/react.py`: after the same movements before the attack, aerials
+land 42 of 42 (rigid timing 16) and grounded attacks 48 of 48 (rigid 30); a jump-in
+committed at the jump misses a player who runs on seeing it, and one who shields on seeing
+it takes it on the shield.
+
+Found on the way:
+
+- **A frame played ahead must not end the scene** (a match timing out, the pause menu's
+  quit): the scene loop checks its exit flag before the next frame's wait, so by the time
+  the lookahead could be undone the stack would be in the next scene. The two functions
+  that set the flag (`gm_801A4B60`, `gm_801A4B74`) are the host's on the native build
+  (`tools/native_build.py` renames the game's); during a lookahead they only note it, and
+  the lookahead stops there.
+- **Rollback in a process restored from a snapshot** read the exited parent's
+  `/proc/self/pagemap`; it now opens its own and starts over (`rollback.c`).
+- **The designed spacing is where the placement settled**, not the deck's number: bodies
+  push apart (a forward smash listed at 4 units stands at 7), and an opponent told 4 walked
+  into the shielding player and shoved them across the stage. The drills measure it on the
+  attempt's third frame. And an opponent that walks in stops trying when the distance no
+  longer shrinks.
+- **Committing out of a slide** carried the walk's speed into the jump, which then reached
+  past a wavedash; a sequence starts from a standstill.
+- A demonstration's answer is frame-timed; facing away (after dashing out) it failed while
+  the opponent was right. A person turns back first; the test's player now does.
+- A crash after about 45 attempts in one match (either opponent) was the loading work's
+  `clean` freeing stage objects; fixed there.
+
+**The rest of "every scenario".** Drills whose opponent still plays a table or presses by
+frame, to convert the same way (an Opponent option, `sequence` from the table, the spacing
+measured at placement): `fox-approach-nair-dair`, `fox-vs-crouch-cancel`,
+`fox-running-shine`, `fox-laser-forcing`, `fox-shield-then-punish`
+(`fox_neutral_reads.py`); `fox-waveshine-usmash`, `fox-shield-pressure`, `fox-oos-choice`
+(`fox_punish.py`); `universal-sdi`, `fox-escape-pressure`, `fox-recovery-mixup`,
+`universal-wall-tech` (`defense_pressure.py`); the escapes, tech and DI drills
+(`defense.py`, `defense_escapes.py`), the confirms and throws, and the edgeguards
+(`punish_offstage.py`), several of which already react by hand (`cpu_press` on positions).
+`fox-whiff-punish` stays as it is: its attack is meant to miss a player who baited it.
+Scenario files (`data/scenarios/`) can use `aerial` and `strike` directly.
+
 ## Roadmap
 
 | Step | What | Proof |
 |-|-|-|
 | A1 (done) | Reference actor on the simulator: approach, face, attack, wait, hold; expectations | `tests/sim/actor_uptilt.py`, 4 of 4 |
-| A2 | Step library: dash dance, wavedash, short hop aerial with L-cancel, shield and out-of-shield, grab and throw, tech and DI answers, "react when" (a condition that interrupts the current step), branches. Developed on the native build since 2026-11-13 | one scenario per step |
+| A2 (begun) | Step library. Done: shield and out-of-shield, grab and throw, branches (`choose`), and attacks that look ahead before they commit (`sequence`, `aerial` with L-cancel, `strike`: "Attacks that land" above). Not done: dash dance, wavedash, tech and DI answers, "react when" (a condition that interrupts the current step). Developed on the native build since 2026-11-13 | one scenario per step; `tests/actor/react.py` |
 | A3 (first version, 2026-11-13) | Scenario files with both sides scripted and a verdict (`tools/melee_actor/scenario.py`, `run.py`, `tests/actor/scenarios/`), on the native build; steps are generators so two actors run at once; skill `actor-scenario` | `tests/actor/scenarios.py`. Still to do: a drill's player-side tests rewritten as actor scripts |
 | A4 | The C interpreter in the course engine; convert the first drills (whiff punish, tech chase, edgeguard) | same scripts, same simulator, Python and C traces agree; Dolphin once |
 | A5 (bridge done) | slippi-ai in the simulator (option A): the bridge exists; a `play` step in scripts does not | `tests/sim/policy_match.py` (two policies play a minute); `tests/sim/actor_vs_policy.py` (the naive up tilt script: 0 of 5) |
@@ -236,3 +336,9 @@ naive ones just went 0 for 5.
 - The actor on any stage but Final Destination, with any actor but Marth, and against a
   target that fights back. `STAGE_LIMIT` values other than Final Destination's are
   estimates.
+- The reactive opponent in front of a person on a real display: the client's test plays a
+  converted drill's demonstration through the window build on a virtual display; nobody
+  has trained against it yet. Nor its frame time on the owner's machine (one look a frame
+  is chosen from off-screen numbers).
+- Lookahead on an optimised build, or with items, projectiles or the Ice Climbers' partner
+  in play.

@@ -33,6 +33,14 @@
  * replied. The C stack at every boundary is the same, which is what
  * rollback relies on too.
  *
+ * A frame played ahead must not end the scene (a match timing out, the
+ * pause menu's quit): the scene loop checks its exit flag before it waits
+ * for the next frame, and would be in the next scene, its callers' locals
+ * with it, by the time the lookahead could be undone. The two functions
+ * that set the flag are the host's here (tools/native_build.py renames the
+ * game's): while a lookahead runs they only note it, and the lookahead
+ * stops at the next boundary.
+ *
  * This file's statics are not the game's state (tools/native_build.py's
  * GAME_STATE_HOST does not list it), so what the frames showed survives
  * their undoing.
@@ -76,6 +84,7 @@ static struct {
     int nsegs, total;
     int played;        ///< frames played so far
     int contact_at;    ///< the frame of the first contact, or -1
+    int scene_end;     ///< a frame played ahead asked to end the scene
     float a_percent0, t_percent0;
     Row rows[AHEAD_MAX];
     struct timespec t0;
@@ -85,6 +94,28 @@ static struct {
 int host_ahead_active(void)
 {
     return ahead.active;
+}
+
+void gm_801A4B60_vanilla(void);
+void gm_801A4B74_vanilla(void);
+
+/// The scene ends (gmscene.c), unless this is a frame played ahead.
+void gm_801A4B60(void)
+{
+    if (ahead.active) {
+        ahead.scene_end = 1;
+        return;
+    }
+    gm_801A4B60_vanilla();
+}
+
+void gm_801A4B74(void)
+{
+    if (ahead.active) {
+        ahead.scene_end = 1;
+        return;
+    }
+    gm_801A4B74_vanilla();
 }
 
 static Fighter* fighter_of(int slot)
@@ -259,6 +290,7 @@ const char* host_ahead_begin(const char* line)
     ahead.t_percent0 = t->dmg.x1830_percent;
     ahead.played = 0;
     ahead.contact_at = -1;
+    ahead.scene_end = 0;
     ahead.active = 1;
     host.draw = 0; /* undone with the rest */
     host.pads[ahead.port] = *pad_for(0);
@@ -301,7 +333,7 @@ int host_ahead_boundary(void)
     {
         ahead.contact_at = ahead.played;
     }
-    if (ahead.played < ahead.total &&
+    if (ahead.played < ahead.total && !ahead.scene_end &&
         !(ahead.stop > 0 && ahead.contact_at >= 0 &&
           ahead.played >= ahead.contact_at + ahead.stop))
     {

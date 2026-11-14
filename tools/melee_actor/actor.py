@@ -197,6 +197,9 @@ class Actor:
         self.look_ms = 0.0
         self.look_budget = LOOK_BUDGET
         self._budget_at, self._budget_used = -1, 0
+        # the frame an attack step committed (its first input given), for
+        # whoever times things from the attack (a drill's clock)
+        self.committed = None
 
     # ---- what the actor sees ------------------------------------------------
 
@@ -466,9 +469,11 @@ class Actor:
         facing = out.rows[out.near].a_facing if out.near is not None else 1
         return out.gx * facing * toward
 
-    def _aerial_pads(self, move, hop, s, p, length, toward, facing):
+    def _aerial_pads(self, move, hop, s, p, length, toward, facing,
+                     lcancel=None):
         """A jump-in, frame by frame: X on frame 0 (held for the hop), the
-        stick at `s` toward the target all along, the aerial on frame `p`."""
+        stick at `s` toward the target all along, the aerial on frame `p`,
+        and R on frame `lcancel` (before the landing: an L-cancel)."""
         spec = AERIALS[move]
         pads = []
         for i in range(length):
@@ -485,6 +490,9 @@ class Actor:
                     pad["cstick"] = (-facing, 0.0)
                 elif cs is not None:
                     pad["cstick"] = cs
+            if i == lcancel:
+                buttons.append("R")
+                pad["r"] = 1.0
             if buttons:
                 pad["buttons"] = buttons
             pads.append(pad)
@@ -519,7 +527,7 @@ class Actor:
         _PROFILES[key] = prof
         return prof
 
-    def _plan_aerial(self, move, hop, connect, prof):
+    def _plan_aerial(self, move, hop, connect, prof, lcancel=False):
         """Look for a jump-in that lands if begun now: a generator that
         yields when this frame's looks are spent (it goes on next frame,
         from the situation then) and returns (plan, out) when one lands
@@ -534,7 +542,8 @@ class Actor:
 
         def attempt(s, p):
             plan = dict(move=move, hop=hop, s=s, p=p, length=length,
-                        toward=self.toward(), facing=self.me().facing)
+                        toward=self.toward(), facing=self.me().facing,
+                        lcancel=prof["land"] - 3 if lcancel else None)
             return plan, self._look(self._jump_in(plan))
 
         why = "close"
@@ -569,7 +578,8 @@ class Actor:
         return None, why
 
     def do_aerial(self, move="nair", hop="short", connect="any",
-                  track="air", timeout=600, fallback=True, **_):
+                  track="air", timeout=600, fallback=True, lcancel=False,
+                  **_):
         """Jump in with `move` ("nair", "fair", "bair", "uair", "dair")
         from a "short" or "full" hop, so that it lands: hits the target or
         its shield (`connect`: "any", "hit", "shield"). On the ground, each
@@ -579,7 +589,8 @@ class Actor:
         gone; "jump" commits to the plan at the jump, so a player who
         moves after seeing the jump makes it miss (that is the counterplay
         a wavedash-back drill teaches). `fallback`: after `timeout` frames
-        with nothing found, jump in anyway rather than fail."""
+        with nothing found, jump in anyway rather than fail. `lcancel`: R
+        three frames before the landing."""
         if move not in AERIALS or hop not in HOPS:
             raise StepFailed("no aerial %r from a %r hop" % (move, hop))
         need = -1.0 if move == "bair" else 1.0
@@ -613,7 +624,8 @@ class Actor:
             if prof is None:
                 prof = self._hop_profile(move, hop)
             if search is None:
-                search = self._plan_aerial(move, hop, connect, prof)
+                search = self._plan_aerial(move, hop, connect, prof,
+                                           lcancel)
             try:
                 next(search)
                 yield moving                     # still looking
@@ -644,11 +656,13 @@ class Actor:
             plan = dict(move=move, hop=hop, s=1.0,
                         p=max(prof["air"], prof["land"] - 2 - prof["first"]),
                         length=prof["land"] + 2, toward=self.toward(),
-                        facing=self.me().facing)
+                        facing=self.me().facing,
+                        lcancel=prof["land"] - 3 if lcancel else None)
         result = dict(waited=waited, foreseen=out.contact if out else None,
                       drift_planned=round(plan["s"], 2))
         before = dict(percent=self.them().percent, own=self.me().percent)
         contact = None
+        self.committed = self.frame
         for i in range(plan["length"]):
             if track == "air" and i > 0 and contact is None and \
                     self._can_look() and self.me().airborne:
@@ -667,7 +681,7 @@ class Actor:
     def _jump_in(self, plan):
         return self._aerial_pads(plan["move"], plan["hop"], plan["s"],
                                  plan["p"], plan["length"], plan["toward"],
-                                 plan["facing"])
+                                 plan["facing"], plan.get("lcancel"))
 
     def _reaim(self, plan, i, connect):
         """In the air, `i` frames into a jump-in: the plan with its drift
@@ -698,6 +712,212 @@ class Actor:
             if o3.gap < 900 and abs(self._along(o3, toward)) < err:
                 best = mid
         return best
+
+    # ---- a designed sequence, started where it lands ---------------------------
+
+    @staticmethod
+    def _drift(inputs, s):
+        """`inputs` with the main stick's sideways part scaled by `s` (the
+        drift of a jump-in; 1 = as designed)."""
+        if s == 1.0:
+            return inputs
+        out = []
+        for pad in inputs:
+            stick = pad.get("stick")
+            if stick is None or not stick[0]:
+                out.append(pad)
+                continue
+            x = stick[0]
+            if isinstance(x, str):
+                k = float(x.split("*")[1]) if "*" in x else 1.0
+                x = ("toward*%g" if x.startswith("toward") else "away*%g") \
+                    % (k * s)
+            else:
+                x = x * s
+            out.append(dict(pad, stick=(x, stick[1])))
+        return out
+
+    def _resolve_all(self, inputs):
+        out = []
+        for pad in inputs:
+            pad = dict(pad)
+            for key in ("stick", "cstick"):
+                if key in pad:
+                    pad[key] = tuple(
+                        v if not isinstance(v, str) else
+                        (-1.0 if v.startswith("away") else 1.0) *
+                        self.toward() * (float(v.split("*")[1])
+                                         if "*" in v else 1.0)
+                        for v in pad[key])
+            out.append(pad)
+        return out
+
+    def do_sequence(self, inputs, distance=None, tolerance=3.0,
+                    face="toward", connect="any", track="jump", look=30,
+                    drifts=(1.0, 0.6, 0.3), still=True, precision=None,
+                    timeout=600, fallback=True, **_):
+        """A designed attack, frame by frame (`inputs`: pads as `pad`
+        takes them, a stick's x "toward*k" or "away*k" of the target),
+        started only where it lands. The actor gets to `distance` from the
+        target (centre to centre, within `tolerance`; None: from anywhere),
+        facing it (`face` "toward", "away" or None), and looks ahead with
+        the sequence played through and `look` frames more: it commits
+        when the attack lands (`connect`), the sideways stick scaled by
+        `drifts` in turn if as designed it would not; otherwise it waits
+        for the player and moves with them. A drill's attack keeps its
+        timing, its landing and what it leaves open: only where it starts
+        follows the player. `track` "air": in the air the drift is scaled
+        to stay on target, as in `aerial`. `still`: start only from a
+        standstill, as the sequence was designed (sliding out of a walk, a
+        jump carries the slide and reaches further than designed).
+        `precision`: once stopped too far by more than this, step in by
+        one-frame taps whose stopping point the game is asked for first."""
+        def band():
+            return distance is None or \
+                abs(abs(self.dx()) - distance) <= tolerance
+        go = out = None
+        waited = 0
+        taps = 0
+        closing = []          # the distance while walking in
+        blocked = False       # walking in no longer gets it closer
+        for waited in _frames(timeout):
+            me = self.me()
+            dist = abs(self.dx())
+            idle = self.grounded_idle(me) or me.state in WALKS + (DASH, RUN)
+            if me.airborne or not idle:
+                yield {}
+                continue
+            going_off = abs(me.pos[0] + self.toward() * 4) > self.limit
+            backing_off = abs(me.pos[0] - self.toward() * 4) > self.limit
+            if distance is not None and me.state in WALKS + (DASH, RUN) \
+                    and abs(dist - distance) < 30 and self._can_look():
+                # Where it would stop, let go of now (a walk or a run
+                # slides): let go once that is no longer too far (a run
+                # covers the band in less than a frame).
+                rows = self._look([{}] * 20, stop=0).rows
+                if rows and abs(rows[-1].t_x - rows[-1].a_x) <= \
+                        distance + tolerance:
+                    yield {}
+                    continue
+            if distance is not None and dist > distance:
+                closing.append(dist)
+                if len(closing) >= 4 and closing[-4] - dist < 0.2:
+                    blocked = True       # bodies touching: as close as it gets
+            else:
+                closing = []
+            if not band() and not blocked and \
+                    not (dist > distance and going_off) and \
+                    not (dist < distance and backing_off):
+                if dist > distance + 18:
+                    yield ({} if me.state in WALKS else
+                           dict(stick=(self.toward(), 0)))      # run
+                elif dist > distance + 6:
+                    yield dict(stick=(self.toward() * 0.45, 0))   # walk in
+                elif dist > distance:
+                    yield dict(stick=(self.toward() * 0.3, 0))    # slowly
+                else:
+                    yield dict(stick=(-self.toward() * 0.45, 0))  # back off
+                continue
+            if me.state in (DASH, RUN) + WALKS or \
+                    (still and abs(me.vel[0]) > 0.02):
+                yield {}                       # stop where it is
+                continue
+            want = self.toward() * (-1.0 if face == "away" else 1.0)
+            if face is not None and me.facing != want:
+                yield dict(stick=(want * 0.3, 0))
+                continue
+            if precision is not None and distance is not None and \
+                    not blocked and dist - distance > precision and \
+                    taps < 8 and self._can_look():
+                # a fraction too far: the tap whose stop is nearest
+                best, err = None, dist - distance
+                for k in (0.2, 0.25, 0.3, 0.35):
+                    if not self._can_look():
+                        break
+                    rows = self._look([dict(stick=(self.toward() * k, 0))] +
+                                      [{}] * 15, stop=0).rows
+                    e = abs(abs(rows[-1].t_x - rows[-1].a_x) - distance)
+                    if e < err:
+                        best, err = k, e
+                if best is not None:
+                    taps += 1
+                    yield dict(stick=(self.toward() * best, 0))
+                    continue
+            for s in drifts:
+                if not self._can_look():
+                    break
+                pads = self._resolve_all(self._drift(inputs, s))
+                out = self._look(pads + [{}] * look)
+                if out.connects(connect):
+                    go = s
+                    break
+            if go is not None:
+                break
+            yield {}
+        if go is None:
+            if not fallback:
+                raise StepFailed("the sequence never would have landed")
+            go = 1.0
+        before = dict(percent=self.them().percent, own=self.me().percent)
+        contact = None
+        s = go
+        self.committed = self.frame
+        toward = self.toward()
+        rest = None
+        for i in range(len(inputs)):
+            if track == "air" and i > 0 and contact is None and \
+                    self.me().airborne and self._can_look():
+                s = self._reaim_sequence(inputs, i, s, toward, connect, look)
+            pads = self._drift(inputs, s)
+            # the direction as it was at the commitment: a jump-in does not
+            # turn round when it passes over the target
+            pad = dict(pads[i])
+            for key in ("stick", "cstick"):
+                if key in pad:
+                    pad[key] = tuple(
+                        v if not isinstance(v, str) else
+                        (-1.0 if v.startswith("away") else 1.0) * toward *
+                        (float(v.split("*")[1]) if "*" in v else 1.0)
+                        for v in pad[key])
+            yield pad
+            contact = contact or self._contact(before)
+        for _ in _frames(90):          # the attack's end, a landing's lag
+            contact = contact or self._contact(before)
+            if self.grounded_idle(self.me()):
+                break
+            yield {}
+        return dict(waited=waited, contact=contact, drift=round(s, 2),
+                    foreseen=out.contact if out is not None else None,
+                    distance=round(abs(self.dx()), 1))
+
+    def _reaim_sequence(self, inputs, i, s, toward, connect, look):
+        """In the air, `i` frames into a sequence: the drift scale that
+        keeps it landing, or `s` if it still does or nothing does better."""
+        def rest(scale):
+            pads = []
+            for pad in self._drift(inputs, scale)[i:]:
+                pad = dict(pad)
+                for key in ("stick", "cstick"):
+                    if key in pad:
+                        pad[key] = tuple(
+                            v if not isinstance(v, str) else
+                            (-1.0 if v.startswith("away") else 1.0) *
+                            toward * (float(v.split("*")[1])
+                                      if "*" in v else 1.0)
+                            for v in pad[key])
+                pads.append(pad)
+            return pads + [{}] * look
+        out = self._look(rest(s))
+        if out.connects(connect) or out.gap >= 900 or out.contact:
+            return s
+        along = self._along(out, toward)
+        for s2 in ((1.0 if along < 0 else 0.0), (s + 1.0) / 2
+                   if along < 0 else s / 2):
+            if s2 == s or not self._can_look():
+                continue
+            if self._look(rest(s2)).connects(connect):
+                return s2
+        return s
 
     def _contact(self, before):
         """What has happened since `before`: "hit", "shield", "beaten"."""
@@ -766,6 +986,7 @@ class Actor:
         pads, out = go
         before = dict(percent=self.them().percent, own=self.me().percent)
         contact = None
+        self.committed = self.frame
         for pad in pads:
             yield pad
             contact = contact or self._contact(before)

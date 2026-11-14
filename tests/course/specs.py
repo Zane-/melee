@@ -62,6 +62,11 @@ NATIVE_AS_C = {
     "universal-ledgedash": {"Start": 0},
     # the shielding opponent held in place; the C's was pushed back
     "fox-shffl-nair-shine": {"Opponent": 1},
+    # the opponent's attack is the Melee Actor's, aimed so it lands
+    # (melee_course/react.py); the C's is a table of inputs by frame
+    "fox-wavedash-back-punish": {"Opponent": 1},
+    "fox-anti-air": {"Opponent": 1},
+    "fox-shine-oos": {"Opponent": 1},
 }
 # The same for the common options (by index): a deck the C did not have.
 NATIVE_AS_C_COMMON = {

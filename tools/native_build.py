@@ -68,6 +68,10 @@ VANILLA = {
         "-DAXDriverStop=host_axdriver_stop"],
     "melee/gm/gmmain.c": ["-Dmain=game_main"],
     "melee/lb/lb_0195.c": ["-Dlb_80019894=lb_80019894_vanilla"],
+    # A frame played ahead (src/host/ahead.c) must not end the scene: the
+    # scene loop would return before the lookahead could be undone.
+    "melee/gm/gmscene.c": ["-Dgm_801A4B60=gm_801A4B60_vanilla",
+                           "-Dgm_801A4B74=gm_801A4B74_vanilla"],
     "melee/lb/lbcardnew.c": [],
     "sysdolphin/baselib/fog.c": [],
     "sysdolphin/baselib/pobj.c": [],
