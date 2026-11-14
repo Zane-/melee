@@ -52,6 +52,29 @@ span { display: inline; }
 .key { width: 24dp; height: 24dp; border: 2dp #F3F6FA; border-radius: 14dp; margin-right: 8dp; text-align: center; line-height: 24dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 14dp; }
 .key.dark { border-color: #12161C; }
 .key.wide { width: auto; padding: 0dp 8dp; border-radius: 4dp; }
+/* The GameCube controller's buttons as they look on it (screens.key): A
+   green and large, B red, X and Y grey kidneys, Z purple, the triggers
+   grey, START a small grey button, the D-pad a cross with the arm meant
+   lit. The greys have an edge, to show on the light pause box too. */
+.glyphs { display: flex; flex-direction: row; align-items: center; margin-right: 2dp; }
+.gc { display: flex; flex-direction: row; align-items: center; justify-content: center; margin-right: 8dp; font-family: "Barlow"; font-style: normal; font-weight: 700; font-size: 13dp; line-height: 1em; }
+.gc.a { width: 26dp; height: 26dp; border-radius: 13dp; background-color: #1EA85E; color: #FFFFFF; font-size: 15dp; }
+.gc.b { width: 22dp; height: 22dp; border-radius: 11dp; background-color: #E2382F; color: #FFFFFF; }
+.gc.x { width: 15dp; height: 26dp; border-radius: 8dp; background-color: #D3D8DF; color: #12161C; border: 1dp #5C6573; }
+.gc.y { width: 26dp; height: 15dp; border-radius: 8dp; background-color: #D3D8DF; color: #12161C; border: 1dp #5C6573; }
+.gc.z { width: 30dp; height: 15dp; border-radius: 4dp; background-color: #6E5BE0; color: #FFFFFF; font-size: 11dp; }
+.gc.lt, .gc.rt { width: 30dp; height: 18dp; border-radius: 9dp 9dp 3dp 3dp; background-color: #C2C8D0; color: #12161C; border: 1dp #5C6573; }
+.gc.st { height: 15dp; padding: 0dp 6dp; border-radius: 8dp; background-color: #C2C8D0; color: #12161C; border: 1dp #5C6573; font-size: 9dp; letter-spacing: 0.6dp; }
+.gc.c { width: 22dp; height: 22dp; border-radius: 11dp; background-color: #F5C518; color: #12161C; }
+.dpad { position: relative; width: 24dp; height: 24dp; margin-right: 8dp; }
+.dpad .v { position: absolute; left: 8dp; top: 0dp; width: 8dp; height: 24dp; border-radius: 2dp; background-color: #8A94A3; }
+.dpad .h { position: absolute; left: 0dp; top: 8dp; width: 24dp; height: 8dp; border-radius: 2dp; background-color: #8A94A3; }
+.dpad .arm { position: absolute; background-color: #F5BE1B; }
+.dpad .up { left: 8dp; top: 0dp; width: 8dp; height: 9dp; }
+.dpad .down { left: 8dp; top: 15dp; width: 8dp; height: 9dp; }
+.dpad .left { left: 0dp; top: 8dp; width: 9dp; height: 8dp; }
+.dpad .right { left: 15dp; top: 8dp; width: 9dp; height: 8dp; }
+.hint .glyphs, .hintrow .glyphs { margin-right: 4dp; }
 
 /* ---- panels ----------------------------------------------------------- */
 
@@ -172,7 +195,7 @@ img { display: inline-block; }
 .abody .parts { margin-top: 4dp; }
 .abody .part { height: 22dp; }
 .cos { display: flex; flex-direction: row; align-items: center; height: 46dp; margin-top: 10dp; }
-.cos .key { margin-right: 12dp; }
+.cos .key, .cos .gc { margin-right: 12dp; }
 .cchip { position: relative; width: 36dp; height: 44dp; margin-right: 8dp; box-sizing: border-box; border: 2dp #4A5361; transform: skewX(-12deg); overflow: hidden; clip: always; }
 .cchip.on { border-color: #F3F6FA; }
 .cpin { position: absolute; left: -6dp; right: -6dp; top: 0dp; bottom: 0dp; transform: skewX(12deg); }
@@ -230,7 +253,7 @@ img { display: inline-block; }
 /* ---- a part's drills ----------------------------------------------------- */
 
 .tabs { position: absolute; left: 54dp; top: 120dp; width: 780dp; height: 40dp; display: flex; flex-direction: row; align-items: center; }
-.tabs .key { margin: 0dp 12dp 0dp 6dp; }
+.tabs .key, .tabs .gc { margin: 0dp 12dp 0dp 6dp; }
 .ptab { height: 40dp; padding: 0dp 22dp; margin-right: 10dp; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; border: 3dp #00000000; }
 .ptab.on { border-color: #12161C; }
 .ptab .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 23dp; text-transform: uppercase; letter-spacing: 1dp; }
@@ -265,7 +288,7 @@ img { display: inline-block; }
 .donebtn .box { border-color: #F3F6FA; }
 .donebtn.on { background-color: #F3F6FA; color: #12161C; }
 .donebtn.on .box { border-color: #12161C; background-color: #12161C; }
-.donebtn .key { margin-right: 0dp; }
+.donebtn .key, .donebtn .gc { margin-right: 0dp; }
 .go.off { background-color: #2B3340; color: #A9B4C2; }
 .go.off .key { border-color: #A9B4C2; }
 
@@ -317,7 +340,7 @@ img { display: inline-block; }
 
 .big2 { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; line-height: 1.05em; text-transform: uppercase; }
 .pick { display: flex; flex-direction: row; align-items: center; margin: 2dp 0dp 8dp 0dp; font-size: 14dp; font-weight: 600; color: #D5DCE5; }
-.pick .key { margin-right: 8dp; }
+.pick .key, .pick .gc { margin-right: 8dp; }
 .botstate { margin-top: 12dp; }
 
 /* ---- over the game: the pause menu; the column hidden ---- */
@@ -337,7 +360,7 @@ img { display: inline-block; }
 .pv { font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
 .pgap { height: 10dp; }
 .phint { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 13dp; font-weight: 600; color: #4A5361; }
-.phint .key { margin-left: 12dp; margin-right: 6dp; }
+.phint .key, .phint .gc, .phint .dpad { margin-left: 12dp; margin-right: 6dp; }
 .now { color: #F3F6FA; font-weight: 700; margin-top: 4dp; }
 .stageline { margin-bottom: 8dp; }
 

@@ -44,8 +44,8 @@ def over_game():
         '<div id="pause" class="pause"><div class="pbox"><div class="ptitle">'
         '<div class="un"><div id="ptitle">Paused</div></div></div>'
         '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
-        '</div>%s<div>Change</div>%s<div>Back to it</div></div></div></div>'
-        % (key("A", dark=True), key("SIDE", wide=True), key("B")))
+        '</div>%s<div>Change</div>%s<div>Back</div></div></div></div>'
+        % (key("A"), key("D-SIDE"), key("B")))
 
 
 def rays(points):
@@ -103,21 +103,49 @@ def pause_rows(rows, at):
     return "".join(out)
 
 
+def hint_rows(rows):
+    """(buttons, what they do) rows: the buttons drawn as the GameCube
+    controller's, several to a row ("L R")."""
+    return "".join(
+        '<div class="hintrow"><div class="glyphs">%s</div><div>%s</div>'
+        '</div>' % ("".join(key(b) for b in buttons.split()), esc(what))
+        for buttons, what in rows)
+
+
 def match_hints(drill=False, stages=False):
-    """The column's controls, in a match or a drill."""
-    rows = [("START", "Pause and settings"),
-            ("HOLD START 3S", "Hide this column")]
+    """The sidebar's controls, in a match or a drill."""
+    rows = [("START", "Pause"), ("START", "Hold: hide sidebar")]
     if drill:
-        rows = [("D-PAD UP", "The guide"),
-                ("D-PAD SIDE", "Scenario. Hold 3s: drill")] + rows
+        rows = [("D-UP", "Guide"), ("D-SIDE", "Scenario"),
+                ("D-SIDE", "Hold: change drill")] + rows
     if stages:
-        rows.append(("HOLD L/R 5S", "Another stage"))
-    return '<div class="hints">%s</div>' % "".join(
-        '<div class="hintrow">%s<div>%s</div></div>' % (
-            key(k, wide=True), what) for k, what in rows)
+        rows.append(("L R", "Hold: change stage"))
+    return '<div class="hints">%s</div>' % hint_rows(rows)
+
+
+# The GameCube controller's buttons, as they look on it: A green and large,
+# B red, X and Y grey kidneys, Z purple, the triggers grey, START a small
+# grey button, the D-pad a cross with the arm meant lit.
+GLYPH = {"A": "a", "B": "b", "X": "x", "Y": "y", "Z": "z", "L": "lt",
+         "R": "rt", "C": "c", "START": "st"}
+DPAD = {"D-UP": ("up",), "D-DOWN": ("down",), "D-LEFT": ("left",),
+        "D-RIGHT": ("right",), "D-SIDE": ("left", "right"),
+        "SIDE": ("left", "right"), "D-PAD": ()}
 
 
 def key(letter, dark=False, wide=False):
+    """A button: a GameCube button drawn as one, a D-pad direction as the
+    cross, anything else (a keyboard's key) as a key cap. (`dark`, `wide`:
+    for a key cap only.)"""
+    name = letter.upper()
+    if name in GLYPH:
+        label = "START" if name == "START" else name
+        return '<div class="gc %s"><div>%s</div></div>' % (GLYPH[name],
+                                                            label)
+    if name in DPAD:
+        arms = "".join('<div class="arm %s"/>' % a for a in DPAD[name])
+        return ('<div class="dpad"><div class="v"/><div class="h"/>%s</div>'
+                % arms)
     return '<div class="key%s%s">%s</div>' % (
         " dark" if dark else "", " wide" if wide else "", esc(letter))
 
@@ -383,15 +411,15 @@ def opponent_card(c, who, what, stage, count, go):
     with `what` that is in a few words; `count`: "2 of 31"), the stage."""
     form = ""
     if c.get("other") is not None:
-        form = ('<div class="pick">%s<div>%s instead</div></div>' % (
+        form = ('<div class="pick">%s<div>Switch to %s</div></div>' % (
             key("Y"), esc(c["other"]["name"])))
     return art_head(c) + (
         '<div class="body low"><div class="fact"><div class="fl">Played by'
         '</div><div class="fv big2">%s</div><div class="fl">%s</div></div>'
-        '<div class="pick">%s<div>Someone else</div><div class="grow"/>'
+        '<div class="pick">%s<div>Change</div><div class="grow"/>'
         '<div class="lbl">%s</div></div>%s'
         '<div class="fact"><div class="fl">Stage</div><div class="fv big2">'
-        '%s</div></div><div class="pick">%s%s<div>Another stage</div></div>'
+        '%s</div></div><div class="pick">%s%s<div>Change stage</div></div>'
         '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
         '</div></div></div>' % (
             esc(who), esc(what), key("X"), esc(count), form, esc(stage),
@@ -409,12 +437,9 @@ def versus_rail(c, opp, who, what, stage, lab):
                 34 if len(c["name"]) > 9 else 48, esc(c["name"])))
     tools = ""
     if lab:
-        tools = "".join(
-            '<div class="hintrow">%s<div>%s</div></div>' % (
-                key(k, wide=True), what) for k, what in (
-                    ("D-PAD DOWN", "Put both back"),
-                    ("D-PAD LEFT", "Their damage, 10 less"),
-                    ("D-PAD RIGHT", "Their damage, 10 more")))
+        tools = hint_rows((("D-DOWN", "Reset positions"),
+                           ("D-LEFT", "Opponent damage -10"),
+                           ("D-RIGHT", "Opponent damage +10")))
     body = (
         '<div class="fact"><div class="fl">Against</div><div class="fv big2">'
         '%s</div></div><div class="fact"><div class="fl">Played by</div>'
@@ -445,8 +470,7 @@ def match_rail(c, opponent, stage):
             (c["weight"], "weight"), (c["fall"], "fall speed"),
             (c["squat"], "jump squat")))
     body = (
-        '<div class="line">Against a standing %s on %s. No drill is '
-        'running: nothing is judged.</div>'
+        '<div class="line">Against a standing %s on %s.</div>'
         '<div class="about"/><div class="stats">%s</div>'
         '<div class="grow"/>%s' % (
             esc(opponent), esc(stage), stats, match_hints()))
@@ -470,21 +494,20 @@ def hub(c, course, here, progress, left):
             " on" if progress.done(d["id"]) else "") for d in drills)
         slabs.append(
             '<div id="p%d" class="tile slab %s"><div class="ring"/>'
-            '<div class="in"><div class="row"><div class="idx">0%d</div>'
+            '<div class="in"><div class="row">'
             '<div class="grow"/>%s</div><div><div class="big">%s</div>'
-            '<div class="q">%s</div><div class="d">%s</div></div><div>'
-            '<div class="sqs">%s</div><div class="cnt2">%d of %d done</div>'
-            '<div class="cnt2">Next: %s</div></div></div>'
+            '<div class="d">%s</div></div><div>'
+            '<div class="sqs">%s</div><div class="cnt2">%d of %d complete'
+            '</div><div class="cnt2">Next: %s</div></div></div>'
             '</div>' % (
-                i, PART_CLASS[part], i + 1,
+                i, PART_CLASS[part],
                 '<div class="first">START HERE</div>' if i == 0 else "",
-                part, esc(ABOUT[part][0]), esc(ABOUT[part][1]), squares,
-                done, len(drills),
-                esc(nxt["name"]) if nxt else "all done"))
+                part, esc(ABOUT[part][0]), squares, done, len(drills),
+                esc(nxt["name"]) if nxt else "complete"))
     if left:
         tail = (
             '<div class="tile ink grow"><div class="in leftoff"><div>'
-            '<div class="lbl">WHERE YOU LEFT OFF</div><div class="big">%s'
+            '<div class="lbl">LAST PLAYED</div><div class="big">%s'
             '</div><div class="row"><div class="sq2" style="background-color:'
             ' %s"/><div>%s · drill %d of %d</div></div></div>'
             '<div class="go small"><div class="un">%s<div>Continue</div>'
@@ -497,7 +520,7 @@ def hub(c, course, here, progress, left):
                 '<div class="lbl">THE COURSE</div><div class="sum">%s</div>'
                 '</div></div></div>' % esc(course["summary"]))
     body = (
-        header(["Train", c["name"] + "'s course"],
+        header(["Train", c["name"]],
                tag=(c["name"], c["color"], c["fg"])) +
         '<div class="hub"><div class="slabs">' +
         '<div class="gap"/>'.join(slabs) + '</div><div class="gap"/>'
@@ -506,7 +529,7 @@ def hub(c, course, here, progress, left):
         '<div class="big">Free play</div><div class="sub">Against a standing'
         ' opponent.</div></div></div></div><div class="gap"/>' + tail +
         '</div></div>' +
-        footer("", [("A", "Open"), ("B", "Character")],
+        footer("", [("A", "Open"), ("B", "Back")],
                tab=PART_COLOR["Tech"]))
     return page("Course hub", body)
 

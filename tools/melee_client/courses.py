@@ -18,23 +18,18 @@ ROOT = Path(__file__).resolve().parents[2]
 PARTS = ("Tech", "Punish", "Defense", "Neutral")
 SAVE = ROOT / "save" / "client.json"
 
+# part: (what it trains, as the hub says it; the same in a few words, as the
+# drill list's footer says it). Plain words: the owner, 2026-11-13, asked
+# for "professional neutral language" and no taglines.
 ABOUT = {
-    "Tech": ("Can my hands do it?",
-             "One technique at a time, no pressure. Graded on the frames "
-             "of your inputs.",
-             "Individual techniques, executed alone."),
-    "Punish": ("Can I convert it?",
-               "Starts at the hit, grab or shielded move. The CPU tries to "
-               "escape.",
-               "Conversions: what to do once you have the hit."),
-    "Defense": ("Can I get out?",
-                "The CPU has the combo, the pressure or the edgeguard. You "
-                "escape.",
-                "Getting out: SDI, teching, recovering."),
-    "Neutral": ("Can I get the first hit?",
-                "Both free, at a spacing. Ends when you land the opening, "
-                "or are hit.",
-                "Openings: scenarios that end in a first hit."),
+    "Tech": ("Individual techniques, graded frame by frame.",
+             "Individual techniques."),
+    "Punish": ("Conversions from a hit, a grab or a shielded move.",
+               "Conversions."),
+    "Defense": ("Escaping combos, pressure and edgeguards.",
+                "Escapes: SDI, teching, recovery."),
+    "Neutral": ("Winning the first hit from a neutral position.",
+                "Openings."),
 }
 
 

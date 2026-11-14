@@ -92,9 +92,15 @@ def main():
         shot("opponent")
 
         if opponents.available() and len(players) > 2:
-            check("a model trained for the pairing comes first",
-                  "falco" in players[0][0] and "_vs_fox" in players[0][0],
-                  players[0][0])
+            names = [p[1] for p in players[:-2]]
+            check("the models by name and difficulty, the ranks first, "
+                  "then the specialists for this pairing only",
+                  names[:5] == ["Gold", "Platinum", "Diamond", "Master",
+                                "Grandmaster"] and
+                  "Fox Specialist" in names and
+                  all(n == "Fox Specialist" for n in names
+                      if n.endswith("Specialist")) and
+                  not any("_" in n for n in names), ", ".join(names))
             tap("x", after=10)
             w.pace(True)
             for _ in range(900):          # the model loads beside the match

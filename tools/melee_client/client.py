@@ -102,7 +102,8 @@ class Abandon(Exception):
 
 # How long a button is held for its other meaning (frames, at 60 a second)
 HOLD_COLUMN = 180      # START: hide or show the column
-HOLD_DRILL = 180       # D-pad left or right: the drill before or after
+HOLD_DRILL = 120       # D-pad left or right: the drill before or after (2 s:
+                       # the owner, 2026-11-13, "much too slow" at 3)
 HOLD_STAGE = 300       # L or R: the stage before or after (drills with stages)
 DPAD = LEFT | RIGHT | DOWN | UP
 
@@ -503,24 +504,24 @@ class Client:
             rows.append(("guide", "Guide", None))
             if s.d.reference or type(s.d).build_reference is not \
                     course_engine.Drill.build_reference:
-                rows.append(("demo", "Watch a demonstration", None))
+                rows.append(("demo", "Demonstration", None))
         elif kind == "drill" and isinstance(s, tech.Session):
             rows.append(("tol", "Leniency", "%d frames late" % s.tolerance))
             rows.append(("-", "", None))
         if kind == "drill":
             rows.append(("reset", "Restart", None))
-        rows.append(("column", "Show the column" if self.column_hidden
-                     else "Hide the column", None))
+        rows.append(("column", "Show sidebar" if self.column_hidden
+                     else "Hide sidebar", None))
         rows.append(("-", "", None))
         if kind == "drill":
             rows += [("prev", "Previous drill", None),
                      ("next", "Next drill", None),
-                     ("list", "Back to the drill list", None),
-                     ("hub", "Back to the course", None)]
+                     ("list", "Back to menu", None),
+                     ("hub", "Back to course", None)]
         elif kind == "versus":
-            rows.append(("opp", "Back to the opponent", None))
+            rows.append(("opp", "Opponent select", None))
         elif kind == "online":
-            rows.append(("back", "Leave the match", None))
+            rows.append(("back", "Leave match", None))
         else:
             rows.append(("back", "Back", None))
         rows.append(("main", "Main menu", None))
@@ -767,12 +768,14 @@ class Client:
     # ---- versus and the lab: who is on the other side ------------------------------
 
     def players(self):
-        """Who can play the opponent in focus: [(name, what it is)]. In
-        Versus a trained model comes first; in the Lab nobody does."""
+        """Who can play the opponent in focus: [(key, name, what it is)],
+        the key a model's file or CPU or NOBODY. In Versus the trained
+        models come first, by difficulty (opponents.models); in the Lab
+        nobody does."""
         opp = self.roster[self.opp_at]
         trained = opponents.models(opp["id"], self.me["id"])
-        rest = [(CPU, "the CPU the game came with"),
-                (NOBODY, "it stands still")]
+        rest = [(CPU, "CPU", "The game's own AI"),
+                (NOBODY, "Dummy", "Stands still")]
         if self.mode == "lab":
             rest.reverse()
             return rest + trained
@@ -780,7 +783,7 @@ class Client:
 
     def opponent_card(self):
         players = self.players()
-        name, what = players[self.who]
+        _, name, what = players[self.who]
         return screens.opponent_card(
             self.roster[self.opp_at], name, what,
             STAGE_ORDER[self.stage_at].replace("-", " ").title(),
@@ -844,20 +847,20 @@ class Client:
     def fight(self):
         """A match against the opponent chosen, played as chosen."""
         opp = self.roster[self.opp_at]
-        name, what = self.players()[self.who]
+        key, name, what = self.players()[self.who]
         stage = STAGE_ORDER[self.stage_at]
         if self.bot is not None:
             self.bot.close()
             self.bot = None
-        if name not in (CPU, NOBODY):
-            self.bot = opponents.Bot(name, port=1 - self.port,
+        if key not in (CPU, NOBODY):
+            self.bot = opponents.Bot(key, port=1 - self.port,
                                      opponent=self.port, stage=stage)
         self.bot_said = None
         self.w.pad(1 - self.port)
         self.dress(self.me, opp)
         self.load_quietly(lambda: self.w.start(
             self.me["id"], opp["id"], stage,
-            seed=random.randrange(1, 1 << 30), p2_human=name != CPU,
+            seed=random.randrange(1, 1 << 30), p2_human=key != CPU,
             settle=False))
         self.last = self.me
         self.screen = "versus"
@@ -1107,14 +1110,13 @@ class Client:
         if self.bot is not None:
             ready = self.bot.ready()
             if ready is None:
-                self.bot_state("The model is loading: it stands still until "
-                               "it has.")
+                self.bot_state("Loading. The opponent stands still until "
+                               "it is ready.")
             elif not ready:
-                self.bot_state("The model did not load (%s). Nobody is "
-                               "playing." % self.bot.error[:80])
+                self.bot_state("Could not load (%s). The opponent stands "
+                               "still." % self.bot.error[:80])
             else:
-                self.bot_state("Reacts %d frames after what it sees." %
-                               self.bot.delay)
+                self.bot_state("%d-frame reaction." % self.bot.delay)
                 # the answer to last frame's question; then this frame's
                 pad = self.bot.answer(0.002)
                 if pad is not None:
@@ -1149,7 +1151,7 @@ class Client:
             return "Free play against a standing opponent. Nothing is judged."
         part = courses.PARTS[int(self.hub_at[1])]
         return "%s: %s Every part is open from the start." % (
-            part, courses.ABOUT[part][2])
+            part, courses.ABOUT[part][1])
 
     def show_hub(self):
         self.menu_music()
@@ -1482,7 +1484,7 @@ class Client:
                 # (a D-pad press or START stops it)
                 self.w.scripted(self.port, True)
                 session.live = False
-                self.banner_say("Watch", "the game plays it")
+                self.banner_say("Demo", "Demonstration")
             try:
                 result = session.run(each_frame=self.drill_frame, demo=demo)
             except Abandon as a:
@@ -1490,7 +1492,7 @@ class Client:
                 demo = False
                 if a.what == "scenario":
                     session.change_scenario(a.step)
-                    self.banner_say("Next", session.scenario_names()[
+                    self.banner_say("Scenario", session.scenario_names()[
                         session.scenario])
                 elif a.what == "guide":
                     demo = self.course_guide(drill, session)
@@ -1540,7 +1542,8 @@ class Client:
             else:
                 parts.append(line.strip())
         self.w.ui("text why " + "<br/>".join(screens.esc(p) for p in parts))
-        self.banner_say("Guide", "D-pad right: watch it. Up: go on")
+        self.banner_say("Guide", "D-pad right: demonstration. D-pad up: "
+                        "close")
         self.banner = 0
         has_demo = bool(drill.reference) or \
             type(drill).build_reference is not \
