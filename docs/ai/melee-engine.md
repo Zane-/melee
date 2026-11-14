@@ -180,5 +180,33 @@ What it does not do yet: it still holds still a lot (searches on the unoptimised
 about ten frames of real time, and "wait" often scores best); the drills do not use it; and
 it plays against a player assumed to hold their input.
 
-Not yet: the drills on the engine; slippi-ai as the model of the player and as the prior
-(E4); an optimised shadow build; a transposition table and the history heuristic.
+**E4, slippi-ai in the engine: first version (2026-11-13).** `tools/melee_engine/human.py`.
+The policy server (`tools/melee_actor/policy_server.py`) now answers `peek: N` with the N
+frames the model has already decided (with 18 frames of delay the next 17 are fixed; read
+from its delayed agent's queue in play order, not `peek_n`, which gives the newest), and
+takes `own: true` (its own port's real pad: a person's). `ModelPlayer`: a model of the
+person, told what they really pressed, predicting their next 17 frames, which the search
+plays against (`engine player`). `ModelBody`: the opponent character's model with its
+attacks taken out (A, B, Z, the C-stick): it moves, dash dances, jumps, wavedashes and
+shields like a person. `opponent.Blend`: the body moves the fighter every frame; every 4
+frames the engine searches against the model of the player for an attack that lands within
+its first move, and plays one of the best (a softmax) when there is one.
+
+`tests/actor/blend.py`, Marth against a Fox model for 900 frames, three ways (one run each;
+two runs so far):
+
+| Marth | Dealt | Taken | Dash, run, turn frames | Jump frames |
+|-|-|-|-|-|
+| the Marth model alone | 67%, 20% | 28%, 77% | 85, 57 | 66, 70 |
+| the engine alone (assumes Fox holds still) | 52%, 82% | 83%, 66% | 0, 0 | 2, 4 |
+| the blend | 81%, 84% | 25%, 15% | 71, 145 | 58, 51 |
+
+The blend moves like the model, hits like the engine, and takes the least: its commitments
+varied (dash attack, forward smash, short hop nair and bair, an out-of-shield grab, up tilt,
+Dolphin slash, Shield Breaker, a grab). Several model processes share the GPU
+(`XLA_PYTHON_CLIENT_PREALLOCATE=false`; a third did not fit otherwise).
+
+Not yet: the blend live (its searches in the shadow: `LiveMind` does it for the engine
+alone); the drills on it; an optimised shadow build; a transposition table and the history
+heuristic; several sampled futures of the player (determinized search across shadows);
+reinforcement learning (E6); adaptation (E7).

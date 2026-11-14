@@ -10,6 +10,12 @@ end):
 
     {"load": MODEL, "port": 1, "opponent": 0, "stage": NAME}  ->  {"ready": true, "delay": N}
     {"frame": {"p": [fighter, fighter], "pads": [pad, pad]}}  ->  {"pad": {buttons, stick, cstick, l}}
+    {"frame": ..., "own": true}: its own port's pad is given too (what a
+        person there really pressed), not taken from its last answer
+    {"frame": ..., "peek": N}  ->  {"pad": ..., "next": [pad, ...]}: also the N
+        frames the model has already decided (it plays them DELAY frames
+        late, so they are fixed now): what it will press next, the model
+        of a player the search engine plays against (tools/melee_engine)
     {"again": true}                                            a new match: -> {"ok": true}
 
 The game is never made to wait for an answer: the client asks about the
@@ -59,6 +65,25 @@ class Game:
         p["lt"] = int(l * 255)
 
 
+def decode(player, out):
+    """A sample's controller as the pad keywords the client uses."""
+    from slippi_ai import utils
+    try:
+        import jax
+        out = jax.device_get(out)
+    except ImportError:
+        pass
+    action = utils.map_single_structure(lambda x: x[0], out.controller_state)
+    c = player.agent.decode_controller(action)
+    buttons = [("UP" if k == "D_UP" else k)
+               for k, v in c.buttons._asdict().items() if bool(v)]
+    full = lambda v: float(v) * 2.0 - 1.0
+    return dict(buttons=buttons,
+                stick=[full(c.main_stick.x), full(c.main_stick.y)],
+                cstick=[full(c.c_stick.x), full(c.c_stick.y)],
+                l=float(c.shoulder))
+
+
 def say(message):
     answers.write(json.dumps(message) + "\n")
     answers.flush()
@@ -99,13 +124,26 @@ def main():
             frame = msg["frame"]
             game.p = frame["p"]
             for i, pad in enumerate(frame.get("pads", [])):
-                if pad is not None and i != port:
+                if pad is not None and (i != port or msg.get("own")):
+                    # "own": the pad its own port really had (a person's:
+                    # the model then predicts them, not itself)
                     game.h.pads[i].update(pad)
             if not (game.p[port] and game.p[opponent]):
                 say(dict(pad=None))
                 continue
             player.act()
-            say(dict(pad=game.out))
+            answer = dict(pad=game.out)
+            if msg.get("peek"):
+                try:
+                    # the agent's queue holds what it decided DELAY frames
+                    # ago for each frame to come, the next one first
+                    # (eval_lib.DelayedAgent; peek_n gives the newest)
+                    queued = list(player.agent._output_queue)
+                    answer["next"] = [decode(player, o) for o in
+                                      queued[:int(msg["peek"])]]
+                except Exception as e:   # said, not fatal
+                    answer["next_error"] = "%s: %s" % (type(e).__name__, e)
+            say(answer)
 
 
 if __name__ == "__main__":
