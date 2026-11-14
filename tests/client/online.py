@@ -163,9 +163,13 @@ def main():
                   "same ports",
                   a.seen["fighters"] == b.seen["fighters"],
                   "%s / %s" % (a.seen["fighters"], b.seen["fighters"]))
-            # two software-drawn windows: under 60 frames a second here
-            check("ten seconds played on both sides",
-                  sa["frame"] > 300 and sb["frame"] > 300,
+            # ten seconds of two software-drawn windows: how many frames
+            # that is depends on the machine's load (228 to 408 seen), so
+            # what is checked is that both played on, and together (the
+            # session lets neither get more than 7 frames ahead)
+            check("ten seconds played on both sides, together",
+                  sa["frame"] > 120 and sb["frame"] > 120 and
+                  abs(sa["frame"] - sb["frame"]) <= 10,
                   "%d and %d frames" % (sa["frame"], sb["frame"]))
             check("no desync in %d checks" % (sa["checks"] + sb["checks"]),
                   not sa["desync"] and not sb["desync"] and
