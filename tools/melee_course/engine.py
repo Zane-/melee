@@ -342,7 +342,11 @@ class Ctx:
         return self.s.demo_count
 
     def randi(self, n):
-        """A number from 0 to n - 1 (HSD_Randi)."""
+        """A number from 0 to n - 1 (HSD_Randi). The C drills draw from
+        the game's random stream, these from Python's: the same choices
+        come in other orders. A test can pin the first draws (`draws`)."""
+        if self.s.draws:
+            return self.s.draws.pop(0) % n if n > 0 else 0
         return self.rng.randrange(n) if n > 0 else 0
 
     # ---- placing ------------------------------------------------------------------
@@ -454,6 +458,11 @@ class Ctx:
         s = self.s
         if 0 < mark < MAX_MARKS and s.marks[mark] < 0:
             s.marks[mark] = s.attempt_frame - back
+            if back and s.d.live_marks:
+                # this frame's reference was played before the mark was
+                # known: play it again after the think (an input one frame
+                # after the mark is due now, as the C sends it)
+                s.replay = True
 
     def measure(self, measured, target):
         self.s.measure = (measured, target)
@@ -494,10 +503,13 @@ class Session:
     LIMIT = 3600                  # frames: an attempt that runs longer ends
 
     def __init__(self, drill, game, person=0, character="fox", options=None,
-                 common=None, live=True, seed=1, on_load=None, dpad=True):
+                 common=None, live=True, seed=1, on_load=None, dpad=True,
+                 draws=None):
         self.d = drill
         self.n = game
         self.dpad = dpad          # the D-pad is the drill's (as in C)
+        self.draws = list(draws or [])   # Ctx.randi's first answers
+        self.replay = False
         self.person = person
         self.live = live
         self.char = character
@@ -800,7 +812,10 @@ class Session:
                 self._play_reference(ref, marks)
             c.timer += 1
             c._pad = dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
+            self.replay = False
             d.think(c)
+            if self.replay and demo_pass:
+                self._play_reference(ref, marks)
             if self.cpu_port is not None:
                 self._set_pad(self.cpu_port, c._pad)
             self.attempt_frame += 1

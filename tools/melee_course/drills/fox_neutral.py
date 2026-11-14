@@ -1,0 +1,428 @@
+"""Fox's Neutral drills: fox-whiff-punish, fox-wavedash-back-punish,
+fox-anti-air.
+
+Port of src/tmce/events/course/drills/fox_neutral.inc.h (specs:
+data/courses/fox.md, Neutral), with their decks from
+src/tmce/events/course/desc.c (WhiffPunish_Deck, WavedashBack_Deck,
+AntiAir_Deck).
+
+fox-whiff-punish: the CPU stands at the edge of an attack's reach and
+throws it once the player has been inside that reach for its reaction
+time. The player steps in, steps out so the attack misses, and hits or
+grabs the CPU before it can act again. The reaction time is the
+difficulty.
+
+fox-wavedash-back-punish and fox-anti-air: the CPU stands at a scenario's
+start distance and, after a wait the player cannot predict, jumps in with
+an aerial.
+"""
+from melee_course.engine import (
+    A, R, X, Drill, Entry, In, Option, Ref, ATTACK_AIR_B, ATTACK_HI3,
+    ATTACK_HI4, CAPTURE_PULLED_HI, GUARD_SET_OFF, LANDING_FALL_SPECIAL)
+
+# ftCo_MS_CaptureFoot (src/melee/ft/kinds/ftCommon/forward.h): the last of
+# the states of a fighter being held.
+CAPTURE_FOOT = 232
+
+
+def cpu_grabbed(c):
+    """The CPU is being held (fpr_CpuGrabbed, fox_pressure.inc.h)."""
+    return CAPTURE_PULLED_HI <= c.cpu_state <= CAPTURE_FOOT
+
+
+def dist(c):
+    return abs(c.cpu.pos[0] - c.me.pos[0])
+
+
+class WhiffScenario:
+    """A scenario of a whiff-punish drill (course.h): the attack hits a
+    standing player within `reach` (for the approaches: the start
+    distance); `inputs` frame 0 = when the CPU commits; `hit_end`: script
+    frame its last hitbox is gone after (the approaches: the landing);
+    `faf`: script frame the CPU can act again; `demo_back`: script frame
+    the demonstration goes back in; `demo_out`: script frame of its first
+    move (approaches)."""
+
+    def __init__(self, reach, inputs, hit_end, faf, demo_back=0, demo_out=0):
+        self.reach, self.inputs = reach, inputs
+        self.hit_end, self.faf = hit_end, faf
+        self.demo_back, self.demo_out = demo_back, demo_out
+
+
+# ---- fox-whiff-punish: the attacks (desc.c) ---------------------------------
+#
+# Reach, hit and recovery frames measured against a standing Fox in the
+# simulator sandbox and checked against data/framedata (2026-11-12):
+#   Marth forward smash: hits out to 34 units, hitbox frames 10-13, acts
+#     again on 48.
+#   Marth dash attack (8 frames of dash, then A): from 29 out to 58,
+#     hitbox 12-15 of the attack, interruptible from 40.
+#   Sheik and Peach dash attack (8 frames of dash, then A): out to 46-47;
+#     hitbox 6-12 (Sheik) and 6-20 (Peach) of the attack, acts again on 36.
+# `reach` is a little inside the measured reach, so standing there is hit.
+_wp_fsmash = [In(0, 1, 0, 0, 127, 0, 0)]
+_wp_dash_attack = [In(0, 9, 127, 0, 0, 0, 0), In(8, 1, 127, 0, 0, 0, A)]
+
+WHIFF_PUNISH_DECK = [
+    Entry("marth", WhiffScenario(31.0, _wp_fsmash, 13, 48, 3),
+          "Marth - Forward Smash"),
+    Entry("marth", WhiffScenario(50.0, _wp_dash_attack, 23, 48, 9),
+          "Marth - Dash Attack"),
+    Entry("sheik", WhiffScenario(42.0, _wp_dash_attack, 20, 44, 10),
+          "Sheik - Dash Attack"),
+    Entry("peach", WhiffScenario(42.0, _wp_dash_attack, 28, 44, 12),
+          "Peach - Dash Attack"),
+]
+
+# ---- jump-in approaches (desc.c) --------------------------------------------
+#
+# Frame 0 is the jump input. Measured against a standing Fox in the
+# simulator sandbox (2026-11-12); "lands" and "acts" are for the attack
+# missing. No L-cancel: the landing lag is the window being taught.
+# Short hops, for fox-wavedash-back-punish:
+#   Falcon nair from 30: hits a Fox within 36 on frame 33; lands 35, acts 54.
+#   Falco dair from 20: within 22, frame 18-21; lands 30, acts 48.
+#   Marth fair from 26: within 31, frame 29; lands 42, acts 57.
+# Full hops, for fox-anti-air:
+#   Falcon nair from 47: hits on frame 51; lands 53-61.
+#   Falcon dair from 45: frame 51; lands 52-59.
+#   Jigglypuff fair from 60: frame 46; lands 56-62.
+#   Peach fair from 50: frame 52; lands 64-71.
+_ap_falcon_sh_nair = [In(0, 1, buttons=X), In(5, 30, 127),
+                      In(20, 1, 127, buttons=A)]
+_ap_falco_sh_dair = [In(0, 1, buttons=X), In(6, 20, 127),
+                     In(14, 1, 127, 0, 0, -127)]
+_ap_marth_sh_fair = [In(0, 1, buttons=X), In(5, 30, 127),
+                     In(24, 1, 127, 0, 127, 0)]
+_ap_falcon_fh_nair = [In(0, 8, buttons=X), In(5, 45, 127),
+                      In(38, 1, 127, buttons=A)]
+_ap_falcon_fh_dair = [In(0, 8, buttons=X), In(5, 45, 127),
+                      In(36, 1, 127, 0, 0, -127)]
+_ap_puff_fh_fair = [In(0, 8, buttons=X), In(6, 60, 127),
+                    In(40, 1, 127, 0, 127, 0)]
+_ap_peach_fh_fair = [In(0, 8, buttons=X), In(6, 60, 127),
+                     In(34, 1, 127, 0, 127, 0)]
+
+#                        start inputs  lands acts back out
+WAVEDASH_BACK_DECK = [
+    Entry("captain-falcon",
+          WhiffScenario(30.0, _ap_falcon_sh_nair, 35, 54, 30, 6),
+          "Falcon - Nair"),
+    Entry("falco", WhiffScenario(20.0, _ap_falco_sh_dair, 30, 48, 22, 3),
+          "Falco - Dair"),
+    Entry("marth", WhiffScenario(26.0, _ap_marth_sh_fair, 42, 57, 34, 6),
+          "Marth - Fair"),
+]
+
+ANTI_AIR_DECK = [
+    Entry("captain-falcon",
+          WhiffScenario(47.0, _ap_falcon_fh_nair, 61, 80, 0, 40),
+          "Falcon - Full Hop Nair"),
+    Entry("captain-falcon",
+          WhiffScenario(45.0, _ap_falcon_fh_dair, 59, 83, 0, 40),
+          "Falcon - Full Hop Dair"),
+    Entry("jigglypuff", WhiffScenario(60.0, _ap_puff_fh_fair, 62, 82, 0, 35),
+          "Jigglypuff - Fair"),
+    Entry("peach", WhiffScenario(50.0, _ap_peach_fh_fair, 71, 96, 0, 41),
+          "Peach - Fair"),
+]
+
+
+def percent_option():
+    return Option("CPU Percent", count=151, default=20, fmt="%d%%",
+                  desc="The CPU's damage at the start of each attempt.")
+
+
+# ---- fox-whiff-punish -------------------------------------------------------
+
+WP_MARK_TRIGGER, WP_MARK_ATTACK, WP_MARK_CLOSE = 1, 2, 3
+WP_OPT_REACTION, WP_OPT_PERCENT = range(2)
+WP_BAIT, WP_REACT, WP_ATTACK = range(3)
+
+WP_START_GAP = 14.0   # the player starts this far outside the attack's reach
+# Where the demonstration starts its jump-cancelled up smash: Fox is running
+# and slides in while it comes out.
+WP_CLOSE = 16.0
+WP_REACTIONS = (20, 14, 9)
+
+
+class FoxWhiffPunish(Drill):
+    id = "fox-whiff-punish"
+    name = "Whiff Punish"
+    goal = "Bait an attack, make it miss, punish its recovery"
+    part = "neutral"
+    cpu = "marth"
+    characters = ("fox",)
+    deck = WHIFF_PUNISH_DECK
+    live_marks = True
+    options = (
+        Option("CPU Reaction", ["Slow (20)", "Normal (14)", "Fast (9)"], 1,
+               "Frames the CPU takes to attack once you are inside its "
+               "range. Faster is harder to bait."),
+        percent_option(),
+    )
+    help = ("Whiff punish: dash into range, dash out so the",
+            "attack misses, then punish before they recover.",
+            "D-Pad up: guide. D-Pad down: reset.")
+
+    def reaction(self, c):
+        """The demonstration's timings are tuned for the Normal reaction,
+        so it is always shown at that."""
+        if c.is_demo:
+            return WP_REACTIONS[1]
+        return WP_REACTIONS[c.opt(WP_OPT_REACTION)]
+
+    def build_reference(self, c):
+        """Dash in; once the CPU has noticed, dash back out (ten frames of
+        stick: the dash itself carries Fox about 40 units), let go until
+        the scenario's `demo_back`, dash in again and up smash when close.
+        All timed against marks of the same attempt."""
+        sc = c.entry.data
+        out = 10
+        wait = self.reaction(c) + sc.demo_back - out
+        ref = [Ref(0, 5, 400, lx=127),   # toward the CPU unless told
+               Ref(WP_MARK_TRIGGER, 1, out, lx=-127)]
+        if wait > 0:
+            # inside the dead zone: stand still
+            ref.append(Ref(WP_MARK_TRIGGER, 1 + out, wait, lx=1))
+        # Up smash out of a run has to be jump-cancelled.
+        ref.append(Ref(WP_MARK_CLOSE, 1, 1, buttons=X))
+        ref.append(Ref(WP_MARK_CLOSE, 2, 1, cy=127))
+        return ref
+
+    def setup(self, c):
+        gap = c.entry.data.reach + WP_START_GAP
+        hmn_x = -c.side * gap / 2
+        c.place(hmn_x, hmn_x + c.side * gap, False,
+                float(c.opt(WP_OPT_PERCENT)))
+        self.v = dict(attack_frame=0)
+
+    def guide(self, c):
+        sc = c.entry.data if c.entry else None
+        lines = ["An attack that misses leaves its user stuck.",
+                 "Make the opponent swing at nothing:",
+                 "1. Dash into their range. They react in %d"
+                 % self.reaction(c),
+                 "   frames and attack.",
+                 "2. Dash back out before the attack reaches.",
+                 "3. Dash in and grab or hit before they recover."]
+        if sc is not None:
+            lines.append("%s: hitbox gone after frame" % c.entry.name)
+            lines.append("%d, acts again on frame %d." % (sc.hit_end, sc.faf))
+        return lines
+
+    def think(self, c):
+        v = self.v
+        sc = c.entry.data
+        d = dist(c)
+        hit_cpu = c.cpu_hit or cpu_grabbed(c)
+        if c.phase in (WP_BAIT, WP_REACT):
+            if hit_cpu:
+                c.result(False, "Hit before it swung\nbait the attack first")
+            elif c.phase == WP_BAIT:
+                if d < sc.reach:
+                    c.mark(WP_MARK_TRIGGER)
+                    c.set_phase(WP_REACT)
+            elif c.timer >= self.reaction(c):
+                c.mark(WP_MARK_ATTACK)
+                c.set_phase(WP_ATTACK)
+                v["attack_frame"] = 0
+        elif c.phase == WP_ATTACK:
+            c.script(sc.inputs, v["attack_frame"])
+            v["attack_frame"] += 1
+            if v["attack_frame"] > sc.hit_end and d < WP_CLOSE:
+                c.mark(WP_MARK_CLOSE)
+            if c.hmn_hit:
+                c.report("frame", v["attack_frame"])
+                c.result(False, "Got hit: still in range\nleave sooner")
+            elif c.me.state == GUARD_SET_OFF:
+                c.result(False, "Shielded it\nmake it miss instead")
+            elif hit_cpu:
+                spare = sc.faf - v["attack_frame"]
+                c.measure(v["attack_frame"], sc.hit_end + 1)
+                c.report("frame", v["attack_frame"])
+                c.report("spare", spare)
+                c.result(True, "Whiff punish!\n%d frames to spare" % spare)
+            elif v["attack_frame"] >= sc.faf:
+                c.result(False, "Too slow\nit recovered on frame %d" % sc.faf)
+
+
+# ---- jump-in approaches: shared ---------------------------------------------
+
+AP_MARK_ATTACK, AP_MARK_CLOSE = 1, 2
+AP_WAIT, AP_ATTACK = range(2)
+AP_OPT_PERCENT = 0
+AP_WAIT_MIN = 40
+AP_WAIT_SPAN = 60
+
+
+class _Approach(Drill):
+    """The CPU stands at a scenario's start distance and, after a wait the
+    player cannot predict, jumps in with an aerial (ap_* in the C)."""
+    part = "neutral"
+    cpu = "captain-falcon"
+    characters = ("fox",)
+    live_marks = True
+    options = (percent_option(),)
+
+    def setup(self, c):
+        gap = c.entry.data.reach
+        hmn_x = -c.side * gap / 2
+        c.place(hmn_x, hmn_x + c.side * gap, False,
+                float(c.opt(AP_OPT_PERCENT)))
+        # a demonstration does not keep its viewer waiting
+        self.v = dict(
+            wait=AP_WAIT_MIN if c.is_demo
+            else AP_WAIT_MIN + c.randi(AP_WAIT_SPAN),
+            attack_frame=0, wavedash=0)
+
+    def advance(self, c):
+        """Runs the wait and the CPU's script. True while the approach is
+        on (ap_Advance)."""
+        v = self.v
+        if c.phase == AP_WAIT:
+            if c.timer < v["wait"]:
+                return False
+            c.mark(AP_MARK_ATTACK)
+            c.set_phase(AP_ATTACK)
+            v["attack_frame"] = 0
+        c.script(c.entry.data.inputs, v["attack_frame"])
+        v["attack_frame"] += 1
+        return True
+
+
+# ---- fox-wavedash-back-punish -----------------------------------------------
+
+
+class FoxWavedashBack(_Approach):
+    id = "fox-wavedash-back-punish"
+    name = "Wavedash Back Punish"
+    goal = "Wavedash out of an approach and punish its landing"
+    deck = WAVEDASH_BACK_DECK
+    help = ("Wavedash back out of the jump-in, then dash in and",
+            "punish the landing.",
+            "D-Pad up: guide. D-Pad down: reset.")
+
+    def build_reference(self, c):
+        """Wavedash back as the CPU jumps, dash in at the scenario's
+        `demo_back` and jump-cancel an up smash when close. Against Marth
+        it connects on the last frame that counts (he slides behind Fox as
+        he lands); a jump-cancelled grab was tried and is out of range in
+        all three."""
+        sc = c.entry.data
+        js = c.fd.jump_squat
+        return [
+            Ref(AP_MARK_ATTACK, sc.demo_out, 1, buttons=X),
+            Ref(AP_MARK_ATTACK, sc.demo_out + js, 2, lx=-100, ly=-75,
+                buttons=R, trigger=140),
+            Ref(AP_MARK_ATTACK, sc.demo_back, 200, lx=127),
+            Ref(AP_MARK_CLOSE, 1, 1, buttons=X),
+            Ref(AP_MARK_CLOSE, 2, 1, cy=127),
+        ]
+
+    def guide(self, c):
+        sc = c.entry.data if c.entry else None
+        lines = ["An opponent who jumps at you has chosen where",
+                 "they land. Do not be there.",
+                 "1. When they jump, wavedash back: jump, then",
+                 "   air dodge down and away at once.",
+                 "2. Their attack lands in front of you.",
+                 "3. Dash in and punish the landing lag."]
+        if sc is not None:
+            lines.append("%s: lands on frame %d," % (c.entry.name,
+                                                    sc.hit_end))
+            lines.append("acts again on frame %d." % sc.faf)
+        return lines
+
+    def think(self, c):
+        v = self.v
+        sc = c.entry.data
+        d = dist(c)
+        hit_cpu = c.cpu_hit or cpu_grabbed(c)
+        if not self.advance(c):
+            if hit_cpu:
+                c.result(False, "Hit before it jumped\nwait for the approach")
+            return
+        if c.state == LANDING_FALL_SPECIAL:
+            v["wavedash"] = 1
+        # For the demonstration: its up smash takes a few frames, so it
+        # starts a little before the landing.
+        if v["attack_frame"] > sc.hit_end - 4 and d < WP_CLOSE:
+            c.mark(AP_MARK_CLOSE)
+        if c.hmn_hit:
+            c.report("frame", v["attack_frame"])
+            c.result(False, "Got hit\nwavedash back sooner")
+        elif c.me.state == GUARD_SET_OFF:
+            c.result(False, "Shielded it\nmove out of the way instead")
+        elif hit_cpu:
+            spare = sc.faf - v["attack_frame"]
+            c.report("frame", v["attack_frame"])
+            c.report("spare", spare)
+            c.report("wavedash", v["wavedash"])
+            if not v["wavedash"]:
+                c.result(False, "Hit, but no wavedash back\n"
+                                "that is the Anti-Air drill")
+            else:
+                c.measure(v["attack_frame"], sc.hit_end + 1)
+                c.result(True, "Wavedash back punish!\n%d frames to spare"
+                         % spare)
+        elif v["attack_frame"] >= sc.faf:
+            c.result(False, "Too slow\nit recovered on frame %d" % sc.faf)
+
+
+# ---- fox-anti-air -----------------------------------------------------------
+
+
+class FoxAntiAir(_Approach):
+    id = "fox-anti-air"
+    name = "Anti-Air"
+    goal = "Beat a jump-in with up tilt, up smash or back air"
+    deck = ANTI_AIR_DECK
+    help = ("Anti-air: beat the jump-in with up tilt, up smash",
+            "or back air before it reaches you.",
+            "D-Pad up: guide. D-Pad down: reset.")
+
+    def build_reference(self, c):
+        """An up smash timed to meet the jump-in."""
+        return [Ref(AP_MARK_ATTACK, c.entry.data.demo_out, 1, cy=127)]
+
+    def guide(self, c):
+        me = c.fd
+        return ["A jump commits the opponent to an arc. Meet",
+                "them at the end of it with a move that hits",
+                "upward before their attack reaches you.",
+                "Up tilt: hits on frame %d." % me.move["utilt"].hit,
+                "Up smash: frame %d.   Back air: frame %d."
+                % (me.move["usmash"].hit, me.move["bair"].hit),
+                "Swing as they come down, not as they jump."]
+
+    def think(self, c):
+        v = self.v
+        sc = c.entry.data
+        if not self.advance(c):
+            if c.cpu_hit or cpu_grabbed(c):
+                c.result(False, "Hit before it jumped\nwait for the approach")
+            return
+        state = c.me.state
+        if c.hmn_hit:
+            c.report("frame", v["attack_frame"])
+            c.result(False, "Got hit\nswing earlier")
+        elif state == GUARD_SET_OFF:
+            c.result(False, "Shielded it\nbeat it instead")
+        elif c.cpu_hit:
+            anti = state in (ATTACK_HI3, ATTACK_HI4, ATTACK_AIR_B)
+            c.report("frame", v["attack_frame"])
+            if v["attack_frame"] > sc.hit_end:
+                c.result(False, "Hit after they landed\nmeet them in the air")
+            elif not anti:
+                c.result(False, "Hit, but not an anti-air\n"
+                                "up tilt, up smash or back air")
+            else:
+                c.measure(v["attack_frame"], v["attack_frame"])
+                c.result(True, "Anti-air!\non frame %d of the jump"
+                         % v["attack_frame"])
+        elif v["attack_frame"] >= sc.faf:
+            c.result(False, "No anti-air\nthey landed and recovered")
+
+
+DRILLS = [FoxWhiffPunish, FoxWavedashBack, FoxAntiAir]

@@ -9,6 +9,10 @@ includes: [universal]
 
 # Fox course
 
+On the native build every drill of this file that is implemented is also ported
+(`tools/melee_course/drills/`) and passes the same specs (2026-11-13): "The courses on the
+native build" in `docs/ai/native-ai.md`.
+
 Curriculum approved by the owner 2026-11-12 (with the Tech order below). Every drill is
 `planned` except where the Status column says otherwise.
 Format: [`README.md`](README.md). Knowledge: [`../characters/fox.md`](../characters/fox.md).

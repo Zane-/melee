@@ -6,13 +6,13 @@ is doing (the one from tests/actor/train.py).
     python tests/client/course.py [--shots DIR]
 
 Fox's course: the hub and its four parts, a part's drills from
-data/courses/fox.md, a drill that is not built saying so, a drill that is
-(the shield grab) judged attempt by attempt with the verdict shown, the
-numbers kept, the done mark, where you left off, and all of it still there
-after the client is started again.
+data/courses/fox.md, every one of them playable here, a drill (the short
+hop) judged attempt by attempt with the verdict shown, the numbers kept,
+the done mark, where you left off, and all of it still there after the
+client is started again. (A drill on the course engine, with its guide and
+demonstration: tests/client/course_engine.py.)
 """
 import argparse
-import importlib.util
 import os
 import sys
 import tempfile
@@ -25,12 +25,8 @@ import client  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
 
-_spec = importlib.util.spec_from_file_location(
-    "actor_train_test", os.path.join(ROOT, "tests", "actor", "train.py"))
-stand_in = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(stand_in)
 
-DRILL = "fox-shield-then-punish"
+DRILL = "universal-short-hop"
 checks = []
 
 
@@ -82,47 +78,49 @@ def main():
         check("the focus moves over the parts and to free play and back",
               seen == ["p1", "p2", "p3", "p3", "free", "p3"], " ".join(seen))
 
+        tap("Left")
+        tap("Left")
+        tap("Left")
         tap("x")
         names = [d["name"] for d in c.drills()]
         check("A opens the part's drills, as the course file lists them",
-              c.screen == "list" and courses.PARTS[c.part] == "Neutral" and
-              names[:3] == ["Whiff punish", "Wavedash back punish",
-                            "Take it on shield"] and len(names) == 8,
-              "%d drills" % len(names))
-        tap("Down")
-        tap("x")
-        check("a drill that is not built for this client says so and "
-              "stays", c.screen == "list" and
-              c.drills()[c.row[c.part]]["id"] not in c.here)
-        tap("Down")
+              c.screen == "list" and courses.PARTS[c.part] == "Tech" and
+              names[:3] == ["Short hop", "L-cancel", "SHFFL"] and
+              len(names) == 16, "%d drills" % len(names))
+        every = [d["id"] for part in c.course["parts"].values()
+                 for d in part]
+        missing = [d for d in every if d not in c.here]
+        check("every drill of the course plays here", not missing and
+              len(every) == 46, "%d drills, %d not" % (len(every),
+                                                      len(missing)))
         row = c.row[c.part]
         shot("drills")
 
-        # three attempts: two by someone who shields, grabs and hits, one
-        # by someone who stands still; then out
-        plans = ["punish", "punish", "still"]
-        state = dict(tries=0, person=None, shown=0)
+        # three short hops: tapped, tapped, held (a full hop); then out.
+        # The jump is X, the V key.
+        plans = [2, 2, 10]
+        state = dict(tries=0, press=0, idle=0)
 
         def person(game, frame):
-            if frame == 0:
-                if state["tries"] == 0:
-                    game.key("x", False)    # the A that started the drill
-                if state["person"]:
-                    state["person"].done()
-                state["tries"] += 1
-                state["person"] = stand_in.Person(
-                    game, plans[state["tries"] - 1]) \
-                    if state["tries"] <= len(plans) else None
-            if state["person"] is None:
+            if state["press"]:
+                state["press"] -= 1
+                if state["press"] == 0:
+                    game.key("v", False)
+                return
+            if state["tries"] == 0 and frame == 0:
+                game.key("x", False)        # the A that started the drill
+            if len(c.results_now()) >= len(plans):
                 game.key("Return")          # hold START: leave
                 return
-            if frame < 0:                   # the pause after an attempt
-                state["person"].done()
-                state["shown"] += 1
-                if state["tries"] == 1 and state["shown"] == 20:
+            f = game.fighter(0)
+            state["idle"] = state["idle"] + 1 if f.state == 14 else 0
+            if state["idle"] >= 8 and state["tries"] == len(c.results_now()):
+                game.key("v")
+                state["press"] = plans[state["tries"]]
+                state["tries"] += 1
+                state["idle"] = 0
+                if state["tries"] == 2:
                     shot("drill")
-                return
-            state["person"](game, frame)
 
         c.person = person
         w.key("x")
@@ -131,6 +129,7 @@ def main():
             if c.results is not None:
                 break
         w.key("x", False)
+        w.key("v", False)
         w.key("Return", False)
         c.person = None
         w.pace(False)
@@ -158,9 +157,10 @@ def main():
         check("X continues there",
               c.screen == "list" and
               c.drills()[c.row[c.part]]["id"] == DRILL)
+        tap("s")
         tap("a")
-        check("L turns to the part before",
-              c.screen == "list" and courses.PARTS[c.part] == "Defense")
+        check("R and L turn to the next part and back",
+              c.screen == "list" and courses.PARTS[c.part] == "Tech")
         tap("z")
         tap("Down")
         tap("x", after=20)

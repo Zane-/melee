@@ -38,6 +38,16 @@ from melee_course import engine, registry  # noqa: E402
 
 BY_NUMBER = {v: k for k, v in CHARACTERS.items()}
 
+# The drills draw random choices (HSD_Randi in C, Ctx.randi here) from
+# different streams, so the same seed gives the same choices in another
+# order. A spec that depends on one particular draw gets the C's here: the
+# draw it names, as the C made it with that spec's seed.
+DRAWS = {
+    # the CPU's DI: the C's first draw was 0, away (-127)
+    "fox-uthrow-uair/player_di_away": [0],
+    "fox-kill-confirm/waveshine_usmash_110": [0],
+}
+
 
 def character(name):
     return BY_NUMBER[tmtest.ident(tmtest.CKIND, name, "character")]
@@ -101,7 +111,7 @@ class Player:
             self.s.set_player_pad(buttons, lx, ly, cx, cy, trigger)
 
 
-def session_for(spec, game):
+def session_for(spec, game, name=None):
     drill = registry.get(spec["drill"])
     hmn = character(spec.get("hmn", "fox"))
     if spec.get("cpu") and not drill.deck and drill.cpu:
@@ -114,15 +124,16 @@ def session_for(spec, game):
             options[idx - engine.OPT_COMMON_COUNT] = val
     return engine.Session(drill, game, character=hmn, options=options,
                           common=common, live=False,
-                          seed=spec.get("seed", 1))
+                          seed=spec.get("seed", 1),
+                          draws=DRAWS.get("%s/%s" % (spec["drill"], name)))
 
 
-def first_result(spec, game, inputs):
+def first_result(spec, game, inputs, name=None):
     """The first verdict, as the C test harness logs it. The D-pad works as
     the C engine's: up opens the guide (the attempt is dropped), and in the
     guide up closes it and right plays a demonstration; left and right
     change scenario and down resets (no verdict either)."""
-    s = session_for(spec, game)
+    s = session_for(spec, game, name)
     player = Player(s, inputs)
     limit = spec.get("max_frames", 900)
     s.LIMIT = limit
@@ -157,7 +168,7 @@ def first_result(spec, game, inputs):
     return result, player
 
 
-def resolve_exact(spec, game):
+def resolve_exact(spec, game, name=None):
     """Inputs marked "exact" go on the frame of the state change itself:
     found by a run without them (runs are deterministic)."""
     inputs = spec.get("inputs", [])
@@ -165,7 +176,7 @@ def resolve_exact(spec, game):
     if not exact:
         return inputs
     plain = [e for e in inputs if not e.get("exact")]
-    _, player = first_result(spec, game, plain)
+    _, player = first_result(spec, game, plain, name)
     out = list(inputs)
     for i in exact:
         e = inputs[i]
@@ -242,8 +253,8 @@ def main():
                     continue
                 total += 1
                 try:
-                    inputs = resolve_exact(spec, game)
-                    result, _ = first_result(spec, game, inputs)
+                    inputs = resolve_exact(spec, game, name)
+                    result, _ = first_result(spec, game, inputs, name)
                     ok, bad, missing = check(spec, result)
                 except Exception as e:  # a spec the port cannot run
                     ok, bad, missing = False, ["%s: %s" % (

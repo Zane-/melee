@@ -92,16 +92,31 @@ def refer(course, drill, text):
     return out
 
 
+#: In scenarios(): the drill runs on the course engine (tools/melee_course).
+COURSE = "course"
+
+
 def scenarios():
-    """{drill id: scenario file} for the drills that play in this client."""
-    out = {}
+    """{drill id: what plays it} for the drills that play in this client:
+    COURSE for a drill ported from the overlay's course engine
+    (tools/melee_course), else the scenario file that names it
+    (data/scenarios). A tech drill judged by the frame (a file with "tech":
+    tools/melee_actor/tech.py, with its input timeline) keeps its file."""
+    from melee_course import registry
+    files, judged = {}, set()
     for path in sorted((ROOT / "data" / "scenarios").glob("*.json")):
         try:
-            drill = json.loads(path.read_text()).get("drill")
+            sc = json.loads(path.read_text())
         except ValueError:
             continue
-        if drill:
-            out[drill] = path
+        if sc.get("drill"):
+            files[sc["drill"]] = path
+            if sc.get("tech"):
+                judged.add(sc["drill"])
+    out = {d: COURSE for d in registry.ids()}
+    for d, path in files.items():
+        if d in judged or d not in out:
+            out[d] = path
     return out
 
 

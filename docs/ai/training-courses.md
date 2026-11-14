@@ -112,6 +112,11 @@ src/tmce/course/gen/                    generated tables (frame data, course lis
 src/melee/tm/hub/                       HUB: menu after character select
 ```
 
+On the native build the same engine is in Python (`tools/melee_course/`), the drills
+ported from these files one by one and proven by the same specs: "The courses on the
+native build" in `native-ai.md`. A drill changed here should be changed there too, and
+`python tests/course/specs.py <drill>` run.
+
 ### Engine (built: `src/tmce/events/course/`; the table lists what is there and what is not)
 
 Built so far: attempt loop, re-placing reset, CPU scripts, opponent rotation, success/fail

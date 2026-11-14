@@ -49,6 +49,8 @@ from native import STAGES, NativeError  # noqa: E402
 from melee_actor import scenario as scn  # noqa: E402
 from melee_actor import tech  # noqa: E402
 from melee_actor import train  # noqa: E402
+from melee_course import engine as course_engine  # noqa: E402
+from melee_course import registry as course_registry  # noqa: E402
 
 A, B, X, Y, START = 0x100, 0x200, 0x400, 0x800, 0x1000
 L, R = 0x40, 0x20
@@ -96,6 +98,8 @@ class Client:
         self.results = None           # the attempts of the drill last left
         self.banner = 0               # frames the verdict banner stays up
         self.ended = None             # matches the game had ended itself
+        self.in_guide = False         # a course drill's guide is shown
+        self.last_result = None       # a course drill's last result
         self.mode = "train"           # what the character is being picked for
         self.me = None                # versus and lab: the player's character
         self.opp_at = 0               # the opponent in focus
@@ -587,7 +591,12 @@ class Client:
                 # the banner has room for the first clause only
                 ("bmsg", screens.esc(words.split(":")[0])),
                 ("why", screens.esc(words) if "timeline" in result
-                 else "")):
+                 else screens.esc("%s. Frame %d, perfect %d." % (
+                     result["scenario"], result["measured"],
+                     result["target"]))
+                 if result.get("measured") is not None
+                 else screens.esc(result.get("scenario", ""))
+                 if "report" in result else "")):
             self.w.ui("text %s %s" % (ident, text))
         self.put("checks", screens.check_rows(result["checks"]))
         self.put("last", screens.last_squares(results))
@@ -595,9 +604,144 @@ class Client:
         self.w.ui("class banner on 1")
         self.banner = 100
 
+    def course_drill(self, d):
+        """A drill on the course engine (tools/melee_course): the overlay's
+        drill, ported. The D-pad is the drill's, as there: up shows the
+        guide (in the column; right there plays a demonstration, up goes
+        on), left and right change scenario, down resets."""
+        self.say("Loading %s." % d["name"])
+        self.w.step()
+
+        def on_load(fn):
+            # the game sets a match up with its own presses, at full speed
+            self.w.live(self.port, "off")
+            self.w.pace(False)
+            try:
+                fn()
+            finally:
+                self.w.live(self.port, self.source)
+                self.w.pace(True)
+
+        drill = course_registry.get(d["id"])
+        session = course_engine.Session(
+            drill, self.w, person=self.port, character=self.c["id"],
+            live=True, on_load=on_load, seed=random.randrange(1, 1 << 30))
+        for _ in range(90):
+            self.w.step()
+            if not self.w.pads()[self.port]["buttons"] & (A | B | X | Y):
+                break
+        self.screen = "drill"
+        self.start_held = 0
+        self.playing()
+        about = " ".join(line for line in drill.help
+                         if line and not line.startswith("D-Pad")) or \
+            d["goal"]
+        self.load("drill", screens.drill_rail(
+            self.c, d, self.course,
+            about + " D-pad up: the guide."))
+        self.w.capture(False)
+        results = []
+        self.live_results = results
+        demo = False
+        try:
+            while True:
+                if session.d.deck:
+                    self.w.ui("text why " + screens.esc(
+                        session.scenario_names()[max(session.scenario, 0)]))
+                if demo:
+                    self.w.live(self.port, "off")
+                    session.live = False
+                    self.banner_say("Watch", "the game plays it")
+                try:
+                    result = session.run(each_frame=self.drill_frame,
+                                         demo=demo)
+                finally:
+                    if demo:
+                        self.w.live(self.port, self.source)
+                        session.live = True
+                demo = False
+                self.last_result = result
+                ui = result.get("ui")
+                if ui == "guide":
+                    demo = self.course_guide(drill, session)
+                    continue
+                if ui == "scenario":
+                    self.banner_say("Next", result["words"])
+                    continue
+                if ui == "reset":
+                    continue
+                if result.get("demo"):
+                    self.banner_say("Demo", result["words"])
+                elif result.get("skip"):
+                    self.banner_say("Not counted", result["words"])
+                else:
+                    results.append(bool(result["success"]))
+                    self.show_result(result, results)
+                # a moment to read the verdict (the C engine's reset delay),
+                # except where the drill carries on from where you stand
+                for _ in range(0 if drill.flow else 45):
+                    self.drill_frame(self.w, -1)
+                    self.w.step()
+        except Leave:
+            pass
+        self.progress.record(d["id"], self.c["id"], results)
+        self.results = results
+        self.show_list()
+
+    def results_now(self):
+        """The verdicts of the course drill being played (tests)."""
+        return getattr(self, "live_results", [])
+
+    def course_guide(self, drill, session):
+        """The guide, in the column, until D-pad up (go on) or right (watch
+        a demonstration first: returns True)."""
+        lines = drill.guide(session.c)
+        self.w.ui("text verdict Guide")
+        # The overlay's guide breaks its lines for a narrow panel, in the
+        # middle of sentences; this column wraps by itself: a line that
+        # does not end a sentence goes on the one before.
+        parts = []
+        for line in lines:
+            if parts and not parts[-1].rstrip().endswith(
+                    (".", ":", "!", "?")):
+                parts[-1] += " " + line.strip()
+            else:
+                parts.append(line.strip())
+        self.w.ui("text why " + "<br/>".join(screens.esc(p) for p in parts))
+        self.banner_say("Guide", "D-pad right: watch it. Up: go on")
+        self.banner = 0
+        has_demo = bool(drill.reference) or \
+            type(drill).build_reference is not \
+            course_engine.Drill.build_reference
+        self.in_guide = True
+        while True:
+            if self.person is not None:
+                self.person(self.w, -2)        # tests: the player
+            self.w.step()
+            pressed, _ = self.read()
+            if self.start_held >= 40 or self.game_quit():
+                raise Leave()
+            # (`pressed` is buttons only: the D-pad's bits, not the stick)
+            if pressed & UP:
+                self.w.ui("class banner on 0")
+                self.in_guide = False
+                return False
+            if pressed & RIGHT and has_demo:
+                self.w.ui("class banner on 0")
+                self.in_guide = False
+                return True
+
+    def banner_say(self, word, text):
+        self.w.ui("text bword " + screens.esc(word))
+        self.w.ui("text bmsg " + screens.esc(text.split("\n")[0]))
+        self.w.ui("class banner on 1")
+        self.banner = 100
+
     def drill(self, d):
         """Run a drill until the player leaves it: the scenario's opponent
         against them, a verdict for each attempt."""
+        if self.here[d["id"]] == courses.COURSE:
+            return self.course_drill(d)
         sc = scn.load(str(self.here[d["id"]]))
         self.say("Loading %s." % d["name"])
         self.w.step()
@@ -625,6 +769,7 @@ class Client:
             self.c, d, self.course, sc.get("about", d["goal"])))
         self.w.capture(False)
         results = []
+        self.live_results = results
         first = random.randrange(1 << 20)
         try:
             while True:

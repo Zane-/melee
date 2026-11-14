@@ -9,6 +9,10 @@ includes: []
 
 # Universal drills
 
+On the native build every drill of this file that is implemented is also ported
+(`tools/melee_course/drills/`) and passes the same specs (2026-11-13): "The courses on the
+native build" in `docs/ai/native-ai.md`.
+
 Draft (2026-11-12). Every drill is `planned`. A character course lists these ids as rows of
 its plan tables; per-character numbers (jump squat, landing lag, traction, tech lengths) come
 from the generated frame data tables for the picked character, not from this file. Seeds for

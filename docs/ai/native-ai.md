@@ -437,6 +437,80 @@ the first try waits (up to a second and a half) for the buttons to be let go.
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
+### The courses on the native build (2026-11-13)
+
+The owner: "Let's work on porting over all the training courses over into native now."
+The overlay's course drills (Fox's 46, with the universal ones) run on an engine in C
+written against Training Mode's framework (`src/tmce/events/course/`). That framework
+(its headers, menus, on-screen text, event loading) is not part of the native build, and
+its drawn interface would fight the client's. So the engine was ported instead, to Python
+on the native driver, and the drills one by one, callback for callback:
+
+| Piece | Where |
+|-|-|
+| The engine: attempts, placements (floor, solo, ledge, air, platform), CPU scripts, phases, marks, verdicts with a measured frame, retries, flow drills, decks (a shuffled bag), two-pass demonstrations, the D-pad, per-character numbers | `tools/melee_course/engine.py` |
+| The drills, one module per C file, `DRILLS = [...]` | `tools/melee_course/drills/` |
+| Which drills exist | `tools/melee_course/registry.py` |
+| The overlay's own specs (230, `tests/tmtest/course/`), run against the port: same options, inputs, expectations | `python tests/course/specs.py [DRILL ...]` |
+| The client playing one, guide and demonstration included | `tests/client/course_engine.py` |
+
+**Status: all 46 drills of Fox's course (the universal ones included) are ported, and all
+229 of their specs that apply pass** (`python tests/course/specs.py`, 2026-11-13; the one
+other spec drives Training Mode's pause menu). Every frame count the specs check comes
+out as in C. The client plays all of them (`tests/client/course.py`: every drill of the
+course plays here).
+
+Host additions for it: the stage's left ledge and a fighter hanging on it (`ledge`), shield
+health (`shield`), one-fighter matches (`start(p1, None)`).
+
+What the port works out instead of reading, because the native fighter report does not
+have it (each checked against the specs and the game's own flag): ledge intangibility
+frames left and the move's own intangibility (`tech_ledge.py`, `defense.py`: counted as
+the game counts them), the fast-fall flag (`tech_movement.py`: from the falling speed),
+who owns an item (`fox_specials.py`: there is only the player's). Reporting `fp->x1990`,
+`fp->x1988`, the hitstun and fast-fall flags and items' owners in `host_fighter_json`
+would let those go.
+
+Random choices: the C drills draw from the game's random stream (HSD_Randi), the port from
+Python's, so the same seed makes the same choices in another order. Two specs depend on one
+particular draw (the CPU's DI); `tests/course/specs.py` pins it to what the C drew
+(`DRAWS`).
+
+Found in the C drills while porting, not fixed there (the overlay build is unchanged):
+`fox-shdl` counts Fox's blaster as a laser when the first B comes after the first airborne
+frame (spec `first_on_six` passes because of it); the `fox-shine-knockdown` CPU keeps
+dropping its shield (a fresh R from Wait is GuardReflect, 182, which its test leaves out);
+the L-cancel and SHFFL demonstrations land Sheik's forward air in its auto-cancel window;
+two verdict strings in `fox_punish_throws.inc.h` and `fox_punish_confirms.inc.h` hold a raw
+line break inside the literal (the overlay's compiler takes it). One spec,
+`fox-anti-air/hit_first`, fails natively for another reason than the one it is named for:
+at its frames Fox runs through Falcon before the dash attack starts.
+
+Two things the C does that do not carry over as written:
+
+- **The CPU's stick.** The C scripts write the CPU's stick (`fp->cpu.lstick`), which the
+  game reads as v / 127; the native opponent is a pad, read as min(raw, 80) / 80. A
+  script's 80 is a tilt for the CPU and a smash on a pad (and UCF snaps it to 1.0). The
+  engine converts (`cpu_axis`); reference inputs are converted as the C's `SetPlayerPad`
+  does. Found when Peach's down tilt came out as a down smash and pushed Fox away.
+- **When a change is seen.** A C drill's Think runs part-way through a frame and sees a
+  change the animation makes (shieldstun ending, a jump squat ending) in the frame it
+  happens; the native state is read between frames, a frame later. A drill records such a
+  moment one frame back (`Ctx.mark(..., back=1)`). Found as "frame 3" for a frame-4 shine.
+
+The client (`client.py`, `course_drill`) plays a ported drill when a course lists it. The
+four tech drills judged by the frame (`data/scenarios/tech-*.json`, with their input
+timeline) keep that judge. In a drill the D-pad is the drill's, as in the overlay: up shows
+the guide in the column (right there plays a demonstration, up goes on), left and right
+change the opponent's scenario, down resets. Not there yet: the drills' options (CPU
+damage, leniency, what counts as a success): each plays with the C's defaults.
+
+Found on the way, fixed: every character's sounds were loaded twice (a disc read completes
+inside the request here, before the sound manager had stored the load's id, so its
+completion callback started the same load again), and after a few different opponents the
+sound bank overflowed and an assertion stopped the game. A native patch stores the id
+first (`lbaudio_ax.c` in `PATCHES`). Nineteen opponents and five stages in one game since.
+
 ### L+R+A+Start, and matches the game ends itself (2026-11-13)
 
 The owner: "pressing start + LRAB crashes the game, it shows the no memory card screen,
