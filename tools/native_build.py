@@ -259,6 +259,20 @@ PATCHES = {
         ("HSD_Synth_804C2AE0[bank_id + 0x80 / 4] = (void*) offset;",
          "hsd_SynthSFXBank[bank_id] = (int) offset;"),
     ],
+    # A sound file's load is known by the id its request returns, and the
+    # callback that ends it looks the file up by that id to mark it loaded
+    # and start the next. On the console the load ends later, after the id
+    # has been stored; here a read completes inside the request, before,
+    # so the callback found nothing and loaded the same file again: every
+    # character's sounds twice, and a few matches with different opponents
+    # overflowed the bank (an assertion in synth.c, 2026-11-13). The id is
+    # the file's entry number: stored first, the callback finds it.
+    "melee/lb/lbaudio_ax.c": [
+        ("lbl_80433A64[slot] = HSD_SynthSFXLoad(cur_ssm_file, 2, fn_80026C04, 0);",
+         "lbl_80433A64[slot] = DVDConvertPathToEntrynum(cur_ssm_file);\n"
+         "        lbl_80433A64[slot] = "
+         "HSD_SynthSFXLoad(cur_ssm_file, 2, fn_80026C04, 0);", 2),
+    ],
     # The camera's descriptor, addressed from a struct laid over the
     # globals before it.
     "melee/cm/camera.c": [
