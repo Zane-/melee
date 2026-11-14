@@ -40,6 +40,7 @@ span { display: inline; }
 .who .layout { color: #4A5361; }
 .tag { padding: 4dp 18dp; border: 1dp #12161C; transform: skewX(-12deg); margin-right: 12dp; }
 .tag .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; text-transform: uppercase; letter-spacing: 1dp; }
+.hvs { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; color: #4A5361; margin-right: 12dp; }
 
 .ruler { position: absolute; left: 0dp; top: 84dp; width: 1280dp; height: 12dp; display: flex; flex-direction: row; }
 .tick { flex: 1; height: 6dp; margin-top: 6dp; border-left: 1dp #8A94A3; }
@@ -99,7 +100,21 @@ span { display: inline; }
    of the panels it sits in: a square round a slanted panel. */
 .ring { position: absolute; left: -10dp; top: -10dp; right: -10dp; bottom: -10dp; border: 4dp #00000000; }
 .focus .ring { border-color: #12161C; }
-.in { flex: 1; transform: skewX(12deg); display: flex; flex-direction: column; justify-content: space-between; }
+.in { position: relative; flex: 1; transform: skewX(12deg); display: flex; flex-direction: column; justify-content: space-between; }
+/* A panel's large faded drawing (marks.py), upright in the slanted panel
+   and cut by its edges; the panel's content and bands are drawn over it */
+.mkclip { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 0dp; overflow: hidden; clip: always; }
+.mk { position: absolute; transform: skewX(12deg); }
+#versus .mk { left: 222dp; top: -34dp; width: 430dp; height: 430dp; }
+#train .mk { left: 276dp; top: -40dp; width: 330dp; height: 330dp; }
+#settings .mk { left: 352dp; top: -40dp; width: 210dp; height: 210dp; }
+#vlocal .mk { left: 196dp; top: 24dp; width: 470dp; height: 362dp; }
+#vonline .mk { left: 232dp; top: -20dp; width: 420dp; height: 420dp; }
+#scontrols .mk { left: 206dp; top: 30dp; width: 420dp; height: 323dp; }
+#sonline .mk { left: 296dp; top: -48dp; width: 300dp; height: 300dp; }
+#ssound .mk, #sdisplay .mk { left: 86dp; top: -10dp; width: 260dp; height: 260dp; }
+.slab .mk { left: 90dp; top: -18dp; width: 250dp; height: 250dp; }
+#lab .mk { left: 116dp; top: -26dp; width: 190dp; height: 190dp; }
 .idx { font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; }
 .soon { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 12dp; padding: 2dp 7dp; border: 1dp #12161C; }
 .big { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; text-transform: uppercase; line-height: 0.9em; }
@@ -111,7 +126,7 @@ span { display: inline; }
 .defense { background-color: #22B8A0; color: #12161C; }
 .neutral { background-color: #F5BE1B; color: #12161C; }
 .lab { background-color: #5B3FD6; color: #FFFFFF; }
-.events { background-color: #FF5C93; color: #12161C; }
+.red { background-color: #D0283E; color: #FFFFFF; }
 .slate { background-color: #2B3340; color: #F3F6FA; }
 .white { background-color: #FFFFFF; color: #12161C; }
 .lab .soon, .slate .soon, .ink .soon { border-color: #F3F6FA; }
@@ -120,31 +135,31 @@ span { display: inline; }
 
 .mosaic { position: absolute; left: 76dp; top: 120dp; width: 1128dp; height: 496dp; display: flex; flex-direction: row; transform: skewX(-12deg); }
 .mosaic .gap { width: 16dp; height: 16dp; }
-#train { width: 556dp; }
-#train .in { padding: 22dp 64dp 18dp 64dp; }
-#train .big { font-size: 148dp; }
-#train .sub { font-size: 20dp; margin-top: 10dp; }
+#versus { width: 556dp; }
+#versus .in { padding: 22dp 64dp 18dp 64dp; }
+#versus .big { font-size: 148dp; }
+#versus .sub { font-size: 20dp; margin-top: 10dp; }
+#versus .last { color: #FFE3E7; }
+.band.vl { background-color: #F3F6FA; color: #12161C; }
+.band.vo { background-color: #12161C; color: #F3F6FA; }
 .last { display: flex; flex-direction: row; align-items: center; margin-top: 12dp; font-size: 15dp; color: #D5DCE5; }
 .last .mark { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; padding: 3dp 9dp; margin-right: 10dp; color: #12161C; }
-.bands { height: 72dp; display: flex; flex-direction: row; }
+.bands { position: relative; height: 72dp; display: flex; flex-direction: row; }
 .band { flex: 1; display: flex; flex-direction: row; align-items: center; justify-content: center; }
 .band .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 25dp; text-transform: uppercase; letter-spacing: 1dp; }
 .right { width: 556dp; display: flex; flex-direction: column; }
-#lab { height: 204dp; }
-#lab .in { padding: 18dp 40dp; }
-#lab .big { font-size: 76dp; }
-#lab .sub { font-size: 17dp; }
+#train { height: 350dp; }
+#train .in { padding: 18dp 44dp 14dp 44dp; }
+#train .big { font-size: 96dp; }
+#train .sub { font-size: 18dp; margin-top: 6dp; }
+#train .bands { height: 54dp; }
+#train .band .un { font-size: 21dp; }
+#settings { height: 130dp; border: 1dp #C9D1DB; }
+#settings .in { padding: 12dp 40dp; }
+#settings .big { font-size: 52dp; }
+#settings .sub { font-size: 15dp; margin-top: 2dp; color: #4A5361; }
+/* (Settings' own screen lays out its lower panels in this) */
 .lower { height: 276dp; display: flex; flex-direction: row; }
-#events { width: 270dp; }
-#events .in { padding: 18dp 44dp; }
-#events .big { font-size: 54dp; }
-#events .sub { font-size: 16dp; margin-top: 8dp; }
-.small { width: 270dp; display: flex; flex-direction: column; }
-#versus, #settings { height: 130dp; }
-#versus .in, #settings .in { padding: 12dp 30dp; }
-#versus .big, #settings .big { font-size: 40dp; }
-#versus .sub, #settings .sub { font-size: 14dp; }
-#settings { border: 1dp #C9D1DB; }
 
 /* ---- character select -------------------------------------------------- */
 
@@ -198,11 +213,29 @@ img { display: inline-block; }
 .card.art { overflow: visible; }
 .aclip { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 214dp; overflow: hidden; clip: always; }
 .acolor { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 214dp; }
-.awm { position: absolute; left: 206dp; top: 58dp; width: 180dp; height: 144dp; }
-.abig { position: absolute; left: 5.1dp; top: -62.9dp; width: 204dp; height: 279.7dp; }
+.awm { position: absolute; left: 192dp; top: 58dp; width: 180dp; height: 144dp; }
+/* The portrait inside the card (the owner, 2026-11-14: "scale down the
+   character and the wall so it fits within the card, I don't want a line
+   bleeding out of the container"): its frame's top and left edges (past
+   the picture's 2-pixel border) on the card's, where a flat cut in the
+   art is the card's own edge; its bottom behind the wall. */
+.abig { position: absolute; left: -2.4dp; top: -2.4dp; width: 166.3dp; height: 228dp; }
 .wclip { position: absolute; left: 0dp; top: 170dp; width: 388dp; height: 326dp; overflow: hidden; clip: always; }
 .wedge { position: absolute; left: 0dp; top: 27dp; width: 388dp; height: 340dp; background-color: #12161C; transform: skewY(-5deg); }
-.aname { position: absolute; left: 210dp; top: 18dp; width: 164dp; }
+.aname { position: absolute; left: 184dp; top: 18dp; width: 192dp; }
+/* The portrait behind a wall: the ink below is a wall in front of the
+   character, its top face lit along its edge, and an upright post between
+   the character and the name hides the portrait's cut right side (it is
+   upright, as the cut is). Each casts a soft shadow on the character.
+   All of it inside the card. */
+.ashade { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 214dp; overflow: hidden; clip: always; }
+.wshadow { position: absolute; left: -16dp; top: 119dp; width: 420dp; height: 64dp; transform: rotate(-5deg); decorator: vertical-gradient(#12161C00 #12161C80); }
+.postsh { position: absolute; left: 132dp; top: 0dp; width: 24dp; height: 214dp; decorator: horizontal-gradient(#12161C00 #12161C66); }
+.wfclip { position: absolute; left: 0dp; top: 150dp; width: 388dp; height: 80dp; overflow: hidden; clip: always; }
+.wface { position: absolute; left: 0dp; top: 33dp; width: 388dp; height: 16dp; background-color: #2B3340; transform: skewY(-5deg); }
+.wlip { position: absolute; left: 0dp; top: 33dp; width: 388dp; height: 2dp; background-color: #6B7686; transform: skewY(-5deg); }
+.post { position: absolute; left: 156dp; top: 0dp; width: 12dp; height: 200dp; background-color: #12161C; }
+.plip { position: absolute; left: 156dp; top: 0dp; width: 2dp; height: 200dp; background-color: #6B7686; }
 .aname .tags { font-size: 11dp; line-height: 1.35em; }
 .aname .who2 { white-space: normal; line-height: 0.9em; margin-top: 6dp; }
 .abody { position: absolute; left: 26dp; top: 222dp; width: 336dp; height: 254dp; display: flex; flex-direction: column; }
@@ -253,10 +286,10 @@ img { display: inline-block; }
 .tech .sq.on { background-color: #FFFFFF; }
 .cnt2 { font-size: 14dp; font-weight: 600; line-height: 1.3em; }
 .hubrow { height: 144dp; display: flex; flex-direction: row; }
-#free { width: 270dp; }
-#free .in { padding: 14dp 30dp; }
-#free .big { font-size: 42dp; }
-#free .sub { font-size: 15dp; }
+#lab { width: 270dp; }
+#lab .in { padding: 14dp 30dp; }
+#lab .big { font-size: 54dp; }
+#lab .sub { font-size: 15dp; margin-top: 2dp; }
 .lbl { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-size: 13dp; color: #A9B4C2; }
 .lab .lbl { color: #E2DCFA; }
 .leftoff { padding: 14dp 34dp; flex-direction: row; align-items: center; }
@@ -703,3 +736,33 @@ img { display: inline-block; }
 .ofw { font-size: 13dp; color: #4A5361; }
 .ofc.on .ofw { color: #D5DCE5; }
 .ofnone { margin-top: 12dp; font-size: 16dp; line-height: 1.4em; color: #4A5361; width: 420dp; }
+
+/* ---- the stage select (the canvas's "A · Stage select: grid and card") ---- */
+
+/* Six panels, three to a row, cut to the slant as the character select's
+   (.sgpic clips; .sgpin, slanted back, holds the picture upright). */
+.sgrid { position: absolute; left: 60dp; top: 120dp; width: 754dp; height: 496dp; display: flex; flex-direction: column; }
+.sgrow { height: 240dp; margin-bottom: 16dp; display: flex; flex-direction: row; flex-wrap: nowrap; }
+.sg { position: relative; width: 238dp; height: 238dp; margin-right: 16dp; border: 1dp #12161C; background-color: #2B3340; transform: skewX(-12deg); }
+.sg .ring { left: -8dp; top: -8dp; right: -8dp; bottom: -8dp; border-width: 5dp; }
+.sgpic { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 0dp; overflow: hidden; clip: always; }
+.sgpin { position: absolute; left: -26dp; right: -26dp; top: 0dp; bottom: 0dp; transform: skewX(12deg); }
+.sgimg { position: absolute; left: 0dp; top: 0dp; width: 290dp; height: 210dp; }
+.sglogo { position: absolute; left: 33dp; top: 76dp; width: 224dp; height: 56dp; }
+.sgstrip { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 30dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.sgstrip .un { font-family: "Barlow Condensed"; font-weight: 700; font-size: 18dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+/* The card: the stage whole, cut by the ink wedge (.wclip) as the
+   character card's portrait is; the game's name logo; the numbers. */
+.sgclip { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 218dp; overflow: hidden; clip: always; }
+.sgprev { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 218dp; }
+.sgname { position: absolute; left: 16dp; top: 214dp; width: 224dp; height: 56dp; }
+.sgname2 { position: absolute; left: 26dp; top: 224dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; }
+.sgbody { position: absolute; left: 26dp; top: 278dp; width: 336dp; height: 198dp; display: flex; flex-direction: column; }
+.sgstats { display: flex; flex-direction: row; }
+.sgstats .stat .n { font-size: 32dp; }
+.sgblast { margin-top: 8dp; padding-top: 6dp; border-top: 1dp #4A5361; }
+.sgbz { display: flex; flex-direction: row; margin-top: 2dp; }
+.sgb { flex: 1; }
+.sgbn { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 15dp; }
+.sgbl { font-size: 11dp; color: #A9B4C2; }
+.sgabout { margin-top: 8dp; font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }

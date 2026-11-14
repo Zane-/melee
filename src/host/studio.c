@@ -11,6 +11,10 @@
  *   studio bg R G B                    the colour the screen is cleared to
  *   studio solo 1|0                    only the fighters drawn, or all
  *   studio list                        what is drawn: class, kind, link
+ *   studio stage                       the stage's blast zones (left right
+ *                                      top bottom, as the game's getters
+ *                                      give them) and its left ledge (x y),
+ *                                      for the stage select's card
  *
  * Only for pictures: nothing here is part of a match's state that rollback
  * or a snapshot keeps, and a match left in the studio stays odd until
@@ -24,6 +28,7 @@
 #include <melee/cm/camera.h>
 #include <melee/cm/types.h>
 #include <melee/ft/forward.h>
+#include <melee/gr/stage.h>
 #include <sysdolphin/baselib/gobj.h>
 
 /// What "solo" took away, to give back.
@@ -135,5 +140,17 @@ const char* host_studio_command(const char* line)
         }
         return reply;
     }
-    return "error studio cam|bg|solo|list";
+    if (strcmp(what, "stage") == 0) {
+        float x, y;
+        if (host_left_ledge(&x, &y) < 0) {
+            return "error no ledge found";
+        }
+        snprintf(reply, sizeof reply, "ok %.9g %.9g %.9g %.9g %.9g %.9g",
+                 Stage_GetBlastZoneLeftOffset(),
+                 Stage_GetBlastZoneRightOffset(),
+                 Stage_GetBlastZoneTopOffset(),
+                 Stage_GetBlastZoneBottomOffset(), x, y);
+        return reply;
+    }
+    return "error studio cam|bg|solo|list|stage";
 }

@@ -198,31 +198,37 @@ def main():
 
         tap("v")
         tap("c")
+        tap("x")                      # no course: the Lab, the opponent
+        tap("x")                      # the stage
         tap("x", after=40)
         me = w.fighter(0)
         check("A starts a match as Zelda, in the costume chosen",
-              c.screen == "match" and me.ckind == CHARACTERS["zelda"] and
+              c.screen == "versus" and me.ckind == CHARACTERS["zelda"] and
               me.costume == 1,
               "ckind %d, costume %d" % (me.ckind, me.costume))
         frames(60)
         shot("match-zelda")
-        pausekeys.leave(c, w, "back", frames)
+        pausekeys.leave(c, w, "opp", frames)
+        tap("z")
         check("back on the character select, the place is still Zelda",
               c.screen == "chars" and c.roster[c.at]["id"] == "zelda")
 
         tap("v")
+        tap("x")
+        tap("x")
         tap("x", after=40)
         me = w.fighter(0)
         check("and as Sheik, in her default costume",
-              c.screen == "match" and me.ckind == CHARACTERS["sheik"] and
+              c.screen == "versus" and me.ckind == CHARACTERS["sheik"] and
               me.costume == 0,
               "ckind %d, costume %d" % (me.ckind, me.costume))
         pausekeys.leave(c, w, "main", frames)
 
         # the Lab: Fox against someone
-        tap("Right")
         tap("x")
         goto(characters.find(c.roster, "fox")[0])
+        tap("x")                      # his course hub
+        tap("Down")
         tap("x", after=10)
         check("the Lab: the opponent screen", c.screen == "opp")
         goto(place, "opp_at")

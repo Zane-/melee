@@ -3,12 +3,12 @@ on the other side, checked without a person or a desktop.
 
     python tests/client/versus.py [--shots DIR]
 
-Versus: Fox, the opponent screen (who plays the opponent, which stage), a
-match against Falco played by the model trained for that pairing: it has
-to load, answer nearly every frame without the game waiting for it, and
-play (move about, change state). Then the same Falco played by the game's
-CPU. The Lab: an opponent nobody plays, its damage set and both put back
-from the D-pad. Needs a slippi-ai checkout
+Versus: Fox, the opponent screen (who plays the opponent), the stage
+select, a match against Falco played by the model trained for that
+pairing: it has to load, answer nearly every frame without the game
+waiting for it, and play (move about, change state). Then the same Falco
+played by the game's CPU, on the stage chosen. The Lab, in Train: an
+opponent nobody plays, its damage set and both put back from the D-pad. Needs a slippi-ai checkout
 with its models (~/Games/Melee/slippi-ai); without one the model's part is
 skipped and says so.
 """
@@ -67,8 +67,7 @@ def main():
                           save=os.path.join(tempfile.mkdtemp(), "s.json"))
         w.pace(False)
         frames(6)
-        for key in ("Right", "Down", "Right"):
-            tap(key)
+        tap("Left")                 # Versus, the main menu's big panel
         tap("x")
         check("Versus opens on Local or Online", c.screen == "vmenu" and
               c.vfocus == "vlocal", c.screen)
@@ -84,12 +83,21 @@ def main():
         check("the opponent can be played by the game's CPU or nobody",
               c.roster[c.opp_at]["id"] == "falco" and
               [p[0] for p in players[-2:]] == [client.CPU, client.NOBODY])
-        tap("s")
-        tap("s")
-        tap("a")
-        check("L and R turn through the stages",
-              client.STAGE_ORDER[c.stage_at] == "battlefield")
         shot("opponent")
+        tap("x")
+        check("A on the opponent screen opens the stage select, "
+              "Battlefield first", c.screen == "stages" and
+              client.STAGE_ORDER[c.stage_at] == "battlefield")
+        shot("stages")
+        tap("Right")
+        tap("Down")
+        check("the stick moves over the stages, three to a row",
+              client.STAGE_ORDER[c.stage_at] == "fountain-of-dreams",
+              client.STAGE_ORDER[c.stage_at])
+        tap("Up")
+        tap("Left")
+        tap("z")
+        check("B goes back to the opponent", c.screen == "opp")
 
         if opponents.available() and len(players) > 2:
             names = [p[1] for p in players[:-2]]
@@ -101,6 +109,7 @@ def main():
                   all(n == "Fox Specialist" for n in names
                       if n.endswith("Specialist")) and
                   not any("_" in n for n in names), ", ".join(names))
+            tap("x")
             tap("x", after=10)
             w.pace(True)
             for _ in range(900):          # the model loads beside the match
@@ -140,6 +149,9 @@ def main():
             if c.players()[c.who][0] == client.CPU:
                 break
             tap("v", after=2)
+        tap("x")
+        for key in ("Down", "Right", "Right"):
+            tap(key)
         tap("x", after=20)
         seen = set()
         for _ in range(360):
@@ -148,6 +160,8 @@ def main():
         check("against the game's CPU: it plays, with no model running",
               c.screen == "versus" and c.bot is None and len(seen) >= 3,
               "%d states" % len(seen))
+        check("on the stage chosen", w.match_info["stage"] ==
+              "pokemon-stadium", w.match_info["stage"])
         leave()
 
         # ---- the client's pause menu ---------------------------------------------
@@ -158,6 +172,7 @@ def main():
             if c.players()[c.who][0] == client.NOBODY:
                 break
             tap("v", after=2)
+        tap("x")
         tap("x", after=20)
         frames(60)
         before = w.state().get("ended", 0)
@@ -201,15 +216,19 @@ def main():
         check("B from the character select goes back to Local or Online",
               c.screen == "vmenu", c.screen)
         tap("z")
-        for key in ("Left", "Up"):
-            tap(key)
-        check("back at the main menu, on Lab",
-              c.screen == "main" and c.focus == "lab", c.focus)
+        tap("Right")
+        check("back at the main menu, on Train",
+              c.screen == "main" and c.focus == "train", c.focus)
         tap("x")
+        tap("x")
+        tap("Down")
+        check("the Lab is in Train, in Fox's course hub",
+              c.screen == "hub" and c.hub_at == "lab", c.hub_at)
         tap("x")
         check("in the Lab nobody plays the opponent unless asked",
               c.mode == "lab" and c.screen == "opp" and
               c.players()[c.who][0] == client.NOBODY)
+        tap("x")
         tap("x", after=20)
         frames(200)
         other = w.fighter(1)

@@ -18,6 +18,16 @@ PART_CLASS = {"Tech": "tech", "Punish": "punish", "Defense": "defense",
               "Neutral": "neutral"}
 PART_COLOR = {"Tech": "#1F49C9", "Punish": "#F0643C", "Defense": "#22B8A0",
               "Neutral": "#F5BE1B"}
+# The menu panels' large faded drawings (marks.py): name -> picture, which
+# panel has which, and the panels light enough to have it in faint ink
+# (faint white on the rest). Without the pictures, no drawings.
+MARKS = {}
+MARK_OF = {"versus": "versus", "train": "train", "settings": "settings",
+           "vlocal": "controller", "vonline": "globe",
+           "scontrols": "controller", "sonline": "globe",
+           "ssound": "speaker", "sdisplay": "monitor", "lab": "lab",
+           "p0": "tech", "p1": "punish", "p2": "defense", "p3": "neutral"}
+LIGHT = ("white", "punish", "defense", "neutral")
 
 
 def esc(text):
@@ -264,10 +274,12 @@ def header(crumbs, tag=None):
     stripes = "".join('<div class="stripe" style="background-color: %s"/>'
                       % PART_COLOR[p] for p in PART_COLOR)
     who = ""
-    if tag:
+    # one tag, or the two sides of a match ([(text, colour, ink), ...])
+    for i, t in enumerate([tag] if isinstance(tag, tuple) else tag or []):
+        if i:
+            who += '<div class="hvs">VS</div>'
         who += ('<div class="tag" style="background-color: %s; color: %s">'
-                '<div class="un">%s</div></div>' % (tag[1], tag[2],
-                                                    esc(tag[0])))
+                '<div class="un">%s</div></div>' % (t[1], t[2], esc(t[0])))
     who += ('<div class="port">PORT 1</div><div class="nick">----</div>'
             '<div class="layout">Default layout</div>')
     ticks = "".join('<div class="tick%s"/>' % (" ten" if i % 10 == 0 else "")
@@ -290,20 +302,27 @@ def footer(text, hints, tab="#F3F6FA"):
 
 # ---- main menu ---------------------------------------------------------------
 
+# (The owner, 2026-11-14: "Versus should replace the Train tile, then Train
+# should replace Lab"; the Lab went into Train, in place of free play; and
+# Events out, Training Mode's events to come back as drills in Train.)
 MAIN = [
     # id, class, name, what it is, built in this client
-    ("train", "ink", "Train",
-     "Pick a character and work through its course.", True),
-    ("lab", "lab", "Lab",
-     "Free practice against whoever you choose: nobody, the game's CPU or "
-     "a trained model.", True),
-    ("events", "events", "Events",
-     "Training Mode's own events, page by page.", False),
-    ("versus", "slate", "Versus",
-     "Local or online: a trained model, the game's CPU, or a friend.", True),
+    ("versus", "red", "Versus",
+     "A match against a trained model, the game's CPU, or a friend.", True),
+    ("train", "ink", "Train", "Your character's course, and the Lab.", True),
     ("settings", "white", "Settings",
-     "Input delay, rumble, controls, sound, display and online.", True),
+     "Controls, input delay, sound, display and online.", True),
 ]
+
+
+def mark(ident, cls):
+    """A panel's large faded drawing, cut by the panel's edges."""
+    name = MARK_OF.get(ident)
+    if name not in MARKS:
+        return ""
+    tint = "#12161C24" if cls in LIGHT else "#FFFFFF2B"
+    return ('<div class="mkclip"><img class="mk" src="%s" style="image-color:'
+            ' %s"/></div>' % (picture(MARKS[name]), tint))
 
 
 def _tile(item, extra=""):
@@ -311,34 +330,41 @@ def _tile(item, extra=""):
     like the numbered buttons, there's no point to doing that!")"""
     ident, cls, name, about, built = item
     soon = "" if built else '<div class="soon">NOT YET</div>'
-    return ('<div id="%s" class="tile %s"><div class="ring"/>'
+    return ('<div id="%s" class="tile %s"><div class="ring"/>%s'
             '<div class="in"><div class="row">'
             '<div class="grow"/>%s</div><div><div class="big">%s</div>'
             '<div class="sub">%s</div>%s</div></div>%s</div>' % (
-                ident, cls, soon, esc(name), esc(about), extra[0]
-                if extra else "", extra[1] if extra else ""))
+                ident, cls, mark(ident, cls), soon, esc(name), esc(about),
+                extra[0] if extra else "", extra[1] if extra else ""))
 
 
-def main_menu(last=None):
-    """`last`: (character name, colour) of the last one trained, if any."""
+def _last(text, colour, ink="#12161C"):
+    return ('<div class="last"><div class="mark" style="background-color: '
+            '%s; color: %s">LAST</div><div>%s</div></div>' % (
+                colour, ink, esc(text)))
+
+
+def main_menu(last=None, match=None, focus="versus"):
+    """`last`: (character name, colour) of the last one trained, if any;
+    `match`: what the last Versus match was, in words."""
     by = {item[0]: item for item in MAIN}
-    mark = ""
-    if last:
-        mark = ('<div class="last"><div class="mark" style="background-color:'
-                ' %s">LAST</div><div>%s</div></div>' % (last[1],
-                                                        esc(last[0])))
     bands = '<div class="bands">%s</div>' % "".join(
         '<div class="band %s"><div class="un">%s</div></div>' % (
             PART_CLASS[p], p) for p in PART_CLASS)
+    sides = ('<div class="bands"><div class="band vl"><div class="un">Local'
+             '</div></div><div class="band vo"><div class="un">Online</div>'
+             '</div></div>')
     gap = '<div class="gap"/>'
     body = (
         header(["Main menu"]) +
-        '<div class="mosaic">' + _tile(by["train"], (mark, bands)) + gap +
-        '<div class="right">' + _tile(by["lab"]) + gap +
-        '<div class="lower">' + _tile(by["events"]) + gap +
-        '<div class="small">' + _tile(by["versus"]) + gap +
-        _tile(by["settings"]) + '</div></div></div></div>' +
-        footer(by["train"][3], [("A", "Choose"), ("F11", "Fullscreen")]))
+        '<div class="mosaic">' +
+        _tile(by["versus"], (_last(match, "#12161C", "#F3F6FA")
+                             if match else "", sides)) + gap +
+        '<div class="right">' +
+        _tile(by["train"], (_last(*last) if last else "", bands)) + gap +
+        _tile(by["settings"]) + '</div></div>' +
+        footer(by[focus][3], [("A", "Choose"), ("F11", "Fullscreen")],
+               tab="#D0283E" if focus == "versus" else "#F3F6FA"))
     return page("Main menu", body)
 
 
@@ -418,7 +444,7 @@ def tile(c):
 
 def art_head(c, costume=0):
     """The top of a character's card: its colour, its emblem, its portrait
-    standing out over the card's top edge, its traits and name."""
+    inside the card's top, behind a wall and a post, its traits and name."""
     face = _portrait(c, costume)
     emb = art.emblem(c["series"])
     out = ('<div class="aclip"><div class="acolor" style="background-color:'
@@ -429,7 +455,17 @@ def art_head(c, costume=0):
     out += '</div>'
     if face is not None:
         out += '<img class="abig" src="%s"/>' % picture(face)
-    out += '<div class="wclip"><div class="wedge"/></div>'
+    # the portrait behind a wall (the owner's pick of the canvas's "A ·
+    # Card: behind a wall", 2026-11-14, "but I also want a line in between
+    # the character and the name so we can hide the cutoff right side"):
+    # the wall's shadow and the post's on the character, the wall with its
+    # lit top face, the post upright (the portraits' cut is upright); all
+    # inside the card ("I don't want a line bleeding out of the
+    # container")
+    out += ('<div class="ashade"><div class="wshadow"/><div class="postsh"/>'
+            '</div><div class="wclip"><div class="wedge"/></div>'
+            '<div class="wfclip"><div class="wface"/><div class="wlip"/></div>'
+            '<div class="post"/><div class="plip"/>')
     out += ('<div class="aname" style="color: %s"><div class="tags">%s</div>'
             '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
                 c["fg"], esc(" · ".join(c["tags"]).upper()),
@@ -476,9 +512,9 @@ def card(c, costume=0):
                                                   parts))
         go = "Train"
     else:
-        about = ('<div class="about">No course of its own yet: A starts '
-                 'free play.</div>')
-        go = "Play"
+        about = ('<div class="about">No course of its own yet: A opens the '
+                 'Lab.</div>')
+        go = "Lab"
     return art_head(c, costume) + (
         '<div class="abody"><div class="stats">%s</div>%s%s<div class="grow"/>'
         '<div class="go"><div class="un">%s<div>%s</div></div></div></div>' % (
@@ -515,9 +551,10 @@ def character_select(roster, focus, title="Choose your character",
 
 # ---- versus and lab: who is on the other side ---------------------------------
 
-def opponent_card(c, who, what, stage, count, go):
+def opponent_card(c, who, what, count, go):
     """The card on the opponent screen: the character, who plays it (`who`,
-    with `what` that is in a few words; `count`: "2 of 31"), the stage."""
+    with `what` that is in a few words; `count`: "2 of 31"). The stage is
+    chosen next, on a screen of its own."""
     form = ""
     if c.get("other") is not None:
         form = ('<div class="pick">%s<div>Switch to %s</div></div>' % (
@@ -527,13 +564,96 @@ def opponent_card(c, who, what, stage, count, go):
         '</div><div class="fv big2">%s</div><div class="fl">%s</div></div>'
         '<div class="pick">%s<div>Change</div><div class="grow"/>'
         '<div class="lbl">%s</div></div>%s'
-        '<div class="fact"><div class="fl">Stage</div><div class="fv big2">'
-        '%s</div></div><div class="pick">%s%s<div>Change stage</div></div>'
         '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
         '</div></div></div>' % (
-            esc(who), esc(what), key("X"), esc(count), form, esc(stage),
-            key("L", wide=True), key("R", wide=True), key("A", dark=True),
-            esc(go)))
+            esc(who), esc(what), key("X"), esc(count), form,
+            key("A", dark=True), esc(go)))
+
+
+# ---- the stage select (the canvas's "A · Stage select: grid and card") -------
+
+STAGE_COLUMNS = 3
+
+
+def stage_tile(i, s, focus):
+    """A stage's panel: the native build's picture of it from above and to
+    one side, or (until that is drawn) the game's name logo."""
+    import stages
+    pic = stages.tile(s["id"])
+    if pic is not None:
+        inner = '<img class="sgimg" src="%s"/>' % picture(pic)
+    else:
+        name = stages.logo(s["id"])
+        inner = '<img class="sglogo" src="%s"/>' % picture(name) \
+            if name is not None else ""
+    return ('<div id="s%d" class="sg%s"><div class="ring"/><div class="sgpic">'
+            '<div class="sgpin">%s</div><div class="sgstrip"><div class="un">'
+            '%s</div></div></div></div>' % (
+                i, " focus" if focus else "", inner,
+                # (RmlUi's text-transform leaves the é of Pokémon small)
+                esc(s["name"].upper())))
+
+
+def _num(v):
+    return "%g" % round(v, 1)
+
+
+def stage_card(s, go):
+    """The card about the stage in focus: the stage whole, the game's name
+    logo, its width and platforms, its blast zones (as the game reads
+    them, once drawn), a line about it."""
+    import stages
+    out = '<div class="sgclip">'
+    prev = stages.preview(s["id"])
+    if prev is not None:
+        out += '<img class="sgprev" src="%s"/>' % picture(prev)
+    out += '</div><div class="wclip"><div class="wedge"/></div>'
+    name = stages.logo(s["id"])
+    if name is not None:
+        out += '<img class="sgname" src="%s"/>' % picture(name)
+    else:
+        out += '<div class="sgname2">%s</div>' % esc(s["name"])
+    f = stages.facts().get(s["id"])
+    stats = []
+    if f:
+        stats.append((_num(2 * f["ledge"]), "ledge to ledge"))
+    stats.append((str(s["platforms"]) if s["platforms"] else "None",
+                  "platforms"))
+    stats = "".join('<div class="stat"><div class="n">%s</div><div class="l">'
+                    '%s</div></div>' % (esc(n), what) for n, what in stats)
+    blast = ""
+    if f:
+        blast = ('<div class="sgblast"><div class="fl">Blast zones</div>'
+                 '<div class="sgbz">%s</div></div>' % "".join(
+                     '<div class="sgb"><div class="sgbn">%s</div><div '
+                     'class="sgbl">%s</div></div>' % (_num(v), side)
+                     for v, side in zip(f["blast"], ("left", "right", "top",
+                                                     "bottom"))))
+    return out + (
+        '<div class="sgbody"><div class="sgstats">%s</div>%s<div '
+        'class="sgabout">%s</div><div class="grow"/><div class="go"><div '
+        'class="un">%s<div>%s</div></div></div></div>' % (
+            stats, blast, esc(s["about"]), key("A", dark=True), esc(go)))
+
+
+def stage_select(stage_list, focus, me, opp, go):
+    """After the characters: where they play. `me`, `opp`: the two
+    characters; `go`: what A does ("Fight", or "Start" in the Lab)."""
+    tiles = [stage_tile(i, s, i == focus) for i, s in enumerate(stage_list)]
+    rows = "".join('<div class="sgrow">%s</div>' % "".join(
+        tiles[i:i + STAGE_COLUMNS])
+        for i in range(0, len(tiles), STAGE_COLUMNS))
+    body = (
+        header(["Choose a stage"], tag=[(me["name"], me["color"], me["fg"]),
+                                        (opp["name"], opp["color"],
+                                         opp["fg"])]) +
+        '<div class="sgrid">' + rows + '</div>' +
+        '<div id="card" class="card">' + stage_card(stage_list[focus], go) +
+        '</div>' +
+        footer("Where %s and %s play. The stage loads with the match." % (
+            me["name"], opp["name"]),
+            [("A", go), ("X", "Random"), ("B", "Back")]))
+    return page("Stage select", body)
 
 
 def versus_rail(c, opp, who, what, stage, lab):
@@ -562,33 +682,13 @@ def versus_rail(c, opp, who, what, stage, lab):
                 '<div class="body">%s</div></div>' % (head, body), paper=False)
 
 
-# ---- in a match ----------------------------------------------------------------
-
-def match_rail(c, opponent, stage):
-    """The column beside the game's picture. The rest of the window is left
-    clear: the game shows through at the left."""
-    head = ('<div class="top" style="background-color: %s"/>'
-            '<div class="slant" style="background-color: %s"/>'
-            '<div class="head" style="color: %s"><div class="tags">FREE PLAY'
-            '</div><div class="who2" style="font-size: %ddp">%s</div></div>'
-            % (c["color"], c["color"], c["fg"],
-               34 if len(c["name"]) > 9 else 48, esc(c["name"])))
-    stats = "".join(
-        '<div class="stat"><div class="n">%s</div><div class="l">%s</div>'
-        '</div>' % (esc(n), what) for n, what in (
-            (c["weight"], "weight"), (c["fall"], "fall speed"),
-            (c["squat"], "jump squat")))
-    body = (
-        '<div class="line">Against a standing %s on %s.</div>'
-        '<div class="about"/><div class="stats">%s</div>'
-        '<div class="grow"/>%s' % (
-            esc(opponent), esc(stage), stats, match_hints()))
-    return page("Free play", over_game() + '<div id="rail" class="rail">%s'
-                '<div class="body">%s</div></div>' % (head, body),
-                paper=False)
-
-
 # ---- the course hub -----------------------------------------------------------
+
+# (The owner, 2026-11-14: "move Lab into Train, it should replace the free
+# play button".)
+LAB = ("lab", "lab", "Lab", "Any opponent, any stage. Nothing is judged.",
+       True)
+
 
 def hub(c, course, here, progress, left):
     """`here`: ids of the drills that play in this client. `left`: the
@@ -602,14 +702,14 @@ def hub(c, course, here, progress, left):
         squares = "".join('<div class="sq%s"/>' % (
             " on" if progress.done(d["id"]) else "") for d in drills)
         slabs.append(
-            '<div id="p%d" class="tile slab %s"><div class="ring"/>'
+            '<div id="p%d" class="tile slab %s"><div class="ring"/>%s'
             '<div class="in"><div class="row">'
             '<div class="grow"/>%s</div><div><div class="big">%s</div>'
             '<div class="d">%s</div></div><div>'
             '<div class="sqs">%s</div><div class="cnt2">%d of %d complete'
             '</div><div class="cnt2">Next: %s</div></div></div>'
             '</div>' % (
-                i, PART_CLASS[part],
+                i, PART_CLASS[part], mark("p%d" % i, PART_CLASS[part]),
                 '<div class="first">START HERE</div>' if i == 0 else "",
                 part, esc(ABOUT[part][0]), squares, done, len(drills),
                 esc(nxt["name"]) if nxt else "complete"))
@@ -633,10 +733,7 @@ def hub(c, course, here, progress, left):
                tag=(c["name"], c["color"], c["fg"])) +
         '<div class="hub"><div class="slabs">' +
         '<div class="gap"/>'.join(slabs) + '</div><div class="gap"/>'
-        '<div class="hubrow"><div id="free" class="tile lab"><div class='
-        '"ring"/><div class="in"><div class="lbl">FREE PRACTICE</div><div>'
-        '<div class="big">Free play</div><div class="sub">Against a standing'
-        ' opponent.</div></div></div></div><div class="gap"/>' + tail +
+        '<div class="hubrow">' + _tile(LAB) + '<div class="gap"/>' + tail +
         '</div></div>' +
         footer("", [("A", "Open"), ("B", "Back")],
                tab=PART_COLOR["Tech"]))

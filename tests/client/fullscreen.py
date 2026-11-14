@@ -135,9 +135,11 @@ def main():
         # ---- the game's picture in the frame ----------------------------------
         w.resize(1720, 720)
         frames(12)
-        tap("Right")
-        tap("x")
-        tap("x")
+        tap("x")                      # Train: Fox
+        tap("x")                      # his course hub
+        tap("Down")                   # the Lab
+        tap("x")                      # the opponent
+        tap("x")                      # the stage
         tap("x", after=30)
         frames(120)
         check("a match in the Lab", c.screen == "versus", c.screen)
@@ -151,7 +153,6 @@ def main():
               "sides %.3f %.3f, game %.3f, column %.3f" % (
                   sides + (game, rail)))
         pausekeys.leave(c, w, "main", frames)
-        tap("Left")
         check("back at the main menu", c.screen == "main" and
               c.focus == "train", "%s %s" % (c.screen, c.focus))
         w.resize(1280, 720)

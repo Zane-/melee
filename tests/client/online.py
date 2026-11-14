@@ -68,8 +68,7 @@ class Side:
     def to_online(self):
         c = self.c
         self.frames(6)
-        for key in ("Right", "Down", "Right"):      # to Versus
-            self.tap(key)
+        self.tap("Left")                            # to Versus
         self.tap("x")                               # Local or Online
         self.tap("Right")
         self.tap("x")                               # Online: characters

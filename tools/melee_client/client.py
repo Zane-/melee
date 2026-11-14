@@ -18,8 +18,9 @@ both back and sets damage from the D-pad); for a character with a course,
 the hub with
 its four parts and each part's drills from data/courses/, which you can
 mark as done; the drills that have a scenario (data/scenarios/) running
-against you with a verdict for every attempt; free play against a standing
-Marth. Hold START to come back. What is not: Events, Controls, most
+against you with a verdict for every attempt; the stage select after the
+characters, the game's own stages drawn by the native build (stages.py).
+Hold START to come back. What is not: Events, Controls, most
 drills, the guide, stocks and a result in Versus, sound.
 
 Needs tools/aurora32/build.sh (with RmlUi) and tools/native_build.py
@@ -51,8 +52,10 @@ import online  # noqa: E402
 import opponents  # noqa: E402
 import fonts  # noqa: E402
 import icons  # noqa: E402
+import marks  # noqa: E402
 import screens  # noqa: E402
 import settings  # noqa: E402
+import stages  # noqa: E402
 import window  # noqa: E402
 import native  # noqa: E402
 from native import STAGES, NativeError  # noqa: E402
@@ -67,20 +70,18 @@ L, R = 0x40, 0x20
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = screens.COLUMNS
-STAGE_ORDER = ("final-destination", "battlefield", "yoshis-story",
-               "dream-land", "fountain-of-dreams", "pokemon-stadium")
+STAGE_ORDER = tuple(s["id"] for s in stages.STAGES)
 assert set(STAGE_ORDER) == set(STAGES)
 CPU, NOBODY = "the game's own CPU", "nobody"
 ONLINE = "a friend, online"
 FRAMES_BEFORE_SESSION = 10   # both games, the same frames, nobody's input
 
-# Which panel a direction leads to from each panel of the main menu.
+# Which panel a direction leads to from each panel of the main menu:
+# Versus the big one at the left, Train above Settings at the right.
 MAIN_MOVES = {
-    "train": {RIGHT: "lab"},
-    "lab": {LEFT: "train", DOWN: "events"},
-    "events": {LEFT: "train", UP: "lab", RIGHT: "versus"},
-    "versus": {LEFT: "events", UP: "lab", DOWN: "settings"},
-    "settings": {LEFT: "events", UP: "versus"},
+    "versus": {RIGHT: "train"},
+    "train": {LEFT: "versus", DOWN: "settings"},
+    "settings": {LEFT: "versus", UP: "train"},
 }
 
 
@@ -182,8 +183,7 @@ DPAD = LEFT | RIGHT | DOWN | UP
 
 
 class Client:
-    def __init__(self, game, port=0, source="auto", opponent="marth",
-                 stage="final-destination", save=None, out=None):
+    def __init__(self, game, port=0, source="auto", save=None, out=None):
         self.w = game
         self.port = port
         self.source = source
@@ -198,7 +198,6 @@ class Client:
         self.part = 0                 # the part whose drills are listed
         self.row = [0, 0, 0, 0]       # the drill in focus, per part
         self.top = [0, 0, 0, 0]       # the first row shown, per part
-        self.back = "chars"           # where free play returns to
         self.person = None            # tests: called before every frame
         self.results = None           # the attempts of the drill last left
         self.banner = 0               # frames the verdict banner stays up
@@ -214,12 +213,14 @@ class Client:
         self.bot_said = None
         self.damage = 0               # the lab: the opponent's damage
         self.pad_now = None           # what the player holds this frame
-        self.opponent, self.stage = opponent, stage
         self.roster = characters.roster()
         self.opp_at = next(i for i, c in enumerate(self.roster)
                            if c["id"] == "marth")
         self.screen = None
         self.focus = "train"          # on the main menu
+        self.last_match = None        # the last Versus match, in words
+        self.lab_from = "chars"       # the Lab: "hub" or "chars"
+        self.stage_job = None         # the stages being drawn
         self.at = next(i for i, c in enumerate(self.roster)
                        if c["id"] == "fox")   # on the character select
         self.last = None              # the character last played
@@ -230,6 +231,7 @@ class Client:
         self.hold = {}                # button bit -> frames held
         self.used = set()             # bits whose hold already did something
         self.column_hidden = False    # START held: the column is put away
+        self.column_versus = False    # a Versus match's, not the one kept
         self.pause_open = False       # tests: the pause menu is up
         self.pause_focus = None       # tests: the row in focus there
         self.session = None           # the drill's, while one runs
@@ -255,6 +257,13 @@ class Client:
         # minute): her place shows her emblem until then
         art.ensure()
         self.art_job = art.render_sheik_later()
+        # the stage select's: the game's name logos off the disc; each
+        # stage drawn by the native build the first time (half a minute),
+        # its name logo on its panel until then
+        stages.ensure()
+        self.stage_job = stages.render_later()
+        # the menu panels' large faded drawings
+        screens.MARKS.update(marks.ensure())
         # SmashWiki's GameCube button icons, fetched the first time
         screens.BUTTONS.update(buttons.ensure())
         # the pause menu's icons (our own drawings, made into pictures)
@@ -385,7 +394,8 @@ class Client:
         self.screen = "main"
         self.w.capture(True)
         last = (self.last["name"], self.last["color"]) if self.last else None
-        self.load("main", screens.main_menu(last))
+        self.load("main", screens.main_menu(last, self.last_match,
+                                            self.focus))
         self.w.ui("class %s focus 1" % self.focus)
         self.say(self.about(self.focus))
 
@@ -447,6 +457,10 @@ class Client:
                 self.show_characters()
             elif self.screen == "opp":
                 self.show_opponent()
+        if self.stage_job is not None and self.stage_job.poll() is not None:
+            self.stage_job = None
+            if self.screen == "stages":
+                self.show_stages()
         pressed, moves = self.read()
         if self.screen == "online_match":
             ev = self.controls(stages=False)
@@ -457,7 +471,7 @@ class Client:
                 if ev is not None and ev[0] == "leave":
                     self.leave_online(ev[1])
                     return
-        elif self.screen in ("match", "versus"):
+        elif self.screen == "versus":
             ev = ("leave", "back") if self.game_quit() else \
                 self.controls(stages=False)
             if ev is not None and ev[0] == "column":
@@ -469,7 +483,7 @@ class Client:
                 self.leave_match(ev[1])
                 return
         before = self.where()
-        if self.screen not in ("match", "versus", "online_match") and \
+        if self.screen not in ("versus", "online_match") and \
                 pressed & (A | START):
             # choosing: the sound now, before what it opens (a drill runs
             # inside the list's frame)
@@ -478,11 +492,11 @@ class Client:
         else:
             pressed_sound = 0
         getattr(self, "on_" + self.screen)(pressed, moves)
-        if before[0] not in ("match", "versus", "online_match"):
+        if before[0] not in ("versus", "online_match"):
             self.menu_sounds(before, pressed & ~pressed_sound)
 
     def leave_match(self, to):
-        """Out of free play or Versus, chosen in the pause menu."""
+        """Out of Versus or the Lab, chosen in the pause menu."""
         if self.screen == "versus":
             if self.bot is not None:
                 self.bot.close()
@@ -491,14 +505,15 @@ class Client:
         self.w.mask(0)
         self.inputs_off()
         self.has_cover = False
+        self.column_as_kept()
         if to == "main":
             self.show_main()
-        elif self.screen == "versus":
-            self.show_opponent()
-        elif self.back == "hub":
+        elif to == "stages":
+            self.show_stages()
+        elif to == "hub":
             self.show_hub()
         else:
-            self.show_characters()
+            self.show_opponent()
 
     def controls(self, drill=False, stages=False):
         """What the buttons ask for in a match or a drill, this frame: None
@@ -555,8 +570,9 @@ class Client:
         """Put the column away (the game's picture in the middle) or back."""
         if not apply_only:
             self.column_hidden = not self.column_hidden
-            self.settings["sidebar"] = not self.column_hidden  # kept
-            self.progress.save()
+            if not self.column_versus:      # (Versus's own is not kept)
+                self.settings["sidebar"] = not self.column_hidden
+                self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
         for ident in ("bannerwrap", "pause", "rays", "coach"):
@@ -572,8 +588,20 @@ class Client:
         self.w.mask(mask)
         self.inputs_now()
         self.match_music()
+        # Versus, local or online: the sidebar put away to begin with (the
+        # owner, 2026-11-14: "hide the sidebar by default in versus, it is
+        # only really relevant in training mode"); START held brings it
+        # back for that match. Drills and the Lab keep it as it was left.
+        self.column_versus = name == "versus" and self.mode == "versus"
+        if self.column_versus:
+            self.column_hidden = True
         if self.column_hidden:
             self.toggle_column(apply_only=True)
+
+    def column_as_kept(self):
+        """Out of a Versus match: the sidebar as the player keeps it."""
+        self.column_versus = False
+        self.column_hidden = not self.settings["sidebar"]
 
     # ---- the pause menu ----------------------------------------------------------
 
@@ -585,8 +613,8 @@ class Client:
         return "After %d misses" % n if n else "Off"
 
     def pause_tabs(self, kind):
-        """The pause menu's tabs for a `kind` of match ("drill", "match",
-        "versus", "online")."""
+        """The pause menu's tabs for a `kind` of match ("drill", "versus",
+        "online")."""
         if kind == "drill":
             return ["Drill", "Course", "Settings"]
         return ["Match", "Settings"]
@@ -643,6 +671,9 @@ class Client:
                      else "Hide sidebar", None, "sidebar"))
         if kind == "versus":
             rows.append(("opp", "Opponent select", None, "person"))
+            rows.append(("stages", "Stage select", None, "stage"))
+            if self.mode == "lab" and self.lab_from == "hub":
+                rows.append(("hub", "Course", None, "course"))
         elif kind == "online":
             rows.append(("back", "Leave match", None, "leave"))
         elif kind != "drill":
@@ -808,7 +839,8 @@ class Client:
                         continue
                     if ident in ("guide", "demo", "reset"):
                         return (ident,)
-                    if ident in ("list", "hub", "main", "opp", "back"):
+                    if ident in ("list", "hub", "main", "opp", "stages",
+                                 "back"):
                         return ("leave", ident)
         finally:
             self.w.ui("class pause on 0")
@@ -865,13 +897,15 @@ class Client:
                 self.focus = to
                 self.w.ui("class %s focus 1" % to)
                 self.say(self.about(to))
+                self.w.ui("attr tab style background-color: %s" % (
+                    "#D0283E" if to == "versus" else "#F3F6FA"))
                 break
         if pressed & A:
             if self.focus == "versus":
                 self.mode = "versus"
                 self.show_versus_menu()
-            elif self.focus in ("train", "lab"):
-                self.mode = self.focus
+            elif self.focus == "train":
+                self.mode = "train"
                 self.show_characters()
             elif self.focus == "settings":
                 self.show_settings()
@@ -952,8 +986,7 @@ class Client:
             if courses.load(c["id"]):
                 self.show_hub()
             else:
-                self.back = "chars"
-                self.play(c)
+                self.lab(c, "chars")
 
     def show_card(self):
         c = self.roster[self.at]
@@ -1004,9 +1037,18 @@ class Client:
         _, name, what = players[self.who]
         return screens.opponent_card(
             self.roster[self.opp_at], name, what,
-            STAGE_ORDER[self.stage_at].replace("-", " ").title(),
-            "%d of %d" % (self.who + 1, len(players)),
-            "Start" if self.mode == "lab" else "Fight")
+            "%d of %d" % (self.who + 1, len(players)), "Choose stage")
+
+    def lab(self, c, came_from):
+        """The Lab as `c` (the owner, 2026-11-14: "move Lab into Train, it
+        should replace the free play button (clicking this should allow
+        the user to select the character and stage)"): the opponent, then
+        the stage. `came_from`: "hub" or "chars", where B goes back to."""
+        self.mode = "lab"
+        self.lab_from = came_from
+        self.me = c
+        self.who = None
+        self.show_opponent()
 
     def show_opponent(self):
         self.menu_music()
@@ -1016,11 +1058,10 @@ class Client:
             self.who = 0
         self.load("opponent", screens.character_select(
             self.roster, self.opp_at, title="Choose your opponent",
-            about="%s against whom, played by whom, and where." %
-                  self.me["name"],
+            about="%s against whom, and played by whom." % self.me["name"],
             inside=self.opponent_card(),
-            hints=[("A", "Start" if self.mode == "lab" else "Fight"),
-                   ("X", "Played by"), ("B", "Back")]))
+            hints=[("A", "Choose stage"), ("X", "Played by"),
+                   ("B", "Back")]))
 
     def on_opp(self, pressed, moves):
         at, n = self.opp_at, len(self.roster)
@@ -1049,16 +1090,55 @@ class Client:
                       self.roster[self.opp_at]["color"])
             self.who = 0
             changed = True
-        if pressed & L:
-            self.stage_at = (self.stage_at - 1) % len(STAGE_ORDER)
-            changed = True
-        if pressed & R:
-            self.stage_at = (self.stage_at + 1) % len(STAGE_ORDER)
-            changed = True
         if changed:
             self.put("card", self.opponent_card())
         if pressed & B:
-            self.show_characters()
+            if self.mode == "lab" and self.lab_from == "hub":
+                self.show_hub()
+            else:
+                if self.mode == "lab":
+                    self.mode = "train"
+                self.show_characters()
+        elif pressed & A:
+            self.show_stages()
+
+    # ---- the stage select ---------------------------------------------------------
+
+    def go_word(self):
+        return "Start" if self.mode == "lab" else "Fight"
+
+    def show_stages(self):
+        """After the characters, where they play (the canvas's "A · Stage
+        select: grid and card")."""
+        self.menu_music()
+        self.screen = "stages"
+        self.w.capture(True)
+        self.load("stages", screens.stage_select(
+            stages.STAGES, self.stage_at, self.me,
+            self.roster[self.opp_at], self.go_word()))
+
+    def on_stages(self, pressed, moves):
+        at, n, cols = self.stage_at, len(STAGE_ORDER), screens.STAGE_COLUMNS
+        if moves & LEFT and at % cols > 0:
+            at -= 1
+        if moves & RIGHT and at % cols < cols - 1 and at + 1 < n:
+            at += 1
+        if moves & UP and at >= cols:
+            at -= cols
+        if moves & DOWN and at + cols < n:
+            at += cols
+        if at != self.stage_at:
+            self.w.ui("class s%d focus 0" % self.stage_at)
+            self.stage_at = at
+            self.w.ui("class s%d focus 1" % at)
+            self.put("card", screens.stage_card(stages.STAGES[at],
+                                                self.go_word()))
+        if pressed & B:
+            self.show_opponent()
+        elif pressed & X:
+            # as the game's own Random: one of them, and the match starts
+            self.stage_at = random.randrange(n)
+            self.fight()
         elif pressed & A:
             self.fight()
 
@@ -1081,6 +1161,9 @@ class Client:
             seed=random.randrange(1, 1 << 30), p2_human=key != CPU,
             settle=False))
         self.last = self.me
+        if self.mode == "versus":
+            self.last_match = "%s against %s · %s" % (
+                self.me["name"], opp["name"], stages.BY_ID[stage]["name"])
         self.screen = "versus"
         self.start_held = 0
         self.playing()
@@ -1323,6 +1406,7 @@ class Client:
         self.inputs_off()
         self.has_cover = False
         self.online = None
+        self.column_as_kept()
         if to == "main":
             self.show_main()
         else:
@@ -1375,8 +1459,9 @@ class Client:
         return None
 
     def hub_about(self):
-        if self.hub_at == "free":
-            return "Free play against a standing opponent. Nothing is judged."
+        if self.hub_at == "lab":
+            return "Lab: free practice against an opponent and on a stage " \
+                "you choose. Nothing is judged."
         part = courses.PARTS[int(self.hub_at[1])]
         return "%s: %s Every part is open from the start." % (
             part, courses.ABOUT[part][1])
@@ -1384,6 +1469,7 @@ class Client:
     def show_hub(self):
         self.menu_music()
         self.screen = "hub"
+        self.mode = "train"
         self.w.capture(True)
         c = self.roster[self.at]
         if self.c is not c:
@@ -1399,12 +1485,12 @@ class Client:
     def hub_tab(self):
         self.say(self.hub_about())
         color = screens.PART_COLOR[courses.PARTS[int(self.hub_at[1])]] \
-            if self.hub_at != "free" else "#5B3FD6"
+            if self.hub_at != "lab" else "#5B3FD6"
         self.w.ui("attr tab style background-color: %s" % color)
 
     def on_hub(self, pressed, moves):
         at = self.hub_at
-        if at == "free":
+        if at == "lab":
             if moves & UP:
                 at = "p%d" % self.part
         else:
@@ -1414,7 +1500,7 @@ class Client:
             if moves & RIGHT and i < 3:
                 at = "p%d" % (i + 1)
             if moves & DOWN:
-                self.part, at = i, "free"
+                self.part, at = i, "lab"
         if at != self.hub_at:
             self.w.ui("class %s focus 0" % self.hub_at)
             self.hub_at = at
@@ -1423,9 +1509,8 @@ class Client:
         left = self.left_off()
         if pressed & B:
             self.show_characters()
-        elif pressed & A and self.hub_at == "free":
-            self.back = "hub"
-            self.play(self.c)
+        elif pressed & A and self.hub_at == "lab":
+            self.lab(self.c, "hub")
         elif pressed & A:
             self.part = int(self.hub_at[1])
             self.show_list()
@@ -2711,25 +2796,6 @@ class Client:
                     self.w.step()
             except Abandon:
                 pass                # as in an attempt: the next one starts
-
-    # ---- free play --------------------------------------------------------------------
-
-    def play(self, c):
-        """Free play as this character."""
-        self.load_quietly(lambda: self.w.start(
-            c["id"], self.opponent, self.stage,
-            seed=random.randrange(1, 1 << 30), settle=False))
-        self.last = c
-        self.screen = "match"
-        self.start_held = 0
-        self.playing()
-        self.in_match("match", screens.match_rail(
-            c, self.opponent.replace("-", " ").title(),
-            self.stage.replace("-", " ").title()), START)
-        self.w.capture(False)
-
-    def on_match(self, pressed, moves):
-        pass
 
     # ---- settings -----------------------------------------------------------
 

@@ -70,9 +70,8 @@ def main():
         check("and rumble on for every port, UCF on",
               w.rumble()["allowed"] == [1, 1, 1, 1] and w.ucf())
 
-        for key in ("Right", "Down", "Right", "Down"):
-            tap(key)
-        check("Settings is the main menu's fifth panel",
+        tap("Down")
+        check("Settings is the main menu's panel under Train",
               c.focus == "settings")
         tap("x")
         check("A on it opens Settings, Controls in focus",

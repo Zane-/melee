@@ -303,6 +303,8 @@ was ("much too large", the owner, 2026-11-13).
 | The screens as markup, the look, the roster (names and traits from `data/characters/`, course sizes from `data/courses/`), the flow | `tools/melee_client/` (`screens.py`, `style.rcss`, `characters.py`, `client.py`) |
 | The typefaces (Barlow, Barlow Condensed, IBM Plex Mono; Open Font License), fetched once into `build/ui/fonts/` | `tools/melee_client/fonts.py` |
 | The game's portraits and series emblems, read off the disc into `build/ui/art/`; Sheik's drawn from her model | `tools/melee_client/art.py`, `src/host/studio.c` |
+| The stage select's art: the game's name logos off the disc, each stage drawn by the native build (whole for the card, from above and to one side for its panel), its blast zones and ledge read from the running game (`studio stage`), into `build/ui/art/stage/` | `tools/melee_client/stages.py`, `src/host/studio.c` |
+| The menu panels' large faded drawings, made into pictures with rsvg-convert | `tools/melee_client/marks.py` |
 | Costumes: `costume P N` on the control pipe (`Native.costume`), kept for every match set up after, a drill's own too | `src/host/match.c` (`HostMatch.color`) |
 
 The flow lives in Python, like the trainer: the client steps the game a frame at a time,
@@ -310,14 +312,50 @@ reads the pad and tells the host what to show.
 
 | Screen | What it does | From |
 |-|-|-|
-| Main menu | Five panels; Train goes on, the other four say "not yet" | `screens.main_menu` |
+| Main menu | Versus (the big panel), Train, Settings, each with its faded drawing | `screens.main_menu` |
 | Character select | 25 places, each with the game's own portrait over its series emblem (Zelda and Sheik share one: Sheik first, X on the card turns it into Zelda and back); the card shows the portrait standing out over its top, three style words, weight, fall speed, jump squat, and the costumes (Y), the one chosen worn in every match after | `data/characters/<id>.md`; the art: `tools/melee_client/art.py` |
-| Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; free play; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
+| Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; the Lab; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
 | A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
 | A drill | The scenario's opponent against the player, attempt after attempt: a small banner at the top of the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
-| Free play | The chosen character against a standing Marth; nothing is judged | `Native.start` |
-| Versus | Your character, then the opponent: which character, who plays it (X turns through a trained slippi-ai model for the pairing, other models, the game's CPU, nobody) and the stage (L and R). A match with the column saying who is on the other side | `tools/melee_client/opponents.py`, `melee_actor/policy_server.py` |
-| The Lab | The same choice with nobody playing the opponent unless asked; D-pad down puts both back, left and right set the opponent's damage | the same |
+| Versus | Your character, then the opponent: which character, who plays it (X turns through a trained slippi-ai model for the pairing, other models, the game's CPU, nobody), then the stage select. A match with the sidebar put away (START held shows it) | `tools/melee_client/opponents.py`, `melee_actor/policy_server.py` |
+| Stage select | The six stages as panels with the native build's pictures of them, three to a row; the card shows the stage whole, the game's name logo, its width, platforms and blast zones; X picks one at random and starts | `screens.stage_select`, `tools/melee_client/stages.py` |
+| The Lab (in Train: the course hub, or A on a character with no course) | The same choice with nobody playing the opponent unless asked, then the stage; D-pad down puts both back, left and right set the opponent's damage | the same |
+
+**Versus first, the Lab in Train, a stage select (2026-11-14).** The owner: "Let's move
+Lab into Train, it should replace the free play button (clicking this should allow the
+user to select the character and stage". "Versus should replace the Train tile, then Train
+should replace Lab", Events out of the menu (Training Mode's events are to come back as
+drills in Train, in this interface), a stage select after the characters "similar to
+character select that uses the real stage icons with a preview", and "ensure all menu
+items have a faded icon like in the mockups". The canvas's row "Versus first, the Lab in
+Train, and a stage select"; the owner chose layout A, and asked for "higher resolution
+images for the stage selection badges ... native angled screenshots": the disc's icons are
+58 by 50 pixels, so each panel is the stage drawn by the native build from above and to one
+side, empty (the fighter put to sleep: no fighter, no damage display), with the studio
+camera, at twice the size shown. The game's own name logos stay (off the disc). The
+pictures are drawn the first time the client starts, beside it, in about 30 seconds (the
+name logo stands on each panel until then); `python tools/melee_client/stages.py --render`
+draws them again. The main menu opens with Train in focus (the client is for training;
+Versus is the big panel). Free play is gone: the Lab took its place. **Versus hides the
+sidebar** ("it is only really relevant in training mode"): a Versus match, local or online,
+starts with it put away; START held shows it for that match without changing what the
+player keeps; drills and the Lab keep it as it was. `tests/client/stage_select.py` (16
+checks); `menu.py`, `versus.py`, `course.py`, `sound.py`, `portraits.py`, `fullscreen.py`,
+`settings_menu.py` and `online.py` follow the new layout.
+
+**The character card: behind a wall (2026-11-14).** The game's portraits end flat at the
+bottom and the right of their frame, and the card's ink edge cut across each one. The
+owner chose the canvas's "A · Card: behind a wall" ("but I also want a line in between the
+character and the name so we can hide the cutoff right side"): the ink below is a wall in
+front of the character with a lit top face, and an upright post stands between the
+portrait and the name, from the card's top down to the wall; each casts a soft shadow on
+the character. The post is upright, not slanted like the panels, because the cut it hides
+is upright: at 12 degrees a thin post drifts 40 dp over the card's height. All of it inside
+the card ("scale down the character and the wall so it fits within the card, I don't want a
+line bleeding out of the container"): the portrait, smaller, has its frame's top and left
+edges on the card's (13 of the 25 portraits are cut at the top too, and there the cut is
+the card's edge), its bottom behind the wall. `screens.art_head` (the character select's
+card and the opponent screen's).
 
 **A trained model on the other side (2026-11-13).** slippi-ai's models
 (`~/Games/Melee/slippi-ai/deployed_models/`, 137 of them) play natively: no Dolphin, no

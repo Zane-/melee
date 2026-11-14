@@ -74,8 +74,8 @@ def main():
               "%s, rms %.0f" % (w.song(), loudness(raw)))
 
         del played[:]
-        tap("Right")
         tap("Left")
+        tap("Right")
         check("moving between panels: the game's move sound each time",
               played == [c.SFX_MOVE, c.SFX_MOVE], str(played))
         del played[:]
@@ -95,26 +95,29 @@ def main():
         while c.focus != "train":
             tap("Left")
 
-        # ---- free play: the stage's music, then the menus' again ----------
+        # ---- the Lab: the stage's music, then the menus' again -----------
         tap("x")
         tap("Down")
-        tap("Right")                  # Marth: free play
+        tap("Right")                  # Marth: no course, the Lab
+        tap("x")                      # the opponent
+        tap("x")                      # the stage
         tap("x", after=150)
         stage_song = w.song()
         check("a match plays its stage's music, not the menu's",
-              c.screen == "match" and stage_song not in (None, "menu01.hps")
+              c.screen == "versus" and stage_song not in (None, "menu01.hps")
               and loudness(raw) > 300, "%s, %s, rms %.0f" % (
                   c.screen, stage_song, loudness(raw)))
         del played[:]
-        pausekeys.leave(c, w, "back", frames)
+        pausekeys.leave(c, w, "opp", frames)
         frames(30)
         check("the pause menu sounds its moves and the choice",
               c.SFX_MOVE in played and c.SFX_FORWARD in played, str(played))
-        check("back at the character select: the menu music again",
-              c.screen == "chars" and w.song() == "menu01.hps",
+        check("back at the opponent screen: the menu music again",
+              c.screen == "opp" and w.song() == "menu01.hps",
               "%s, %s" % (c.screen, w.song()))
 
         # ---- a drill on a match it keeps: the stage's music back ---------
+        tap("z")                      # the character select
         tap("z")
         tap("x")                      # Train: the character select at Fox?
         tap("Up")                     # from Marth, the row above

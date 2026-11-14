@@ -76,8 +76,8 @@ def main():
         for key in ("Right", "Right", "Right", "Right", "Down", "Up"):
             tap(key)
             seen.append(c.hub_at)
-        check("the focus moves over the parts and to free play and back",
-              seen == ["p1", "p2", "p3", "p3", "free", "p3"], " ".join(seen))
+        check("the focus moves over the parts and to the Lab and back",
+              seen == ["p1", "p2", "p3", "p3", "lab", "p3"], " ".join(seen))
 
         tap("Left")
         tap("Left")
@@ -164,12 +164,21 @@ def main():
               c.screen == "list" and courses.PARTS[c.part] == "Tech")
         tap("z")
         tap("Down")
+        tap("x")
+        check("the Lab opens from the hub: Fox against whom",
+              c.screen == "opp" and c.mode == "lab" and
+              c.me["id"] == "fox")
+        tap("x")
         tap("x", after=20)
-        check("free play starts from the hub",
-              c.screen == "match" and w.fighter(0).fp)
-        leave(c, w, "back", frames)
-        check("and Back in the pause menu comes back to it",
-              c.screen == "hub")
+        check("then a stage, and the match",
+              c.screen == "versus" and w.fighter(0).fp)
+        leave(c, w, "hub", frames)
+        check("and Course in the pause menu comes back to the hub",
+              c.screen == "hub" and c.mode == "train")
+        tap("x")
+        tap("z")
+        check("B from the Lab's opponent screen goes back to the hub too",
+              c.screen == "hub", c.screen)
 
         again = client.Client(w, source="keyboard", save=save, out=tempfile.mkdtemp(prefix="melee-ui-"))
         check("started again, the client still has all of it",

@@ -52,7 +52,7 @@ class Chooser:
 
 
 def leave(client, game, ident, frames):
-    """Out of a match (free play, Versus): choose `ident` in the pause menu,
+    """Out of a match (Versus, the Lab): choose `ident` in the pause menu,
     running `frames(n)` (the test's way of playing n frames)."""
     chooser = Chooser(client, ident)
     before = client.person
