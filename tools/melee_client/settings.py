@@ -18,9 +18,11 @@ DEFAULTS = {
     "sidebar": True,             # the column beside the game's picture
     "size": [1280, 720],         # the window's, when it is not fullscreen
     "inputs": "off",             # TM-CE's input display: whose (INPUTS)
+    "coach": 3,                  # misses in a row before the coach; 0 off
 }
 SIZES = ([1280, 720], [1600, 900], [1920, 1080], [2560, 1440])
 INPUTS = ("off", "you", "opponent", "both")
+COACH = (0, 2, 3, 4, 5)          # the coach's card after this many misses
 DELAY_MAX = 9                    # as far as Slippi's own setting goes
 FRAME_MS = 1000.0 * 1001 / 60000  # the console's 59.94 frames a second
 
@@ -39,6 +41,8 @@ def get(progress):
         s["size"] = list(DEFAULTS["size"])
     if s["inputs"] not in INPUTS:
         s["inputs"] = DEFAULTS["inputs"]
+    if s["coach"] not in COACH:
+        s["coach"] = DEFAULTS["coach"]
     return s
 
 

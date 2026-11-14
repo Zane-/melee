@@ -211,6 +211,18 @@ def main():
         tap("Left")
         tap("Left")
         check("left: back to off", c.settings["inputs"] == "off")
+        tap("Down")
+        check("Coach: after 3 misses unless changed",
+              c.SUB["sdisplay"][2][c.sub_at] == "coach" and
+              c.settings["coach"] == 3)
+        tap("Right")
+        check("right: after 4", c.settings["coach"] == 4)
+        for _ in range(3):
+            tap("Left")
+        check("left past 2: off", c.settings["coach"] == 0)
+        tap("Right")
+        tap("Right")
+        check("and back to 3", c.settings["coach"] == 3)
         tap("z")
 
         # Online

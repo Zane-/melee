@@ -1896,7 +1896,7 @@ class Client:
     # them, as Controls
     SUB = {"ssound": ("Sound", "#F0643C", ("music", "effects", "menus")),
            "sdisplay": ("Display", "#F5BE1B",
-                        ("window", "size", "sidebar", "inputs")),
+                        ("window", "size", "sidebar", "inputs", "coach")),
            "sonline": ("Online", "#22B8A0",
                        ("nick", "port", "friends", "router"))}
 
@@ -1951,11 +1951,16 @@ class Client:
                     ("sidebar", "Sidebar", "Beside the game in a match.",
                      "Shown" if s["sidebar"] else "Hidden", "#F5BE1B"),
                     ("inputs", "Input display", "Buttons and sticks, drawn.",
-                     s["inputs"].title(), "#F5BE1B")]
+                     s["inputs"].title(), "#F5BE1B"),
+                    ("coach", "Coach", "Its card, after misses in a row.",
+                     "After %d misses" % s["coach"] if s["coach"] else "Off",
+                     "#F5BE1B")]
             panel = screens.display_panel(s["sidebar"], full, s["size"])
             desc = ("TM-CE's input display: whose buttons and sticks are "
                     "drawn over the game in drills and matches."
                     if ident == "inputs" else
+                    "The coach's card opens in a drill after this many "
+                    "misses in a row." if ident == "coach" else
                     "The sidebar can also be hidden in a match: hold "
                     "START for three seconds.")
             hints = [("D-SIDE", "Change"), ("B", "Back")]
@@ -2042,10 +2047,15 @@ class Client:
                 s["sidebar"] = not s["sidebar"]
                 self.column_hidden = not s["sidebar"]
                 changed = True
-            else:
+            elif ident == "inputs":
                 i = settings.INPUTS.index(s["inputs"])
                 s["inputs"] = settings.INPUTS[(i + (step or 1)) %
                                               len(settings.INPUTS)]
+                changed = True
+            else:
+                i = settings.COACH.index(s["coach"])
+                s["coach"] = settings.COACH[(i + (step or 1)) %
+                                            len(settings.COACH)]
                 changed = True
         elif self.sub == "sonline":
             if ident == "nick" and pressed & X:
