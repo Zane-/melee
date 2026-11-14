@@ -520,3 +520,46 @@ img { display: inline-block; }
 .fini .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; }
 .fname { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 28dp; text-transform: uppercase; }
 .fwhat { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; color: #A9B4C2; }
+
+/* Versus, online: the code as a ticket, a paste button, friends as cards
+   (the canvas's "Versus: online") */
+.onl2 { position: absolute; left: 64dp; top: 118dp; width: 1168dp; height: 504dp; display: flex; flex-direction: row; }
+.oleft { width: 590dp; margin-right: 34dp; display: flex; flex-direction: column; }
+.ticket { position: relative; height: 230dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-8deg); display: flex; flex-direction: row; }
+.tring { position: absolute; left: -10dp; top: -10dp; right: -10dp; bottom: -10dp; border: 4dp #00000000; }
+.ticket.on .tring { border-color: #12161C; }
+.tbody { flex: 1; padding: 18dp 26dp; transform: skewX(8deg); display: flex; flex-direction: column; }
+.tl { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; color: #A9B4C2; }
+.tcode { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.tline { display: flex; flex-direction: row; }
+.tg { margin-right: 18dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 34dp; letter-spacing: 2dp; line-height: 1.25em; color: #F3F6FA; }
+.tg.alt { color: #F5BE1B; }
+.tsub { font-size: 15dp; color: #D5DCE5; }
+.perfs { width: 10dp; padding: 10dp 0dp; display: flex; flex-direction: column; justify-content: space-between; }
+.perf { width: 10dp; height: 10dp; background-color: #E9EDF2; }
+.tstub { width: 100dp; background-color: #22B8A0; color: #12161C; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.tadmit { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 30dp; line-height: 1em; text-align: center; }
+.ostrip { height: 64dp; margin: 18dp 0dp 18dp 0dp; display: flex; flex-direction: row; }
+.orouter { flex: 1; margin-right: 12dp; padding: 8dp 16dp; box-sizing: border-box; background-color: #FFFFFF; border: 2dp #12161C; display: flex; flex-direction: column; justify-content: center; }
+.ort { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; line-height: 1em; text-transform: uppercase; }
+.orw { font-size: 13dp; color: #4A5361; }
+.odelay { width: 150dp; padding: 8dp 14dp; box-sizing: border-box; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: column; justify-content: center; }
+.odv { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 28dp; line-height: 1em; color: #F5BE1B; }
+.paste { height: 120dp; padding: 0dp 28dp; box-sizing: border-box; border: 3dp #12161C; transform: skewX(-8deg); display: flex; flex-direction: row; align-items: center; }
+.paste.on { background-color: #12161C; color: #F3F6FA; }
+.paste .un { transform: skewX(8deg); display: flex; flex-direction: column; }
+.pbig { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 40dp; line-height: 1em; text-transform: uppercase; }
+.psub { margin-top: 4dp; font-size: 15dp; color: #4A5361; }
+.paste.on .psub { color: #D5DCE5; }
+.oright { flex: 1; display: flex; flex-direction: column; }
+.ofh { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; }
+.sed.dk { color: #4A5361; }
+.ofc { height: 76dp; margin-top: 10dp; box-sizing: border-box; background-color: #FFFFFF; border: 1dp #C9D1DB; transform: skewX(-8deg); display: flex; flex-direction: row; align-items: center; }
+.ofc.on { background-color: #12161C; color: #F3F6FA; border-color: #12161C; }
+.oini { width: 84dp; height: 74dp; margin-right: 18dp; color: #12161C; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.oini .un { transform: skewX(8deg); font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 32dp; }
+.ofc .col { transform: skewX(8deg); }
+.ofn { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 28dp; line-height: 1em; text-transform: uppercase; }
+.ofw { font-size: 13dp; color: #4A5361; }
+.ofc.on .ofw { color: #D5DCE5; }
+.ofnone { margin-top: 12dp; font-size: 16dp; line-height: 1.4em; color: #4A5361; width: 420dp; }

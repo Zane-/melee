@@ -57,34 +57,79 @@ def rays(points):
         % (x - 9, y, x - 22, y - 5) for x, y in points)
 
 
-def online_page(code, rows, at, status):
-    """Playing a friend online: this side's code, what can be done (rows:
-    (id, label, detail)), and what is happening (`status`)."""
-    items = "".join(
-        '<div class="prow%s"><div>%s</div><div class="grow"/>'
-        '<div class="pv">%s</div></div>' % (
-            " on" if i == at else "", esc(label), esc(detail))
-        for i, (ident, label, detail) in enumerate(rows))
+def online_page(code, rows, at, status, delay=2, router=None):
+    """Playing a friend online: this side's code as a ticket, pasting a
+    friend's, the friends met (rows: (id, label, detail); "copy", "paste",
+    then the friends), `at` the one in focus; `status` in the footer. (The
+    owner, 2026-11-13: no more plain menus, "i.e. the front code is a
+    white box"; the canvas's "Versus: online".)"""
     return page("Online", (
-        '<div class="onl"><div class="pbox onlbox">'
-        '<div class="ptitle"><div class="un">Play a friend online</div></div>'
-        '<div class="onlwhat">Send your friend your code and paste theirs: '
-        'both games then find each other, without a server.</div>'
-        '<div class="onlcode"><div class="onll">YOUR CODE</div>'
-        '<div id="code" class="onlc">%s</div></div>'
-        '<div id="orows" class="prows">%s</div>'
-        '<div id="ostatus" class="onls">%s</div>'
-        '<div class="phint">%s<div>Choose</div>%s<div>Back</div></div>'
-        '</div></div>' % (esc(code), items, esc(status), key("A", dark=True),
-                          key("B"))), paper=True)
+        header(["Main menu", "Versus", "Online"]) +
+        '<div id="orows" class="onl2">%s</div>' % online_body(
+            code, rows, at, delay, router) +
+        '<div class="footer"><div class="tab" style="background-color: '
+        '#22B8A0"/><div id="ostatus" class="desc">%s</div><div class="grow"/>'
+        '<div class="row">%s</div></div>' % (
+            esc(status), hint_keys([("A", "Choose"), ("B", "Back")]))))
 
 
-def online_rows(rows, at):
-    return "".join(
-        '<div class="prow%s"><div>%s</div><div class="grow"/>'
-        '<div class="pv">%s</div></div>' % (
-            " on" if i == at else "", esc(label), esc(detail))
-        for i, (ident, label, detail) in enumerate(rows))
+def online_body(code, rows, at, delay=2, router=None):
+    """What online_page shows between the header and the footer; redrawn
+    as the focus moves."""
+    focus = rows[at][0] if rows else None
+    groups = (code.split("-") if "-" in code else
+              [code[i:i + 5] for i in range(0, len(code), 5)]) or [code]
+    lines = [groups[:3], groups[3:]]
+    code_html = "".join(
+        '<div class="tline">%s</div>' % "".join(
+            '<div class="tg%s">%s</div>' % (" alt" if (i + j) % 2 else "",
+                                            esc(g))
+            for j, g in enumerate(line))
+        for i, line in enumerate(l for l in lines if l))
+    perf = "".join('<div class="perf"/>' for _ in range(9))
+    ticket = (
+        '<div class="ticket%s"><div class="tring"/><div class="tbody">'
+        '<div class="row"><div class="tl">YOUR CODE</div><div class="grow"/>'
+        '<div class="tl">A COPIES IT</div></div><div class="tcode">%s</div>'
+        '<div class="tsub">Send it to your friend; paste theirs below.</div>'
+        '</div><div class="perfs">%s</div><div class="tstub"><div class="un">'
+        '<div class="tadmit">ADMIT</div><div class="tadmit">ONE</div></div>'
+        '</div></div>' % (" on" if focus == "copy" else "", code_html, perf))
+    if router:
+        rt, rw = "Router: " + router[0].lower(), router[1]
+    else:
+        rt, rw = ("Router: not checked",
+                  "Settings, Online, Router checks it.")
+    strip = (
+        '<div class="ostrip"><div class="orouter"><div class="ort">%s</div>'
+        '<div class="orw">%s</div></div><div class="odelay"><div '
+        'class="sed">DELAY</div><div class="odv">%s</div></div></div>' % (
+            esc(rt), esc(rw[:70] + ("..." if len(rw) > 70 else "")),
+            "%d FRAME%s" % (delay, "" if delay == 1 else "S") if delay
+            else "OFF"))
+    paste = (
+        '<div class="paste%s"><div class="un"><div class="pbig">Paste a '
+        'friend\'s code</div><div class="psub">Or an address and port, like '
+        '100.64.0.7:47700.</div></div></div>' % (
+            " on" if focus == "paste" else ""))
+    friends = [(i, r) for i, r in enumerate(rows)
+               if r[0].startswith("friend")]
+    colours = ("#5B3FD6", "#FF5C93", "#F5BE1B", "#1F49C9", "#F0643C")
+    cards = "".join(
+        '<div class="ofc%s"><div class="oini" style="background-color: %s">'
+        '<div class="un">%s</div></div><div class="col"><div class="ofn">%s'
+        '</div><div class="ofw">%s</div></div></div>' % (
+            " on" if i == at else "", colours[k % len(colours)],
+            esc(r[1][:2].upper()), esc(r[1]), esc(r[2]))
+        for k, (i, r) in enumerate(friends[:5]))
+    if not cards:
+        cards = ('<div class="ofnone">Nobody yet. A friend you play is kept '
+                 'here, to play again with A.</div>')
+    return (
+        '<div class="oleft">%s%s%s</div><div class="oright"><div class="row">'
+        '<div class="ofh">Friends</div><div class="grow"/><div class="sed '
+        'dk">%d MET ONLINE</div></div>%s</div>' % (
+            ticket, strip, paste, len(friends), cards))
 
 
 def pause_rows(rows, at):

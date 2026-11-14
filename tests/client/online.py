@@ -96,12 +96,13 @@ def main():
               "%s %s" % (a.c.screen, b.c.screen))
         if not (ok_a and ok_b):
             return 1
-        # the code is drawn: light text in its dark box (once it was set in
-        # a typeface the client does not load, and drew as nothing)
+        # the code is drawn: light text on its dark ticket, the first line
+        # of groups (once it was set in a typeface the client does not
+        # load, and drew as nothing)
         shot = os.path.join(tempfile.mkdtemp(), "online.png")
         a.w.shot(shot)
         bright = subprocess.run(
-            ["magick", shot, "-crop", "600x30+330+322", "+repage",
+            ["magick", shot, "-crop", "380x40+88+192", "+repage",
              "-colorspace", "Gray", "-threshold", "70%", "-format",
              "%[fx:mean]", "info:"], capture_output=True,
             text=True).stdout

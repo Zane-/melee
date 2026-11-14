@@ -843,6 +843,12 @@ process when the client starts and whenever one changes.
 | Display | Fullscreen or a window, the window's size (1280x720 to 2560x1440), the sidebar shown or hidden (also START held in a match; kept) |
 | Online | The nickname (X pastes it), the code's UDP port, the friends met (Y forgets one), and the router: two STUN servers asked from one socket, "Open" when both saw the same public port (`online.router_check`; only when A is pressed) |
 
+The online screen (Versus, Online) is redrawn as the canvas's "Versus: online" (the
+owner: "I don't want any more plain looking menus or overlays (i.e. the front code is a
+white box)"): the code as a ticket in groups of alternating colours, the router's last
+check and the delay under it, a "Paste a friend's code" button, and the friends as
+cards. It behaves as before (up and down, A, B).
+
 Enabling rumble found a bug: LbRb.dat's rumble scripts (`op:3`, `frame:13` in a u16) were
 read in x86 bit order, and the game looped forever on the first hit. `RumbleCommand` and
 `HSD_Rumble` are `PPC_LAYOUT` now, as the other script types.

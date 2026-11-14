@@ -909,7 +909,7 @@ class Client:
         self.online_at = min(self.online_at, len(rows) - 1)
         self.load("online", screens.online_page(
             self.lobby.code if self.lobby else "-", rows, self.online_at,
-            status))
+            status, self.settings["delay"], getattr(self, "router", None)))
 
     def online_port(self):
         """The local UDP port: the same each time where it is free, so a
@@ -972,7 +972,9 @@ class Client:
             at = (at + 1) % len(rows)
         if at != self.online_at:
             self.online_at = at
-            self.put("orows", screens.online_rows(rows, at))
+            self.put("orows", screens.online_body(
+                self.lobby.code if self.lobby else "-", rows, at,
+                self.settings["delay"], getattr(self, "router", None)))
         if pressed & B:
             self.close_lobby()
             self.show_characters()
@@ -1771,7 +1773,7 @@ class Client:
             panel = screens.delay_panel(s["delay"], settings.DELAY_MAX)
             desc = ("How many frames late every press reaches the game. "
                     "Slippi plays online at 2.")
-            hints = [("SIDE", "Frames"), ("B", "Back")]
+            hints = [("D-SIDE", "Frames"), ("B", "Back")]
         elif ident == "rumble":
             kind, motor = self.controller_kind()
             try:
@@ -1796,7 +1798,7 @@ class Client:
             panel = screens.rumble_panel(ports, self.rport, feel)
             desc = ("Rumble as the game does it: hits taken and landed, "
                     "port by port.")
-            hints = [("SIDE", "Port"), ("A", "On / off"), ("X", "Feel it"),
+            hints = [("D-SIDE", "Port"), ("A", "On / off"), ("X", "Feel it"),
                      ("B", "Back")]
         elif ident == "ucf":
             panel = screens.toggle_panel(
@@ -1808,7 +1810,7 @@ class Client:
                     "Online it is on whatever is chosen here: both games "
                     "have to play the same game."])
             desc = "Universal Controller Fix 0.84, as Slippi plays it."
-            hints = [("SIDE", "On / off"), ("B", "Back")]
+            hints = [("D-SIDE", "On / off"), ("B", "Back")]
         else:
             panel = screens.note_panel(
                 "Button layouts", "Not in the native client yet", [
@@ -1926,7 +1928,7 @@ class Client:
                     song.rsplit(".", 1)[0] if song else "Nothing")
             panel = screens.sound_panel(levels, self.sub_at, song)
             desc = "Volumes are yours alone: the game is the same at any."
-            hints = [("SIDE", "Volume"), ("B", "Back")]
+            hints = [("D-SIDE", "Volume"), ("B", "Back")]
         elif self.sub == "sdisplay":
             full = self.fullscreen_now()
             rows = [("window", "Window", "Fullscreen fills the screen.",
@@ -1938,7 +1940,7 @@ class Client:
             panel = screens.display_panel(s["sidebar"], full, s["size"])
             desc = ("The sidebar can also be hidden in a match: hold "
                     "START for three seconds.")
-            hints = [("SIDE", "Change"), ("B", "Back")]
+            hints = [("D-SIDE", "Change"), ("B", "Back")]
         else:
             fr = online.friends(self.progress.data)
             self.fr_at = min(getattr(self, "fr_at", 0), max(0, len(fr) - 1))
@@ -1959,9 +1961,9 @@ class Client:
                 "nick": ("Copy a name, then X pastes it as your nickname.",
                          [("X", "Paste"), ("B", "Back")]),
                 "port": ("The UDP port your code points at.",
-                         [("SIDE", "Port"), ("B", "Back")]),
+                         [("D-SIDE", "Port"), ("B", "Back")]),
                 "friends": ("Friends you met online.",
-                            [("SIDE", "Friend"), ("Y", "Forget"),
+                            [("D-SIDE", "Friend"), ("Y", "Forget"),
                              ("B", "Back")]),
                 "router": ("Asks two STUN servers how your router answers.",
                            [("A", "Check"), ("B", "Back")]),
