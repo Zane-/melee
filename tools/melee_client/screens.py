@@ -28,17 +28,18 @@ def page(title, body, paper=True):
 
 
 def over_game():
-    """What goes over the game's picture in a match or a drill: the pause
+    """What goes over the game's picture in a match or a drill: a cover
+    while a match loads (no fast-forwarding fighters in view), the pause
     menu, the verdict banner. Each has an id so the column can be hidden
-    and these moved to the middle (Client.toggle_column). (No loading
-    cover: a match loads unseen, the window keeping its last picture:
-    Client.load_quietly.)"""
+    and these moved to the middle (Client.toggle_column)."""
     return (
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
         'class="un">YES</div></div><div class="msg"><div id="bmsg" '
         'class="un">.</div></div></div></div>'
+        '<div id="cover" class="cover"><div class="un"><div id="covermsg">'
+        'Loading</div></div></div>'
         '<div id="pause" class="pause"><div class="pbox"><div class="ptitle">'
         '<div class="un"><div id="ptitle">Paused</div></div></div>'
         '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
