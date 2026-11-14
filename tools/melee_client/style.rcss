@@ -419,8 +419,11 @@ img { display: inline-block; }
 .pr { height: 40dp; margin-bottom: 5dp; padding-right: 12dp; background-color: #1D2430; display: flex; flex-direction: row; align-items: center; }
 .pr.tight { height: 31dp; margin-bottom: 4dp; }
 .pr.on { background-color: #F3F6FA; color: #12161C; }
-.pcap { width: 6dp; height: 26dp; margin-right: 12dp; transform: skewX(-12deg); }
-.pr.tight .pcap { height: 20dp; }
+/* the chosen row's mark: a straight bar down its whole left edge (it was
+   a short slanted stroke, the owner, 2026-11-14: "fills the left edge in a
+   straight line instead of a diagonal") */
+.pcap { width: 6dp; height: 40dp; margin-right: 12dp; }
+.pr.tight .pcap { height: 31dp; }
 .pr.on .pcap { background-color: #1F49C9; }
 .picon { width: 20dp; height: 20dp; margin-right: 12dp; image-color: #F3F6FA; }
 .pr.on .picon { image-color: #12161C; }
