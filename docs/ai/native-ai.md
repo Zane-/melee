@@ -792,7 +792,14 @@ same way.
 
 The "Loading" cover is gone from the client. Free play, Versus, scenario drills and the
 online match start load quietly too (online, both sides load the same way, so the two
-games stay the same); the menu stays on screen meanwhile.
+games stay the same); the menu stays on screen meanwhile. Online, the quiet stretch ends
+before the 10 frames both games play ahead of the session, not on its first frame: the
+music the match asked for starts as the stretch ends, and with its stream's first read
+still on its way when rollback began, Alpha's game hung in `tests/client/online.py`'s
+leave step in 3 runs of 4 (another session's bisection). Ended earlier: 9 runs of 11
+passed whole; one hung in the leave step and one did not reach "Leave match" in its 200
+frames. That step is still flaky: its pause menu plays menu sounds through the game in
+the middle of a session, on one side only, and the test drives it with key presses.
 
 Traps found on the way:
 

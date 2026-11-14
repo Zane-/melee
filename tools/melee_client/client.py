@@ -1044,14 +1044,19 @@ class Client:
         self.w.pad(0)
         self.w.pad(1)
         # unseen and unheard, as every load (load_quietly); both sides
-        # load the same way, so the two games stay the same
+        # load the same way, so the two games stay the same. The quiet
+        # stretch ends before the frames ahead of the session: the music
+        # the match asked for starts when it ends, and started on the
+        # session's first frame its stream's first read was still on its
+        # way when rollback began, and a game hung later (3 runs in 4 of
+        # tests/client/online.py).
         self.w.quiet(True)
         try:
             self.w.start(met["chars"][0], met["chars"][1], met["stage"],
                          seed=met["seed"], p2_human=True, settle=False)
-            self.w.step(FRAMES_BEFORE_SESSION)
         finally:
             self.w.quiet(False)
+        self.w.step(FRAMES_BEFORE_SESSION)
         # the person plays the session's local port
         self.port = local
         self.w.live(local, self.source)
