@@ -251,6 +251,17 @@ DPAD = LEFT | RIGHT | DOWN | UP
 
 
 class Client:
+    @property
+    def port(self):
+        """The port the person plays at."""
+        return self._port
+
+    @port.setter
+    def port(self, value):
+        # the coach's and the tutorial's input displays show this port's
+        # label (screens.pad_display)
+        self._port = screens.PAD_PORT = value
+
     def __init__(self, game, port=0, source="auto", save=None, out=None):
         self.w = game
         self.port = port

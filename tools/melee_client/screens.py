@@ -51,7 +51,7 @@ def over_game():
     return (
         '<div id="gpads" class="gpads"><div id="gp0" class="gpad">%s</div>'
         '<div id="gp1" class="gpad">%s</div></div>' % (
-            pad_display("g0"), pad_display("g1")) +
+            pad_display("g0", 0), pad_display("g1", 1)) +
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
@@ -292,12 +292,11 @@ def header(crumbs, tag=None):
                 '<div class="un">%s</div></div>' % (t[1], t[2], esc(t[0])))
     who += ('<div class="port">PORT 1</div><div class="nick">----</div>'
             '<div class="layout">Default layout</div>')
-    ticks = "".join('<div class="tick%s"/>' % (" ten" if i % 10 == 0 else "")
-                    for i in range(60))
+    # (no ruler of ticks under it: the owner, 2026-11-14, "delete the weird
+    # ruler marks near the top of every window")
     return ('<div class="header"><div class="plate"><div class="title">%s'
             '</div></div>%s<div class="grow"/><div class="who">%s</div></div>'
-            '<div class="ruler">%s</div>' % ("".join(words), stripes, who,
-                                             ticks))
+            % ("".join(words), stripes, who))
 
 
 def footer(text, hints, tab="#F3F6FA"):
@@ -471,11 +470,14 @@ def art_head(c, costume=0):
     # the wall's shadow and the post's on the character, the wall with its
     # lit top face, the post upright (the portraits' cut is upright); all
     # inside the card ("I don't want a line bleeding out of the
-    # container")
+    # container"). The post before the wall, which covers its foot: it
+    # stops at the wall's edge, going in under it ("should not extend into
+    # the diagonal line below it, it should stop cleanly at it", the owner,
+    # 2026-11-14)
     out += ('<div class="ashade"><div class="wshadow"/><div class="postsh"/>'
-            '</div><div class="wclip"><div class="wedge"/></div>'
-            '<div class="wfclip"><div class="wface"/><div class="wlip"/></div>'
-            '<div class="post"/><div class="plip"/>')
+            '</div><div class="post"/><div class="plip"/>'
+            '<div class="wclip"><div class="wedge"/></div>'
+            '<div class="wfclip"><div class="wface"/><div class="wlip"/></div>')
     out += ('<div class="aname" style="color: %s"><div class="tags">%s</div>'
             '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
                 c["fg"], esc(" · ".join(c["tags"]).upper()),
@@ -1225,15 +1227,22 @@ def _path(dots, floor, kind):
 # one of the two None to keep the picture's shape. In the markup every place
 # is a share of the controller's box, so the box's size (style.rcss, .pv) is
 # the display's size wherever it is.
-PAD_W, PAD_H = 156.0, 104.0
+PAD_W, PAD_H = 156.0, 114.4      # buttons.SHELL_W by SHELL_H, at 0.52
 PAD_PARTS = (
-    ("L", "L", 30, 8, 30, None), ("R", "R", 126, 8, 30, None),
-    ("Z", "Z", 104, 12, 22, None),
-    ("S", "STICK", 41, 42, 36, 36), ("D", "PAD-D", 58, 70, 18, 18),
-    ("ST", "PAD-START", 78, 44, 9, 9),
-    ("A", "A", 116, 43, None, 23), ("B", "B", 98, 55, None, 14),
-    ("X", "X", 133, 38, None, 22), ("Y", "Y", 112, 25, 21, None),
-    ("C", "C", 100, 74, 26, 26))
+    ("L", "L", 24, 3, 28, None), ("R", "R", 132, 3, 28, None),
+    ("Z", "Z", 110, 5, 20, None),
+    ("S", "STICK", 27.9, 39.7, 30, 30), ("D", "PAD-D", 50.3, 76, 19, 19),
+    ("ST", "PAD-START", 78, 38.5, 9, 9),
+    ("A", "A", 128.1, 39, None, 20), ("B", "B", 109.4, 49.6, None, 12),
+    ("X", "X", 145.4, 36.5, None, 19), ("Y", "Y", 121.4, 22.6, 18, None),
+    ("C", "C", 104.6, 75.2, 22, 22))
+# the triggers behind the shell (pressed, they go in under it)
+PAD_BEHIND = ("L", "R")
+# the port's label above START ("P1"): where its foot is, how wide it is
+PAD_LABEL = (78, 32, 22)
+# the port whose controller a card's display is, unless told (the client
+# sets it: the player's)
+PAD_PORT = 0
 # a stick's cap: its size, where it rests and how far it goes at full tilt,
 # in hundredths of its gate; how far a trigger moves when all the way in,
 # in hundredths of its height; how bright a part not held is. (The game's
@@ -1281,19 +1290,28 @@ def _pad_img(name, ident, cls, style=""):
         at, cls, style, plain)
 
 
-def pad_display(k):
+def pad_display(k, port=None):
     """An input display (the coach's pictures, the tutorial's example, the
     game's own over a match): a GameCube controller whose buttons light
     while held, whose sticks' caps move in their gates and whose triggers
-    go in. Its parts' ids are `c` + `k` + "i" + the part (A B X Y Z, ST
-    for START, DU DD DL DR the D-pad, S and C the sticks' caps, L and R
-    the triggers); pad_lines says what they show."""
+    go in, its port above START ("P1": the owner, 2026-11-14, "a small
+    label above the start button on the controller so it is clear";
+    `port` from 0, PAD_PORT if None). Its parts' ids are `c` + `k` + "i" +
+    the part (A B X Y Z, ST for START, DU DD DL DR the D-pad, S and C the
+    sticks' caps, L and R the triggers, P the label); pad_lines says what
+    they show."""
     def at(part):
         return "c%si%s" % (k, part)
     out = ['<div id="c%si" class="pv">' % k]
-    out.append(_pad_img("PAD-BODY", None, "pvbody")
-               if "PAD-BODY" in BUTTONS else '<div class="pvbody pvx"/>')
-    for part, name, cx, cy, w, h in PAD_PARTS:
+    n = (PAD_PORT if port is None else port) + 1
+    edge = PAD_W / 300.0 * 4           # the body's picture's room round it
+    body = _box(PAD_W / 2, PAD_H / 2, PAD_W + 2 * edge, PAD_H + 2 * edge)
+    parts = sorted(PAD_PARTS, key=lambda p: p[0] not in PAD_BEHIND)
+    for i, (part, name, cx, cy, w, h) in enumerate(parts):
+        if i == len(PAD_BEHIND):
+            out.append(_pad_img("PAD-BODY", None, "pvbody", body)
+                       if "PAD-BODY" in BUTTONS else
+                       '<div class="pvbody pvx"/>')
         if w is None:
             w = h * _shape(name)
         elif h is None:
@@ -1313,6 +1331,11 @@ def pad_display(k):
                 box, _pad_img(name, None, "pvdb"), arms))
         else:
             out.append(_pad_img(name, at(part), "pvk", box))
+    x, foot, w = PAD_LABEL
+    out.append('<div id="%s" class="pvp p%d" style="left: %.2f%%; bottom: '
+               '%.2f%%; width: %.2f%%;">P%d</div>' % (
+                   at("P"), n, (x - w / 2) / PAD_W * 100,
+                   (PAD_H - foot) / PAD_H * 100, w / PAD_W * 100, n))
     out.append("</div>")
     return "".join(out)
 
