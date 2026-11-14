@@ -300,6 +300,8 @@ was ("much too large", the owner, 2026-11-13).
 | `pads`: what a live port's person holds. `capture`: the game gets a pad at rest meanwhile, so a press meant for a menu does not also reach the game underneath | `src/host/window.c` |
 | The screens as markup, the look, the roster (names and traits from `data/characters/`, course sizes from `data/courses/`), the flow | `tools/melee_client/` (`screens.py`, `style.rcss`, `characters.py`, `client.py`) |
 | The typefaces (Barlow, Barlow Condensed, IBM Plex Mono; Open Font License), fetched once into `build/ui/fonts/` | `tools/melee_client/fonts.py` |
+| The game's portraits and series emblems, read off the disc into `build/ui/art/`; Sheik's drawn from her model | `tools/melee_client/art.py`, `src/host/studio.c` |
+| Costumes: `costume P N` on the control pipe (`Native.costume`), kept for every match set up after, a drill's own too | `src/host/match.c` (`HostMatch.color`) |
 
 The flow lives in Python, like the trainer: the client steps the game a frame at a time,
 reads the pad and tells the host what to show.
@@ -307,7 +309,7 @@ reads the pad and tells the host what to show.
 | Screen | What it does | From |
 |-|-|-|
 | Main menu | Five panels; Train goes on, the other four say "not yet" | `screens.main_menu` |
-| Character select | 26 characters; the card shows three style words, weight, fall speed, jump squat | `data/characters/<id>.md` |
+| Character select | 25 places, each with the game's own portrait over its series emblem (Zelda and Sheik share one: Sheik first, X on the card turns it into Zelda and back); the card shows the portrait standing out over its top, three style words, weight, fall speed, jump squat, and the costumes (Y), the one chosen worn in every match after | `data/characters/<id>.md`; the art: `tools/melee_client/art.py` |
 | Course hub (a character with a course: Fox) | The four parts, how many drills each has, how many are marked done and how many play in this client; free play; where you left off (X continues) | `data/courses/<id>.md` through `courses.py` |
 | A part's drills | Every drill of the part in the course's order, with its goal, opponent, what it builds on and leads to; tries, success and best run; **Y marks it done** (the owner's rule for now: the player decides) | the part's plan table |
 | A drill | The scenario's opponent against the player, attempt after attempt: a small banner at the top of the game with the verdict ("Success" or "Failure": the owner's word, 2026-11-13), and in the column this try's checks, the last ten, tries, success and best run. Hold START to leave | `data/scenarios/*.json` through `melee_actor.scenario.Session(person=...)` |
@@ -387,8 +389,39 @@ screen.
 Not there: Lab, Events, Versus and Controls (their panels say "not yet"), the guide and
 the demonstration, the other twelve Tech drills, a target for the aerial drills (they are
 done on the spot; "hit or shielded" is not there), nicknames and layouts (the header shows
-placeholders), character art (two letters and a colour of the client's choosing stand
-in), panel icons, sound.
+placeholders), panel icons, sound.
+
+**Character art (2026-11-13).** The owner asked for the character artworks "instead of
+just a chemical element" (the two-letter panels), in a style that "uses the original art
+but builds on it", and picked direction A of three mockups (the design canvas, row
+"Character select with the game's art"): each panel the character's colour with its
+series emblem and the game's own select-screen portrait, the card's portrait standing out
+over its top edge. The art is Nintendo's, so it is never in the repository: `art.py` reads
+it off the disc (`MnSlChr.usd`: 118 portraits, every costume, and 13 emblems; where they
+are is in its docstring) into `build/ui/art/` when the client starts, and the documents
+name the files by `file://` paths.
+
+Sheik has no portrait on the disc: the game shows her in Zelda's place. The owner: "Render
+Sheik (this should be default, there should be a button on the character card to switch
+to zelda". `art.py` draws her, once per costume (half a minute, in a process of its own
+that the client starts the first time; her place shows her emblem until then): a match
+with her alone, frozen, everything but the fighters left undrawn, the developers' free
+camera close (`studio` on the control pipe, `src/host/studio.c`), a picture on black and
+one on white. The difference between the two is how much background shows through each
+pixel, so her outline keeps its soft edges; she is cropped and given the shadow the game's
+own portraits have (measured on them: 10 pixels left, 9 down, black at about 45%). Her
+standing pose, seen three-quarters as Zelda's portrait is: her taunt turns her back to the
+camera, her needle charge and her attacks crop badly. `tests/client/portraits.py` (14
+checks): the pictures in the documents, 25 places, Y the costume, X Sheik into Zelda and
+back on her panel and card, a match as Zelda in the costume chosen (the fighter reports
+its costume), Y on the opponent screen. Online matches keep both players in their default
+costumes: the friend's game does not know the one chosen here.
+
+Two things RmlUi needed: `clip: always` on a box that clips its positioned children (it
+clips only what it counts as overflowing, which leaves them out: the portraits spilled out
+of their panels), and a 2-pixel transparent border round every portrait (the renderer
+wraps a picture's edges round, which drew a line of the cut at the bottom of the body over
+the top of the head).
 
 **Smooth edges.** The slanted panels were stair-stepped on the owner's screen ("the
 aliasing on diagonal graphics is quite bad"). Aurora's RmlUi renderer has 4x

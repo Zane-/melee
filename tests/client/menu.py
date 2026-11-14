@@ -121,7 +121,7 @@ def main():
                     "Right", "Right", "Right", "Right"):
             tap(key, after=2)
         check("and stops at its edges",
-              c.roster[c.at]["id"] == "zelda", c.roster[c.at]["id"])
+              c.roster[c.at]["id"] == "young-link", c.roster[c.at]["id"])
         tap("Up")
         tap("Up")
         tap("Up")

@@ -67,7 +67,7 @@ static void preload(void)
         int ck = host_match.ckind[i];
         if (ck >= 0 && !(n == 1 && gc->entries[0].char_id == ck)) {
             gc->entries[n].char_id = (u8) ck;
-            gc->entries[n].color = 0;
+            gc->entries[n].color = (u8) host_match.color[i];
             n++;
         }
     }
@@ -119,8 +119,9 @@ void host_match_loaded(char* out, size_t size)
 }
 
 /// What the game's own state does (onEnterDebugVs, gmvsmode.c): a time
-/// match with no items between two humans. Only the characters, the stage,
-/// whether player 2 is a CPU and the random seed are the host's.
+/// match with no items between two humans. Only the characters, their
+/// costumes, the stage, whether player 2 is a CPU and the random seed are
+/// the host's.
 static void on_enter(GameModeState* state)
 {
     StartMeleeData* start = gm_GetGameModeStateEnterData(state);
@@ -157,6 +158,7 @@ static void on_enter(GameModeState* state)
     } else {
         rot_deck.count = 0;
     }
+            p->color = (u8) host_match.color[i];
     *HSD_RandSeedPtr = host_match.seed;
     host_match.entered++;
     gm_LoadAnnouncer();

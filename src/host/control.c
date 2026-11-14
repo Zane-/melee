@@ -30,6 +30,9 @@
  *   fp SLOT                       address of a fighter's data, for "r"
  *   ucf [0|1]                     UCF 0.84 off or on (on by default)
  *   freeze 0|1                    the match stands still, still drawn
+ *   costume P N                   player P's costume in later matches
+ *   studio cam|bg|solo|list ...   a fighter alone: camera, background,
+ *                                 the rest undrawn (studio.c)
  *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
  *   shield P HEALTH               a fighter's shield health
@@ -277,7 +280,7 @@ void host_fighter_json(int slot, char* out, size_t size)
              "\"air\":%d,\"percent\":%.9g,\"hitlag\":%.9g,"
              "\"hitstun\":%.9g,\"shield\":%.9g,\"gvel\":%.9g,"
              "\"kind\":%d,\"jumps\":%d,\"invuln\":%d,\"stocks\":%d,"
-             "\"hitbox\":%d}",
+             "\"hitbox\":%d,\"costume\":%d}",
              (int) Player_GetPlayerCharacter(slot), (int) fp->motion_id,
              fp->cur_anim_frame, fp->cur_pos.x, fp->cur_pos.y, fp->self_vel.x,
              fp->self_vel.y, fp->facing_dir, (int) fp->ground_or_air,
@@ -291,7 +294,8 @@ void host_fighter_json(int slot, char* out, size_t size)
               fp->x914[2].state != HitCapsule_Disabled ||
               fp->x914[3].state != HitCapsule_Disabled)
                  ? 1
-                 : 0);
+                 : 0,
+             (int) fp->costume_id);
 }
 
 /// Every item, in the order of the game's item list.
@@ -736,6 +740,17 @@ static void command(char* line)
         host.pads[1].connected = 1;
         host_match_start();
         printf("@ ok\n");
+    } else if (strcmp(cmd, "costume") == 0) {
+        /* "costume P N": player P wears costume N (0: the default) in the
+           matches set up from now on */
+        int p = 0, n = 0;
+        sscanf(line, "%d %d", &p, &n);
+        if (p < 0 || p >= 4 || n < 0 || n > 5) {
+            printf("@ error costume P N: P 0..3, N 0..5\n");
+        } else {
+            host_match.color[p] = n;
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "swap") == 0) {
         /* "swap P CK": player P's fighter is now character CK, in this
            frame, if the match loaded CK ("match ... CK") */
@@ -940,6 +955,10 @@ static void command(char* line)
 #else
         printf("@ error script needs the window build\n");
 #endif
+    } else if (strcmp(cmd, "studio") == 0) {
+        /* "studio cam|bg|solo|list ...": a fighter alone, for pictures
+           (studio.c) */
+        printf("@ %s\n", host_studio_command(line));
     } else if (strcmp(cmd, "delay") == 0) {
 #ifdef HOST_WINDOW
         /* "delay N": every live port's input reaches the game N frames

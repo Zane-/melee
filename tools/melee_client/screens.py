@@ -7,6 +7,8 @@ by element id.
 """
 from pathlib import Path
 
+import art
+
 # The style sheet is named beside the document: client.py copies it there
 # (RmlUi takes a path that starts with a slash for one below its own root).
 STYLE = Path(__file__).with_name("style.rcss")
@@ -230,15 +232,99 @@ def versus_menu(focus):
 
 # ---- character select -----------------------------------------------------------
 
-def card(c):
-    """The inside of the panel about one character."""
-    size = 40 if len(c["name"]) > 9 else 64
-    head = ('<div class="top" style="background-color: %s"/>'
-            '<div class="slant" style="background-color: %s"/>'
-            '<div class="head" style="color: %s"><div class="tags">%s</div>'
+def picture(path):
+    """An image's source in a document: the file itself, wherever the
+    document was written (RmlUi passes a file: URL on as it is)."""
+    return "file://" + str(Path(path).resolve())
+
+
+def _portrait(c, n=0):
+    return art.portrait(c["id"], n) or (art.portrait(c["id"], 0)
+                                        if n else None)
+
+
+def _tint(c, alone=False, big=False):
+    """The emblem behind the picture: a shade darker on a light colour,
+    lighter on a dark one; plain to see where there is no picture."""
+    light = c["fg"] != "#FFFFFF"
+    if alone:
+        a = 0x80 if light else 0x99
+    else:
+        a = 0x2E if light else (0x38 if big else 0x33)
+    return ("#12161C%02X" if light else "#FFFFFF%02X") % a
+
+
+def _name_size(name):
+    longest = max(len(w) for w in name.split())
+    return 64 if longest <= 4 else 52 if longest <= 6 else \
+        40 if longest <= 8 else 32
+
+
+def tile(c):
+    """The inside of a character's panel: its emblem, its portrait (the
+    default costume), its name; the part colours if it has a course."""
+    face = _portrait(c)
+    emb = art.emblem(c["series"])
+    inner = ""
+    if emb is not None:
+        inner += ('<img class="wm" src="%s" style="image-color: %s"/>' % (
+            picture(emb), _tint(c, face is None)))
+    if face is not None:
+        inner += ('<img class="face" src="%s" style="top: %.1fdp"/>' % (
+            picture(face), 2 - (c["face"] + art.PAD) * 0.86))
+    course = ""
+    if c["course"]:
+        course = '<div class="course">%s</div>' % "".join(
+            '<div style="background-color: %s"/>' % PART_COLOR[p]
+            for p in PART_COLOR)
+    return ('<div class="ring"/><div class="pic"><div class="pin">%s</div>'
+            '%s<div class="strip"><div class="un">%s</div></div></div>' % (
+                inner, course, esc(c["short"])))
+
+
+def art_head(c, costume=0):
+    """The top of a character's card: its colour, its emblem, its portrait
+    standing out over the card's top edge, its traits and name."""
+    face = _portrait(c, costume)
+    emb = art.emblem(c["series"])
+    out = ('<div class="aclip"><div class="acolor" style="background-color:'
+           ' %s"/>' % c["color"])
+    if emb is not None:
+        out += '<img class="awm" src="%s" style="image-color: %s"/>' % (
+            picture(emb), _tint(c, face is None, big=True))
+    out += '</div>'
+    if face is not None:
+        out += '<img class="abig" src="%s"/>' % picture(face)
+    out += '<div class="wclip"><div class="wedge"/></div>'
+    out += ('<div class="aname" style="color: %s"><div class="tags">%s</div>'
             '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
-                c["color"], c["color"], c["fg"],
-                esc(" · ".join(c["tags"]).upper()), size, esc(c["name"])))
+                c["fg"], esc(" · ".join(c["tags"]).upper()),
+                _name_size(c["name"]), esc(c["name"])))
+    return out
+
+
+def costume_row(c, costume, form_key):
+    """Costume chips (Y), and the other character of a shared place
+    (`form_key`) as a button."""
+    chips = ""
+    for n in range(c["costumes"]):
+        face = art.portrait(c["id"], n)
+        img = ('<img class="cimg" src="%s" style="top: %.1fdp"/>' % (
+            picture(face), -1 - (c["face"] + art.PAD) * 0.4)) if face else ""
+        chips += ('<div class="cchip%s" style="background-color: %s">'
+                  '<div class="cpin">%s</div></div>' % (
+                      " on" if n == costume else "", c["color"], img))
+    form = ""
+    if c.get("other") is not None and form_key:
+        form = ('<div class="grow"/><div class="form"><div class="un">%s'
+                '<div>%s</div></div></div>' % (key(form_key),
+                                              esc(c["other"]["name"])))
+    return '<div class="cos">%s%s%s</div>' % (key("Y"), chips, form)
+
+
+def card(c, costume=0):
+    """The inside of the card about one character: the head, then its
+    numbers, its course, its costumes and (Zelda and Sheik) the other."""
     stats = "".join(
         '<div class="stat"><div class="n">%s</div><div class="l">%s</div>'
         '</div>' % (esc(n), what) for n, what in (
@@ -251,44 +337,39 @@ def card(c):
             '<div>%s</div><div class="cnt">%d</div></div>' % (
                 PART_COLOR[p], p, counts[p])
             for p in PART_COLOR)
-        about = ('<div class="about">A course of its own, %d drills. '
-                 'Drills are not in this client yet: this starts free play.'
-                 '</div><div class="parts">%s</div>' % (
-                     sum(counts.values()), parts))
+        about = ('<div class="about">A course of its own: %d drills.</div>'
+                 '<div class="parts">%s</div>' % (sum(counts.values()),
+                                                  parts))
+        go = "Train"
     else:
-        about = ('<div class="about">No course of its own yet. Drills are '
-                 'not in this client yet either: this starts free play.'
-                 '</div>')
-    go = ('<div class="grow"/><div class="go"><div class="un">%s'
-          '<div>Play</div></div></div>' % key("A", dark=True))
-    return head + ('<div class="body"><div class="stats">%s</div>%s%s</div>'
-                   % (stats, about, go))
+        about = ('<div class="about">No course of its own yet: A starts '
+                 'free play.</div>')
+        go = "Play"
+    return art_head(c, costume) + (
+        '<div class="abody"><div class="stats">%s</div>%s%s<div class="grow"/>'
+        '<div class="go"><div class="un">%s<div>%s</div></div></div></div>' % (
+            stats, about, costume_row(c, costume, "X"), key("A", dark=True),
+            go))
 
 
 def character_select(roster, focus, title="Choose your character",
                      about="Choose who you train. A drill brings its own "
-                           "opponents.", inside=None, hints=None):
+                           "opponents.", inside=None, hints=None,
+                     costume=0):
     """`inside`: the card's content, if not the usual one about the
-    character in focus."""
+    character in focus (in `costume`)."""
     tiles = []
     for i, c in enumerate(roster):
-        course = ""
-        if c["course"]:
-            course = '<div class="course">%s</div>' % "".join(
-                '<div style="background-color: %s"/>' % PART_COLOR[p]
-                for p in PART_COLOR)
-        tiles.append(
-            '<div id="c%d" class="char%s" style="background-color: %s; '
-            'color: %s"><div class="ring"/><div class="in"><div class="mono2">'
-            '%s</div><div class="name">%s</div></div>%s</div>' % (
-                i, " focus" if i == focus else "", c["color"], c["fg"],
-                esc(c["mono"]), esc(c["short"]), course))
+        tiles.append('<div id="c%d" class="char%s" style="background-color: '
+                     '%s">%s</div>' % (i, " focus" if i == focus else "",
+                                       c["color"], tile(c)))
     body = (
         header([title]) +
         '<div class="roster">' + "".join(tiles) + '</div>' +
-        '<div id="card" class="card">' + (inside or card(roster[focus])) +
-        '</div>' +
-        footer(about, hints or [("A", "Choose"), ("B", "Back")],
+        '<div id="card" class="card art">' +
+        (inside or card(roster[focus], costume)) + '</div>' +
+        footer(about, hints or [("A", "Choose"), ("Y", "Costume"),
+                                ("B", "Back")],
                tab=roster[focus]["color"]))
     return page("Character select", body)
 
@@ -298,23 +379,20 @@ def character_select(roster, focus, title="Choose your character",
 def opponent_card(c, who, what, stage, count, go):
     """The card on the opponent screen: the character, who plays it (`who`,
     with `what` that is in a few words; `count`: "2 of 31"), the stage."""
-    size = 40 if len(c["name"]) > 9 else 64
-    head = ('<div class="top" style="background-color: %s"/>'
-            '<div class="slant" style="background-color: %s"/>'
-            '<div class="head" style="color: %s"><div class="tags">%s</div>'
-            '<div class="who2" style="font-size: %ddp">%s</div></div>' % (
-                c["color"], c["color"], c["fg"],
-                esc(" · ".join(c["tags"]).upper()), size, esc(c["name"])))
-    return head + (
-        '<div class="body"><div class="fact"><div class="fl">Played by'
+    form = ""
+    if c.get("other") is not None:
+        form = ('<div class="pick">%s<div>%s instead</div></div>' % (
+            key("Y"), esc(c["other"]["name"])))
+    return art_head(c) + (
+        '<div class="body low"><div class="fact"><div class="fl">Played by'
         '</div><div class="fv big2">%s</div><div class="fl">%s</div></div>'
         '<div class="pick">%s<div>Someone else</div><div class="grow"/>'
-        '<div class="lbl">%s</div></div>'
+        '<div class="lbl">%s</div></div>%s'
         '<div class="fact"><div class="fl">Stage</div><div class="fv big2">'
         '%s</div></div><div class="pick">%s%s<div>Another stage</div></div>'
         '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
         '</div></div></div>' % (
-            esc(who), esc(what), key("X"), esc(count), esc(stage),
+            esc(who), esc(what), key("X"), esc(count), form, esc(stage),
             key("L", wide=True), key("R", wide=True), key("A", dark=True),
             esc(go)))
 

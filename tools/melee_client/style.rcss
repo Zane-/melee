@@ -111,13 +111,20 @@ span { display: inline; }
 /* ---- character select -------------------------------------------------- */
 
 .roster { position: absolute; left: 54dp; top: 120dp; width: 770dp; height: 496dp; display: flex; flex-direction: row; flex-wrap: wrap; }
-.char { position: relative; width: 98dp; height: 114dp; margin: 0dp 10dp 10dp 0dp; border: 1dp #12161C; transform: skewX(-12deg); display: flex; flex-direction: column; }
-.char .in { justify-content: center; align-items: center; }
-.char .mono2 { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 44dp; line-height: 0.95em; }
-.char .name { font-family: "Barlow Condensed"; font-weight: 700; font-size: 14dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+/* A panel: the game's portrait over its series emblem, cut to the slant
+   (.pic clips; .pin, slanted back, holds the pictures upright), the name
+   on an ink strip, the part colours above it if it has a course. */
+.char { position: relative; width: 98dp; height: 114dp; margin: 0dp 10dp 10dp 0dp; border: 1dp #12161C; transform: skewX(-12deg); }
 .char .ring { left: -8dp; top: -8dp; right: -8dp; bottom: -8dp; border-width: 5dp; }
-.course { height: 8dp; display: flex; flex-direction: row; border-top: 1dp #12161C; }
-.course div { flex: 1; }
+.char .pic { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 0dp; overflow: hidden; clip: always; }
+.char .pin { position: absolute; left: -14dp; right: -14dp; top: 0dp; bottom: 0dp; transform: skewX(12deg); }
+.char .wm { position: absolute; left: 15dp; top: 8dp; width: 96dp; height: 77dp; }
+.char .face { position: absolute; left: 2.3dp; width: 120.4dp; height: 165.1dp; }
+.char .course { position: absolute; left: 0dp; right: 0dp; bottom: 22dp; height: 6dp; display: flex; flex-direction: row; border-top: 1dp #12161C; }
+.char .course div { flex: 1; }
+.char .strip { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 22dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.char .strip .un { font-family: "Barlow Condensed"; font-weight: 700; font-size: 14dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+img { display: inline-block; }
 
 .card { position: absolute; left: 844dp; top: 120dp; width: 388dp; height: 496dp; background-color: #12161C; color: #F3F6FA; overflow: hidden; }
 .card .top { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 104dp; }
@@ -139,6 +146,43 @@ span { display: inline; }
 .as .l { color: #A9B4C2; }
 .go { height: 54dp; background-color: #F3F6FA; color: #12161C; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; justify-content: center; }
 .go .un { display: flex; flex-direction: row; align-items: center; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 27dp; text-transform: uppercase; letter-spacing: 1dp; }
+
+/* The card with the game's art: the colour, the emblem (behind the name:
+   the portraits fill their pictures and hid it there), and the portrait,
+   which stands out over the card's top edge. The pictures carry a 2dp
+   border (art.PAD), so their boxes are that much larger, scaled. An ink
+   wedge, slanted as the other cards' heads (5 degrees), cuts the
+   portrait's bottom edge. No clip-path in RmlUi: the wedge is clipped by a
+   box that is not slanted. RmlUi clips only what it counts as
+   overflowing, which leaves out positioned children: `clip: always` makes
+   a box clip them. */
+.card.art { overflow: visible; }
+.aclip { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 214dp; overflow: hidden; clip: always; }
+.acolor { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 214dp; }
+.awm { position: absolute; left: 206dp; top: 58dp; width: 180dp; height: 144dp; }
+.abig { position: absolute; left: 5.1dp; top: -62.9dp; width: 204dp; height: 279.7dp; }
+.wclip { position: absolute; left: 0dp; top: 170dp; width: 388dp; height: 326dp; overflow: hidden; clip: always; }
+.wedge { position: absolute; left: 0dp; top: 27dp; width: 388dp; height: 340dp; background-color: #12161C; transform: skewY(-5deg); }
+.aname { position: absolute; left: 210dp; top: 18dp; width: 164dp; }
+.aname .tags { font-size: 11dp; line-height: 1.35em; }
+.aname .who2 { white-space: normal; line-height: 0.9em; margin-top: 6dp; }
+.abody { position: absolute; left: 26dp; top: 222dp; width: 336dp; height: 254dp; display: flex; flex-direction: column; }
+.abody .stat .n { font-size: 34dp; }
+.abody .about { margin-top: 8dp; padding-top: 8dp; }
+.abody .parts { margin-top: 4dp; }
+.abody .part { height: 22dp; }
+.cos { display: flex; flex-direction: row; align-items: center; height: 46dp; margin-top: 10dp; }
+.cos .key { margin-right: 12dp; }
+.cchip { position: relative; width: 36dp; height: 44dp; margin-right: 8dp; box-sizing: border-box; border: 2dp #4A5361; transform: skewX(-12deg); overflow: hidden; clip: always; }
+.cchip.on { border-color: #F3F6FA; }
+.cpin { position: absolute; left: -6dp; right: -6dp; top: 0dp; bottom: 0dp; transform: skewX(12deg); }
+.cimg { position: absolute; left: -3.8dp; width: 56dp; height: 76.8dp; }
+.form { height: 34dp; padding: 0dp 12dp; border: 2dp #F3F6FA; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; }
+.form .un { display: flex; flex-direction: row; align-items: center; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; text-transform: uppercase; letter-spacing: 0.5dp; }
+.card .body.low { top: 222dp; height: 254dp; }
+.body.low .fact { padding: 3dp 0dp; }
+.body.low .big2 { font-size: 22dp; }
+.body.low .pick { margin: 0dp 0dp 4dp 0dp; }
 
 /* ---- in a match: the column beside the game ---------------------------- */
 

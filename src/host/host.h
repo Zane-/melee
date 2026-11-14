@@ -78,6 +78,7 @@ typedef struct HostMatch {
     int human[4]; ///< a human (reads its pad) or a CPU
     int stage;    ///< stage id as in the match rules (0x20: FD)
     unsigned seed; ///< the game's random seed as the match is set up
+    int color[4]; ///< the costume each wears (0: the default)
     int stocks;    ///< stocks each; 0: an endless time match (the default)
     /// Matches entered so far (`state`'s "match").
     unsigned entered;
@@ -205,6 +206,8 @@ void host_particles_forget(const uint8_t* data, uint32_t size);
 
 /// Random draws since the frame boundary (debug.c).
 void host_rng_frame(void);
+/// Pictures of a fighter alone (studio.c): the reply after "@ ".
+const char* host_studio_command(const char* line);
 void host_rng_print(void);
 
 /// Count a call of a generated stub.

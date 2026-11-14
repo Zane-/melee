@@ -42,6 +42,7 @@ sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
 
 sys.path.insert(0, str(ROOT / "tools"))
 
+import art  # noqa: E402
 import characters  # noqa: E402
 import courses  # noqa: E402
 import online  # noqa: E402
@@ -147,6 +148,7 @@ class Client:
         self.at = next(i for i, c in enumerate(self.roster)
                        if c["id"] == "fox")   # on the character select
         self.last = None              # the character last played
+        self.costume = {}             # character id -> the costume chosen
         self.buttons = 0
         self.pressed_now = self.released = 0
         self.held = {}                # direction -> frames held
@@ -164,6 +166,11 @@ class Client:
         self.start_held = 0
         self.frames = 0
         self.out.mkdir(parents=True, exist_ok=True)
+        # the game's pictures, off the disc; Sheik, who has none, drawn
+        # from her model in a process of its own the first time (half a
+        # minute): her place shows her emblem until then
+        art.ensure()
+        self.art_job = art.render_sheik_later()
         for f in fonts.fonts():
             self.w.ui("font " + str(f))
         self.w.live(port, source)
@@ -275,7 +282,8 @@ class Client:
         self.screen = "chars"
         self.w.capture(True)
         self.load("characters",
-                  screens.character_select(self.roster, self.at))
+                  screens.character_select(self.roster, self.at,
+                                           costume=self.dressed()))
 
     def about(self, ident):
         item = next(i for i in screens.MAIN if i[0] == ident)
@@ -321,6 +329,12 @@ class Client:
     def frame(self):
         self.w.step()
         self.frames += 1
+        if self.art_job is not None and self.art_job.poll() is not None:
+            self.art_job = None
+            if self.screen == "chars":
+                self.show_characters()
+            elif self.screen == "opp":
+                self.show_opponent()
         pressed, moves = self.read()
         if self.screen == "online_match":
             ev = self.controls(stages=False)
@@ -666,10 +680,17 @@ class Client:
         if at != self.at:
             self.w.ui("class c%d focus 0" % self.at)
             self.at = at
-            c = self.roster[at]
             self.w.ui("class c%d focus 1" % at)
-            self.w.ui("text card " + screens.card(c))
-            self.w.ui("attr tab style background-color: %s" % c["color"])
+            self.show_card()
+        if pressed & X and self.roster[self.at].get("other") is not None:
+            self.switch(self.at)
+            self.show_card()
+        if pressed & Y:
+            c = self.roster[self.at]
+            self.costume[c["id"]] = (self.dressed() + 1) % c["costumes"]
+            self.show_card()
+        if pressed & A:
+            self.dress()
         if pressed & B:
             if self.mode == "versus":
                 self.show_versus_menu()
@@ -691,6 +712,34 @@ class Client:
             else:
                 self.back = "chars"
                 self.play(c)
+
+    def show_card(self):
+        c = self.roster[self.at]
+        self.put("card", screens.card(c, self.dressed()))
+        self.w.ui("attr tab style background-color: %s" % c["color"])
+
+    def switch(self, at):
+        """Zelda's place: Sheik or Zelda, the one it does not hold now."""
+        c = self.roster[at] = self.roster[at]["other"]
+        self.w.ui("attr c%d style background-color: %s" % (at, c["color"]))
+        self.put("c%d" % at, screens.tile(c))
+
+    def dressed(self, c=None):
+        """The costume chosen for `c` (the character in focus)."""
+        c = c or self.roster[self.at]
+        return min(self.costume.get(c["id"], 0), c["costumes"] - 1)
+
+    def dress(self, me=None, opp=None):
+        """The game puts the player (`me`: the character in focus) in the
+        costume chosen for it, in every match from now on (a drill's own
+        too), and the other side in its default; or, if `opp` is the same
+        character, in its second."""
+        me = me or self.roster[self.at]
+        mine = self.dressed(me)
+        self.w.costume(self.port, mine)
+        other = 1 if opp is not None and opp["id"] == me["id"] and \
+            mine == 0 else 0
+        self.w.costume(1 - self.port, other)
 
     # ---- versus and the lab: who is on the other side ------------------------------
 
@@ -750,6 +799,12 @@ class Client:
         if pressed & X:
             self.who = (self.who + 1) % len(self.players())
             changed = True
+        if pressed & Y and self.roster[self.opp_at].get("other") is not None:
+            self.switch(self.opp_at)
+            self.w.ui("attr tab style background-color: %s" %
+                      self.roster[self.opp_at]["color"])
+            self.who = 0
+            changed = True
         if pressed & L:
             self.stage_at = (self.stage_at - 1) % len(STAGE_ORDER)
             changed = True
@@ -776,6 +831,7 @@ class Client:
                                      opponent=self.port, stage=stage)
         self.bot_said = None
         self.w.pad(1 - self.port)
+        self.dress(self.me, opp)
         self.load_quietly(lambda: self.w.start(
             self.me["id"], opp["id"], stage,
             seed=random.randrange(1, 1 << 30), p2_human=name != CPU,
@@ -802,6 +858,10 @@ class Client:
     def show_online(self, status=""):
         self.menu_music()
         self.screen = "online"
+        # both games set up the same match: the default costumes, as the
+        # friend's game does not know the one chosen here
+        self.w.costume(0, 0)
+        self.w.costume(1, 0)
         self.w.capture(True)
         self.online_at = getattr(self, "online_at", 0)
         if getattr(self, "lobby", None) is None:
@@ -958,8 +1018,7 @@ class Client:
         self.w.net("start", local, met["bind"], met["peer"][0],
                    met["peer"][1], met["delay"])
         self.online = dict(them=them, met=met, frames=0, said=None)
-        opp = next(c for c in self.roster
-                   if c["id"] == met["chars"][other])
+        opp = characters.find(self.roster, met["chars"][other])[1]
         self.screen = "online_match"
         self.playing()
         self.in_match("versus", screens.versus_rail(

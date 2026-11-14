@@ -101,6 +101,7 @@ class Fighter:
     stocks = property(lambda s: s.d["stocks"])
     # one of its attack's hitboxes is out this frame
     hitbox = property(lambda s: bool(s.d["hitbox"]))
+    costume = property(lambda s: s.d.get("costume", 0))
 
     def summary(self):
         if not self.fp:
@@ -356,6 +357,17 @@ class Native:
         ask. On from the start, as on Slippi."""
         if on is None:
             return self._cmd("ucf") == "1"
+    def costume(self, port, n):
+        """Player `port` wears costume `n` (0: the default) in every match
+        set up from now on, whoever asks for it (a drill's own start too),
+        until changed."""
+        self._cmd("costume %d %d" % (port, n))
+
+    def studio(self, *words):
+        """A fighter alone for a picture (src/host/studio.c): "cam EX EY
+        EZ IX IY IZ FOV" | "cam off", "bg R G B", "solo 1|0", "list"."""
+        return self._cmd("studio " + " ".join(str(w) for w in words))
+
         return self._cmd("ucf %d" % (1 if on else 0)) == "1"
 
     def ledge(self, port=None, percent=0.0):
