@@ -428,6 +428,20 @@ img { display: inline-block; }
 .csec.you { color: #F0643C; }
 .csec.tgt { color: #18977F; }
 .cpath { position: relative; width: 412dp; height: 236dp; background-color: #DCE2EA; overflow: hidden; clip: always; }
+/* the game's own pictures of a try, played in the panel (Client.coach_play) */
+.cpic { position: relative; width: 412dp; height: 236dp; background-color: #12161C; overflow: hidden; clip: always; }
+.cpic.tall { height: 340dp; }
+.cpimg { position: absolute; }
+.cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
+.cfr.on { display: block; }
+.cptag { display: none; position: absolute; left: 8dp; bottom: 14dp; padding: 3dp 8dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 13dp; font-weight: 600; white-space: nowrap; }
+.cptag.on { display: block; }
+.cptag.you { background-color: #F0643C; color: #FFFFFF; }
+.cptag.tgt { background-color: #22B8A0; color: #12161C; }
+.cbar { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 4dp; background-color: #12161C99; }
+.cbarf { height: 4dp; width: 0dp; }
+.cbarf.you { background-color: #F0643C; }
+.cbarf.tgt { background-color: #22B8A0; }
 .cpath.cnone { font-size: 14dp; color: #4A5361; padding: 100dp 24dp 0dp 24dp; box-sizing: border-box; text-align: center; }
 .cfloor { position: absolute; left: 0dp; width: 412dp; height: 2dp; background-color: #8A94A3; }
 .cdot { position: absolute; width: 7dp; height: 7dp; border-radius: 4dp; }
@@ -444,12 +458,16 @@ img { display: inline-block; }
 .cmid { padding: 10dp 24dp 0dp 24dp; }
 .cgrid { display: flex; flex-direction: column; }
 .cgr { height: 22dp; margin-bottom: 3dp; display: flex; flex-direction: row; align-items: center; }
+.cgrid.tight .cgr { height: 18dp; margin-bottom: 2dp; }
+.cgrid.tight .cgc { height: 16dp; }
+.cgrid.tight .cgn { font-size: 11dp; }
 .cgl { width: 150dp; font-size: 14dp; font-weight: 700; white-space: nowrap; }
 .cgc { flex: 1; height: 20dp; margin: 0dp 2dp; box-sizing: border-box; border: 1dp #C9D1DB; }
 .cgn { border-width: 0dp 0dp 1dp 0dp; border-color: #A9B4C2; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; color: #4A5361; text-align: center; }
 .cgc.win { background-color: #CBD3DD; }
 .cgc.perf { border: 2dp #22B8A0; }
 .cgc.you { background-color: #12161C; }
+.cgn.now { background-color: #F5BE1B; color: #12161C; }
 .cbr { position: relative; height: 24dp; margin-left: 150dp; }
 .cbrl { position: absolute; top: 2dp; height: 8dp; border-width: 0dp 2dp 2dp 2dp; border-color: #F0643C; }
 .cbrt { position: absolute; top: 8dp; width: 120dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; color: #F0643C; }

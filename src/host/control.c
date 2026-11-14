@@ -35,6 +35,8 @@
  *                                 the rest undrawn (studio.c)
  *   inputs MASK                   TM-CE's input display for the ports in
  *                                 MASK (bit 0 port 1; inputs.c)
+ *   frames rec|clear|range|view   the game's past pictures, kept for the
+ *                                 client's coach (frames.c)
  *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
  *   shield P HEALTH               a fighter's shield health
@@ -367,24 +369,26 @@ double host_driver_ms;
 
 static int quiet_now, draw_before;
 
+/// 1: unseen and unheard, not drawn; 2: drawn too, but not shown (the
+/// coach's pictures of a run nobody watches, frames.c); 0: as usual.
 void host_quiet(int on)
 {
-    if (on && !quiet_now) {
-        quiet_now = 1;
-        draw_before = host.draw;
-        host.draw = 0; /* the draw pass is most of a frame's time */
-        host_audio_quiet(1);
-#ifdef HOST_WINDOW
-        host_window_quiet(1);
-#endif
-    } else if (!on && quiet_now) {
-        quiet_now = 0;
-        host.draw = draw_before;
-        host_audio_quiet(0);
-#ifdef HOST_WINDOW
-        host_window_quiet(0);
-#endif
+    if (on == quiet_now || on < 0 || on > 2) {
+        return;
     }
+    if (!quiet_now) {
+        draw_before = host.draw;
+        host_audio_quiet(1);
+    }
+    /* the draw pass is most of a frame's time */
+    host.draw = on == 1 ? 0 : draw_before;
+    if (!on) {
+        host_audio_quiet(0);
+    }
+    quiet_now = on;
+#ifdef HOST_WINDOW
+    host_window_quiet(on);
+#endif
 }
 
 int host_quiet_now(void)
@@ -804,7 +808,8 @@ static void command(char* line)
         printf("@ ok\n");
     } else if (strcmp(cmd, "quiet") == 0) {
         /* "quiet 1": the frames until "quiet 0" run unseen and unheard, as
-           fast as they go (a match loading) */
+           fast as they go (a match loading); "quiet 2": the same, but drawn
+           (the coach's pictures of a run nobody watches, frames.c) */
         int on = 1;
         sscanf(line, "%d", &on);
         host_quiet(on);
@@ -979,6 +984,10 @@ static void command(char* line)
         /* "studio cam|bg|solo|list ...": a fighter alone, for pictures
            (studio.c) */
         printf("@ %s\n", host_studio_command(line));
+    } else if (strcmp(cmd, "frames") == 0) {
+        /* "frames rec|clear|range|view ...": the game's past pictures, for
+           the coach (frames.c) */
+        printf("@ %s\n", host_frames_command(line));
     } else if (strcmp(cmd, "inputs") == 0) {
         /* "inputs MASK": TM-CE's input display for these ports
            (inputs.c) */

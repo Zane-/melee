@@ -227,8 +227,21 @@ class Session:
             how = "Jump held %d frame%s" % (held, "" if held == 1 else "s")
         words = ("Short hop. %s" % how if short else
                  "Full hop. %s: let go within %d" % (how, window))
+        if short:
+            head = "Short hop"
+        elif held == 0:
+            head = "Full hop with the stick"
+        else:
+            head = "Jump held %s too long" % _plural(held - window)
+        if held == 0:
+            fix = ("Jump with X or Y and tap it. With the stick, let go of "
+                   "up before you leave the ground.")
+        else:
+            fix = ("Let go of X or Y within %s of pressing it: your jump "
+                   "squat is %s, and a jump still held on its last frame is "
+                   "a full hop." % (_plural(window), _plural(squat)))
         return dict(
-            success=short, words=words,
+            success=short, words=words, headline=head, fix=fix,
             checks=[dict(expect="A short hop", passed=short, detail=how),
                     dict(expect="Jump let go within %d frames" % window,
                          passed=0 < held <= window, detail=how)],
@@ -276,8 +289,27 @@ class Session:
         else:
             words = "Air dodge %d frames late: %d allowed" % (
                 late, self.tolerance)
+        if pressed is None:
+            head = "No air dodge"
+            fix = ("Press L or R on frame %d, your first frame in the air, "
+                   "with the stick down and to the side." % perfect)
+        elif late < 0:
+            head = "Air dodge %s early" % _plural(-late)
+            fix = ("Wait for the air: press L or R on frame %d, not %d. In "
+                   "jump squat it does nothing." % (perfect, pressed))
+        elif not landed:
+            head = "The air dodge missed the ground"
+            fix = ("Hold the stick down and to the side as you press L or "
+                   "R: the air dodge has to go into the ground.")
+        elif in_time:
+            head = words
+            fix = "Press L or R on frame %d." % perfect
+        else:
+            head = "Air dodge %s late" % _plural(late)
+            fix = ("Press L or R %s earlier, on frame %d: each frame later "
+                   "is a frame more in the air." % (_plural(late), perfect))
         return dict(
-            success=bool(in_time), words=words,
+            success=bool(in_time), words=words, headline=head, fix=fix,
             checks=[dict(expect="The wavedash came out", passed=landed,
                          detail=""),
                     dict(expect="Air dodge within %d frame%s of leaving "
@@ -334,6 +366,21 @@ class Session:
             return "L pressed %d frames before landing: the window is 7" % ago
         return "L pressed %s before landing" % _plural(ago)
 
+    def _cancel_coach(self, ago):
+        """The coach's headline and how to fix it, for an L-cancel."""
+        if ago is None:
+            return ("No L-cancel", "Press L, R or Z in the 7 frames before "
+                    "you land: the frame you land counts.")
+        if ago <= 0:
+            return ("L %s late" % _plural(1 - ago),
+                    "Press L, R or Z %s earlier: at the latest on the frame "
+                    "you land." % _plural(1 - ago))
+        if ago > 7:
+            return ("L %s early" % _plural(ago - 7),
+                    "Press L, R or Z %s later: within 7 frames of landing, "
+                    "not %d." % (_plural(ago - 7), ago))
+        return ("L-cancel", "Press L, R or Z within 7 frames of landing.")
+
     def _cancel_row(self, ago):
         """The ten frames up to the landing, as a timeline row."""
         return dict(
@@ -361,8 +408,14 @@ class Session:
         tl = self._cancel_row(ago)
         tl["note"] = ("Frames before landing; 1 is the frame of landing. "
                       "Lag: %d frames, %d in full." % (lag, full))
+        tl["at"] = land - 9         # the attempt frame of its first column
+        tl["label_word"] = "to land"  # what its column labels count
+        head, fix = self._cancel_coach(ago)
+        if done:
+            head = "L-cancel"
         return dict(
             success=done, words=words, timeline=tl, landed=land,
+            headline=head, fix=fix,
             checks=[dict(expect="Landing lag halved", passed=done,
                          detail="%d of %d frames" % (lag, full)),
                     dict(expect="L, R or Z within 7 frames of landing",
@@ -402,14 +455,24 @@ class Session:
             lag_words = self._cancel_words(ago)
         if not short:
             words = "Full hop: let go of jump within %d" % (squat - 1)
+            head = "Full hop"
+            fix = ("Let go of X or Y within %s of pressing it: your jump "
+                   "squat is %s." % (_plural(squat - 1), _plural(squat)))
         elif aerial is None:
             words = "No aerial"
+            head = words
+            fix = "Press A, or the C-stick, once you are in the air."
         elif fell is None:
             words = "No fast fall: tap down at the top of the hop"
+            head = "No fast fall"
+            fix = ("Tap the stick down once the hop starts to fall, at its "
+                   "top.")
         elif not done:
             words = "No L-cancel. " + lag_words if land else lag_words
+            head, fix = self._cancel_coach(ago)
         else:
             words = "SHFFL. " + lag_words
+            head, fix = "SHFFL", "Keep it up."
         end = land if land else len(states)
         rows = [dict(label="Jump", you=list(range(1, min(held, end) + 1)),
                      perfect=[], window=[1, squat - 1]),
@@ -423,7 +486,7 @@ class Session:
                      perfect=[], window=[land - 6, land] if land else None)]
         return dict(
             success=bool(short and aerial and fell and done), words=words,
-            landed=land,
+            landed=land, headline=head, fix=fix,
             checks=[dict(expect="Short hop", passed=short, detail=""),
                     dict(expect="Aerial", passed=aerial is not None,
                          detail=""),
@@ -433,6 +496,79 @@ class Session:
                          detail=lag_words)],
             timeline=dict(frames=end, rows=rows,
                           note="Lands on frame %d." % land if land else ""))
+
+    # ---- the coach's target: the try with what was wrong put right ---------------
+
+    def corrected(self, result, pads):
+        """For the coach: fn(t, fighter, pad) -> the pad to play instead.
+        `t` is the attempt frame the pad makes (1: the first of the attempt,
+        0 or less: before it), `fighter` the player's fighter before it,
+        `pad` what the player pressed (None after the try: nothing). The
+        player's own inputs, with what this result says was wrong put
+        right: the jump let go in time, the air dodge on the first frame in
+        the air, L pressed three frames before landing, a fast fall at the
+        top. `pads` are the try's pads from its first attempt frame on (for
+        the way the player was holding the stick)."""
+        squat = self.squat
+        kind = self.kind
+        land = result.get("landed")
+        side = next((1 if p["lx"] > 0 else -1 for p in pads
+                     if p is not None and abs(p["lx"]) > 20), 0)
+        st = dict(holding=True, fell=False, cancel=None, ground=None)
+
+        def released(pad):
+            return not pad["buttons"] & JUMP and pad["ly"] <= 44
+
+        def no_cancel(pad):
+            pad["buttons"] &= ~(SHOULDER | Z)
+            pad["lt"] = pad["rt"] = 0
+
+        def fix(t, f, pad):
+            pad = dict(pad) if pad is not None else dict(
+                buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
+            if t < 1:
+                if f is not None and not f.airborne:
+                    st["ground"] = f.pos[1]
+                return pad
+            # the jump: let go before jump squat ends
+            if kind in ("short_hop", "shffl") and st["holding"]:
+                if released(pad):
+                    st["holding"] = False
+                elif t >= squat:
+                    pad["buttons"] &= ~JUMP
+                    pad["ly"] = min(pad["ly"], 0)
+            if kind == "wavedash" and t <= squat + 14:
+                no_cancel(pad)
+                if t in (squat + 1, squat + 2):
+                    pad["buttons"] |= 0x40
+                    pad["lt"] = 255
+                    if pad["ly"] > -40:
+                        pad["lx"], pad["ly"] = 56 * side, -56 if side \
+                            else -80
+            if kind == "l_cancel" and land is not None and t <= land + 4:
+                no_cancel(pad)
+                if t in (land - 2, land - 1):
+                    pad["buttons"] |= 0x40
+            if kind == "shffl" and f is not None:
+                if not result.get("aerial") and t == squat + 2:
+                    pad["buttons"] |= 0x100           # a neutral air
+                    pad["lx"] = pad["ly"] = 0
+                if f.airborne:
+                    no_cancel(pad)
+                    if not st["fell"] and f.vel[1] <= 0:
+                        pad["ly"] = -80               # the fast fall
+                        st["fell"] = True
+                    ground = st["ground"] if st["ground"] is not None \
+                        else 0.0
+                    speed = max(-f.vel[1], self.fast_fall * 0.5)
+                    if st["cancel"] is None and st["fell"] and \
+                            (f.pos[1] - ground) / speed <= 3.0:
+                        st["cancel"] = t
+                    if st["cancel"] is not None and \
+                            t - st["cancel"] < 2:
+                        pad["buttons"] |= 0x40
+            return pad
+        return fix
 
     def _none(self, why):
         return dict(success=False, words=why, checks=[

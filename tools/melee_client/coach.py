@@ -8,44 +8,69 @@ went wrong", approved).
 What it works from, all of it the game's own:
 - the try: its result (the drill's verdict, its timeline of the player's
   inputs against the frame-perfect ones) and, frame by frame, where the
-  fighters were and the pad the game was given (Client.drill_frame
-  records them);
+  fighters were, the pad the game was given and the game's own picture
+  (Client.drill_frame records them; the pictures are kept by the game,
+  src/host/frames.c, the owner, 2026-11-14: "Need to ensure this is generic
+  and works across the board");
 - the target: the drill's demonstration, played unseen from the same
-  situation (the same scenario, the same draws), recorded the same way.
+  situation (the same scenario, the same draws), or for a drill judged by
+  the frame (tools/melee_actor/tech.py) the try itself with what was wrong
+  put right, from a state saved before it; recorded the same way.
 
 Nothing here talks to the game: Client gathers, these functions say.
 """
 
-# How the paths are drawn (dp): a panel's drawing area
+# How the paths are drawn (dp): a panel's drawing area (the pictures too;
+# TALL_H without a timeline below them)
 PATH_W, PATH_H = 412, 236
+TALL_H = 340
 PAD = 26             # room round the path, for the tags
 MAX_SCALE = 9.0      # dp per game unit: a small movement is not blown up
 LEAD = 8             # frames shown before the timeline's first
+AFTER = 24           # frames shown after the try's last (how it ended)
 STICK = 80.0         # the pad's units at full tilt
+GAME_W, GAME_H = 640.0, 480.0   # the game's picture, in its own units
 
 
 class Track:
     """What one run of an attempt did, frame by frame (the attempt's own
     frame numbers, from 0): `me` and `cpu` (x, y, airborne, state) or None,
-    `pads` the pad the game was given for the next frame."""
+    `pads` the pad the game was given for the next frame, `pictures` the
+    number of the game's picture of it (Native.frames_view) or None.
+    `ring`: the ring of pictures it is in (0 the live one, 1 a run played
+    unseen)."""
 
-    def __init__(self):
-        self.me, self.cpu, self.pads = [], [], []
+    def __init__(self, ring=0):
+        self.me, self.cpu, self.pads, self.pictures = [], [], [], []
+        self.ring = ring
+        self.attempt = None     # (tech) the entry of the attempt's frame 1
 
-    def add(self, c, pad=None, frame=None):
+    def add(self, c, pad=None, frame=None, picture=None):
         """Frame by frame, from the drill's context (`c.me`, `c.cpu`); at
         the attempt's `frame` (frames skipped are None)."""
         while frame is not None and len(self.me) < frame:
             self.me.append(None)
             self.cpu.append(None)
             self.pads.append(None)
+            self.pictures.append(None)
         if frame is not None and len(self.me) > frame:
             del self.me[frame:], self.cpu[frame:], self.pads[frame:]
-        self.me.append((c.me.pos[0], c.me.pos[1], c.me.airborne,
-                        c.me.state) if c.me else None)
-        self.cpu.append((c.cpu.pos[0], c.cpu.pos[1], c.cpu.airborne,
-                         c.cpu.state) if c.cpu else None)
+            del self.pictures[frame:]
+        self.add_fighters(c.me, c.cpu, pad, picture)
+
+    def add_fighters(self, me, cpu, pad=None, picture=None):
+        self.me.append((me.pos[0], me.pos[1], me.airborne, me.state)
+                       if me else None)
+        self.cpu.append((cpu.pos[0], cpu.pos[1], cpu.airborne, cpu.state)
+                        if cpu else None)
         self.pads.append(dict(pad) if pad is not None else None)
+        self.pictures.append(picture)
+
+    def drop(self, n):
+        """The first `n` frames forgotten (a rolling record)."""
+        del self.me[:n], self.cpu[:n], self.pads[:n], self.pictures[:n]
+        if self.attempt is not None:
+            self.attempt -= n
 
     def __len__(self):
         return len(self.me)
@@ -87,8 +112,23 @@ def frame_no(timeline, f):
     return f + timeline.get("first", 1) - 1
 
 
+def frame_label(timeline, f):
+    """A frame of the timeline as the pictures say it: "F9", or with the
+    timeline's own labels "3 TO LAND" (an L-cancel's count to landing);
+    None outside a labelled timeline."""
+    labels = timeline.get("labels")
+    if not labels:
+        return "F%d" % frame_no(timeline, f)
+    if 1 <= f <= len(labels):
+        return ("%s %s" % (labels[f - 1], timeline.get("label_word", "")))\
+            .strip().upper()
+    return None
+
+
 def headline(result):
     """The card's title: what was off, in a few words."""
+    if result.get("headline"):
+        return result["headline"]
     tl = result.get("timeline")
     wrong = first_wrong(tl)
     if wrong is not None:
@@ -102,8 +142,11 @@ def headline(result):
 
 
 def fix(result, guide_lines=()):
-    """How to change the inputs: from the timeline when there is one, the
-    drill's own words otherwise."""
+    """How to change the inputs: the judge's own when it says (a drill
+    judged by the frame), from the timeline when there is one, the drill's
+    own words otherwise."""
+    if result.get("fix"):
+        return result["fix"]
     tl = result.get("timeline")
     wrong = first_wrong(tl)
     note = (tl or {}).get("note", "")
@@ -150,16 +193,47 @@ def target_words(timeline):
     return text[0].upper() + text[1:] + "."
 
 
-def span(result, track):
+def span(result, track, longest=90):
     """The attempt frames the pictures show: from a little before the
-    timeline's first to its last (or the whole try, without one)."""
+    timeline's first to its last (or the try's last `longest`, without
+    one)."""
     tl = result.get("timeline")
     if tl and "start" in tl:
         lo = max(0, tl["start"] - LEAD)
         hi = min(len(track) - 1, tl["start"] + tl["frames"] - 1)
         if hi > lo:
             return lo, hi
-    return max(0, len(track) - 90), len(track) - 1
+    return max(0, len(track) - longest), len(track) - 1
+
+
+def crop(boxes, box=(PATH_W, PATH_H), margin=36.0, least=200.0):
+    """The part of the game's picture a panel shows: every box (where the
+    fighters were, x0 y0 x1 y1 in the game's 640x480) with a margin, at
+    the panel's shape, no closer than `least` wide, inside the picture.
+    (left, top, width, height) in the game's units; the whole picture's
+    middle band without boxes."""
+    aspect = float(box[0]) / box[1]
+    boxes = [b for b in boxes if b is not None]
+    if not boxes:
+        w = GAME_W
+        return 0.0, (GAME_H - w / aspect) / 2, w, w / aspect
+    x0 = min(b[0] for b in boxes) - margin
+    x1 = max(b[2] for b in boxes) + margin
+    y0 = min(b[1] for b in boxes) - margin
+    y1 = max(b[3] for b in boxes) + margin * 0.6
+    w = max(x1 - x0, (y1 - y0) * aspect, least)
+    w = min(w, GAME_W, GAME_H * aspect)
+    h = w / aspect
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    left = min(max(cx - w / 2, 0.0), GAME_W - w)
+    top = min(max(cy - h / 2, 0.0), GAME_H - h)
+    return left, top, w, h
+
+
+def press_starts(row, first=1):
+    """The frames a row's presses start on (not a hold going on)."""
+    return [f for f in row["you"] if f - 1 not in row["you"] and
+            not (f == 1 and first > 1)]
 
 
 def marks(result):
@@ -171,11 +245,9 @@ def marks(result):
         return out
     for r in tl["rows"]:
         # where a press starts: not a held one going on from before
-        starts = [f for f in r["you"] if f - 1 not in r["you"] and
-                  not (f == 1 and tl.get("first", 1) > 1)]
-        for f in starts[:1]:
-            out.setdefault(tl["start"] + f - 1, "F%d · %s" % (
-                frame_no(tl, f), r["label"].upper()))
+        for f in press_starts(r, tl.get("first", 1))[:1]:
+            out.setdefault(tl["start"] + f - 1, "%s · %s" % (
+                frame_label(tl, f), r["label"].upper()))
     return out
 
 

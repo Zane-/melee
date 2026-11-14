@@ -36,6 +36,16 @@ if ! grep -q aurora_set_present_hold "$src/include/aurora/aurora.h"; then
     patch -d "$src" -p1 < "$patch"
 fi
 
+# The client's coach shows the game's past frames, which the game copies out
+# itself (GXCopyTex, src/host/frames.c): RmlUi draws such a copy wherever a
+# document says "gxcopy://N" (aurora_rmlui_copy_view), and copies to the
+# host's ring keep one size at any window size (aurora_set_copy_exact).
+patch="$root/tools/aurora32/aurora-0002-copy-views.patch"
+if ! grep -q aurora_rmlui_copy_view \
+        "$src/lib/rmlui/WebGPURenderInterface.cpp"; then
+    patch -d "$src" -p1 < "$patch"
+fi
+
 configure() {
     nice -n 15 cmake -S "$src" -B "$out/build" -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE="$root/tools/aurora32/i686-linux-gcc.cmake" \

@@ -1,0 +1,135 @@
+--- a/lib/dolphin/gx/GXFrameBuffer.cpp
++++ b/lib/dolphin/gx/GXFrameBuffer.cpp
+@@ -14,8 +14,14 @@
+ #include <cmath>
+ 
+ namespace {
++// Copies to destinations in [begin, end) keep the size asked for, whatever
++// the size the game is drawn at (aurora_set_copy_exact)
++const void* s_exactBegin = nullptr;
++const void* s_exactEnd = nullptr;
++
+ aurora::Vec2<uint32_t> scale_copy_dst(u32 logicalWidth, u32 logicalHeight) {
+-  if (g_gxState.viewportPolicy == AURORA_VIEWPORT_NATIVE) {
++  if (g_gxState.viewportPolicy == AURORA_VIEWPORT_NATIVE ||
++      (g_gxState.texCopyDest >= s_exactBegin && g_gxState.texCopyDest < s_exactEnd)) {
+     return {logicalWidth, logicalHeight};
+   }
+ 
+@@ -227,3 +233,11 @@
+ // TODO GXClearBoundingBox
+ // TODO GXReadBoundingBox
+ }
++
++// Copies (GXCopyTex) to destinations in [begin, end) are made at the size
++// GXSetTexCopyDst asks for, not scaled with the picture: pictures kept for a
++// while (the host's ring of past frames) cost the same at any window size
++extern "C" void aurora_set_copy_exact(const void* begin, const void* end) {
++  s_exactBegin = begin;
++  s_exactEnd = end;
++}
+--- a/lib/rmlui/WebGPURenderInterface.cpp
++++ b/lib/rmlui/WebGPURenderInterface.cpp
+@@ -11,6 +11,7 @@
+ #include <SDL3/SDL_surface.h>
+ 
+ #include <algorithm>
++#include <cstdlib>
+ #include <array>
+ #include <limits>
+ #include <string>
+@@ -19,6 +20,7 @@
+ #include <vector>
+ 
+ #include "../gfx/recording.hpp"
++#include "../gx/gx.hpp"
+ #include "../gfx/texture.hpp"
+ #include "../logging.hpp"
+ #include "../webgpu/gpu.hpp"
+@@ -49,8 +51,29 @@
+   wgpu::Extent3D m_size{};
+   uint32_t m_rowBytes = 0;
+   bool m_uploaded = false;
++  // "gxcopy://N": drawn from the picture the game copied out (GXCopyTex) to
++  // the destination shown in view N (aurora_rmlui_copy_view), whatever it is
++  // when drawn; -1 for any other texture
++  int m_copyView = -1;
+ };
+ 
++// The destinations of views 0 to CopyViews - 1 (aurora_rmlui_copy_view)
++constexpr int CopyViews = 32;
++std::array<const void*, CopyViews> g_copyViews{};
++
++// The texture the game copied to view `view`'s destination, or null
++wgpu::TextureView copy_view_texture(int view) {
++  const void* dest = g_copyViews[view];
++  if (dest == nullptr) {
++    return {};
++  }
++  const auto it = gx::g_gxState.copyTextures.find(dest);
++  if (it == gx::g_gxState.copyTextures.end() || !it->second) {
++    return {};
++  }
++  return it->second.handle->sampleTextureView;
++}
++
+ struct CompiledShaderData {
+   GradientUniformBlock gradient;
+ };
+@@ -397,6 +420,13 @@
+     return;
+   }
+   queue_texture_upload_if_needed(*textureData);
++  wgpu::TextureView textureView = textureData->m_textureView;
++  if (textureData->m_copyView >= 0) {
++    textureView = copy_view_texture(textureData->m_copyView);
++    if (!textureView) {
++      return; // nothing copied there (yet): nothing drawn
++    }
++  }
+ 
+   const auto uniformRange = SetupRenderState(translation);
+   const auto vertexRange =
+@@ -409,7 +439,7 @@
+       .vertexRange = vertexRange,
+       .indexRange = indexRange,
+       .uniformRange = uniformRange,
+-      .bindGroup1 = texture_bind_group_ref(textureData->m_textureView),
++      .bindGroup1 = texture_bind_group_ref(textureView),
+       .drawKind = static_cast<uint32_t>(DrawKind::Geometry),
+       .indexCount = static_cast<uint32_t>(geometryData->indices.size()),
+       .stencilRef = m_stencilRef,
+@@ -423,6 +453,21 @@
+ }
+ 
+ Rml::TextureHandle WebGPURenderInterface::LoadTexture(Rml::Vector2i& dimensions, const Rml::String& source) {
++  if (source.rfind("gxcopy://", 0) == 0) {
++    // A view of the game's copied pictures: which one is decided when drawn
++    auto* texData = new ShaderTextureData();
++    const auto* nullData = reinterpret_cast<ShaderTextureData*>(m_nullTexture);
++    texData->m_copyView = std::clamp(std::atoi(source.c_str() + 9), 0, CopyViews - 1);
++    if (nullData != nullptr) {
++      texData->m_texture = nullData->m_texture;
++      texData->m_textureView = nullData->m_textureView;
++    }
++    texData->m_size = {.width = 4, .height = 3, .depthOrArrayLayers = 1};
++    texData->m_uploaded = true;
++    dimensions.x = 4;
++    dimensions.y = 3;
++    return reinterpret_cast<Rml::TextureHandle>(texData);
++  }
+   if (const auto runtimeTexture = load_runtime_texture(source)) {
+     const size_t size = static_cast<size_t>(runtimeTexture->width) * static_cast<size_t>(runtimeTexture->height) * 4;
+     if (runtimeTexture->width == 0 || runtimeTexture->height == 0 || runtimeTexture->rgba8.size() < size) {
+@@ -1701,3 +1746,11 @@
+ }
+ 
+ } // namespace aurora::rmlui
++
++// Which of the game's copied pictures RmlUi's "gxcopy://VIEW" shows: the one
++// copied (GXCopyTex) to `dest`; NULL for none (nothing is drawn)
++extern "C" void aurora_rmlui_copy_view(int view, const void* dest) {
++  if (view >= 0 && view < aurora::rmlui::CopyViews) {
++    aurora::rmlui::g_copyViews[view] = dest;
++  }
++}

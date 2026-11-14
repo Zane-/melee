@@ -373,7 +373,8 @@ enum {
 
 static int live[4];
 static int paced;
-/// A quiet stretch (host_window_quiet): unpaced, and the picture held.
+/// A quiet stretch (host_window_quiet): unpaced, and the picture held; 1:
+/// nothing drawn, 2: frames drawn but not shown.
 static int quiet;
 
 /// What each live port's person is holding, whether or not the game is
@@ -561,10 +562,12 @@ static void audio_relead(void);
 /// copies its picture out in the frame that draws it), so it is shown,
 /// and the sound device, which has run dry meanwhile, waits for its lead
 /// again.
+///
+/// `on` 2: the same, but the frames are drawn (into pictures nobody sees:
+/// the coach's of a run played unseen, frames.c).
 void host_window_quiet(int on)
 {
     if (on && !quiet) {
-        quiet = 1;
         aurora_set_present_hold(true);
     } else if (!on && quiet) {
         quiet = 0;
@@ -573,6 +576,11 @@ void host_window_quiet(int on)
             in_frame = aurora_begin_frame(); /* for the frame to come */
         }
         audio_relead();
+        return;
+    }
+    quiet = on;
+    if (on == 2 && started && !in_frame) {
+        in_frame = aurora_begin_frame(); /* drawn, not shown */
     }
 }
 
@@ -1112,6 +1120,7 @@ void host_window_frame(void)
         if (paced && !quiet) {
             present_wait();
         }
+        host_frames_capture(); /* the picture, for the coach (frames.c) */
         aurora_end_frame();
         in_frame = 0;
     }
@@ -1158,7 +1167,7 @@ void host_window_frame(void)
     }
     read_live();
     host_ui_frame();
-    in_frame = quiet ? 0 : aurora_begin_frame();
+    in_frame = quiet == 1 ? 0 : aurora_begin_frame();
     t2 = now_ms();
     if (last != 0 && !quiet) {
         timing(t0 - last, t1 - t0, t2 - t1, presented - shown_before);

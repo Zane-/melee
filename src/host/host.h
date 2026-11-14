@@ -211,6 +211,10 @@ const char* host_studio_command(const char* line);
 /// TM-CE's input display (inputs.c): at each frame boundary, and asked for.
 void host_inputs_frame(void);
 const char* host_inputs_command(const char* line);
+/// The game's past pictures, kept for the coach (frames.c): at each frame
+/// boundary in the window build, and asked for.
+void host_frames_capture(void);
+const char* host_frames_command(const char* line);
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 

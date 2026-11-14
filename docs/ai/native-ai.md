@@ -297,6 +297,7 @@ was ("much too large", the owner, 2026-11-13).
 |-|-|
 | RmlUi (an HTML-and-CSS-like UI library that Aurora carries as an option), built 32-bit | `tools/aurora32/build.sh` |
 | Aurora drew that layer only over the game's picture, and centred the picture. A patch makes it cover the window with the picture at the left (`aurora_set_ui_full_window`) | `tools/aurora32/aurora-0001-ui-full-window.patch` |
+| The game's past pictures in the interface: RmlUi draws a copy the game made (`GXCopyTex`) where a document says `gxcopy://N`; copies to the host's ring keep one size (the coach, `src/host/frames.c`) | `tools/aurora32/aurora-0002-copy-views.patch` |
 | The host loads a document and changes it by element id: `ui load|class|text|attr|hide|show|font` on the control pipe. It knows nothing about menus | `src/host/ui.cpp` |
 | `pads`: what a live port's person holds. `capture`: the game gets a pad at rest meanwhile, so a press meant for a menu does not also reach the game underneath | `src/host/window.c` |
 | The screens as markup, the look, the roster (names and traits from `data/characters/`, course sizes from `data/courses/`), the flow | `tools/melee_client/` (`screens.py`, `style.rcss`, `characters.py`, `client.py`) |
@@ -623,23 +624,70 @@ right change it ("A Choose, D-pad Change"). Demonstration left the pause menu (i
 on the approved board): the guide's D-pad right still plays it, and the coach's replay
 shows it.
 
-**Coach** (`tools/melee_client/coach.py`, `Client.coach`, `screens.coach_card`): after N
-misses in a row in a course-engine drill (`settings["coach"]`: off or 2 to 5, default 3;
-Settings > Display and the pause menu), a card over the frozen game:
-- the headline: the first timeline row off its window ("Dodge 5 frames late", "No jump in
-  time"), else the drill's verdict;
-- the try's path against the target's: the player's position frame by frame (dots; the
-  opponent's in grey; the first press of each row tagged "F9 · DODGE"), both on one scale.
-  The target is the drill's demonstration played unseen (`quiet`) from the same
-  situation: the same scenario, the same draws (`Session.run` with the try's
-  `scenario_index`; run 0 draws the same numbers), and the session put back afterwards
-  (`keep_session`/`restore_session`: the drill's own fields, the session's counters and
-  random state);
+**Coach** (`tools/melee_client/coach.py`, `Client.coach`, `Client.coach_tech`,
+`screens.coach_card`): after N misses in a row in any drill that plays in the client, the
+course engine's and the four judged by the frame (`settings["coach"]`: off or 2 to 5,
+default 3; Settings > Display and the pause menu), a card over the frozen game:
+- the headline: the judge's own when it gives one (a tech drill: "Jump held 2 frames too
+  long", "Air dodge 3 frames late", "L 2 frames early"), else the first timeline row off
+  its window ("Dodge 5 frames late", "No jump in time"), else the drill's verdict;
+- the try against the target, played side by side in the game's own pictures (below):
+  from 8 frames before the timeline to a moment after the try ended, the timeline's frames
+  at a quarter of the speed and the rest at half (a long try without a timeline at full
+  speed), each panel showing the frame ("F4"), a tag where a press starts ("F1 · JUMP")
+  and how far along it is, the grid's column for the frame marked as it plays, a stop on
+  the last frame and again. Each panel is cropped to where the fighters were all through
+  it (the player alone in a tech drill). The target of a course-engine drill is its
+  demonstration played unseen (`quiet`) from the same situation: the same scenario, the
+  same draws (`Session.run` with the try's `scenario_index`; run 0 draws the same
+  numbers), and the session put back afterwards (`keep_session`/`restore_session`: the
+  drill's own fields, the session's counters and random state). The target of a tech drill
+  is **the try itself with what was wrong put right** (`tech.Session.corrected`: the
+  player's own inputs, the jump let go before jump squat ends, the air dodge on the first
+  frame in the air with the stick down and to the side, L three frames before landing, a
+  neutral air, a fast fall at the top and L as it comes down), played from a state saved
+  before the try and judged again: the card says what the judge made of it ("The same
+  try, put right: Short hop");
 - the inputs frame by frame (the result's timeline: yours filled, frame-perfect outlined,
   the allowed window shaded) with a bracket "5 FRAMES LATE";
-- "How to fix it": the frame to press on and by how much, then the drill's timeline note
-  (or its guide's first sentences without a timeline).
-A or B go on; Y replays the try.
+- "How to fix it": the judge's own when it gives one (a tech drill), else the frame to
+  press on and by how much, then the drill's timeline note (or its guide's first
+  sentences without a timeline).
+A or B go on; Y replays the try. When the card closes the game is put back as it was
+when it opened (state slot 29, `COACH_NOW`): a tech drill goes on from where the player
+stood.
+
+**The game's own pictures** (`src/host/frames.c`; the owner, 2026-11-14: "doesn't seem we
+have a robust animation system as well, chain grab doesn't have any visuals. Need to ensure
+this is generic and works across the board"). While a drill plays, each frame the game
+draws is copied out of its frame buffer at 480 by 360 (`GXCopyTex` at the frame boundary,
+before Aurora ends the frame) into a ring of the last 300: Aurora keeps a copy as a GPU
+texture under the address it was copied "to", and those addresses are a static array of
+`frames.c` that nothing writes. A second patch to Aurora
+(`tools/aurora32/aurora-0002-copy-views.patch`) lets RmlUi draw such a copy wherever a
+document says `<img src="gxcopy://N">` (`aurora_rmlui_copy_view`: which copy view N shows,
+looked up when drawn, so nothing is cached or uploaded), and keeps copies to the ring at
+that size whatever the window's (`aurora_set_copy_exact`): 0.7 MB each, 370 MB for both
+rings full. A copy is made in `GX_TF_RGB565`, which Aurora converts with the alpha set to
+1, so the picture is opaque under RmlUi's blending. Ring 0 is the live game; ring 1 a run
+played unseen, which `quiet 2` draws without showing (the window keeps its last picture,
+no sound, no pacing) where `quiet 1` does not draw at all. Each picture keeps where the
+fighters were on screen (their feet and 20 units above, per port), for the crop. A
+picture's number is the frame number a driver is told after stepping it, so what the
+driver read of the game then is what the picture shows. Control: `frames rec|clear|range|
+view|box` (`Native.frames_*`). The rings are not part of the game's state: a state load
+leaves them alone. A game built before `frames.c` makes the card fall back to drawn paths
+(the player's position frame by frame).
+
+**Tech drills: saved states.** A drill judged by the frame (`tech.py`) has no reset: the
+player sets the pace. While the player is between attempts the client saves the game's
+state every 12 frames into slots 30 and 31 in turn (3 to 6 ms each, 69 MB; only with the
+coach on), and records the try frame by frame as the course engine's drills are
+(`Client.record_tech`: the last 240 frames, rolling). The target and the replay start from
+the latest of those saved at least 8 frames before the attempt began (else the earliest
+from before it), with the recorded pads (after the input delay) given to a scripted port.
+`tests/client/coach_tech.py` checks the replay reaches the try's last frame with the
+fighter in the same place and state.
 
 **Replay** (`Client.replay`, `screens.replay_view`): the try played again from its reset
 with the pads the game was given in it (recorded each frame in `Client.record`: the
@@ -651,12 +699,14 @@ D-pad right a frame on, left a frame back (played again unseen to there), A play
 the target instead (the demonstration from the same start) and back, B to the card.
 `tests/client/coach.py` checks that the replay ends as the try did.
 
-Departures from the boards, by necessity: the "what it looks like" pictures are drawn
-paths, not onion-skinned pictures of the fighter (the window has no way to keep pictures of
-earlier frames); the replay's target is the demonstration played in place of the try (Y),
-not a translucent ghost over it (one fighter, one game). Not done: the coach for the
-scenario-file drills (`tech.Session`, `scn.Session`), and a replay of a flow drill's try
-that carried on from the last one (it did not start from a reset; Y is not offered).
+Departures from the boards: "what it should look like" is played beside the try, not
+onion-skinned over it (the frames are the game's own pictures, so a still of overlaid
+frames would be overlaid backgrounds too); the replay's target is played in place of the
+try (Y), not a translucent ghost over it (one fighter, one game). Not done: a replay of a
+course-engine flow drill's try that carried on from the last one (it did not start from a
+reset; Y is not offered; the tech drills' saved states would do it); the coach for a drill
+played from a scenario file against an opponent (`scn.Session`; none of the course's drills
+is played that way now).
 
 `tests/client/coach.py` (10): the sheet's tabs, Input display set and kept, the game made
 the controller, three misses open the card, its paths, the replay to the same verdict,

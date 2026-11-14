@@ -300,8 +300,9 @@ class Native:
         """Frames nobody sees or hears until quiet(False): no draw pass, no
         sound, and (the window build) no pacing and the last picture kept.
         Afterwards the sounds they started are stopped and music they
-        started plays from its beginning. For loading a match."""
-        self._cmd("quiet %d" % (1 if on else 0))
+        started plays from its beginning. For loading a match. `on` 2: the
+        frames are drawn, into pictures nobody sees (frames_rec)."""
+        self._cmd("quiet %d" % (on if on in (0, 1, 2) else 1))
 
     def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
               p2_human=True, settle=True, stocks=0, preload=()):
@@ -370,6 +371,37 @@ class Native:
         of the game's picture, showing what the fighter reads. Needs TM-CE's
         lab.dat on the disc (tools/tmce_disc.py)."""
         return self._cmd("inputs %d" % mask)
+
+    def frames_rec(self, ring):
+        """Each frame drawn from now on copied into ring `ring` (0 or 1; -1:
+        none), which keeps the last 300 (src/host/frames.c, the window
+        build): the game's past pictures, for the coach. Returns the frame
+        number now. A picture's frame is the number `step()` gives after
+        stepping it: what the game reads then is what it shows."""
+        return int(self._cmd("frames rec %d" % ring))
+
+    def frames_clear(self, ring):
+        """Forget a ring's pictures."""
+        self._cmd("frames clear %d" % ring)
+
+    def frames_range(self, ring):
+        """(oldest, newest) frame a ring holds, or None."""
+        lo, hi = (int(x) for x in self._cmd("frames range %d" % ring)
+                  .split())
+        return None if lo < 0 else (lo, hi)
+
+    def frames_view(self, view, ring=-1, frame=0):
+        """The interface's "gxcopy://VIEW" shows ring `ring`'s picture of
+        `frame` (ring -1: nothing). False if the ring does not hold it (the
+        view shows nothing)."""
+        return self._cmd("frames view %d %d %d" % (view, ring, frame)) == "1"
+
+    def frames_box(self, ring, frame, mask=15):
+        """(x0, y0, x1, y1): where the fighters of the ports in `mask` (bit
+        0 port 1) were in a kept picture (feet and a point 20 units above
+        them, in the game's 640x480, y down), or None."""
+        w = self._cmd("frames box %d %d %d" % (ring, frame, mask)).split()
+        return None if len(w) < 4 else tuple(float(x) for x in w)
 
     def studio(self, *words):
         """A fighter alone for a picture (src/host/studio.c): "cam EX EY

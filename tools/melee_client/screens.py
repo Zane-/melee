@@ -1116,15 +1116,35 @@ def _path(dots, floor, kind):
     return "".join(out)
 
 
+def _picture(pic, kind):
+    """A panel of the game's own pictures (Native.frames_view): `pic` is
+    {"view": the interface's view, "crop": (left, top, width, height) of
+    the game's 640x480 shown}. The client plays them (Client.coach_play):
+    the frame, a tag at each press, how far along."""
+    left, top, w, h = pic["crop"]
+    s = 412.0 / w
+    k = "y" if kind == "you" else "t"
+    return (
+        '<div class="cpic%s"><img class="cpimg" src="gxcopy://%d" style="left: '
+        '%.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;"/>'
+        '<div id="c%sf" class="cfr"/><div id="c%sp" class="cptag %s"/>'
+        '<div class="cbar"><div id="c%sb" class="cbarf %s"/></div></div>' % (
+            " tall" if pic.get("tall") else "", pic["view"], -left * s,
+            -top * s, 640.0 * s, 480.0 * s, k, k, kind, k, kind))
+
+
 def coach_grid(tl, wrong):
     """The try's inputs frame by frame against the frame-perfect ones, and
     a bracket from where one was due to where it came (`wrong`: coach.
-    first_wrong)."""
+    first_wrong). The columns' heads are `cgn1`... (the pictures' frame,
+    marked as they play)."""
     if not tl:
         return ""
     n = tl["frames"]
     labels = tl.get("labels") or [str(i) for i in range(1, n + 1)]
-    head = "".join('<div class="cgc cgn">%s</div>' % esc(l) for l in labels)
+    head = "".join('<div id="cgn%d" class="cgc cgn">%s</div>' % (i + 1,
+                                                              esc(l))
+                   for i, l in enumerate(labels))
     rows = ['<div class="cgr"><div class="cgl"/>%s</div>' % head]
     for row in tl["rows"]:
         cells = []
@@ -1154,24 +1174,35 @@ def coach_grid(tl, wrong):
     legend = ('<div class="cleg"><div class="cgc you"/><div>you</div>'
               '<div class="cgc perf"/><div>frame-perfect</div>'
               '<div class="cgc win"/><div>allowed</div></div>')
+    # four rows or more: closer together (the card's height is fixed)
     return ('<div class="csec">YOUR INPUTS, FRAME BY FRAME</div>'
-            '<div class="cgrid">%s</div>%s%s' % ("".join(rows), bracket,
-                                                legend))
+            '<div class="cgrid%s">%s</div>%s%s' % (
+                " tight" if len(tl["rows"]) >= 4 else "", "".join(rows),
+                bracket, legend))
 
 
 def coach_card(v):
     """The coach's card over the game's picture. `v`: headline, drill,
-    misses, you (dots, floor), you_words, target (dots, floor) or None,
-    target_words, timeline, wrong, fix, replay (Y works)."""
-    you = ('<div class="cpanel"><div class="csec you">YOUR TRY</div><div '
-           'class="cpath">%s</div><div class="ccap">%s</div></div>' % (
-               _path(v["you"][0], v["you"][1], "you"), esc(v["you_words"])))
-    if v.get("target") is not None:
+    misses, you (dots, floor) or you_pic (_picture), you_words, target
+    (dots, floor), target_pic or neither, target_words, timeline, wrong,
+    fix, replay (Y works)."""
+    if v.get("you_pic") is not None:
+        mine = _picture(v["you_pic"], "you")
+    else:
+        mine = '<div class="cpath">%s</div>' % _path(
+            v["you"][0], v["you"][1], "you")
+    you = ('<div class="cpanel"><div class="csec you">YOUR TRY</div>%s<div '
+           'class="ccap">%s</div></div>' % (mine, esc(v["you_words"])))
+    theirs = None
+    if v.get("target_pic") is not None:
+        theirs = _picture(v["target_pic"], "tgt")
+    elif v.get("target") is not None:
+        theirs = '<div class="cpath">%s</div>' % _path(
+            v["target"][0], v["target"][1], "tgt")
+    if theirs is not None:
         target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
-                  'LOOK LIKE</div><div class="cpath">%s</div><div class='
-                  '"ccap">%s</div></div>' % (
-                      _path(v["target"][0], v["target"][1], "tgt"),
-                      esc(v["target_words"])))
+                  'LOOK LIKE</div>%s<div class="ccap">%s</div></div>' % (
+                      theirs, esc(v["target_words"])))
     else:
         target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
                   'LOOK LIKE</div><div class="cpath cnone">This drill has '
