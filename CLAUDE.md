@@ -122,6 +122,7 @@ ninja
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | Our own peer-to-peer rollback netcode: the study, and what is built (state save/restore, per-frame undo records, the UDP session, STUN codes and hole punching, playing a friend from the client's Versus) | `docs/ai/netplay-p2p.md`; `src/host/{state,gameheap,rollback,net}.c`, `tools/melee_client/online.py`; `python tests/native/netplay.py`, `tests/client/online.py` |
+| The coach (a card after misses in a row: the try against the demonstration, inputs by frame, how to fix it; a replay), TM-CE's input display, the pause sheet | `tools/melee_client/coach.py`, `icons.py`, `src/host/inputs.c`; "The coach" in `docs/ai/native-ai.md`; `tests/client/coach.py` |
 | Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
 | The native client's Settings: input delay (Slippi's 2 frames by default), rumble, UCF, volumes, display, online | `tools/melee_client/settings.py`, the settings sections of `client.py` and `screens.py`; `src/host/window.c` (delay, rumble, volumes), `gcadapter.c` (the adapter's rumble), `hw.c` (`PADControlMotor`); "Settings" in `docs/ai/native-ai.md`; `tests/native/delay_rumble.py`, `tests/native/volume.py`, `tests/client/settings_menu.py` |
 | UCF 0.84 in C, and its comparison against Slippi's own code (overlay and native build) | `src/melee/tm/ucf/`, `docs/ai/ucf.md`, `tests/sim/ucf.py`, `tests/native/ucf.py` |

@@ -33,6 +33,8 @@
  *   costume P N                   player P's costume in later matches
  *   studio cam|bg|solo|list ...   a fighter alone: camera, background,
  *                                 the rest undrawn (studio.c)
+ *   inputs MASK                   TM-CE's input display for the ports in
+ *                                 MASK (bit 0 port 1; inputs.c)
  *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
  *   shield P HEALTH               a fighter's shield health
@@ -973,6 +975,14 @@ static void command(char* line)
             gm_ClearDbPauseFlag(0);
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "studio") == 0) {
+        /* "studio cam|bg|solo|list ...": a fighter alone, for pictures
+           (studio.c) */
+        printf("@ %s\n", host_studio_command(line));
+    } else if (strcmp(cmd, "inputs") == 0) {
+        /* "inputs MASK": TM-CE's input display for these ports
+           (inputs.c) */
+        printf("@ %s\n", host_inputs_command(line));
     } else if (strcmp(cmd, "script") == 0) {
 #ifdef HOST_WINDOW
         /* "script P 1": live port P is read, but the game takes the
@@ -984,10 +994,6 @@ static void command(char* line)
 #else
         printf("@ error script needs the window build\n");
 #endif
-    } else if (strcmp(cmd, "studio") == 0) {
-        /* "studio cam|bg|solo|list ...": a fighter alone, for pictures
-           (studio.c) */
-        printf("@ %s\n", host_studio_command(line));
     } else if (strcmp(cmd, "delay") == 0) {
 #ifdef HOST_WINDOW
         /* "delay N": every live port's input reaches the game N frames
@@ -1130,6 +1136,7 @@ void host_control_frame(void)
 {
     char line[2048];
 
+    host_inputs_frame(); /* the input display, made once a match is on */
     if (!host_control_enabled) {
         return;
     }

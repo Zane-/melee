@@ -92,7 +92,7 @@ def main():
                  for d in part]
         missing = [d for d in every if d not in c.here]
         check("every drill of the course plays here", not missing and
-              len(every) == 47, "%d drills, %d not" % (len(every),
+              len(every) == 48, "%d drills, %d not" % (len(every),
                                                       len(missing)))
         row = c.row[c.part]
         shot("drills")

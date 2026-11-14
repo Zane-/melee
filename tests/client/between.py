@@ -128,9 +128,18 @@ def main():
                 tap("Down")
             w.key("x")
 
+        def start(person):
+            """The A down: the drill runs inside the list's frame that
+            sees it, which may be the next but one (the key reaches the
+            window in its own time)."""
+            c.person = person
+            for _ in range(20):
+                frames(1)
+                if state.get("n"):
+                    break
+
         open_drill("fox-shield-pressure")
-        c.person = first_result
-        frames(1)
+        start(first_result)
         check("D-pad up between attempts opens the guide",
               "guide" in state, str(state))
         c.person = None
@@ -140,8 +149,7 @@ def main():
         state.clear()
         state["n"] = 0
         open_drill("fox-shield-pressure")
-        c.person = pause_hits
-        frames(1)
+        start(pause_hits)
         check("the pause menu between attempts changes Hits, and the drill "
               "goes on", state.get("after") is not None and
               state["after"] != state.get("before") and

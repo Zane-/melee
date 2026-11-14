@@ -358,22 +358,29 @@ class Native:
         without its menu."""
         self._cmd("freeze %d" % (1 if on else 0))
 
-    def ucf(self, on=None):
-        """UCF 0.84 (src/host/ucf.c): True or False to switch it, None to
-        ask. On from the start, as on Slippi."""
-        if on is None:
-            return self._cmd("ucf") == "1"
     def costume(self, port, n):
         """Player `port` wears costume `n` (0: the default) in every match
         set up from now on, whoever asks for it (a drill's own start too),
         until changed."""
         self._cmd("costume %d %d" % (port, n))
 
+    def inputs(self, mask):
+        """TM-CE's input display (src/host/inputs.c) for the ports in `mask`
+        (bit 0 port 1; 0 none): a GameCube controller each, at the top right
+        of the game's picture, showing what the fighter reads. Needs TM-CE's
+        lab.dat on the disc (tools/tmce_disc.py)."""
+        return self._cmd("inputs %d" % mask)
+
     def studio(self, *words):
         """A fighter alone for a picture (src/host/studio.c): "cam EX EY
         EZ IX IY IZ FOV" | "cam off", "bg R G B", "solo 1|0", "list"."""
         return self._cmd("studio " + " ".join(str(w) for w in words))
 
+    def ucf(self, on=None):
+        """UCF 0.84 (src/host/ucf.c): True or False to switch it, None to
+        ask. On from the start, as on Slippi."""
+        if on is None:
+            return self._cmd("ucf") == "1"
         return self._cmd("ucf %d" % (1 if on else 0)) == "1"
 
     def ledge(self, port=None, percent=0.0):

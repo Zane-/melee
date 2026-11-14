@@ -45,10 +45,12 @@ sys.path.insert(0, str(ROOT / "tools"))
 import art  # noqa: E402
 import buttons  # noqa: E402
 import characters  # noqa: E402
+import coach  # noqa: E402
 import courses  # noqa: E402
 import online  # noqa: E402
 import opponents  # noqa: E402
 import fonts  # noqa: E402
+import icons  # noqa: E402
 import screens  # noqa: E402
 import settings  # noqa: E402
 import window  # noqa: E402
@@ -168,6 +170,15 @@ class Client:
         self.has_cover = False        # a match's or a drill's screen is up
         self.start_held = 0
         self.frames = 0
+        self.drill_now = None         # the drill being played
+        self.track = None             # its try, frame by frame (coach)
+        self.coach_misses = 0         # misses in a row since the coach
+        self.pause_tab = None         # tests: the pause menu's tab
+        self.pause_idents = []        # tests: the rows of that tab
+        self.coach_open = False       # tests: the coach's card is up
+        self.coach_now = None         # tests: what it said
+        self.replay_now = None        # tests: the replay's mode and frame
+        self.replay_result = None     # tests: how the replayed try ended
         self.out.mkdir(parents=True, exist_ok=True)
         # the game's pictures, off the disc; Sheik, who has none, drawn
         # from her model in a process of its own the first time (half a
@@ -176,6 +187,8 @@ class Client:
         self.art_job = art.render_sheik_later()
         # SmashWiki's GameCube button icons, fetched the first time
         screens.BUTTONS.update(buttons.ensure())
+        # the pause menu's icons (our own drawings, made into pictures)
+        screens.ICONS.update(icons.ensure())
         for f in fonts.fonts():
             self.w.ui("font " + str(f))
         self.w.live(port, source)
@@ -406,6 +419,7 @@ class Client:
                 self.bot = None
             self.w.pad(1 - self.port)
         self.w.mask(0)
+        self.inputs_off()
         self.has_cover = False
         if to == "main":
             self.show_main()
@@ -475,7 +489,7 @@ class Client:
             self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("bannerwrap", "pause", "rays"):
+        for ident in ("bannerwrap", "pause", "rays", "coach"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
 
@@ -486,60 +500,113 @@ class Client:
         self.load(name, rml)
         self.has_cover = True
         self.w.mask(mask)
+        self.inputs_now()
         self.match_music()
         if self.column_hidden:
             self.toggle_column(apply_only=True)
 
     # ---- the pause menu ----------------------------------------------------------
 
-    def pause_rows(self, kind):
-        """(id, label, value) for the pause menu of `kind` ("drill",
-        "match", "versus"); id "-" is a gap."""
-        rows = [("resume", "Resume", None), ("-", "", None)]
+    INPUT_WORDS = {"off": "Off", "you": "You", "opponent": "Opponent",
+                   "both": "You and opponent"}
+
+    def coach_words(self):
+        n = self.settings.get("coach", 0)
+        return "After %d misses" % n if n else "Off"
+
+    def pause_tabs(self, kind):
+        """The pause menu's tabs for a `kind` of match ("drill", "match",
+        "versus", "online")."""
+        if kind == "drill":
+            return ["Drill", "Course", "Settings"]
+        return ["Match", "Settings"]
+
+    def pause_rows(self, kind, tab=None):
+        """(id, label, value or None, icon) for a tab of the pause menu (the
+        canvas's "Paused: icons and the input display"); the first tab
+        without one. A value changes with left and right."""
+        tab = tab or self.pause_tabs(kind)[0]
         s = self.session
-        if kind == "drill" and isinstance(s, course_engine.Session):
+        course = kind == "drill" and isinstance(s, course_engine.Session)
+        if tab == "Settings":
+            rows = []
+            if kind != "online":    # online, the session's delay holds
+                rows.append(("delay", "Input delay", self.delay_words(),
+                             "delay"))
+            rows.append(("inputs", "Input display",
+                         self.INPUT_WORDS[self.settings["inputs"]], "input"))
+            if kind == "drill":
+                rows.append(("coach", "Coach", self.coach_words(), "coach"))
+            return rows
+        if tab == "Course":
+            return [("list", "Back to menu", None, "menu"),
+                    ("hub", "Back to course", None, "course"),
+                    ("main", "Main menu", None, "home")]
+        rows = [("resume", "Resume", None, "play")]
+        if kind == "drill":
+            rows.append(("reset", "Restart", None, "restart"))
+        if course:
             for i, o in enumerate(s.d.options):
-                rows.append(("opt%d" % i, o.name, o.label(s.opts[i])))
+                rows.append(("opt%d" % i, o.name, o.label(s.opts[i]),
+                             "options"))
             if s.d.deck:
                 names = ["Random"] + s.scenario_names()
                 rows.append(("scen", "Scenario",
-                             names[s.common[course_engine.OPT_SCENARIO]]))
+                             names[s.common[course_engine.OPT_SCENARIO]],
+                             "shuffle"))
             if s.cpu_port is not None:
                 rows.append(("side", "CPU side", ("Random", "Left", "Right")[
-                    s.common[course_engine.OPT_SIDE]]))
+                    s.common[course_engine.OPT_SIDE]], "side"))
             if s.d.stages:
                 rows.append(("stage", "Stage", s.d.stage.replace(
-                    "-", " ").title()))
-            rows.append(("-", "", None))
-            rows.append(("guide", "Guide", None))
-            if s.d.reference or type(s.d).build_reference is not \
-                    course_engine.Drill.build_reference:
-                rows.append(("demo", "Demonstration", None))
+                    "-", " ").title(), "stage"))
         elif kind == "drill" and isinstance(s, tech.Session):
-            rows.append(("tol", "Leniency", "%d frames late" % s.tolerance))
-            rows.append(("-", "", None))
-        if kind == "drill":
-            rows.append(("reset", "Restart", None))
+            rows.append(("tol", "Leniency", "%d frames late" % s.tolerance,
+                         "leniency"))
+        if course:
+            rows.append(("coach", "Coach", self.coach_words(), "coach"))
+        rows.append(("inputs", "Input display",
+                     self.INPUT_WORDS[self.settings["inputs"]], "input"))
+        if course:
+            rows.append(("guide", "Guide", None, "guide"))
         rows.append(("column", "Show sidebar" if self.column_hidden
-                     else "Hide sidebar", None))
-        rows.append(("-", "", None))
-        if kind == "drill":
-            rows += [("prev", "Previous drill", None),
-                     ("next", "Next drill", None),
-                     ("list", "Back to menu", None),
-                     ("hub", "Back to course", None)]
-        elif kind == "versus":
-            rows.append(("opp", "Opponent select", None))
+                     else "Hide sidebar", None, "sidebar"))
+        if kind == "versus":
+            rows.append(("opp", "Opponent select", None, "person"))
         elif kind == "online":
-            rows.append(("back", "Leave match", None))
-        else:
-            rows.append(("back", "Back", None))
-        rows.append(("main", "Main menu", None))
+            rows.append(("back", "Leave match", None, "leave"))
+        elif kind != "drill":
+            rows.append(("back", "Back", None, "leave"))
+        if kind != "drill":
+            rows.append(("main", "Main menu", None, "home"))
         return rows
 
     def pause_change(self, ident, step):
-        """Left or right on a setting. Returns whether it is one."""
+        """Left or right on a value: (whether it is one, whether the drill
+        changed: its next attempt starts afresh)."""
         s = self.session
+        if ident == "inputs":
+            i = settings.INPUTS.index(self.settings["inputs"])
+            self.settings["inputs"] = settings.INPUTS[
+                (i + step) % len(settings.INPUTS)]
+            self.progress.save()
+            self.inputs_now()
+            return True, False
+        if ident == "coach":
+            i = settings.COACH.index(self.settings["coach"])
+            self.settings["coach"] = settings.COACH[
+                (i + step) % len(settings.COACH)]
+            self.progress.save()
+            return True, False
+        if ident == "delay":
+            n = max(0, min(settings.DELAY_MAX, self.settings["delay"] + step))
+            self.settings["delay"] = n
+            self.progress.save()
+            try:
+                self.w.delay(n)
+            except Exception:
+                pass
+            return True, False
         if ident.startswith("opt"):
             i = int(ident[3:])
             s.opts[i] = (s.opts[i] + step) % s.d.options[i].size()
@@ -559,26 +626,64 @@ class Client:
         elif ident == "tol":
             s.tolerance = max(0, min(6, s.tolerance + step))
         else:
-            return False
-        return True
+            return False, False
+        return True, True
+
+    def pause_tags(self, kind):
+        """The line over "Paused": where the player is."""
+        d = getattr(self, "drill_now", None)
+        if kind == "drill" and d is not None and self.course is not None:
+            total = len(self.course["parts"][d["part"]])
+            return "%s · %d OF %d · %s" % (d["part"].upper(), d["number"],
+                                           total, d["name"].upper())
+        return {"versus": "VERSUS", "online": "ONLINE"}.get(kind,
+                                                             "FREE PLAY")
+
+    def pause_neighbours(self, kind):
+        """The drills before and after this one in the course (names), or
+        (None, None)."""
+        if kind != "drill" or self.course is None:
+            return None, None
+        drills = self.drills()
+        if len(drills) < 2:
+            return None, None
+        at = self.row[self.part]
+        return (drills[(at - 1) % len(drills)]["name"],
+                drills[(at + 1) % len(drills)]["name"])
 
     def pause(self, kind):
         """Our pause menu over the frozen match, until it is closed (None,
-        or ("options",) when a setting changed) or something is chosen
-        (an event as controls() gives)."""
-        rows = self.pause_rows(kind)
-        at = 0
+        or ("options",) when the drill was changed) or something is chosen
+        (an event as controls() gives). L and R change tab; the drills
+        before and after are two buttons under the rows."""
+        tabs = self.pause_tabs(kind)
+        tab = tabs[0]
+        rows = self.pause_rows(kind, tab)
+        before, after = self.pause_neighbours(kind)
+        nav = before is not None
+        at = 0          # a row, or len(rows): the drills' buttons
+        side = 1        # which of them: 0 before, 1 after
         changed = False
 
         def draw():
-            self.pause_focus = rows[at][0]
-            self.put("prows", screens.pause_rows(rows, at))
+            on_nav = at >= len(rows)
+            self.pause_focus = ("prev", "next")[side] if on_nav \
+                else rows[at][0]
+            self.pause_tab = tab
+            self.pause_idents = [r[0] for r in rows] + (
+                ["prev", "next"] if nav else [])
+            self.put("ptabs", screens.pause_tabs(tabs, tab))
+            self.put("prows", screens.pause_rows(rows, None if on_nav
+                                                 else at))
+            self.put("pnav", screens.pause_nav(before, after, side if on_nav
+                                               else None))
 
         frozen = kind != "online"   # online the game goes on: both sides
         if frozen:
             self.w.freeze(True)
         self.pause_open = True
         self.w.ui("text ptitle Paused")
+        self.w.ui("text ptags " + screens.esc(self.pause_tags(kind)))
         draw()
         self.w.ui("class pause on 1")
         try:
@@ -593,34 +698,46 @@ class Client:
                 if pressed & (B | START):
                     self.sfx(self.SFX_BACK)
                     return done
+                count = len(rows) + (1 if nav else 0)
+                if pressed & (L | R) and len(tabs) > 1:
+                    step = 1 if pressed & R else -1
+                    tab = tabs[(tabs.index(tab) + step) % len(tabs)]
+                    rows = self.pause_rows(kind, tab)
+                    at = 0
+                    self.sfx(self.SFX_MOVE)
+                    draw()
+                    continue
                 if moves & (UP | DOWN):
-                    step = 1 if moves & DOWN else -1
-                    at = (at + step) % len(rows)
-                    while rows[at][0] == "-":
-                        at = (at + step) % len(rows)
+                    at = (at + (1 if moves & DOWN else -1)) % count
                     self.sfx(self.SFX_MOVE)
                     draw()
                 if moves & (LEFT | RIGHT):
-                    if self.pause_change(rows[at][0],
-                                         1 if moves & RIGHT else -1):
+                    step = 1 if moves & RIGHT else -1
+                    if at >= len(rows):
+                        side = 1 if step > 0 else 0
                         self.sfx(self.SFX_MOVE)
-                        changed = True
-                        rows = self.pause_rows(kind)
                         draw()
+                    else:
+                        known, drill = self.pause_change(rows[at][0], step)
+                        if known:
+                            self.sfx(self.SFX_MOVE)
+                            changed = changed or drill
+                            rows = self.pause_rows(kind, tab)
+                            draw()
                 if pressed & A:
                     self.sfx(self.SFX_FORWARD)
+                    if at >= len(rows):
+                        return ("drill", 1 if side else -1)
                     ident = rows[at][0]
                     if ident == "resume":
                         return done
                     if ident == "column":
                         self.toggle_column()
-                        rows = self.pause_rows(kind)
+                        rows = self.pause_rows(kind, tab)
                         draw()
                         continue
                     if ident in ("guide", "demo", "reset"):
                         return (ident,)
-                    if ident in ("prev", "next"):
-                        return ("drill", -1 if ident == "prev" else 1)
                     if ident in ("list", "hub", "main", "opp", "back"):
                         return ("leave", ident)
         finally:
@@ -630,6 +747,27 @@ class Client:
             self.consume()                  # still frozen while let go
             if frozen:
                 self.w.freeze(False)
+
+    # ---- the input display ---------------------------------------------------
+
+    def inputs_now(self, extra=0):
+        """TM-CE's input display, as the settings ask, in the match on now:
+        the player's controller, the opponent's, both or none (`extra`:
+        ports shown besides, as the replay shows the player's)."""
+        me = 1 << self.port
+        them = 1 << (1 - self.port) if self.port in (0, 1) else 0
+        mask = {"off": 0, "you": me, "opponent": them,
+                "both": me | them}[self.settings["inputs"]] | extra
+        try:
+            self.w.inputs(mask)
+        except Exception:           # a build without the command
+            pass
+
+    def inputs_off(self):
+        try:
+            self.w.inputs(0)
+        except Exception:
+            pass
 
     def playing(self):
         """A match has just been started here: from now on the game ending
@@ -1112,6 +1250,7 @@ class Client:
         self.w.live(self.port, self.source)
         settings.apply(self.w, self.settings)   # UCF as the player had it
         self.w.mask(0)
+        self.inputs_off()
         self.has_cover = False
         self.online = None
         if to == "main":
@@ -1307,6 +1446,18 @@ class Client:
         self.show_rays()
         if self.person is not None:
             self.person(game, frame)
+        self.record(frame)
+
+    def record(self, frame):
+        """A try frame by frame, for the coach: where the fighters are and
+        the pad the game is given for the frame to come."""
+        s = self.session
+        if frame < 0 or not isinstance(s, course_engine.Session) or \
+                s.demo_pass:
+            return
+        if frame == 0 or self.track is None:
+            self.track = coach.Track()
+        self.track.add(s.c, s.live_pad if s.live else s.player_pad, frame)
 
     def show_rays(self):
         """A drill's light rays (targets), where the camera shows them."""
@@ -1432,6 +1583,7 @@ class Client:
             self.drill_stages = None
             if left.to != "drill":
                 self.w.mask(0)
+                self.inputs_off()
                 self.has_cover = False
             if left.to == "drill":
                 drills = self.drills()
@@ -1449,6 +1601,9 @@ class Client:
         """One drill until the player leaves it: returns the Leave."""
         results = []
         self.live_results = results
+        self.drill_now = d
+        self.coach_misses = 0
+        self.track = None
         try:
             if self.here[d["id"]] == courses.COURSE:
                 self.course_drill(d, results)
@@ -1526,6 +1681,7 @@ class Client:
                 self.w.scripted(self.port, True)
                 session.live = False
                 self.banner_say("Demo", "Demonstration")
+            flowed = session.flowing and drill.flow
             try:
                 result = session.run(each_frame=self.drill_frame, demo=demo)
             except Abandon as a:
@@ -1543,6 +1699,16 @@ class Client:
             else:
                 results.append(bool(result["success"]))
                 self.show_result(result, results)
+                self.coach_misses = 0 if result["success"] else \
+                    self.coach_misses + 1
+                n = self.settings.get("coach", 0)
+                if n and self.coach_misses >= n and self.track is not None:
+                    self.coach_misses = 0
+                    try:
+                        self.coach(drill, session, result, flowed)
+                    except Abandon as a:
+                        demo = self.course_abandon(a, drill, session)
+                        continue
             # a moment to read the verdict (the C engine's reset delay),
             # except where the drill carries on from where you stand. The
             # D-pad and the pause menu work here as in an attempt: what they
@@ -1623,6 +1789,335 @@ class Client:
         finally:
             self.in_guide = False
             self.consume()
+
+    # ---- the coach ---------------------------------------------------------------
+
+    def keep_session(self, session):
+        """What a run the player does not play (the target, a replay)
+        would change in a session: put back by restore_session."""
+        import copy
+        d = session.d
+        try:
+            drill = copy.deepcopy(vars(d))
+        except Exception:           # something in it cannot be copied
+            drill = dict(vars(d))
+        return dict(drill=drill, rng=session.rng.getstate(),
+                    common=dict(session.common), opts=list(session.opts),
+                    keep={k: getattr(session, k, None) for k in (
+                        "attempts", "last_success", "flowing", "demo_count",
+                        "_forced", "live_pad", "prev_buttons",
+                        "player_pad")})
+
+    def restore_session(self, session, kept):
+        vars(session.d).clear()
+        vars(session.d).update(kept["drill"])
+        session.rng.setstate(kept["rng"])
+        session.common.clear()
+        session.common.update(kept["common"])
+        session.opts[:] = kept["opts"]
+        for k, v in kept["keep"].items():
+            setattr(session, k, v)
+        session.flowing = False     # the next try starts from its place
+
+    def has_demo(self, drill):
+        return bool(drill.reference) or type(drill).build_reference is not \
+            course_engine.Drill.build_reference
+
+    def coach_target(self, drill, session, result):
+        """The drill's demonstration from the try's situation, unseen and
+        unheard: (its result, its track), or (None, None)."""
+        if not self.has_demo(drill):
+            return None, None
+        track = coach.Track()
+
+        def each(game, frame):
+            if session.demo_pass == 2 and frame >= 0:
+                track.add(session.c, session.player_pad, frame)
+        kept = self.keep_session(session)
+        self.w.scripted(self.port, True)
+        session.live = False
+        self.w.quiet(True)
+        try:
+            out = session.run(each_frame=each, demo=True,
+                              scenario=result["scenario_index"])
+        except Exception:
+            return None, None
+        finally:
+            self.w.quiet(False)
+            self.w.scripted(self.port, False)
+            session.live = True
+            self.restore_session(session, kept)
+        return out, track
+
+    def coach_view(self, drill, result, track, target, target_track):
+        """What the card shows (screens.coach_card)."""
+        lo, hi = coach.span(result, track)
+        pts = coach.points(track, lo, hi)
+        if target_track is not None:
+            tlo, thi = coach.span(target, target_track)
+            tpts = coach.points(target_track, tlo, thi)
+        else:
+            tpts = []
+        both = pts + tpts
+        mine = coach.picture(track, lo, hi, coach.marks(result), "you", both)
+        theirs = coach.picture(target_track, tlo, thi, coach.marks(target),
+                               "tgt", both) if target_track is not None \
+            else None
+        d = self.drill_now or {"name": drill.name}
+        return dict(
+            headline=coach.headline(result), drill=d["name"],
+            misses=self.settings.get("coach", 3), you=mine,
+            you_words=result.get("full_words", result["words"]).replace(
+                "\n", "; "),
+            target=theirs,
+            target_words=coach.target_words(result.get("timeline")),
+            timeline=result.get("timeline"),
+            wrong=coach.first_wrong(result.get("timeline")),
+            fix=coach.fix(result, drill.guide(self.session.c)),
+            replay=True)
+
+    def coach(self, drill, session, result, flowed=False):
+        """The coach's card, after misses in a row: what was off, the try
+        against the drill's demonstration, the inputs frame by frame, how
+        to change them. A or B goes on; Y replays the try (replay)."""
+        track = self.track
+        # a moment for the verdict, then the card
+        for _ in range(30):
+            self.drill_frame(self.w, -1)
+            self.w.step()
+        target, target_track = self.coach_target(drill, session, result)
+        if target is not None and target.get("ui"):
+            target, target_track = None, None
+        view = self.coach_view(drill, result, track, target or {},
+                               target_track)
+        view["replay"] = not flowed
+        self.coach_now = view           # tests: what the card says
+        self.w.ui("class banner on 0")  # the card says it
+        self.banner = 0
+        self.coach_open = True
+        self.w.freeze(True)
+        try:
+            while True:
+                self.put("coach", screens.coach_card(view))
+                self.w.ui("class coach on 1")
+                while True:
+                    if self.person is not None:
+                        self.person(self.w, -4)    # tests: the player
+                    self.w.step()
+                    pressed, _ = self.read()
+                    if self.game_quit():
+                        raise Leave()
+                    if pressed & (A | B):
+                        self.sfx(self.SFX_BACK if pressed & B
+                                 else self.SFX_FORWARD)
+                        return
+                    if pressed & Y and view["replay"]:
+                        self.sfx(self.SFX_FORWARD)
+                        break
+                self.w.ui("class coach on 0")
+                self.consume()
+                self.w.freeze(False)
+                try:
+                    self.replay(drill, session, result, track, target,
+                                target_track)
+                finally:
+                    self.w.freeze(True)
+        finally:
+            self.w.ui("class coach on 0")
+            self.coach_open = False
+            self.consume()
+            self.w.freeze(False)
+
+    class Seek(Exception):
+        """Back a frame in the replay: played again, unseen, to there."""
+
+        def __init__(self, to):
+            Exception.__init__(self, to)
+            self.to = to
+
+    def replay(self, drill, session, result, track, target, target_track):
+        """The try played again from its start, the timeline's frames at a
+        quarter of the speed, with the player's controller shown: the
+        D-pad steps a frame, A plays or pauses, Y switches to the drill's
+        demonstration from the same start (the target) and back, B goes
+        back to the coach (the canvas's "Coach: replay of your try")."""
+        d = self.drill_now or {"part": "Tech", "number": 1, "name":
+                               drill.name}
+        total = len(self.course["parts"][d["part"]]) if self.course else 1
+        self.put("replay", screens.replay_view(d["part"], d["number"], total,
+                                               d["name"]))
+        shown = self.column_hidden
+        if shown:                   # the replay's column is the drill's
+            self.column_hidden = False
+            self.toggle_column(apply_only=True)
+        self.inputs_now(extra=1 << self.port)
+        self.w.ui("class banner on 0")
+        self.banner = 0
+        self.w.ui("class replay on 1")
+        mode = "you"
+        seek = None
+        kept = self.keep_session(session)
+        try:
+            while True:
+                if mode == "target" and target_track is None:
+                    mode = "you"
+                state = dict(paused=False, quiet=False)
+                try:
+                    end = self.replay_run(session, mode, result, track,
+                                          target, seek, state)
+                except self.Seek as back:
+                    seek = max(0, back.to)
+                    continue
+                finally:
+                    if state["quiet"]:
+                        self.w.quiet(False)
+                    self.restore_session(session, kept)
+                seek = None
+                if end == "back":
+                    return
+                if end == "mode":
+                    mode = "target" if mode == "you" else "you"
+        finally:
+            self.w.ui("class replay on 0")
+            self.inputs_now()
+            if shown:
+                self.column_hidden = True
+                self.toggle_column(apply_only=True)
+            self.w.pad(self.port)
+
+    def replay_run(self, session, mode, result, track, target, seek, state):
+        """One pass of the replay (replay): "back", "mode" (Y) or "again"
+        (A at the end)."""
+        res = result if mode == "you" else target
+        tl = res.get("timeline") or {}
+        start = tl.get("start")
+        n = tl.get("frames", 0)
+        if start is None:
+            lo, hi = coach.span(res, track)
+            start, n = lo, hi - lo + 1
+        slow_from = max(0, start - coach.LEAD)
+        you = {}
+        for r in tl.get("rows", []):
+            for f in r["you"]:
+                if f - 1 not in r["you"]:   # where a press starts
+                    you.setdefault(f, r["label"][:5])
+        perfect = {f for r in tl.get("rows", []) for f in r["perfect"]}
+        labels = tl.get("labels") or [str(i) for i in range(1, n + 1)]
+        self.w.ui("text rmode " + ("YOUR TRY" if mode == "you"
+                                   else "THE TARGET") + " · 1/4 SPEED")
+        lines = ('<div class="ry">%s</div><div class="rt">%s</div>' % (
+            screens.esc(result.get("full_words", result["words"]).replace(
+                "\n", "; ")),
+            screens.esc(coach.target_words(result.get("timeline")))))
+        self.put("rsay", lines)
+
+        def show(frame, pad):
+            f = frame - start + 1
+            self.replay_now = dict(mode=mode, frame=f, of=n,
+                                   paused=state["paused"])
+            self.w.ui("text rf F%d" % f)
+            self.w.ui("text rof OF %d" % n)
+            self.w.ui("text rpad " + screens.esc(coach.stick_words(pad)))
+            self.put("rscrub", screens.replay_scrub(n, f, you, perfect,
+                                                    labels))
+
+        def hide(on):
+            if on != state["quiet"]:
+                self.w.quiet(on)
+                state["quiet"] = on
+
+        def wait(frames, frame):
+            """Frames with the game still (more while paused): the
+            player's buttons read."""
+            self.w.freeze(True)
+            try:
+                while frames > 0:
+                    frames -= 1
+                    if self.person is not None:
+                        self.person(self.w, -5)    # tests: the player
+                    self.w.step()
+                    pressed, moves = self.read()
+                    if self.game_quit():
+                        raise Leave()
+                    if pressed & B:
+                        raise Leave("replay-back")
+                    if pressed & Y:
+                        raise Leave("replay-mode")
+                    if pressed & A:
+                        state["paused"] = not state["paused"]
+                    if moves & LEFT:
+                        raise self.Seek(frame - 1)
+                    if moves & RIGHT and state["paused"]:
+                        return          # a frame on
+                    if state["paused"]:
+                        frames = max(frames, 1)     # until a press
+            finally:
+                self.w.freeze(False)
+
+        def each(game, frame):
+            if mode == "target" and session.demo_pass != 2:
+                hide(True)      # its first pass only finds its marks
+                return
+            if mode == "you":
+                pad = track.pads[frame] if frame < len(track.pads) and \
+                    track.pads[frame] is not None else None
+                if pad is not None:
+                    session.player_pad = dict(pad)
+                    session._set_pad(self.port, session.player_pad)
+            pad = session.player_pad
+            if seek is not None and frame < seek:
+                hide(True)      # back a frame: played again, unseen
+                return
+            if state["quiet"]:
+                hide(False)
+                if seek is not None:
+                    state["paused"] = True
+            if frame < slow_from:
+                pressed, _ = self.read()
+                if pressed & B:
+                    raise Leave("replay-back")
+                return
+            show(frame, pad)
+            wait(3 if not state["paused"] else 1, frame)
+
+        self.w.scripted(self.port, True)
+        session.live = False
+        reset = session._reset
+        if mode == "you" and track.pads and track.pads[0] is not None:
+            # the pad held through the placement frame, as in the try (a
+            # C-stick held down from one try to the next is not a flick)
+            def placed(seed, scenario=None):
+                reset(seed, scenario)
+                session.player_pad = dict(track.pads[0])
+                session._set_pad(self.port, session.player_pad)
+            session._reset = placed
+        try:
+            self.replay_result = session.run(
+                each_frame=each, demo=mode == "target",
+                scenario=result["scenario_index"])
+            if self.replay_now is not None:
+                self.replay_now["paused"] = True
+        except Leave as left:
+            if left.to == "replay-back":
+                return "back"
+            if left.to == "replay-mode":
+                return "mode"
+            raise
+        finally:
+            session._reset = reset
+            self.w.scripted(self.port, False)
+            session.live = True
+        # the end: still, until the player says
+        state["paused"] = True
+        try:
+            wait(1, start + n)
+        except Leave as left:
+            if left.to == "replay-back":
+                return "back"
+            if left.to == "replay-mode":
+                return "mode"
+            raise
+        return "again"
 
     def judged_drill(self, d, results):
         """A drill from a scenario file: a scenario against an opponent, or

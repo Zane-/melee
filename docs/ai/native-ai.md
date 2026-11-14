@@ -570,7 +570,7 @@ fast-forwarding and teleporting they saw.
 
 | Control | What it does |
 |-|-|
-| START tap | The client's pause menu over the frozen match (`freeze`: the game's developers' pause, which stops gameplay and goes on drawing). In a drill: the drill's own settings (its options from the C, the scenario, the CPU's side, the stage where it has several), the guide, a demonstration, restart, hide the column, the drill before or after, the drill list, the course, the main menu. In free play and Versus: resume, the column, back, main menu. A setting changed is in force from the next try |
+| START tap | The client's pause menu over the frozen match (`freeze`: the game's developers' pause, which stops gameplay and goes on drawing): a sheet with tabs, L and R between them (below, "The coach"). In a drill, Drill: resume, restart, the drill's own settings (its options from the C, the scenario, the CPU's side, the stage where it has several), the coach, the input display, the guide, hide the column; Course: the drill list, the course, the main menu; Settings: input delay, input display, coach; and the drills before and after as two buttons. In free play and Versus, Match: resume, the input display, the column, back or opponent select, main menu; Settings. A drill setting changed is in force from the next try |
 | START held 3 s | The column away, the game's picture in the middle of the window (`center` in the interface: `aurora_set_game_centered` in the Aurora patch); again to bring it back |
 | D-pad up / down | The guide / a restart (drills) |
 | D-pad left or right | A tap: the scenario before or after; held 3 s: the drill before or after in the course |
@@ -593,6 +593,74 @@ back to the start; both are gone (commit 73c814112).
 a setting changed in the pause menu and in force on the next try, a failure in red on the
 banner (a picture), D-pad right held 3 s to the next drill. The other client tests leave
 through the pause menu now (`tests/client/pausekeys.py`).
+
+### The coach, the input display, the pause sheet (2026-11-14)
+
+The owner, 2026-11-13: "If they are struggling to get it, a helpful overlay should pop up
+that tells them what they are doing wrong with visual explanations of what they are doing,
+the inputs they are pressing, what it should look like, and how they need to modify their
+inputs ... (this should replace the Help essentially that has the CPU do it)", "a gamecube
+controller overlay that shows inputs ... TM-CE has this already so let's reuse it", and a
+cleaner pause menu "with icons". Built from the canvas's approved boards (PauseIcons,
+CoachCard, CoachReplay; memory `ui-mockups-canvas`).
+
+**Input display** (`src/host/inputs.c`, control `inputs MASK`, `Native.inputs`): TM-CE's
+`Inputs_Init`/`Inputs_Think` (lab.c) in C against the decomp, with TM-CE's own controller
+model from `lab.dat` (put on the disc as `files/TM/lab.dat` by `tools/tmce_disc.py`; not in
+the repository). A controller per shown port at the top right of the picture; sticks and
+triggers move, buttons turn white, from the fighter's input record (after the input delay;
+a CPU's too). Two departures: it draws on GX link 11, the HUD's, because no camera of the
+native match draws TM-CE's link 12; and the display keeps everything in its own GObj's user
+data and is looked for among the match's GObjs each frame, so a state loaded from before it
+existed (every reset of a drill) makes it again instead of leaving a dangling pointer. The
+setting is `settings["inputs"]` (off, you, opponent, both), in Settings > Display and the
+pause menu; the client sends the mask when a match or drill screen loads and 0 on leaving.
+
+**Pause sheet** (`screens.pause_tabs`/`pause_rows`/`pause_nav`, `Client.pause`): as the
+canvas, with our own line icons (`tools/melee_client/icons.py`, drawn on a 24 grid and
+made into PNGs with rsvg-convert, tinted per row). A on a value does nothing; left and
+right change it ("A Choose, D-pad Change"). Demonstration left the pause menu (it is not
+on the approved board): the guide's D-pad right still plays it, and the coach's replay
+shows it.
+
+**Coach** (`tools/melee_client/coach.py`, `Client.coach`, `screens.coach_card`): after N
+misses in a row in a course-engine drill (`settings["coach"]`: off or 2 to 5, default 3;
+Settings > Display and the pause menu), a card over the frozen game:
+- the headline: the first timeline row off its window ("Dodge 5 frames late", "No jump in
+  time"), else the drill's verdict;
+- the try's path against the target's: the player's position frame by frame (dots; the
+  opponent's in grey; the first press of each row tagged "F9 · DODGE"), both on one scale.
+  The target is the drill's demonstration played unseen (`quiet`) from the same
+  situation: the same scenario, the same draws (`Session.run` with the try's
+  `scenario_index`; run 0 draws the same numbers), and the session put back afterwards
+  (`keep_session`/`restore_session`: the drill's own fields, the session's counters and
+  random state);
+- the inputs frame by frame (the result's timeline: yours filled, frame-perfect outlined,
+  the allowed window shaded) with a bracket "5 FRAMES LATE";
+- "How to fix it": the frame to press on and by how much, then the drill's timeline note
+  (or its guide's first sentences without a timeline).
+A or B go on; Y replays the try.
+
+**Replay** (`Client.replay`, `screens.replay_view`): the try played again from its reset
+with the pads the game was given in it (recorded each frame in `Client.record`: the
+engine's `live_pad`, which is after the input delay; the port `scripted`, so the
+controller is read but not played), the pad held through the placement frame put back too
+(a C-stick held from the last try is not a fresh flick). The timeline's frames (and 8
+before) at a quarter speed, the player's controller shown, a frame strip along the bottom;
+D-pad right a frame on, left a frame back (played again unseen to there), A play/pause, Y
+the target instead (the demonstration from the same start) and back, B to the card.
+`tests/client/coach.py` checks that the replay ends as the try did.
+
+Departures from the boards, by necessity: the "what it looks like" pictures are drawn
+paths, not onion-skinned pictures of the fighter (the window has no way to keep pictures of
+earlier frames); the replay's target is the demonstration played in place of the try (Y),
+not a translucent ghost over it (one fighter, one game). Not done: the coach for the
+scenario-file drills (`tech.Session`, `scn.Session`), and a replay of a flow drill's try
+that carried on from the last one (it did not start from a reset; Y is not offered).
+
+`tests/client/coach.py` (10): the sheet's tabs, Input display set and kept, the game made
+the controller, three misses open the card, its paths, the replay to the same verdict,
+back to the drill and the list. Pictures with `--shots DIR`.
 
 ### Drills the owner changed, and timelines (2026-11-13)
 

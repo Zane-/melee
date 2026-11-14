@@ -41,10 +41,15 @@ def over_game():
         'class="banner"><div id="chip" class="chip"><div id="bword" '
         'class="un">YES</div></div><div class="msg"><div id="bmsg" '
         'class="un">.</div></div></div></div>'
-        '<div id="pause" class="pause"><div class="pbox"><div class="ptitle">'
-        '<div class="un"><div id="ptitle">Paused</div></div></div>'
-        '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
-        '</div>%s<div>Change</div>%s<div>Back</div></div></div></div>'
+        '<div id="pause" class="pause"><div class="pdim"/><div '
+        'class="pshade"/><div class="psheet"/><div class="pcol"><div '
+        'id="ptags" class="ptags"/><div id="ptitle" class="ptitle">Paused'
+        '</div><div id="ptabs" class="ptabs"/><div id="prows" class='
+        '"prows"/><div id="pnav" class="pnav"/><div class="grow"/><div '
+        'class="phint">%s<div>Choose</div>%s<div>Change</div>%s<div>Back'
+        '</div></div></div></div>'
+        '<div id="coach" class="coach"/>'
+        '<div id="replay" class="replay"/>'
         % (key("A"), key("D-SIDE"), key("B")))
 
 
@@ -132,20 +137,58 @@ def online_body(code, rows, at, delay=2, router=None):
             ticket, strip, paste, len(friends), cards))
 
 
+# The pause menu's icons (icons.py): name -> picture. Without them, rows
+# have none.
+ICONS = {}
+
+
+def icon(name, cls="pic"):
+    if name not in ICONS:
+        return ""
+    return '<img class="%s" src="%s"/>' % (cls, picture(ICONS[name]))
+
+
+def pause_tabs(tabs, on):
+    """The sheet's tabs, L and R either side (the canvas's "Paused: icons
+    and the input display")."""
+    if len(tabs) < 2:
+        return ""
+    return (key("L") + "".join(
+        '<div class="ptb%s"><div class="un">%s</div></div>' % (
+            " on" if t == on else "", esc(t)) for t in tabs) + key("R"))
+
+
 def pause_rows(rows, at):
-    """The pause menu's rows: (id, label, value or None); `at` the row in
-    focus. A row with the id "-" is a gap."""
+    """The sheet's rows: (id, label, value or None, icon); `at` the row in
+    focus (None: the drills' buttons below have it). Many rows are drawn
+    closer together."""
+    tight = " tight" if len(rows) > 9 else ""
     out = []
-    for i, (ident, label, value) in enumerate(rows):
-        if ident == "-":
-            out.append('<div class="pgap"/>')
-            continue
+    for i, (ident, label, value, ic) in enumerate(rows):
+        on = i == at
+        val = ""
+        if value is not None:
+            val = '<div class="pval">%s<div>%s</div>%s</div>' % (
+                icon("left", "parr"), esc(value), icon("right", "parr"))
         out.append(
-            '<div class="prow%s"><div>%s</div><div class="grow"/>%s</div>' % (
-                " on" if i == at else "", esc(label),
-                '<div class="pv">&lt; %s &gt;</div>' % esc(value)
-                if value is not None else ""))
+            '<div class="pr%s%s"><div class="pcap"/>%s<div class="pl">%s'
+            '</div><div class="grow"/>%s</div>' % (
+                " on" if on else "", tight, icon(ic), esc(label), val))
     return "".join(out)
+
+
+def pause_nav(before, after, at):
+    """The drills before and after, as two buttons under the rows; `at`
+    0 or 1 for the one in focus, None for neither."""
+    if before is None:
+        return ""
+    return "".join(
+        '<div class="pnb%s%s"><div class="un pnu"><div class="pnl">%s</div>'
+        '<div class="pnn">%s</div></div></div>' % (
+            " on" if at == i else "", " right" if i else "", word,
+            esc(name if len(name) <= 24 else name[:23].rstrip() + "…"))
+        for i, (word, name) in enumerate((("PREVIOUS DRILL", before),
+                                          ("NEXT DRILL", after))))
 
 
 def hint_rows(rows):
@@ -1040,3 +1083,158 @@ def online_panel(ident, nick, port, friends, at, router):
             '<div class="sbig%s">%s</div><div class="spara">%s</div>' % (
                 "" if router and router[0] == "Open" else " off",
                 esc(found[0]), esc(found[1])))
+
+
+# ---- the coach ----------------------------------------------------------------
+#
+# The canvas's "Coach: what went wrong" and "Coach: replay of your try"
+# (approved by the owner, 2026-11-13). What they say comes from coach.py.
+
+def _path(dots, floor, kind):
+    """A path drawn in its box: the floor, a dot a frame, the presses
+    marked and tagged."""
+    out = []
+    if floor is not None:
+        out.append('<div class="cfloor" style="top: %ddp;"/>' % floor)
+    for x, y, what, text in dots:
+        if what == "tag":
+            out.append('<div class="ctag %s" style="left: %ddp; top: %ddp;">'
+                       '%s</div>' % (kind, max(4, min(x + 9, 300)),
+                                     max(4, min(y - 26, 210)), esc(text)))
+        else:
+            size = 12 if what == "mark" else 7
+            out.append('<div class="cdot %s %s" style="left: %ddp; top: '
+                       '%ddp;"/>' % (kind, what, x - size // 2,
+                                     y - size // 2))
+    return "".join(out)
+
+
+def coach_grid(tl, wrong):
+    """The try's inputs frame by frame against the frame-perfect ones, and
+    a bracket from where one was due to where it came (`wrong`: coach.
+    first_wrong)."""
+    if not tl:
+        return ""
+    n = tl["frames"]
+    labels = tl.get("labels") or [str(i) for i in range(1, n + 1)]
+    head = "".join('<div class="cgc cgn">%s</div>' % esc(l) for l in labels)
+    rows = ['<div class="cgr"><div class="cgl"/>%s</div>' % head]
+    for row in tl["rows"]:
+        cells = []
+        for i in range(1, n + 1):
+            cls = "cgc"
+            if row["window"] and row["window"][0] <= i <= row["window"][1]:
+                cls += " win"
+            if i in row["perfect"]:
+                cls += " perf"
+            if i in row["you"]:
+                cls += " you"
+            cells.append('<div class="%s"/>' % cls)
+        rows.append('<div class="cgr"><div class="cgl">%s</div>%s</div>'
+                    % (esc(row["label"]), "".join(cells)))
+    bracket = ""
+    if wrong is not None and wrong[1] is not None:
+        cell = 690.0 / n
+        a, b = sorted((wrong[1], wrong[2]))
+        k = abs(wrong[1] - wrong[2])
+        bracket = (
+            '<div class="cbr"><div class="cbrl" style="left: %ddp; width: '
+            '%ddp;"/><div class="cbrt" style="left: %ddp;">%s %s</div></div>'
+            % ((a - 0.5) * cell, (b - a) * cell, (a - 0.5) * cell +
+               (b - a) * cell / 2 - 60, "%d FRAME%s" % (k, "" if k == 1
+                                                        else "S"),
+               "LATE" if wrong[1] > wrong[2] else "EARLY"))
+    legend = ('<div class="cleg"><div class="cgc you"/><div>you</div>'
+              '<div class="cgc perf"/><div>frame-perfect</div>'
+              '<div class="cgc win"/><div>allowed</div></div>')
+    return ('<div class="csec">YOUR INPUTS, FRAME BY FRAME</div>'
+            '<div class="cgrid">%s</div>%s%s' % ("".join(rows), bracket,
+                                                legend))
+
+
+def coach_card(v):
+    """The coach's card over the game's picture. `v`: headline, drill,
+    misses, you (dots, floor), you_words, target (dots, floor) or None,
+    target_words, timeline, wrong, fix, replay (Y works)."""
+    you = ('<div class="cpanel"><div class="csec you">YOUR TRY</div><div '
+           'class="cpath">%s</div><div class="ccap">%s</div></div>' % (
+               _path(v["you"][0], v["you"][1], "you"), esc(v["you_words"])))
+    if v.get("target") is not None:
+        target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
+                  'LOOK LIKE</div><div class="cpath">%s</div><div class='
+                  '"ccap">%s</div></div>' % (
+                      _path(v["target"][0], v["target"][1], "tgt"),
+                      esc(v["target_words"])))
+    else:
+        target = ('<div class="cpanel"><div class="csec tgt">WHAT IT SHOULD '
+                  'LOOK LIKE</div><div class="cpath cnone">This drill has '
+                  'no demonstration to compare with.</div><div class="ccap">'
+                  '%s</div></div>' % esc(v["target_words"]))
+    size = 34 if len(v["headline"]) <= 30 else 28 if \
+        len(v["headline"]) <= 40 else 22
+    keys = [("A", "Try again")]
+    if v.get("replay"):
+        keys.append(("Y", "Replay my try"))
+    keys.append(("B", "Close"))
+    return (
+        '<div class="cdim"/><div class="ccard">'
+        '<div class="chead"><div class="cstrip"/><div class="cchip"><div '
+        'class="un">Coach</div></div><div class="ctitle" style="font-size: '
+        '%ddp;">%s</div><div class="grow"/><div class="cwhat">%s<br/>%s '
+        'MISSES IN A ROW</div></div>'
+        '<div class="cpanels">%s%s</div>'
+        '<div class="cmid">%s</div>'
+        '<div class="cfix"><div class="cfixh">How to fix it</div><div '
+        'class="cfixt">%s</div></div>'
+        '<div class="grow"/><div class="cfoot">%s<div class="grow"/><div '
+        'class="coff">The coach can be turned off in the pause menu.</div>'
+        '</div></div>' % (
+            size, esc(v["headline"]), esc(v["drill"].upper()), v["misses"],
+            you, target, coach_grid(v.get("timeline"), v.get("wrong")),
+            esc(v["fix"]), "".join(
+                '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
+                                                             esc(w))
+                for b, w in keys)))
+
+
+def replay_view(part, number, total, name):
+    """The replay of a try: the game's picture left clear, a line at the
+    top, the frames along the bottom, and a column of its own over the
+    drill's (filled in by Client.replay)."""
+    fg = "#FFFFFF" if part == "Tech" else "#12161C"
+    return (
+        '<div class="rtop"><div class="rtitle">Replay</div><div id="rmode" '
+        'class="rmode"/></div>'
+        '<div class="rbottom"><div id="rscrub" class="rscrub"/><div class='
+        '"rleg"><div class="rsw now"/><div>this frame</div><div class="rsw '
+        'you"/><div>a press</div><div class="rsw tgt"/><div>frame-perfect'
+        '</div></div></div>'
+        '<div class="rcol"><div class="rhead" style="background-color: %s; '
+        'color: %s;"><div class="tags">%s · %d OF %d · REPLAY</div><div '
+        'class="dname">%s</div></div><div class="rbody"><div class="row '
+        'rfr"><div id="rf" class="rfn">F1</div><div id="rof" class="rof">'
+        'OF 1</div></div><div id="rpad" class="rpad"/><div id="rsay" '
+        'class="rsay"/><div class="grow"/><div class="hints">%s</div></div>'
+        '</div>' % (
+            PART_COLOR[part], fg, part.upper(), number, total, esc(name),
+            hint_rows([("D-SIDE", "Frame by frame"), ("A", "Play, pause"),
+                       ("Y", "Your try, the target"),
+                       ("B", "Back to the coach")])))
+
+
+def replay_scrub(n, now, you, perfect, labels):
+    """The frames along the bottom: `now` the one shown (from 1), `you`
+    {frame: what was pressed}, `perfect` the frame-perfect ones."""
+    out = []
+    for i in range(1, n + 1):
+        cls = "rs"
+        text = labels[i - 1] if i - 1 < len(labels) else ""
+        if i in you:
+            cls += " you"
+            text = you[i]
+        if i in perfect:
+            cls += " tgt"
+        if i == now:
+            cls += " now"
+        out.append('<div class="%s">%s</div>' % (cls, esc(text)))
+    return "".join(out)

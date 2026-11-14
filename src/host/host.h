@@ -78,9 +78,9 @@ uint32_t host_origin_room(const void* addr);
 typedef struct HostMatch {
     int ckind[4]; ///< CharacterKind, or -1 for an empty slot
     int human[4]; ///< a human (reads its pad) or a CPU
+    int color[4]; ///< the costume each wears (0: the default)
     int stage;    ///< stage id as in the match rules (0x20: FD)
     unsigned seed; ///< the game's random seed as the match is set up
-    int color[4]; ///< the costume each wears (0: the default)
     int stocks;    ///< stocks each; 0: an endless time match (the default)
     /// Matches entered so far (`state`'s "match").
     unsigned entered;
@@ -206,13 +206,16 @@ void host_window_describe(char* out, size_t size);
 void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
+/// Pictures of a fighter alone (studio.c): the reply after "@ ".
+const char* host_studio_command(const char* line);
+/// TM-CE's input display (inputs.c): at each frame boundary, and asked for.
+void host_inputs_frame(void);
+const char* host_inputs_command(const char* line);
 /// An archive's data is going away (particles.c).
 void host_particles_forget(const uint8_t* data, uint32_t size);
 
 /// Random draws since the frame boundary (debug.c).
 void host_rng_frame(void);
-/// Pictures of a fighter alone (studio.c): the reply after "@ ".
-const char* host_studio_command(const char* line);
 void host_rng_print(void);
 
 /// Count a call of a generated stub.

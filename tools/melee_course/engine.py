@@ -882,7 +882,10 @@ class Session:
                                  min(w[1], hi) - lo + 1]
         labels = [str(f) if n <= 12 or f % 5 == 0 else ""
                   for f in range(lo, hi + 1)]
-        return dict(frames=n, rows=out, note=note, labels=labels)
+        # `start`: the attempt's frame (tl_log's index) of frame 1 shown,
+        # `first`: that frame's number from the timeline's start (lo)
+        return dict(frames=n, rows=out, note=note, labels=labels,
+                    start=self.tl_start + lo - 1, first=lo)
 
     def _play_reference(self, ref, marks):
         """A demonstration: the player's pad is the reference script
