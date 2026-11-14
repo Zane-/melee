@@ -531,6 +531,7 @@ class Session:
         self.seed = seed
         self.c = Ctx(self)
         self.cpu_char = None
+        self.loaded = False
         self.cpu_port = None
         self.scenario = -1
         self.last_success = False
@@ -551,13 +552,17 @@ class Session:
     # ---- the match ----------------------------------------------------------------------
 
     def _load(self, cpu):
-        if self.cpu_char == cpu and self.cpu_char is not None:
+        # (A drill without an opponent once reloaded its match before every
+        # attempt here, since None == None was taken for "nothing loaded":
+        # the owner saw the game fast-forward behind the drill.)
+        if self.loaded and self.cpu_char == cpu:
             return
         n = self.n
 
         def go():
             n.start(self.char, cpu, self.d.stage, self.seed)
         self.on_load(go)
+        self.loaded = True
         self.cpu_char = cpu
         self.cpu_port = None if cpu is None else 1 - self.person
 

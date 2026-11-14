@@ -186,9 +186,12 @@ Changed after the owner's first play session (2026-11-12):
 - **Help** in the menu (not "HELP"): A closes the menu and opens the guide.
 - **Built reference scripts** (`BuildReference`): the L-cancel and SHFFL demonstrations
   are built per attempt from the character's hop, gravity and fast-fall speed, so there is
-  no scouting hop, and each demonstration shows the next aerial (`course_DemoCount`). In
-  the simulator 171 of 175 such demonstrations over all 26 characters succeed; the four
-  that do not are single aerials of Kirby, Luigi and Zelda.
+  no scouting hop, and each demonstration shows the next aerial (`course_DemoCount`). Since
+  2026-11-13 (the landing prediction follows the game: the fast fall on the speed the
+  frame started with, no gravity during it; the aerial aimed inside its lag window) every
+  demonstration succeeds for the 25 characters other than Mr. Game & Watch, in the
+  simulator (125 of 125 in each drill) and natively; his neutral, back and up air cannot
+  be L-cancelled and the drill waits.
 - **Shielding target**: `course_CpuShield(c)` every frame; `c->cpu_state` is sampled like
   the player's.
 - **Resets release grabs** (`ReleaseGrab`): a reset during a grab used to leave the two

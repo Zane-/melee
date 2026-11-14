@@ -153,9 +153,10 @@ class Session:
         return dict(self.n.h.pads[self.person])
 
     def _keep_on_stage(self, f):
-        if f.pos[1] < -30 or (f.state == WAIT and abs(f.pos[0]) > 50):
-            self.n.place(self.person, self.start, 0.0,
-                         1 if f.facing >= 0 else -1)
+        """Nothing: the player goes where they like, and one who falls off
+        comes back as the game brings anyone back. (This once put a fighter
+        standing more than 50 units out back at the start: the owner saw
+        the player jump to the left of the screen after a long wavedash.)"""
 
     def run(self, jitter=0.0, run=0, each_frame=None):
         """Watch until one attempt has been made and judge it."""
