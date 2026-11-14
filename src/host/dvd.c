@@ -184,6 +184,13 @@ int host_origin_find(const void* addr, uint32_t* offset)
     return -1;
 }
 
+/// The path of disc file number `file` (as host_origin_find gives), or
+/// NULL.
+const char* host_file_path(int file)
+{
+    return file < 0 || file >= nfiles ? NULL : files[file].path;
+}
+
 const char* host_disc_origin(const void* addr, uint32_t* offset)
 {
     int file = host_origin_find(addr, offset);

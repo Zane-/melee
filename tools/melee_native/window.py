@@ -265,6 +265,17 @@ class Window(Native):
         return dict(game=game, allowed=rest[0], running=rest[1],
                     adapter=rest[2])
 
+    def volume(self, music=None, sound=None):
+        """The player's volumes, 0 to 100: the music (a .hps stream) and
+        the sound effects, mixed outside the game. Returns (music, sound)
+        as they are."""
+        if music is None:
+            reply = self._cmd("volume")
+        else:
+            reply = self._cmd("volume %d %d" % (music, sound))
+        words = reply.split()
+        return int(words[-2]), int(words[-1])
+
     def rumble_test(self, port, frames=30):
         """Run port `port`'s motor for `frames` frames, whatever the game
         says (the Controls screen's "Feel it")."""

@@ -260,3 +260,45 @@ def add_friend(save, name, code):
     out.append(dict(name=name, code=code))
     save["friends"] = out
     return out
+
+
+def router_check(port=0, timeout=2.0):
+    """What this machine's router does with a UDP port, asked of both STUN
+    servers from one socket (Settings, Online, "Router"): ("Open", why)
+    when they saw the same public port, so a friend's game can reach this
+    one directly; ("Strict", why) when each saw its own, so only a friend
+    whose router is open can. Raises OnlineError when no server answers.
+    The servers learn this machine's public address, as they do whenever
+    the online screen finds a code."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        try:
+            sock.bind(("", port))
+        except OSError:
+            sock.bind(("", 0))              # the port is in use: any other
+        local = sock.getsockname()[1]
+        seen = []
+        for server in STUN_SERVERS:
+            try:
+                seen.append(stun(sock, [server], timeout))
+            except OnlineError:
+                pass
+    finally:
+        sock.close()
+    if not seen:
+        raise OnlineError("no STUN server answered")
+    if len(seen) == 1:
+        return ("One answer", "Only one of the two STUN servers answered, "
+                "so whether the router keeps one port for both cannot be "
+                "told. Try again in a moment.")
+    ports = sorted({p for _, p in seen})
+    if len(ports) == 1:
+        return ("Open", "Both servers saw port %d%s: the router keeps one "
+                "public port for this one, so a friend's game can reach "
+                "yours directly." % (ports[0], ", the one used here" if
+                                     ports[0] == local else ""))
+    return ("Strict", "The servers saw different ports (%s): the router "
+            "gives each one its own, so only a friend whose router is open "
+            "can reach you. Forwarding UDP port %d to this machine in the "
+            "router's settings opens it." % (
+                " and ".join(str(p) for p in ports), local))

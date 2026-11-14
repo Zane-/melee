@@ -42,6 +42,21 @@ static uint8_t* aram_at(uint32_t addr, uint32_t length)
     return aram + addr;
 }
 
+/// The disc file audio RAM at `addr` was last filled from, or -1: the
+/// mixer (audio.c) tells a music stream (a .hps file) from a sound.
+int host_aram_file(uint32_t addr)
+{
+    for (int n = 1; n <= MAX_ARAM_ORIGINS; n++) {
+        int i = (aram_origin_next - n + MAX_ARAM_ORIGINS) % MAX_ARAM_ORIGINS;
+        if (aram_origins[i].length != 0 && addr >= aram_origins[i].addr &&
+            addr < aram_origins[i].addr + aram_origins[i].length)
+        {
+            return aram_origins[i].file;
+        }
+    }
+    return -1;
+}
+
 /// Audio RAM at `addr` for the mixer (audio.c): NULL past its end or
 /// before anything was put there.
 const uint8_t* host_aram_peek(uint32_t addr)

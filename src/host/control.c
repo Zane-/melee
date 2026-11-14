@@ -970,6 +970,19 @@ static void command(char* line)
 #else
         printf("@ error delay needs the window build\n");
 #endif
+    } else if (strcmp(cmd, "volume") == 0) {
+#ifdef HOST_WINDOW
+        /* "volume MUSIC SOUND": the player's volumes, 0 to 100 each;
+           "volume": what they are */
+        int music = -1, sound = -1;
+        if (sscanf(line, "%d %d", &music, &sound) == 2) {
+            host_window_volume(music, sound);
+        }
+        printf("@ ok %d %d\n", (host_window_gain(1) * 100 + 128) / 256,
+               (host_window_gain(0) * 100 + 128) / 256);
+#else
+        printf("@ error volume needs the window build\n");
+#endif
     } else if (strcmp(cmd, "rumble") == 0) {
         /* "rumble": the game's motor command for each port (1 running),
            and with the window build each port's rumble allowed and its

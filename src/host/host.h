@@ -223,6 +223,14 @@ void host_window_frame(void);
 /* audio.c: sound */
 void host_audio_frame(void);
 const uint8_t* host_aram_peek(uint32_t addr);
+/// The disc file audio RAM at `addr` came from, or -1 (hw.c), and a
+/// disc file's path by its number (dvd.c).
+int host_aram_file(uint32_t addr);
+const char* host_file_path(int file);
+/// Volumes (window.c): `music` and `sound` effects, 0 to 100; and the
+/// mixer's gain for each, 0 to 256 (0 effects, 1 music).
+void host_window_volume(int music, int sound);
+int host_window_gain(int kind);
 void host_window_audio(const int16_t* frames, int count);
 const char* host_song(void);
 /* state.c: the game's whole state, saved and loaded (rollback) */

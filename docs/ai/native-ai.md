@@ -802,6 +802,44 @@ it should be about the same as here), and whether holding the picture for half a
 is noticed when a load does happen (a stage change, a scenario chosen by hand, a solo drill
 after one with an opponent).
 
+### Settings: input delay, rumble, volumes (2026-11-13)
+
+The owner: "do we have the frame delay from slippi built in yet? We need that so practice
+is consistent. Normally it defaults to 2 frames of input delay. We need to build out a
+Settings menu in the main menu ... (move Controls into a submenu in settings)", then, on
+the mockups (the canvas's Settings row): "Frame delay should just be a suboption in
+Controls I feel, make Controls the headliner ... Make sure that we have rumble support in
+controls as well", and no numbers on the panels.
+
+The main menu's fifth panel is Settings: Controls big, Online, Sound and Display beside
+it. Each opens a list of rows with the row in focus edited in a dark panel. Kept in the
+progress file under `settings` (`tools/melee_client/settings.py`) and given to the game
+process when the client starts and whenever one changes.
+
+| Row | What it does |
+|-|-|
+| Controls: Input delay | 0 to 9 frames, 2 unless changed (Slippi's online default). A live port's press reaches the game that many frames after it is read (`delay N`, `host_window_delay` in `window.c`: a queue per port in `read_live`). What the person holds (`pads`) is not held back, so the client's menus answer at once; what the game is given (`pads game`) is, and the course engine, the tech judge and the escape drills read that one, so a press lines up with what it did. A netplay session delays the local pad itself (`net.c`), so the queue adds nothing there; online the session's delay is the one the player chose here |
+| Controls: Rumble | The game's own rumble (`PADControlMotor`, a generated stub until now, records each port's motor in `hw.c`), passed to the controller the port reads: a GameCube controller on the adapter (its `0x11` command, sent by the reader thread, `gcadapter.c`) or another controller (`SDL_RumbleGamepad`, renewed with a 500 ms duration so a game that dies does not leave it running). On or off per port (`rumble P 1|0`), stopped while a menu is up, "Feel it" (X: `rumble P test 30`). Matches enable rumble for people's ports, as `gm_LoadRumbleEnabled` does; whether it reaches a controller is the host's, outside the game's state, so both sides of a netplay session keep one game. The adapter's motors are stopped when it is opened and when the game quits or its window closes. Nintendo's adapter powers motors through its second (grey) plug |
+| Controls: UCF | On or off for practice; online always on (both games must be the same) |
+| Controls: Button layouts | Said to be next: they exist only in the overlay build |
+| Sound | Music, effects (matches and drills) and menu sounds, 0 to 100 in tens. Mixed apart outside the game (`volume MUSIC SOUND`, `host_window_gain`): a voice is music when its samples came from a `.hps` file (`host_aram_file`, `audio.c`'s `is_music`). The client gives the effects' volume in matches and the menus' on menus |
+| Display | Fullscreen or a window, the window's size (1280x720 to 2560x1440), the sidebar shown or hidden (also START held in a match; kept) |
+| Online | The nickname (X pastes it), the code's UDP port, the friends met (Y forgets one), and the router: two STUN servers asked from one socket, "Open" when both saw the same public port (`online.router_check`; only when A is pressed) |
+
+Enabling rumble found a bug: LbRb.dat's rumble scripts (`op:3`, `frame:13` in a u16) were
+read in x86 bit order, and the game looped forever on the first hit. `RumbleCommand` and
+`HSD_Rumble` are `PPC_LAYOUT` now, as the other script types.
+
+Tests: `tests/native/delay_rumble.py` (15: a press given 2 and 5 frames later and the
+fighter acting that much later, a menu's capture, the game's motor on a hit and off
+again, a port switched off, the keyboard's lack of a motor, and no adapter ever told
+anything: the tests read the virtual display's keyboard only); `tests/native/volume.py`
+(7: the menu's music at 100, 50, 0, a menu sound with the music at 0 and with the effects
+at 0); `tests/client/settings_menu.py` (42, off screen: every row of the four screens, the
+game process given each change, all of it kept and given again by a new client, no STUN
+server asked). Not known: how the rumble feels on the owner's controller (nothing here
+was felt), and whether the owner's adapter powers its motors.
+
 ## The target (owner, 2026-11-13)
 
 "Our target to hit is 100% of everything implemented in native w/ native support for
@@ -817,7 +855,7 @@ Where that stands, honestly:
 | Versus | A match against a trained model, the CPU or nobody, six stages | Stocks, timer, result; 3 and 4 players; items |
 | The Lab | Opponent choice, put back, damage | The rest of Training Mode's Lab: save states, recording, CPU behaviours, the info displays |
 | Events | Nothing | All of Training Mode's events |
-| Controls | The adapter is read directly; UCF 0.84 (Slippi's, frame for frame) | Layouts, nicknames' profiles, input delay: all exist only in the overlay build (`src/melee/tm/`) |
+| Controls | The adapter is read directly; UCF 0.84 (Slippi's, frame for frame); input delay (2 frames unless changed) and rumble, in Settings | Layouts and nicknames' profiles: they exist only in the overlay build (`src/melee/tm/`) |
 | slippi-ai | In Versus and the Lab, in real time | Projectiles and the partner Ice Climber in what the model sees; choosing a strength |
 | Tandem play | Nothing | `netplay-p2p.md` is a study |
 

@@ -49,6 +49,7 @@ import online  # noqa: E402
 import opponents  # noqa: E402
 import fonts  # noqa: E402
 import screens  # noqa: E402
+import settings  # noqa: E402
 import window  # noqa: E402
 import native  # noqa: E402
 from native import STAGES, NativeError  # noqa: E402
@@ -75,8 +76,8 @@ MAIN_MOVES = {
     "train": {RIGHT: "lab"},
     "lab": {LEFT: "train", DOWN: "events"},
     "events": {LEFT: "train", UP: "lab", RIGHT: "versus"},
-    "versus": {LEFT: "events", UP: "lab", DOWN: "controls"},
-    "controls": {LEFT: "events", UP: "versus"},
+    "versus": {LEFT: "events", UP: "lab", DOWN: "settings"},
+    "settings": {LEFT: "events", UP: "versus"},
 }
 
 
@@ -174,6 +175,17 @@ class Client:
         for f in fonts.fonts():
             self.w.ui("font " + str(f))
         self.w.live(port, source)
+        # the settings (Settings in the main menu): input delay, rumble, UCF
+        self.settings = settings.get(self.progress)
+        settings.apply(self.w, self.settings)
+        self.column_hidden = not self.settings["sidebar"]
+        try:
+            where = self.w.where()
+            if not where.get("asked") and \
+                    list(where["size"]) != list(self.settings["size"]):
+                self.w.resize(*self.settings["size"])
+        except Exception:
+            pass
         self.w.pace(True)
         self.show_main()
 
@@ -228,6 +240,8 @@ class Client:
     def menu_music(self):
         """The main menu's music on the menu screens (the owner: "the main
         menu music"); the match's is kept to put back."""
+        if hasattr(self, "settings"):
+            self.volumes_now()              # the menus' sounds' volume
         try:
             now = self.w.song()
             if now != native.MENU_SONG:
@@ -240,6 +254,8 @@ class Client:
     def match_music(self):
         """Into a match or a drill: its stage's music again, if the menus
         had replaced it (a new match starts its own)."""
+        if hasattr(self, "settings"):
+            self.volumes_now()              # the game's sounds' volume
         try:
             if self.w.song() == native.MENU_SONG:
                 if self.game_song is not None:
@@ -266,7 +282,10 @@ class Client:
     def where(self):
         """Where the menus are: the screen and what is in focus on it."""
         return (self.screen, self.focus, self.at, self.hub_at, self.opp_at,
-                tuple(self.row), getattr(self, "part", None))
+                tuple(self.row), getattr(self, "part", None),
+                getattr(self, "sfocus", None), getattr(self, "ctl_at", None),
+                getattr(self, "rport", None), getattr(self, "sub", None),
+                getattr(self, "sub_at", None), getattr(self, "fr_at", None))
 
     def show_main(self):
         self.menu_music()
@@ -287,7 +306,7 @@ class Client:
 
     def about(self, ident):
         item = next(i for i in screens.MAIN if i[0] == ident)
-        return item[4] + ("" if item[5] else
+        return item[3] + ("" if item[4] else
                           " Not in the native client yet.")
 
     # ---- input ----------------------------------------------------------------
@@ -441,6 +460,8 @@ class Client:
         """Put the column away (the game's picture in the middle) or back."""
         if not apply_only:
             self.column_hidden = not self.column_hidden
+            self.settings["sidebar"] = not self.column_hidden  # kept
+            self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
         for ident in ("bannerwrap", "pause", "rays"):
@@ -633,6 +654,8 @@ class Client:
             elif self.focus in ("train", "lab"):
                 self.mode = self.focus
                 self.show_characters()
+            elif self.focus == "settings":
+                self.show_settings()
             else:
                 self.say(self.about(self.focus))
 
@@ -658,7 +681,7 @@ class Client:
             self.w.ui("class %s focus 0" % self.vfocus)
             self.vfocus = to
             self.w.ui("class %s focus 1" % to)
-            self.say(next(v[4] for v in screens.VERSUS if v[0] == to))
+            self.say(next(v[3] for v in screens.VERSUS if v[0] == to))
         if pressed & B:
             self.show_main()
         elif pressed & A:
@@ -982,7 +1005,8 @@ class Client:
             met = self.lobby.meet(
                 code, dict(nick=self.nickname(), char=self.me["id"],
                            color=0),
-                stage=STAGE_ORDER[self.stage_at], delay=2, tick=tick)
+                stage=STAGE_ORDER[self.stage_at],
+                delay=self.settings["delay"], tick=tick)
         except online.OnlineError as e:
             self.online_say("Cancelled." if cancelled else
                             "Not found: %s. Ask for a new code, or check "
@@ -1002,6 +1026,12 @@ class Client:
         self.online_say("Found %s: starting the match..." % them)
         self.w.step()
         self.online_left_port = self.port
+        # both sides have to play one game: UCF on, as Slippi has it,
+        # whatever this player chose for practice (put back on leaving)
+        try:
+            self.w.ucf(True)
+        except Exception:
+            pass
         self.w.live(self.port, "off")
         self.w.pad(0)
         self.w.pad(1)
@@ -1058,6 +1088,7 @@ class Client:
         self.w.live(self.port, "off")
         self.port = self.online_left_port
         self.w.live(self.port, self.source)
+        settings.apply(self.w, self.settings)   # UCF as the player had it
         self.w.mask(0)
         self.has_cover = False
         self.online = None
@@ -1597,6 +1628,394 @@ class Client:
 
     def on_match(self, pressed, moves):
         pass
+
+    # ---- settings -----------------------------------------------------------
+
+    SET_MOVES = {
+        "scontrols": {RIGHT: "sonline"},
+        "sonline": {LEFT: "scontrols", DOWN: "ssound"},
+        "ssound": {LEFT: "scontrols", UP: "sonline", RIGHT: "sdisplay"},
+        "sdisplay": {LEFT: "ssound", UP: "sonline"},
+    }
+    CTL_ROWS = ("delay", "rumble", "ucf", "layouts")
+
+    def delay_words(self):
+        d = self.settings["delay"]
+        return "%d frame%s" % (d, "" if d == 1 else "s") if d else "Off"
+
+    def rumble_words(self):
+        on = self.settings["rumble"]
+        if all(on):
+            return "On"
+        if not any(on):
+            return "Off"
+        return "Ports " + " ".join(str(i + 1) for i, x in enumerate(on) if x)
+
+    def set_about(self, ident):
+        item = next(i for i in screens.SETTINGS if i[0] == ident)
+        return item[3] + ("" if item[4] else
+                          " Not in the native client yet.")
+
+    def show_settings(self):
+        self.menu_music()
+        self.screen = "settings"
+        self.w.capture(True)
+        self.sfocus = getattr(self, "sfocus", "scontrols")
+        s = self.settings
+        chips = [("INPUT DELAY", self.delay_words(), "neutral"),
+                 ("RUMBLE", "On" if s["rumble"][self.port] else "Off",
+                  "punish"),
+                 ("UCF", "0.84" if s["ucf"] else "Off", "ink"),
+                 ("BUTTONS", "The game's", "white")]
+        self.load("settings", screens.settings_menu(self.sfocus, chips))
+        self.w.ui("class %s focus 1" % self.sfocus)
+        self.say(self.set_about(self.sfocus))
+
+    def on_settings(self, pressed, moves):
+        for d in (LEFT, RIGHT, DOWN, UP):
+            to = self.SET_MOVES[self.sfocus].get(d) if moves & d else None
+            if to:
+                self.w.ui("class %s focus 0" % self.sfocus)
+                self.sfocus = to
+                self.w.ui("class %s focus 1" % to)
+                self.say(self.set_about(to))
+                break
+        if pressed & B:
+            self.show_main()
+        elif pressed & A:
+            if self.sfocus == "scontrols":
+                self.show_controls()
+            else:
+                self.show_sub(self.sfocus)
+
+    def controller_kind(self):
+        """What the player's port reads, for the rumble cards: (what it
+        is, whether it has a motor). The keyboard is not asked about the
+        adapter, so that a test never opens one."""
+        if self.source == "keyboard":
+            return "KEYBOARD", False
+        try:
+            said = self.w.devices()
+        except Exception:
+            return "?", False
+        others = said.split("Other controllers:")[-1].strip()
+        has_other = others[:1].isdigit() and int(others.split(":")[0]) > 0
+        if self.source.startswith("gcc") or (
+                self.source == "auto" and "controllers on its ports" in said):
+            return "GC ADAPTER", True
+        if self.source.startswith("pad") or (self.source == "auto" and
+                                             has_other):
+            return "CONTROLLER", True
+        return "KEYBOARD", False
+
+    def controls_view(self):
+        """The rows, and the panel, line and hints of the row in focus."""
+        s = self.settings
+        rows = [
+            ("delay", "Input delay", "Frames every press is held back.",
+             self.delay_words(), "#F5BE1B"),
+            ("rumble", "Rumble", "Each port's motor, on or off.",
+             self.rumble_words(), "#F0643C"),
+            ("ucf", "UCF 0.84", "Universal Controller Fix, as on Slippi.",
+             "On" if s["ucf"] else "Off", "#8A94A3"),
+            ("layouts", "Button layouts", "One for each port and nickname.",
+             "Not yet", "#1F49C9"),
+        ]
+        ident = self.CTL_ROWS[self.ctl_at]
+        if ident == "delay":
+            panel = screens.delay_panel(s["delay"], settings.DELAY_MAX)
+            desc = ("How many frames late every press reaches the game. "
+                    "Slippi plays online at 2.")
+            hints = [("SIDE", "Frames"), ("B", "Back")]
+        elif ident == "rumble":
+            kind, motor = self.controller_kind()
+            try:
+                running = self.w.rumble()["running"]
+            except Exception:
+                running = [0, 0, 0, 0]
+            ports = []
+            for i in range(4):
+                mine = i == self.port
+                ports.append(dict(
+                    name="Port %d" % (i + 1),
+                    source=kind if mine else "NOT PLAYED HERE",
+                    on=s["rumble"][i], motor=motor if mine else True,
+                    running=bool(running[i]) or (
+                        self.frames < getattr(self, "felt_until", 0) and
+                        i == getattr(self, "felt", -1) and
+                        (motor or not mine))))
+            if self.rport == self.port and not motor:
+                feel = "The keyboard has no motor to feel."
+            else:
+                feel = "Port %d rumbles for half a second." % (self.rport + 1)
+            panel = screens.rumble_panel(ports, self.rport, feel)
+            desc = ("Rumble as the game does it: hits taken and landed, "
+                    "port by port.")
+            hints = [("SIDE", "Port"), ("A", "On / off"), ("X", "Feel it"),
+                     ("B", "Back")]
+        elif ident == "ucf":
+            panel = screens.toggle_panel(
+                "UCF 0.84", "Every port, every match",
+                "On" if s["ucf"] else "Off", s["ucf"], [
+                    "The Universal Controller Fix: dash back and shield "
+                    "drop work alike on every controller, as on Slippi, "
+                    "where it is always on.",
+                    "Online it is on whatever is chosen here: both games "
+                    "have to play the same game."])
+            desc = "Universal Controller Fix 0.84, as Slippi plays it."
+            hints = [("SIDE", "On / off"), ("B", "Back")]
+        else:
+            panel = screens.note_panel(
+                "Button layouts", "Not in the native client yet", [
+                    "A layout for each port, and one a nickname brings "
+                    "with it: which button jumps, which grabs, what the "
+                    "D-pad does. The overlay build has them; the native "
+                    "client gets them next.",
+                    "Until then every port plays the game's own buttons."])
+            desc = "Button layouts for each port and nickname: next."
+            hints = [("B", "Back")]
+        return rows, panel, desc, hints
+
+    def draw_controls(self):
+        rows, panel, desc, hints = self.controls_view()
+        self.load("controls", screens.controls_page(
+            rows, self.ctl_at, panel, desc, hints))
+
+    def show_controls(self):
+        self.screen = "controls"
+        self.w.capture(True)
+        self.ctl_at = getattr(self, "ctl_at", 0)
+        self.rport = getattr(self, "rport", self.port)
+        self.felt_until = 0
+        self.draw_controls()
+
+    def on_controls(self, pressed, moves):
+        s = self.settings
+        ident = self.CTL_ROWS[self.ctl_at]
+        if pressed & B:
+            self.progress.save()
+            self.show_settings()
+            return
+        if moves & (UP | DOWN):
+            self.ctl_at = (self.ctl_at + (1 if moves & DOWN else -1)) % len(
+                self.CTL_ROWS)
+            self.draw_controls()
+            return
+        step = 1 if moves & RIGHT else -1 if moves & LEFT else 0
+        changed = redraw = False
+        if ident == "delay" and step:
+            n = max(0, min(settings.DELAY_MAX, s["delay"] + step))
+            changed = n != s["delay"]
+            s["delay"] = n
+        elif ident == "rumble":
+            if step:
+                self.rport = (self.rport + step) % 4
+                redraw = True
+            if pressed & A:
+                s["rumble"][self.rport] = not s["rumble"][self.rport]
+                changed = True
+            if pressed & X:
+                try:
+                    self.w.rumble_test(self.rport, 30)
+                except Exception:
+                    pass
+                self.felt, self.felt_until = self.rport, self.frames + 30
+                redraw = True
+        elif ident == "ucf" and (step or pressed & A):
+            s["ucf"] = not s["ucf"]
+            changed = True
+        if changed:
+            settings.apply(self.w, s)
+            self.progress.save()
+            self.sfx(self.SFX_MOVE)
+        if self.felt_until and self.frames == self.felt_until:
+            redraw = True               # the pulse is over
+        if changed or redraw:
+            self.draw_controls()
+
+    # Sound, Display and Online: rows on the left, the one in focus beside
+    # them, as Controls
+    SUB = {"ssound": ("Sound", "#F0643C", ("music", "effects", "menus")),
+           "sdisplay": ("Display", "#F5BE1B", ("window", "size", "sidebar")),
+           "sonline": ("Online", "#22B8A0",
+                       ("nick", "port", "friends", "router"))}
+
+    def volumes_now(self):
+        """The volumes the game is given: the menus' sounds on menus, the
+        game's in matches and drills."""
+        s = self.settings
+        try:
+            self.w.volume(s["music"], s["effects"] if self.has_cover
+                          else s["menus"])
+        except Exception:
+            pass
+
+    def fullscreen_now(self):
+        try:
+            where = self.w.where()
+            return bool(where.get("asked", where.get("fullscreen")))
+        except Exception:
+            return False
+
+    def sub_view(self):
+        s = self.settings
+        name, colour, idents = self.SUB[self.sub]
+        ident = idents[self.sub_at]
+        if self.sub == "ssound":
+            levels = [("Music", "Menus and stages", s["music"], "#F0643C"),
+                      ("Effects", "Matches and drills", s["effects"],
+                       "#22B8A0"),
+                      ("Menus", "Moving and choosing", s["menus"],
+                       "#1F49C9")]
+            rows = [("music", "Music", "The game's music: menus, stages.",
+                     "%d" % s["music"], "#F0643C"),
+                    ("effects", "Effects", "Hits, jumps, voices in a match.",
+                     "%d" % s["effects"], "#22B8A0"),
+                    ("menus", "Menu sounds", "Moving and choosing here.",
+                     "%d" % s["menus"], "#1F49C9")]
+            try:
+                song = self.w.song()
+            except Exception:
+                song = None
+            song = ("The main menu's theme" if song == native.MENU_SONG else
+                    song.rsplit(".", 1)[0] if song else "Nothing")
+            panel = screens.sound_panel(levels, self.sub_at, song)
+            desc = "Volumes are yours alone: the game is the same at any."
+            hints = [("SIDE", "Volume"), ("B", "Back")]
+        elif self.sub == "sdisplay":
+            full = self.fullscreen_now()
+            rows = [("window", "Window", "Fullscreen fills the screen.",
+                     "Fullscreen" if full else "Window", "#F5BE1B"),
+                    ("size", "Window size", "When it is not fullscreen.",
+                     "%d x %d" % tuple(s["size"]), "#F5BE1B"),
+                    ("sidebar", "Sidebar", "Beside the game in a match.",
+                     "Shown" if s["sidebar"] else "Hidden", "#F5BE1B")]
+            panel = screens.display_panel(s["sidebar"], full, s["size"])
+            desc = ("The sidebar can also be hidden in a match: hold "
+                    "START for three seconds.")
+            hints = [("SIDE", "Change"), ("B", "Back")]
+        else:
+            fr = online.friends(self.progress.data)
+            self.fr_at = min(getattr(self, "fr_at", 0), max(0, len(fr) - 1))
+            router = getattr(self, "router", None)
+            rows = [("nick", "Nickname", "What your friends see.",
+                     self.nickname(), "#22B8A0"),
+                    ("port", "Your code's port", "UDP, on this machine.",
+                     "%d" % self.online_port(), "#22B8A0"),
+                    ("friends", "Friends", "Met online, to play again.",
+                     "%d" % len(fr), "#22B8A0"),
+                    ("router", "Router", "Can friends reach you directly?",
+                     router[0] if router else "Not checked", "#22B8A0")]
+            panel = screens.online_panel(
+                ident, self.nickname(), self.online_port(),
+                [(f["name"], "an address" if ":" in f["code"] else "a code")
+                 for f in fr], self.fr_at, router)
+            desc, hints = {
+                "nick": ("Copy a name, then X pastes it as your nickname.",
+                         [("X", "Paste"), ("B", "Back")]),
+                "port": ("The UDP port your code points at.",
+                         [("SIDE", "Port"), ("B", "Back")]),
+                "friends": ("Friends you met online.",
+                            [("SIDE", "Friend"), ("Y", "Forget"),
+                             ("B", "Back")]),
+                "router": ("Asks two STUN servers how your router answers.",
+                           [("A", "Check"), ("B", "Back")]),
+            }[ident]
+        return name, colour, rows, panel, desc, hints
+
+    def draw_sub(self):
+        name, colour, rows, panel, desc, hints = self.sub_view()
+        self.load("sub", screens.settings_page(
+            name, colour, rows, self.sub_at, panel, desc, hints))
+
+    def show_sub(self, which):
+        self.screen = "sub"
+        self.w.capture(True)
+        if getattr(self, "sub", None) != which:
+            self.sub_at = 0
+        self.sub = which
+        self.draw_sub()
+
+    def on_sub(self, pressed, moves):
+        s = self.settings
+        idents = self.SUB[self.sub][2]
+        ident = idents[self.sub_at]
+        if pressed & B:
+            self.progress.save()
+            self.show_settings()
+            return
+        if moves & (UP | DOWN):
+            self.sub_at = (self.sub_at + (1 if moves & DOWN else -1)) % len(
+                idents)
+            self.draw_sub()
+            return
+        step = 1 if moves & RIGHT else -1 if moves & LEFT else 0
+        changed = False
+        if self.sub == "ssound" and step:
+            n = max(0, min(100, s[ident] + 10 * step))
+            changed = n != s[ident]
+            s[ident] = n
+            if changed:
+                self.volumes_now()
+        elif self.sub == "sdisplay" and (step or pressed & A):
+            if ident == "window":
+                try:
+                    self.w.fullscreen(not self.fullscreen_now())
+                except Exception:
+                    pass
+                changed = True
+            elif ident == "size":
+                sizes = [list(x) for x in settings.SIZES]
+                i = sizes.index(list(s["size"]))
+                s["size"] = sizes[(i + (step or 1)) % len(sizes)]
+                try:
+                    self.w.resize(*s["size"])
+                except Exception:
+                    pass
+                changed = True
+            else:
+                s["sidebar"] = not s["sidebar"]
+                self.column_hidden = not s["sidebar"]
+                changed = True
+        elif self.sub == "sonline":
+            if ident == "nick" and pressed & X:
+                text = (self.read_clipboard() or "").strip()
+                text = "".join(ch for ch in text.splitlines()[0]
+                               if ch.isprintable())[:12] if text else ""
+                if text:
+                    self.progress.data["nickname"] = text
+                    changed = True
+            elif ident == "port" and step:
+                self.progress.data["online_port"] = max(
+                    1024, min(65535, self.online_port() + step))
+                changed = True
+            elif ident == "friends":
+                fr = online.friends(self.progress.data)
+                if step and fr:
+                    self.fr_at = (self.fr_at + step) % len(fr)
+                    self.draw_sub()
+                if pressed & Y and fr:
+                    del fr[self.fr_at]
+                    self.progress.data["friends"] = fr
+                    changed = True
+            elif ident == "router" and pressed & A:
+                if os.environ.get("MELEE_ONLINE_NO_STUN") is not None:
+                    self.router = ("Not checked", "Checking is switched "
+                                   "off here (MELEE_ONLINE_NO_STUN).")
+                else:
+                    self.router = ("Checking", "Asking the STUN servers...")
+                    self.draw_sub()
+                    self.w.step()
+                    try:
+                        self.router = online.router_check(self.online_port())
+                    except Exception as e:
+                        self.router = ("No answer", "%s. Is this machine "
+                                       "online?" % str(e)[:80])
+                self.draw_sub()
+        if changed:
+            self.progress.save()
+            self.sfx(self.SFX_MOVE)
+            self.draw_sub()
 
     def run(self, frames=0):
         while not frames or self.frames < frames:

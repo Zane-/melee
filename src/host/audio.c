@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include <melee/lb/lbaudio_ax.h>
 #include <sysdolphin/baselib/axdriver.h>
@@ -64,6 +65,9 @@ typedef struct HostVoice {
     u32 ratio; ///< input samples per output sample, 16.16
     u32 frac;
     s16 prev, last; ///< the two input samples the output falls between
+    /// Music (a .hps stream) 1, a sound 0, not known yet -1: the window
+    /// build's music and effects volumes (host_window_gain).
+    int music;
 } HostVoice;
 
 static AXVPB voices[AX_MAX_VOICES];
@@ -289,6 +293,7 @@ void AXSetVoiceAddr(AXVPB* p, AXPBADDR* addr)
     h->loop_addr = word_at(&addr->loopAddressHi);
     h->end_addr = word_at(&addr->endAddressHi);
     h->cur = word_at(&addr->currentAddressHi);
+    h->music = -1; /* told once its data is in audio RAM (ax_frame) */
     memcpy(&p->pb.addr, addr, sizeof p->pb.addr);
     show_address(p);
 }
@@ -654,24 +659,57 @@ static void mix_voice(AXVPB* p, s32* left, s32* right)
     }
 }
 
+/// Is voice `h` playing music? A music stream is a .hps file the synth
+/// reads into audio RAM; a voice whose samples came from one is music.
+static int is_music(HostVoice* h)
+{
+    if (h->music < 0) {
+        u32 at = h->format == FORMAT_PCM16 ? h->cur * 2
+                 : h->format == FORMAT_PCM8 ? h->cur
+                                            : h->cur >> 1;
+        const char* path = host_file_path(host_aram_file(at));
+        if (path != NULL) {
+            const char* dot = strrchr(path, '.');
+            h->music = dot != NULL && strcasecmp(dot, ".hps") == 0;
+        }
+    }
+    return h->music > 0;
+}
+
 static void ax_frame(void)
 {
     s32 left[AX_FRAME], right[AX_FRAME];
+    s32 mleft[AX_FRAME], mright[AX_FRAME];
     s16 out[AX_FRAME * 2];
+#ifdef HOST_WINDOW
+    s32 gain_sound = host_window_gain(0), gain_music = host_window_gain(1);
+#else
+    s32 gain_sound = 256, gain_music = 256;
+#endif
 
     if (frame_callback != NULL) {
         frame_callback();
     }
     memset(left, 0, sizeof left);
     memset(right, 0, sizeof right);
+    memset(mleft, 0, sizeof mleft);
+    memset(mright, 0, sizeof mright);
     for (int i = 0; i < AX_MAX_VOICES; i++) {
         if (voices[i].priority != 0 && voices[i].pb.state != 0 && hv[i].on) {
-            mix_voice(&voices[i], left, right);
+            if (is_music(&hv[i])) {
+                mix_voice(&voices[i], mleft, mright);
+            } else {
+                mix_voice(&voices[i], left, right);
+            }
         }
     }
+    /* the volumes are the player's, outside the game: each side of a
+       netplay session hears its own, the game the same */
     for (int n = 0; n < AX_FRAME; n++) {
-        out[2 * n] = clamp16(left[n]);
-        out[2 * n + 1] = clamp16(right[n]);
+        out[2 * n] = clamp16((left[n] * gain_sound + mleft[n] * gain_music) >>
+                             8);
+        out[2 * n + 1] =
+            clamp16((right[n] * gain_sound + mright[n] * gain_music) >> 8);
     }
     if (host_net_resimulating()) {
         return; /* a frame played again: it was heard the first time */

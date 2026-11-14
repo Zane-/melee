@@ -96,7 +96,7 @@ def main():
               "its left edge at x %s near the top and x %s near the bottom"
               % tuple(edge))
         check("the focus moves panel to panel",
-              seen == ["lab", "events", "versus", "controls", "events",
+              seen == ["lab", "events", "versus", "settings", "events",
                        "lab", "train"], " ".join(seen))
         tap("Right")
         tap("Down")

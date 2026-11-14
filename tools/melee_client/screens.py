@@ -159,29 +159,31 @@ def footer(text, hints, tab="#F3F6FA"):
 # ---- main menu ---------------------------------------------------------------
 
 MAIN = [
-    # id, class, number, name, what it is, built in this client
-    ("train", "ink", "01", "Train",
+    # id, class, name, what it is, built in this client
+    ("train", "ink", "Train",
      "Pick a character and work through its course.", True),
-    ("lab", "lab", "02", "Lab",
+    ("lab", "lab", "Lab",
      "Free practice against whoever you choose: nobody, the game's CPU or "
      "a trained model.", True),
-    ("events", "events", "03", "Events",
+    ("events", "events", "Events",
      "Training Mode's own events, page by page.", False),
-    ("versus", "slate", "04", "Versus",
+    ("versus", "slate", "Versus",
      "Local or online: a trained model, the game's CPU, or a friend.", True),
-    ("controls", "white", "05", "Controls",
-     "Input delay and button layouts.", False),
+    ("settings", "white", "Settings",
+     "Input delay, rumble, controls, sound, display and online.", True),
 ]
 
 
 def _tile(item, extra=""):
-    ident, cls, number, name, about, built = item
+    """A panel. (No number in its corner: the owner, 2026-11-13, "I don't
+    like the numbered buttons, there's no point to doing that!")"""
+    ident, cls, name, about, built = item
     soon = "" if built else '<div class="soon">NOT YET</div>'
     return ('<div id="%s" class="tile %s"><div class="ring"/>'
-            '<div class="in"><div class="row"><div class="idx">%s</div>'
+            '<div class="in"><div class="row">'
             '<div class="grow"/>%s</div><div><div class="big">%s</div>'
             '<div class="sub">%s</div>%s</div></div>%s</div>' % (
-                ident, cls, number, soon, esc(name), esc(about), extra[0]
+                ident, cls, soon, esc(name), esc(about), extra[0]
                 if extra else "", extra[1] if extra else ""))
 
 
@@ -203,18 +205,18 @@ def main_menu(last=None):
         '<div class="right">' + _tile(by["lab"]) + gap +
         '<div class="lower">' + _tile(by["events"]) + gap +
         '<div class="small">' + _tile(by["versus"]) + gap +
-        _tile(by["controls"]) + '</div></div></div></div>' +
-        footer(by["train"][4], [("A", "Choose"), ("F11", "Fullscreen")]))
+        _tile(by["settings"]) + '</div></div></div></div>' +
+        footer(by["train"][3], [("A", "Choose"), ("F11", "Fullscreen")]))
     return page("Main menu", body)
 
 
 # ---- versus: local or online ------------------------------------------------------
 
 VERSUS = [
-    ("vlocal", "slate", "01", "Local",
+    ("vlocal", "slate", "Local",
      "On this machine: against a trained model, the game's CPU, or "
      "nobody.", True),
-    ("vonline", "ink", "02", "Online",
+    ("vonline", "ink", "Online",
      "Against a friend over the internet: swap codes, no server in "
      "between.", True),
 ]
@@ -225,7 +227,7 @@ def versus_menu(focus):
         header(["Main menu", "Versus"]) +
         '<div class="mosaic vmosaic">' + _tile(VERSUS[0]) +
         '<div class="gap"/>' + _tile(VERSUS[1]) + '</div>' +
-        footer(next(v[4] for v in VERSUS if v[0] == focus),
+        footer(next(v[3] for v in VERSUS if v[0] == focus),
                [("A", "Choose"), ("B", "Back")]))
     return page("Versus", body)
 
@@ -692,3 +694,267 @@ def drill_rail(c, d, course, about, stages=None):
     return page("Drill", over_game() + '<div id="rail" class="rail">%s'
                 '<div class="body">%s</div></div>' % (head, body),
                 paper=False)
+
+
+# ---- settings ---------------------------------------------------------------
+#
+# The design: the canvas's "Settings" row (Settings, Controls, Controls:
+# input delay, Controls: rumble). The owner, 2026-11-13: "Frame delay
+# should just be a suboption in Controls I feel, make Controls the
+# headliner", and "make sure that we have rumble support in controls".
+
+SETTINGS = [
+    # id, class, name, what it is, built in this client
+    ("scontrols", "tech", "Controls",
+     "Input delay, rumble and UCF. Button layouts for each port and "
+     "nickname come next.", True),
+    ("sonline", "defense", "Online",
+     "Your nickname, your code's port, friends, your router.", True),
+    ("ssound", "punish", "Sound", "Music, effects and menu sounds.", True),
+    ("sdisplay", "neutral", "Display",
+     "Fullscreen, the sidebar, the window's size.", True),
+]
+PORT_COLOR = ("#F0643C", "#1F49C9", "#F5BE1B", "#22B8A0")
+
+
+def settings_menu(focus, chips):
+    """The Settings panels, Controls the big one. `chips`: (label, value,
+    class) for the strip along the bottom of Controls."""
+    by = {item[0]: item for item in SETTINGS}
+    strip = '<div class="bands chips">%s</div>' % "".join(
+        '<div class="band %s"><div class="un"><div class="clbl">%s</div>'
+        '<div class="cval">%s</div></div></div>' % (cls, esc(label),
+                                                    esc(value))
+        for label, value, cls in chips)
+    gap = '<div class="gap"/>'
+    body = (
+        header(["Main menu", "Settings"]) +
+        '<div class="mosaic">' + _tile(by["scontrols"], ("", strip)) + gap +
+        '<div class="right">' + _tile(by["sonline"]) + gap +
+        '<div class="lower">' + _tile(by["ssound"]) + gap +
+        _tile(by["sdisplay"]) + '</div></div></div>' +
+        footer(by[focus][3], [("A", "Choose"), ("B", "Back")],
+               tab="#1F49C9"))
+    return page("Settings", body)
+
+
+def hint_keys(hints):
+    return "".join('<div class="hint">%s<div>%s</div></div>' % (
+        key(k, wide=len(k) > 1), esc(what)) for k, what in hints)
+
+
+def controls_rows(rows, at):
+    """rows: (id, name, what it is, value, colour of its mark)."""
+    return "".join(
+        '<div class="srow%s"><div class="cap" style="background-color: %s"/>'
+        '<div class="c-name"><div class="nm">%s</div><div class="gl">%s'
+        '</div></div><div class="sv">%s</div></div>' % (
+            " on" if i == at else "", colour, esc(name), esc(about),
+            esc(value))
+        for i, (ident, name, about, value, colour) in enumerate(rows))
+
+
+def settings_page(name, colour, rows, at, panel, desc, hints):
+    """Settings / `name`: the rows on the left, the one in focus edited in
+    the dark panel beside them; `colour` the section's."""
+    body = (
+        header(["Main menu", "Settings", name]) +
+        '<div id="slist" class="slist">%s</div>' % controls_rows(rows, at) +
+        '<div id="spanel" class="spanel">%s</div>' % panel +
+        '<div class="footer"><div class="tab" style="background-color: '
+        '%s"/><div id="desc" class="desc">%s</div><div class="grow"/>'
+        '<div id="fh" class="row">%s</div></div>' % (
+            colour, esc(desc), hint_keys(hints)))
+    return page(name, body)
+
+
+def controls_page(rows, at, panel, desc, hints):
+    return settings_page("Controls", "#1F49C9", rows, at, panel, desc, hints)
+
+
+def _panel_head(title, right):
+    return ('<div class="shd"><div><div class="sed">EDITING</div>'
+            '<div class="stl">%s</div></div><div class="grow"/>'
+            '<div class="sright">%s</div></div>' % (esc(title), esc(right)))
+
+
+LANE_CELLS = 13
+
+
+def delay_panel(frames, most):
+    """Input delay: the number of frames, big, and what the game sees of a
+    jab pressed on frame 0."""
+    ms = frames * 1000.0 * 1001 / 60000
+    chip = ("SLIPPI'S DEFAULT" if frames == 2 else
+            "NO DELAY" if frames == 0 else
+            "%d MORE THAN SLIPPI'S" % (frames - 2) if frames > 2 else
+            "1 LESS THAN SLIPPI'S")
+    sub = ("The console as it is." if frames == 0 else
+           "Off is the console as it is.")
+
+    def lane(name, cls_text):
+        return ('<div class="lane"><div class="ll">%s</div>%s</div>' % (
+            esc(name), "".join(
+                '<div class="lc %s"><div class="un">%s</div></div>' % (c, t)
+                for c, t in cls_text)))
+
+    ruler = ('<div class="lane nums"><div class="ll lbl">FRAME</div>%s</div>'
+             % "".join('<div class="lc n"><div class="un">%d</div></div>' % i
+                       for i in range(LANE_CELLS)))
+    press = [("press", "A") if i == 0 else ("", "")
+             for i in range(LANE_CELLS)]
+    held = [("held", "") if i < frames else ("", "")
+            for i in range(LANE_CELLS)]
+    jab = []
+    for i in range(LANE_CELLS):
+        k = i - frames
+        jab.append(("move", "START") if k == 0 else ("hit", "HIT") if k == 1
+                   else ("move", "") if k in (2, 3) else ("", ""))
+    note = ("A jab pressed on frame 0 starts on frame %d, here and online "
+            "alike." % frames if frames else
+            "A jab pressed on frame 0 starts on frame 0, as on the console.")
+    return (
+        _panel_head("Input delay", "Every port, in matches and drills") +
+        '<div class="dly"><div class="darr%s"><div class="un">&lt;</div>'
+        '</div><div class="dnum">%d</div><div class="dside"><div '
+        'class="dword">%s</div><div class="dms">%s</div></div><div '
+        'class="darr%s"><div class="un">&gt;</div></div><div class="grow"/>'
+        '<div class="dnote"><div class="dchip">%s</div><div class="dsub">%s'
+        '</div></div></div>' % (
+            " on" if frames > 0 else "", frames,
+            "Frame" if frames == 1 else "Frames",
+            "%.1f MS LATER" % ms if frames else "NOTHING HELD BACK",
+            " on" if frames < most else "", chip, sub) +
+        '<div class="lanes">%s%s%s%s</div><div class="lnote">%s</div>' % (
+            ruler, lane("You press A", press), lane("Held back", held),
+            lane("Fox's jab", jab), esc(note)))
+
+
+def rumble_panel(ports, at, feel):
+    """Rumble: a card for each port (name, source, on, has a motor,
+    running), `at` the card in focus; `feel`: what "Feel it" says."""
+    cards = []
+    for i, p in enumerate(ports):
+        state = ("RUMBLING" if p["running"] else
+                 "NO MOTOR" if not p["motor"] else
+                 "ON" if p["on"] else "OFF")
+        cards.append(
+            '<div class="pcard%s%s%s"><div class="pband" style="background-'
+            'color: %s"><div class="pname">%s</div><div class="grow"/><div '
+            'class="psrc">%s</div></div><div class="pbody"><div class="sw%s">'
+            '<div class="knob"%s><div class="un">%s</div></div></div><div '
+            'class="grow"/><div class="pst%s">%s</div></div></div>' % (
+                " l" if i % 2 == 0 else "",
+                " on" if i == at else "", "" if p["motor"] else " nomotor",
+                PORT_COLOR[i], esc(p["name"]), esc(p["source"]),
+                " on" if p["on"] else "",
+                ' style="background-color: %s"' % PORT_COLOR[i]
+                if p["on"] else "", "ON" if p["on"] else "OFF",
+                " go" if p["running"] else "", state))
+    return (
+        _panel_head("Rumble", "The game's own rumble, port by port") +
+        '<div class="pcards"><div class="prow2">%s</div>'
+        '<div class="prow2">%s</div></div><div class="grow"/>'
+        '<div class="feel"><div class="feelbtn"><div class="un">%s'
+        '<div>Feel it</div></div></div><div class="feeltxt"><div>%s</div>'
+        '<div class="dim2">Nintendo\'s adapter powers motors through its '
+        'grey plug.</div></div></div>' % (
+            "".join(cards[:2]), "".join(cards[2:]), key("X", dark=True),
+            esc(feel)))
+
+
+def toggle_panel(title, right, big, on, lines):
+    """A setting that is on or off: its state, big, what it does."""
+    return (
+        _panel_head(title, right) +
+        '<div class="sbig%s">%s</div>%s<div class="picks">'
+        '<div class="pk%s"><div class="un">On</div></div>'
+        '<div class="pk%s"><div class="un">Off</div></div></div>' % (
+            "" if on else " off", esc(big),
+            "".join('<div class="spara">%s</div>' % esc(l) for l in lines),
+            " on" if on else "", "" if on else " on"))
+
+
+def note_panel(title, right, lines):
+    return (_panel_head(title, right) + "".join(
+        '<div class="spara">%s</div>' % esc(l) for l in lines))
+
+
+def sound_panel(levels, at, song):
+    """Sound: a meter for each volume (name, what it is, 0 to 100,
+    colour), `at` the one in focus; `song` the music playing now."""
+    meters = []
+    for i, (name, about, value, colour) in enumerate(levels):
+        lit = (value + 5) // 10
+        blocks = "".join(
+            '<div class="blk" style="background-color: %s"/>' % (
+                colour if 9 - b < lit else "#2B3340") for b in range(10))
+        meters.append(
+            '<div class="meter%s"><div class="mv"><div class="mn">%d</div>'
+            '<div class="mp">%%</div></div><div class="mbar"><div '
+            'class="un">%s</div></div><div class="mlabel" style="background-'
+            'color: %s"><div class="un"><div class="ml1">%s</div><div '
+            'class="ml2">%s</div></div></div></div>' % (
+                " on" if i == at else "", value, blocks, colour, esc(name),
+                esc(about)))
+    return (
+        _panel_head("Sound", "Yours: the game is the same at any volume") +
+        '<div class="meters">%s<div class="playing"><div class="sed">NOW '
+        'PLAYING</div><div class="song">%s</div><div class="spara2">The '
+        'menus play the main menu\'s theme; a match and a drill their '
+        'stage\'s.</div></div></div>' % ("".join(meters), esc(song)))
+
+
+def display_panel(sidebar, fullscreen, size):
+    """Display: where the game and the sidebar go on the screen."""
+    game = ('<div class="dgame"><div class="dlbl">THE GAME · 4:3</div>'
+            '<div class="dstage"/></div>')
+    side = ('<div class="dside2"><div class="dsb1"/><div class="dsb2"/>'
+            '<div class="dsb2 short"/><div class="dsb3"/><div class="grow"/>'
+            '<div class="dlbl">SIDEBAR</div></div>') if sidebar else ""
+    return (
+        _panel_head("Display", "Fullscreen: F11 anywhere too") +
+        '<div class="dscreen"><div class="dwin%s">%s%s</div></div>'
+        '<div class="spara">%s</div>' % (
+            "" if sidebar else " mid", game, side, esc(
+                "The game keeps its own 4:3 at any size, %s. %s" % (
+                    "the sidebar beside it" if sidebar else
+                    "in the middle of the window",
+                    "Fullscreen fills the screen, bars at its sides." if
+                    fullscreen else "In a window: %d by %d." % tuple(size)))))
+
+
+def online_panel(ident, nick, port, friends, at, router):
+    """Online: the row in focus. `friends`: (name, what) pairs, `at` the
+    one in focus; `router`: what the last check found, or None."""
+    if ident == "nick":
+        return (_panel_head("Nickname", "What your friends see") +
+                '<div class="sbig nick">%s</div>' % esc(nick) +
+                '<div class="spara">%s</div>' % esc(
+                    "Copy a name (up to 12 letters), then X pastes it "
+                    "here. It goes to a friend with your code when you "
+                    "meet."))
+    if ident == "port":
+        return (_panel_head("Your code's port", "UDP, on this machine") +
+                '<div class="sbig">%d</div>' % port +
+                '<div class="spara">%s</div>' % esc(
+                    "The port your code points at. A router that keeps it "
+                    "gives the same code every time. Change it only if "
+                    "another program uses %d." % port))
+    if ident == "friends":
+        cards = "".join(
+            '<div class="fcard%s"><div class="fini"><div class="un">%s</div>'
+            '</div><div class="fname">%s</div><div class="grow"/><div '
+            'class="fwhat">%s</div></div>' % (
+                " on" if i == at else "", esc(name[:2].upper()), esc(name),
+                esc(what)) for i, (name, what) in enumerate(friends[:5]))
+        return (_panel_head("Friends", "%d met online" % len(friends)) +
+                (cards or '<div class="spara">%s</div>' % esc(
+                    "Nobody yet: a friend you play online is kept here, "
+                    "to play again from Versus, Online.")))
+    found = router or ("Not checked", "Asks two STUN servers what this "
+                       "machine's address and port look like from outside.")
+    return (_panel_head("Router", "Can friends reach you directly?") +
+            '<div class="sbig%s">%s</div><div class="spara">%s</div>' % (
+                "" if router and router[0] == "Open" else " off",
+                esc(found[0]), esc(found[1])))

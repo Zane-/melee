@@ -450,6 +450,25 @@ static int rumble_test[4]; ///< frames of test pulse left
 static int rumble_on[4];   ///< what the port's controller was last told
 static unsigned rumble_frames;
 
+/* Volumes, the player's (the client's Sound settings): music and sound
+ * effects, 0 to 100, as the mixer's gains (audio.c). Outside the game's
+ * state: both sides of a netplay session play one game whatever each
+ * hears. */
+static int gain_sound = 256, gain_music = 256;
+
+void host_window_volume(int music, int sound)
+{
+    music = music < 0 ? 0 : music > 100 ? 100 : music;
+    sound = sound < 0 ? 0 : sound > 100 ? 100 : sound;
+    gain_music = (music * 256 + 50) / 100;
+    gain_sound = (sound * 256 + 50) / 100;
+}
+
+int host_window_gain(int kind)
+{
+    return kind ? gain_music : gain_sound;
+}
+
 void host_window_rumble(int port, int on)
 {
     rumble_off[port & 3] = !on;
