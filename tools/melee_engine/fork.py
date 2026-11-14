@@ -8,7 +8,7 @@ are watching (docs/ai/melee-engine.md, "Thinking while a person plays").
     with Fork(n) as f:                # n: a Native (the window, headless)
         r = search(f, port=1, target=0, horizon=60, budget=800, depth=2)
 
-    think = InFork(n)                 # for melee_engine.jumpin.JumpIn
+    think = InFork(n)                 # for melee_engine.drill.EngineOpponent
     think.submit(tag, fn)             # fn(fork) runs in a thread
     think.ready(tag), think.result(tag)
 
@@ -34,7 +34,7 @@ from native import Fighter, NativeError, _json  # noqa: E402
 
 class Fork:
     """A copy of the game at the frame it was forked at. What search.py and
-    jumpin.py ask of a game (`_cmd`, `_reply`, `state`, `fighter`) it
+    contracts.py ask of a game (`_cmd`, `_reply`, `state`, `fighter`) it
     answers."""
 
     def __init__(self, n, timeout=10.0):

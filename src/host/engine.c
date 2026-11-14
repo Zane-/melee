@@ -145,6 +145,12 @@
 #define MS_GUARD_STUN 181
 #define MS_GUARD_REFLECT 182
 #define MS_CATCH_WAIT 216
+#define MS_DAMAGE_FALL 38    /* tumble */
+#define MS_DAMAGE_FIRST 75
+#define MS_DAMAGE_LAST 91
+#define MS_DOWN_FIRST 183    /* lying down after a missed tech, U and D */
+#define MS_DOWN_LAST 198
+#define MS_CLIFF_WAIT 253
 #define MS_CAPTURE_FIRST 223 /* being held: pulled, waiting, pummelled... */
 #define MS_CAPTURE_LAST 228
 
@@ -155,7 +161,7 @@ enum {
     M_WAIT, M_WALK_IN, M_WALK_OUT, M_DASH_IN, M_DASH_OUT, M_JAB, M_FTILT,
     M_UTILT, M_DTILT, M_FSMASH, M_USMASH, M_DSMASH, M_GRAB, M_DASH_ATTACK,
     M_SHIELD, M_DOWN_B, M_NEUTRAL_B, M_SIDE_B, M_UP_B, M_WD_IN, M_WD_OUT,
-    M_HOP_IN, M_HOP_OUT,
+    M_HOP_IN, M_HOP_OUT, M_HOP,
     /* full hops with no aerial yet (drifting in, none, out): the air's
        moves come next, an aerial pressed when the search finds it lands */
     M_JUMP_IN, M_JUMP, M_JUMP_OUT,
@@ -171,9 +177,18 @@ enum {
     M_DRIFT_IN, M_DRIFT_OUT, M_DRIFT_NONE, M_FASTFALL, M_DJ_IN, M_DJ_OUT,
     /* in shield */
     M_OOS_GRAB, M_OOS_USMASH, M_OOS_JUMP, M_SPOTDODGE, M_ROLL_IN,
-    M_ROLL_OUT, M_SHIELD_HOLD, M_SHIELD_DROP,
+    M_ROLL_OUT, M_OOS_DOWN_B, M_OOS_UP_B, M_SHIELD_HOLD, M_SHIELD_DROP,
     /* holding the target */
     M_THROW_F, M_THROW_B, M_THROW_U, M_THROW_D,
+    /* hit, in the air: a tech as it lands (in place, toward, away) */
+    M_TECH, M_TECH_IN, M_TECH_OUT,
+    /* lying down: getting up, attacking, rolling toward or away */
+    M_GETUP, M_GETUP_ATTACK, M_GETUP_IN, M_GETUP_OUT,
+    /* hanging from the ledge */
+    M_LEDGE_GETUP, M_LEDGE_ROLL, M_LEDGE_JUMP, M_LEDGE_ATTACK, M_LEDGE_DROP,
+    /* in the air: angled up specials, air dodges */
+    M_UP_B_IN, M_UP_B_OUT, M_AIRDODGE_IN, M_AIRDODGE_OUT, M_AIRDODGE_UP,
+    M_AIRDODGE_DOWN,
     M_COUNT
 };
 
@@ -189,7 +204,7 @@ static void name_macros(void)
         "wait", "walk_in", "walk_out", "dash_in", "dash_out", "jab",
         "ftilt", "utilt", "dtilt", "fsmash", "usmash", "dsmash", "grab",
         "dash_attack", "shield", "down_b", "neutral_b", "side_b", "up_b",
-        "wavedash_in", "wavedash_out", "hop_in", "hop_out", "jump_in",
+        "wavedash_in", "wavedash_out", "hop_in", "hop_out", "hop", "jump_in",
         "jump", "jump_out",
     };
     for (int i = 0; i < (int) (sizeof fixed / sizeof *fixed); i++) {
@@ -209,8 +224,12 @@ static void name_macros(void)
     static const char* const rest[] = {
         "drift_in", "drift_out", "drift_none", "fastfall", "dj_in", "dj_out",
         "oos_grab", "oos_usmash", "oos_jump", "spotdodge", "roll_in",
-        "roll_out", "shield_hold", "shield_drop", "fthrow", "bthrow",
-        "uthrow", "dthrow",
+        "roll_out", "oos_down_b", "oos_up_b", "shield_hold", "shield_drop",
+        "fthrow", "bthrow", "uthrow", "dthrow", "tech", "tech_in", "tech_out",
+        "getup", "getup_attack", "getup_in", "getup_out", "ledge_getup",
+        "ledge_roll", "ledge_jump", "ledge_attack", "ledge_drop", "up_b_in",
+        "up_b_out", "airdodge_in", "airdodge_out", "airdodge_up",
+        "airdodge_down",
     };
     for (int i = 0; i < (int) (sizeof rest / sizeof *rest); i++) {
         snprintf(macro_names[M_DRIFT_IN + i], 24, "%s", rest[i]);
@@ -603,9 +622,10 @@ static HostPad neutral(void)
     return pad_of(0, 0, 0, 0, 0, 0);
 }
 
-/// Follow the fighter until it can act again, the stick held at `lx`, L
-/// pulsed during an aerial if L-cancelling. 0 if the line must stop.
-static int settle(int lx)
+/// Follow the fighter until it can act again, the stick held at (`lx`,
+/// `ly`), L pulsed during an aerial if L-cancelling. 0 if the line must
+/// stop.
+static int settle_xy(int lx, int ly)
 {
     for (int i = 0; i < SETTLE_MAX; i++) {
         Fighter* a = fighter_of(eng.port);
@@ -618,7 +638,7 @@ static int settle(int lx)
             return 1;
         }
         m = (int) a->motion_id;
-        p = pad_of(0, airborne(a) ? lx : 0, 0, 0, 0, 0);
+        p = pad_of(0, airborne(a) ? lx : 0, airborne(a) ? ly : 0, 0, 0, 0);
         if (eng.lcancel && airborne(a) && m >= MS_AIR_ATTACK_FIRST &&
             m <= MS_AIR_ATTACK_LAST && i % 6 == 3)
         {
@@ -630,6 +650,11 @@ static int settle(int lx)
         }
     }
     return 1;
+}
+
+static int settle(int lx)
+{
+    return settle_xy(lx, 0);
 }
 
 /// The aerial's input, `a` 0..4 (nair fair bair uair dair), facing `f`.
@@ -843,11 +868,13 @@ static int run_macro(int m)
                settle(m == M_DJ_IN ? in : -in);
     case M_OOS_GRAB:
         return press(pad_of(B_R | B_A, 0, 0, 0, 0, 255));
+    /* Out of shield the jump is pressed with the shield still held: X with
+       R let go is the shield dropped (and a spot dodge after). */
     case M_OOS_USMASH:
-        return play(pad_of(B_X, 0, 0, 0, 0, 0)) &&
+        return play(pad_of(B_X | B_R, 0, 0, 0, 0, 255)) &&
                press(pad_of(0, 0, 0, 0, 127, 0));
     case M_OOS_JUMP:
-        return press(pad_of(B_X, 0, 0, 0, 0, 0));
+        return press(pad_of(B_X | B_R, 0, 0, 0, 0, 255));
     case M_SPOTDODGE:
         return press(pad_of(B_R, 0, -127, 0, 0, 255));
     case M_ROLL_IN:
@@ -866,6 +893,75 @@ static int run_macro(int m)
         return press(pad_of(0, 0, 127, 0, 0, 0));
     case M_THROW_D:
         return press(pad_of(0, 0, -127, 0, 0, 0));
+    case M_HOP:
+        return hop(-1, 0, 0);
+    case M_OOS_DOWN_B: {
+        /* the jump, then down-B as its squat ends (Fox and Falco's shine
+           out of shield, on frame 4) */
+        Fighter* fp;
+        if (!play(pad_of(B_X | B_R, 0, 0, 0, 0, 255))) {
+            return 0;
+        }
+        for (int i = 0; i < 10; i++) {
+            fp = fighter_of(eng.port);
+            if (fp == NULL) {
+                return 0;
+            }
+            if ((int) fp->motion_id != MS_KNEEBEND) {
+                break;
+            }
+            if (!play(neutral())) {
+                return 0;
+            }
+        }
+        return press(pad_of(B_B, 0, -127, 0, 0, 0));
+    }
+    case M_OOS_UP_B:
+        return press(pad_of(B_B, 0, 127, 0, 0, 0));
+    case M_TECH:
+    case M_TECH_IN:
+    case M_TECH_OUT: {
+        int lx = m == M_TECH ? 0 : m == M_TECH_IN ? in : -in;
+        return press(pad_of(B_R, lx, 0, 0, 0, 255));
+    }
+    case M_GETUP:
+        return press(pad_of(0, 0, 127, 0, 0, 0));
+    case M_GETUP_ATTACK:
+        return press(pad_of(B_A, 0, 0, 0, 0, 0));
+    case M_GETUP_IN:
+        return press(pad_of(0, in, 0, 0, 0, 0));
+    case M_GETUP_OUT:
+        return press(pad_of(0, -in, 0, 0, 0, 0));
+    case M_LEDGE_GETUP:
+    case M_LEDGE_ROLL:
+    case M_LEDGE_JUMP:
+    case M_LEDGE_ATTACK:
+    case M_LEDGE_DROP: {
+        /* toward the stage: where the fighter faces, hanging */
+        Fighter* fp = fighter_of(eng.port);
+        int st = (int) (127 * (fp != NULL ? fp->facing_dir : 1.0F));
+        HostPad p = m == M_LEDGE_GETUP   ? pad_of(0, st, 0, 0, 0, 0)
+                    : m == M_LEDGE_ROLL  ? pad_of(B_R, 0, 0, 0, 0, 255)
+                    : m == M_LEDGE_JUMP  ? pad_of(B_X, 0, 0, 0, 0, 0)
+                    : m == M_LEDGE_ATTACK ? pad_of(B_A, 0, 0, 0, 0, 0)
+                                          : pad_of(0, 0, -127, 0, 0, 0);
+        return press(p);
+    }
+    case M_UP_B_IN:
+    case M_UP_B_OUT: {
+        /* the angle held through the move (Fire Fox's is read at the end
+           of its charge) */
+        int lx = (int) ((m == M_UP_B_IN ? 90 : -90) * t);
+        return play(pad_of(B_B, 0, 127, 0, 0, 0)) && settle_xy(lx, 90);
+    }
+    case M_AIRDODGE_IN:
+        return press(pad_of(B_R, in, 0, 0, 0, 255));
+    case M_AIRDODGE_OUT:
+        return press(pad_of(B_R, -in, 0, 0, 0, 255));
+    case M_AIRDODGE_UP:
+        return press(pad_of(B_R, 0, 127, 0, 0, 255));
+    case M_AIRDODGE_DOWN:
+        return press(pad_of(B_R, 0, -127, 0, 0, 255));
     default:
         return hold(neutral(), 6);
     }
@@ -884,18 +980,50 @@ static int moves_for(int* out)
         for (int i = M_THROW_F; i <= M_THROW_D; i++) {
             out[n++] = i;
         }
-    } else if (m == MS_GUARD || m == MS_GUARD_ON) {
+    } else if (m == MS_GUARD || m == MS_GUARD_ON || m == MS_GUARD_REFLECT) {
+        /* (a shield's first frames are its reflecting window) */
         for (int i = M_OOS_GRAB; i <= M_SHIELD_DROP; i++) {
+            out[n++] = i;
+        }
+    } else if (m == MS_CLIFF_WAIT) {
+        out[n++] = M_WAIT;
+        for (int i = M_LEDGE_GETUP; i <= M_LEDGE_DROP; i++) {
+            out[n++] = i;
+        }
+    } else if (m >= MS_DOWN_FIRST && m <= MS_DOWN_LAST) {
+        out[n++] = M_WAIT;
+        for (int i = M_GETUP; i <= M_GETUP_OUT; i++) {
             out[n++] = i;
         }
     } else if (!can_act(a)) {
         out[n++] = M_WAIT;
+        if (airborne(a) &&
+            (m == MS_DAMAGE_FALL ||
+             (m >= MS_DAMAGE_FIRST && m <= MS_DAMAGE_LAST)))
+        {
+            for (int i = M_TECH; i <= M_TECH_OUT; i++) {
+                out[n++] = i;
+            }
+        }
     } else if (airborne(a)) {
         for (int i = M_AIR_FIRST; i <= M_DJ_OUT; i++) {
             if ((i == M_DJ_IN || i == M_DJ_OUT) && a->x1968_jumpsUsed >= 2) {
                 continue;
             }
             out[n++] = i;
+        }
+        /* specials and air dodges: recovering, escaping */
+        out[n++] = M_UP_B;
+        out[n++] = M_SIDE_B;
+        out[n++] = M_DOWN_B;
+        out[n++] = M_NEUTRAL_B;
+        for (int i = M_UP_B_IN; i <= M_AIRDODGE_DOWN; i++) {
+            out[n++] = i;
+        }
+        if (m == MS_DAMAGE_FALL) {
+            for (int i = M_TECH; i <= M_TECH_OUT; i++) {
+                out[n++] = i;
+            }
         }
     } else {
         int running = m == MS_DASH || m == MS_RUN;
@@ -1128,19 +1256,25 @@ static float node(int at, int depth, long budget)
 /* ---- the timing scan --------------------------------------------------- */
 
 enum { H_IN, H_NONE, H_OUT, H_WALK_IN, H_WALK_OUT, H_FF_IN, H_FF_NONE,
-       H_FF_OUT, H_COUNT };
+       H_FF_OUT, H_DOWN, H_UP, H_UP_IN, H_UP_OUT, H_DOWN_IN, H_DOWN_OUT,
+       H_COUNT };
 static const char* const HOLD_NAME[H_COUNT] = {
     "in", "none", "out", "walk_in", "walk_out", "ff_in", "ff_none", "ff_out",
+    "down", "up", "up_in", "up_out", "down_in", "down_out",
 };
 
 /// This frame's pad of hold `h`: the stick toward the target (as it is
 /// now), none, or away; walking; ff_: and down once, the first frame the
-/// fighter falls (`*ff` then set).
+/// fighter falls (`*ff` then set); down (a crouch), up and the diagonals
+/// (DI, a drift).
 static HostPad hold_pad(int h, int* ff)
 {
-    static const int lx_of[H_COUNT] = { 127, 0, -127, 45, -45, 127, 0, -127 };
+    static const int lx_of[H_COUNT] = { 127, 0,  -127, 45, -45, 127, 0,
+                                        -127, 0, 0,    90, -90, 90,  -90 };
+    static const int ly_of[H_COUNT] = { 0, 0,   0,   0,  0,   0,  0,
+                                        0, -127, 127, 90, 90, -90, -90 };
     Fighter* a = fighter_of(eng.port);
-    HostPad p = pad_of(0, (int) (lx_of[h] * toward()), 0, 0, 0, 0);
+    HostPad p = pad_of(0, (int) (lx_of[h] * toward()), ly_of[h], 0, 0, 0);
     if (h >= H_FF_IN && !*ff && a != NULL && airborne(a) &&
         a->self_vel.y < 0.0F)
     {

@@ -1,5 +1,5 @@
-"""fox-anti-air against Opponent: Engine (tools/melee_engine/jumpin.py):
-both fighters move; the opponent chooses its moment, plans its jump-in by
+"""fox-anti-air against Opponent: Engine (tools/melee_engine/drill.py and
+contracts.py): both fighters move; the opponent chooses its moment, plans its jump-in by
 search, and jumps only when the player has an anti-air.
 
     python tools/native_build.py
@@ -43,8 +43,8 @@ from native import Native  # noqa: E402
 from melee_course import engine, registry  # noqa: E402
 from melee_course.react import ENGINE  # noqa: E402
 from melee_engine.fork import InFork  # noqa: E402
-from melee_engine.jumpin import (  # noqa: E402
-    NONE, Footsies, answers, press_at)
+from melee_engine.drill import NONE, Footsies, press_at  # noqa: E402
+from melee_engine.contracts import anti_air  # noqa: E402
 
 DRILL = "fox-anti-air"
 REACTION = 15
@@ -106,9 +106,10 @@ class StandIn:
                 i = f - start
                 return pads[i] if i < len(pads) else NONE
         rest = opp.plan[f - opp.plan_at:] if opp.plan_at is not None else []
-        good, _ = answers(game, self.s.person, self.s.cpu_port, rest, NONE, 0,
-                          len(rest) + 8, holds="none,walk_in,walk_out,in,out",
-                          enough=1, states=self.s.d.ANSWERS)
+        answer = anti_air(self.s.d.ANSWERS)
+        answer.holds = "none,walk_in,walk_out,in,out"
+        good, _ = answer.find(game, self.s.person, self.s.cpu_port, rest,
+                              NONE, 0, len(rest) + 8)
         self.searches += 1
         if good:
             self.line = (f, good[0].raw())

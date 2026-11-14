@@ -21,7 +21,7 @@ went during the wait, looks ahead, and jumps once the aerial would land.
 The drill's clock (attack_frame) starts at the jump either way.
 
 fox-anti-air plays by default against Opponent: Engine
-(melee_engine/jumpin.py): both fighters move; the CPU dash dances and walks
+(melee_engine/drill.py, contracts.py): both fighters move; the CPU dash dances and walks
 about the scenario's distance, chooses its moment, and its jump, drift and
 aerial timing are found by the search engine so that the aerial lands
 where the player is. It jumps only once the engine has found the player an
@@ -347,22 +347,23 @@ class _Approach(Drill):
         return True
 
     def engine_opponent(self, c):
-        """The engine's jump-in (melee_engine/jumpin.py): it moves about the
+        """The engine's jump-in (melee_engine/contracts.JumpIn): it moves about the
         scenario's distance, then jumps in with its aerial. A
         demonstration's comes sooner and does not follow the player in the
         air: the player there plays the answer that was checked."""
-        from melee_engine.jumpin import Footsies, JumpIn
+        from melee_engine.contracts import JumpIn, anti_air
+        from melee_engine.drill import EngineOpponent, Footsies
         sc, s = c.entry.data, c.s
         rng = random.Random(c.rng.random())
         half = STAGE_LIMIT.get(s.d.stage, 70.0)
         body = Footsies(s.cpu_port, s.person,
                         band=(sc.reach - 12.0, sc.reach + 15.0),
                         rng=random.Random(rng.random()), half=half)
-        return JumpIn(thinker(c), s.cpu_port, s.person, sc.aerial, body,
-                      rng=rng, track=not c.is_demo,
-                      wait=(5, 15) if c.is_demo else (20, 110),
-                      states=self.ANSWERS,
-                      reach=(sc.reach - 20.0, sc.reach + 20.0))
+        contract = JumpIn(sc.aerial, answer=anti_air(self.ANSWERS),
+                          reach=(sc.reach - 20.0, sc.reach + 20.0))
+        return EngineOpponent(thinker(c), s.cpu_port, s.person, contract,
+                              body, rng=rng, track=not c.is_demo,
+                              wait=(5, 15) if c.is_demo else (20, 110))
 
     def advance_engine(self, c):
         v = self.v

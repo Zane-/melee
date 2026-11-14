@@ -15,7 +15,7 @@ land unless the player answers them the way the drill teaches.
 
 Each converted drill has an option Opponent: Reactive (this) or Fixed
 timing (the C's table, which the overlay's specs check). fox-anti-air has a
-third, Engine (melee_engine/jumpin.py): the opponent moves about and plans
+third, Engine (melee_engine/drill.py, contracts.py): the opponent moves about and plans
 the jump-in itself with the search engine, and jumps only when the player
 has an answer to it.
 """
@@ -88,7 +88,7 @@ def thinker(c):
             from melee_engine.fork import InFork
             t = InFork(c.n)
         else:
-            from melee_engine.jumpin import Here
+            from melee_engine.drill import Here
             t = Here(c.n)
         s.thinker = t
     return t
