@@ -236,6 +236,12 @@ class Client:
     SFX_BACK, SFX_FORWARD, SFX_MOVE = 0, 1, 2
 
     def sfx(self, n):
+        """A menu sound, played by the game. Not while a netplay session
+        runs: a sound the game starts on one side only puts the two games'
+        states apart (rollback saves and restores them), and an online
+        match sometimes hung leaving through its pause menu."""
+        if getattr(self, "online", None) is not None:
+            return
         try:
             self.w.sfx(n)
         except Exception:             # a build without sound commands
@@ -380,7 +386,8 @@ class Client:
                 self.leave_match(ev[1])
                 return
         before = self.where()
-        if self.screen not in ("match", "versus") and pressed & (A | START):
+        if self.screen not in ("match", "versus", "online_match") and \
+                pressed & (A | START):
             # choosing: the sound now, before what it opens (a drill runs
             # inside the list's frame)
             self.sfx(self.SFX_FORWARD)
@@ -388,7 +395,7 @@ class Client:
         else:
             pressed_sound = 0
         getattr(self, "on_" + self.screen)(pressed, moves)
-        if before[0] not in ("match", "versus"):
+        if before[0] not in ("match", "versus", "online_match"):
             self.menu_sounds(before, pressed & ~pressed_sound)
 
     def leave_match(self, to):

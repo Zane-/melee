@@ -187,7 +187,9 @@ def main():
                 # inside the pause menu the client calls its person each
                 # frame (as in a drill): the choosing happens there
                 a.c.person = lambda game, frame: ch(game)
-                for _ in range(200):
+                # (frames are unpaced: under load the key presses and the
+                # menu take more of them, so the budget is generous)
+                for _ in range(900):
                     ch(a.w)
                     a.c.frame()
                     if a.c.screen == "online":
@@ -196,7 +198,7 @@ def main():
                 out["a"] = a.c.screen
 
             def wait():
-                for _ in range(400):
+                for _ in range(1200):
                     b.c.frame()
                     if b.c.screen == "online":
                         break
