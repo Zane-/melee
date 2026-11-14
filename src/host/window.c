@@ -25,6 +25,10 @@
 #include <SDL3/SDL.h>
 #include <sys/stat.h>
 
+/* From the patch tools/aurora32/build.sh applies (this file is compiled
+   against Aurora's own headers, as ui.cpp is). */
+void aurora_set_present_hold(bool value);
+
 static int in_frame;
 static int started;
 static SDL_Window* sdl_window;
@@ -369,6 +373,8 @@ enum {
 
 static int live[4];
 static int paced;
+/// A quiet stretch (host_window_quiet): unpaced, and the picture held.
+static int quiet;
 
 /// What each live port's person is holding, whether or not the game is
 /// allowed to see it: while a menu is up ("capture") the game gets a pad at
@@ -441,6 +447,26 @@ const char* host_window_live(int port, const char* source)
 void host_window_pace(int on)
 {
     paced = on;
+}
+
+static void audio_relead(void);
+
+/// Frames nobody sees (host_quiet): they run as fast as they go and
+/// nothing they make is shown: the window keeps the last picture (their
+/// sound: audio.c). The first frame drawn after one is whole (the game
+/// copies its picture out in the frame that draws it), so it is shown,
+/// and the sound device, which has run dry meanwhile, waits for its lead
+/// again.
+void host_window_quiet(int on)
+{
+    if (on && !quiet) {
+        quiet = 1;
+        aurora_set_present_hold(true);
+    } else if (!on && quiet) {
+        quiet = 0;
+        aurora_set_present_hold(false);
+        audio_relead();
+    }
 }
 
 static SDL_Gamepad* nth_gamepad(int n)
@@ -757,14 +783,14 @@ static void input_timing(double read_at, int reset)
         bunched = gaps = fallbacks = 0;
         return;
     }
-    if (last != 0 && paced) {
+    if (last != 0 && paced && !quiet) {
         double d = read_at - last;
         least = d < least ? d : least;
         most = d > most ? d : most;
         bunched += d < 12.0;
         gaps += d > 22.0;
     }
-    last = read_at;
+    last = quiet ? 0 : read_at; /* a quiet stretch is not a late reading */
     host_gcc_counts(&reports, &errors, &opened, &age);
     if (age > age_most) {
         age_most = age;
@@ -858,6 +884,19 @@ static int audio_failed, audio_started;
 /// that comes late then does not leave it empty.
 #define AUDIO_LEAD (32000 * 4 * 64 / 1000)
 
+/// After a quiet stretch: if the device has (nearly) run dry, it waits for
+/// its lead again, as when it first started, so that the sound that
+/// follows does not start on an empty queue.
+static void audio_relead(void)
+{
+    if (audio_out != NULL &&
+        SDL_GetAudioStreamQueued(audio_out) < AUDIO_LEAD)
+    {
+        SDL_PauseAudioStreamDevice(audio_out);
+        audio_started = 0;
+    }
+}
+
 void host_window_audio(const int16_t* frames, int count)
 {
     if (audio_out == NULL && !audio_failed) {
@@ -933,14 +972,14 @@ void host_window_frame(void)
     }
     t0 = now_ms();
     if (in_frame) {
-        if (paced) {
+        if (paced && !quiet) {
             present_wait();
         }
         aurora_end_frame();
         in_frame = 0;
     }
     presented = shown = now_ms();
-    if (paced) {
+    if (paced && !quiet) {
         pace_wait();
     }
     t1 = now_ms();
@@ -983,9 +1022,9 @@ void host_window_frame(void)
     host_ui_frame();
     in_frame = aurora_begin_frame();
     t2 = now_ms();
-    if (last != 0) {
+    if (last != 0 && !quiet) {
         timing(t0 - last, t1 - t0, t2 - t1, presented - shown_before);
     }
-    last = t2;
+    last = quiet ? 0 : t2;
 }
 #endif

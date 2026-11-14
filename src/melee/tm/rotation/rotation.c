@@ -272,6 +272,11 @@ int tm_rot_Next(int previous)
 
 int tm_rot_SetCpu(int slot, int ckind, int color)
 {
+    return tm_rot_SetFighter(slot, ckind, color, Gm_PKind_Cpu);
+}
+
+int tm_rot_SetFighter(int slot, int ckind, int color, int slot_type)
+{
     struct PlayerInitData init = { 0 };
 
     if (Player_GetPlayerCharacter(slot) == ckind &&
@@ -284,7 +289,7 @@ int tm_rot_SetCpu(int slot, int ckind, int color)
     }
 
     init.ckind = ckind;
-    init.slot_type = Gm_PKind_Cpu;
+    init.slot_type = slot_type;
     init.stocks = Player_GetStocks(slot);
     init.color = color;
     init.slot = Player_GetPadPort(slot) + 1;

@@ -60,9 +60,12 @@ DEFINES = ["-DTARGET_PC", "-Dbool=int"]
 # is never pulled in.)
 VANILLA = {
     # Which music the game last started (audio.c, host_pstream_start): the
-    # client puts the stage's back after its menu music.
+    # client puts the stage's back after its menu music. Music the game
+    # starts or stops while nobody hears it waits for that to end
+    # (host_audio_quiet).
     "melee/lb/lbaudio_ax.c": [
-        "-DHSD_AudioPStreamStartChParam=host_pstream_start"],
+        "-DHSD_AudioPStreamStartChParam=host_pstream_start",
+        "-DAXDriverStop=host_axdriver_stop"],
     "melee/gm/gmmain.c": ["-Dmain=game_main"],
     "melee/lb/lb_0195.c": ["-Dlb_80019894=lb_80019894_vanilla"],
     "melee/lb/lbcardnew.c": [],
@@ -617,6 +620,10 @@ def main():
     # UCF in C, the same file the overlay links (src/host/ucf.c).
     jobs.append((ROOT / "src/melee/tm/ucf/ucf.c", OBJ / "tm" / "ucf.o",
                  common + shim))
+    # The overlay's character rotation (src/host/match.c): a match loads a
+    # drill's other opponents with it and the CPU becomes one at once.
+    jobs.append((ROOT / "src/melee/tm/rotation/rotation.c",
+                 OBJ / "tm" / "rotation.o", common + shim))
     for src in sorted((ROOT / "src/host").glob("*.c")):
         extra = common + (heap if src.name == "archive.c" else [])
         if src.name == "window.c":

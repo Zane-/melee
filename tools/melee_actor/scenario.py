@@ -38,8 +38,9 @@ and cost what their frames cost.
 With a person (`Session(scenario, game=window, person=port)`, train.py) that
 port is theirs: no script drives it, the run lasts as long as the
 opponent's script, and the situation is put back by placement alone, since
-the window build has no snapshots. What is still in the air from the last
-run (an effect, the random stream) carries over.
+the window build has no snapshots. What the last run left behind (its
+sounds, particles, items, staled moves) is cleared first (`clean`, as a
+TM-CE savestate load does); the random stream carries over.
 """
 import json
 import os
@@ -84,6 +85,10 @@ class Session:
         n = self.n
         if self.fresh is not None:
             n.restore(self.fresh)
+        else:
+            # placement alone puts the situation back: what the last run
+            # left goes first, as a TM-CE savestate load clears it
+            n.clean()
         for port in (0, 1):
             if port != self.person:
                 n.pad(port)

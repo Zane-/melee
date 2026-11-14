@@ -605,15 +605,26 @@ class Session:
     build reads it); otherwise whatever drives the game sets it (a test, a
     demonstration). `options`: {index or name: value} for the drill's own
     options, `common`: {OPT_*: value} for the engine's. `on_load(fn)`: called
-    around loading a match (the client turns its live input and pacing off
-    for it); by default fn() is just called.
+    around loading a match (the client runs it unseen and unheard); by
+    default fn() is just called.
+
+    A match is loaded as rarely as the overlay loads one. The deck's other
+    opponents are loaded with it, as many as fit (the overlay's character
+    rotation: four fighters in all), and the opponent becomes another of
+    them in one frame (`swap`); scenarios are drawn from those, as the
+    overlay draws them (tm_rot_Next over usable entries). Only a scenario
+    chosen by hand whose opponent is not loaded, or another stage, loads a
+    match again. `reuse`: keep a match an earlier session left when it is
+    this drill's (the character, the stage, an opponent it can swap to):
+    the client, from one drill to the next. Each attempt starts clean, as
+    a TM-CE savestate load leaves it (`clean`).
     """
 
     LIMIT = 3600                  # frames: an attempt that runs longer ends
 
     def __init__(self, drill, game, person=0, character="fox", options=None,
                  common=None, live=True, seed=1, on_load=None, dpad=True,
-                 draws=None):
+                 draws=None, reuse=False):
         self.d = drill
         self.n = game
         self.dpad = dpad          # the D-pad is the drill's (as in C)
@@ -638,6 +649,8 @@ class Session:
         self.cpu_char = None
         self.loaded = False
         self.cpu_port = None
+        self.reuse = reuse
+        self.swappable = ()       # opponents the match has loaded (swap)
         self.scenario = -1
         self.last_success = False
         self.attempts = 0
@@ -660,6 +673,41 @@ class Session:
 
     # ---- the match ----------------------------------------------------------------------
 
+    def _opponents(self, cpu):
+        """The deck's other opponents, to load with a match against `cpu`
+        (the player's own character too, for a ditto: it is loaded
+        already, and named it can be swapped to)."""
+        out = []
+        for e in self.d.deck or ():
+            if e.cpu is not None and e.cpu != cpu and e.cpu not in out:
+                out.append(e.cpu)
+        return out if cpu is not None else []
+
+    def _ours(self, cpu):
+        """Whether the game's match, left by an earlier session, is this
+        drill's: the same character on the same stage, against an opponent
+        whose pad is driven (not the game's CPU) and with every opponent of
+        the drill loaded, or alone if `cpu` is None. Then `swappable` is
+        what it loaded."""
+        info = getattr(self.n, "match_info", None)
+        if not self.reuse or not info or self.person != 0 or \
+                info.get("p1") != self.char or \
+                info.get("stage") != self.d.stage or \
+                not info.get("p2_human", True) or \
+                (info.get("p2") is None) != (cpu is None):
+            return False
+        try:
+            if not self.n.fighter(0).fp:
+                return False
+            have = tuple(self.n.loaded()) if cpu is not None else ()
+        except Exception:
+            return False
+        if cpu is not None and not ({cpu} | set(self._opponents(cpu))) <= \
+                set(have):
+            return False          # a new match plays more of the deck
+        self.swappable = have
+        return True
+
     def _load(self, cpu):
         # (A drill without an opponent once reloaded its match before every
         # attempt here, since None == None was taken for "nothing loaded":
@@ -667,22 +715,45 @@ class Session:
         if self.loaded and self.cpu_char == cpu:
             return
         n = self.n
+        port = 1 - self.person
+        if self.loaded:
+            # an opponent can be swapped, not added or taken away
+            ours = (cpu is None) == (self.cpu_char is None)
+        else:
+            ours = self._ours(cpu)
+        if ours and (cpu is None or cpu in self.swappable):
+            if cpu is not None:
+                # the opponent becomes `cpu` this frame (tm_rot_SetCpu)
+                n.swap(port, cpu)
+        else:
+            others = self._opponents(cpu)
 
-        def go():
-            n.start(self.char, cpu, self.d.stage, self.seed)
-        self.on_load(go)
+            def go():
+                n.start(self.char, cpu, self.d.stage, self.seed,
+                        preload=others)
+            self.on_load(go)
+            self.swappable = tuple(n.loaded()) if cpu is not None else ()
+            # the scenarios drawn from now on are those of this match
+            self.bag, self.bag_pos = [], 0
         self.loaded = True
         self.cpu_char = cpu
-        self.cpu_port = None if cpu is None else 1 - self.person
+        self.cpu_port = None if cpu is None else port
 
     # ---- scenarios -------------------------------------------------------------------------
 
+    def usable(self, i):
+        """Whether scenario `i` plays without loading a match: its opponent
+        is the one now or one the match loaded (tm_rot_IsUsable)."""
+        cpu = self.d.deck[i].cpu if self.d.deck else self.d.cpu
+        return cpu == self.cpu_char or cpu in self.swappable
+
     def _next(self, previous):
-        """The deck's rotation (tm_rot_Next): a shuffled bag, no repeat
-        across a reshuffle."""
+        """The deck's rotation (tm_rot_Next): a shuffled bag of the
+        scenarios the match can play, no repeat across a reshuffle."""
         count = len(self.d.deck)
         if self.bag_pos >= len(self.bag):
-            self.bag = list(range(count))
+            self.bag = [i for i in range(count) if self.usable(i)] or \
+                list(range(count))
             self.rng.shuffle(self.bag)
             self.bag_pos = 0
         if self.bag[self.bag_pos] == previous and len(self.bag) > 1:
@@ -847,6 +918,8 @@ class Session:
         c.scenario = idx
         c.entry = d.deck[idx] if d.deck else None
         self._load(c.entry.cpu if c.entry else d.cpu)
+        # what the last attempt left behind gone (TM-CE's savestate load)
+        self.n.clean()
         c.rng = random.Random(attempt_seed)
         side = self.common[OPT_SIDE]
         if side == SIDE_RANDOM:

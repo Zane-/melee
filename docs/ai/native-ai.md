@@ -548,8 +548,8 @@ something in a menu is not a tap when let go, and the game does not see it until
 (`Client.consume`): the A that chose "Resume" once came out as a jab. During a
 demonstration the game takes the script's pad and the player is still read (`script`), so
 a D-pad press or START stops it. Verdicts are green or red (the palette's Defense and
-Punish colours) on the banner and in the column. A match loaded inside a drill (another
-opponent from the deck, another stage) is behind a "Loading" cover over the game.
+Punish colours) on the banner and in the column. (A match loaded inside a drill was
+once behind a "Loading" cover; there is no cover now: "Loading like TM-CE" below.)
 
 The jumps the owner saw: the course engine reloaded the match before every try of a drill
 without an opponent, and the tech judge moved a player standing more than 50 units out
@@ -716,6 +716,58 @@ prints, on leaving, pictures shown late and controller readings closer than 12 m
 writes every second's numbers to `build/client-timing.log`: the spacing of the readings,
 the adapter's reports, failed reads and reopenings, how old its newest report was when
 read, and frames where the auto port found no adapter controller.
+
+### Loading like TM-CE: no loading screens, no fast-forward (2026-11-13)
+
+The owner: "Loading state shows a Loading screen and plays fastforwarded audio ... This is
+the behavior I want, clean state loading, no audio played during that transition so it is
+a quick, seamless experience! ... no loading screens, no chopiness, no fast forwarding",
+with a screen recording of TM-CE's Edgeguard Training in Dolphin. In it an attempt ends
+and the next begins between two frames: the old scene (timer 00:08) on one, the restored
+one (00:00) on the next, no fade, no screen in between. TM-CE never reloads the match: its
+savestate load (`savestate_v1.c`, `Savestate_Load_v1`) puts each fighter's data back in one
+frame, then stops that fighter's sounds and the crowd's, removes every particle, the camera
+shakes and the fighter's items, snaps the camera, and plays no sound of its own when the
+event asks for a silent load (`Savestate_Silent`).
+
+What the client did instead: a course drill whose next scenario had another opponent
+(Marth, then Sheik, then Falcon in the shine out of shield deck) loaded a whole new match,
+about 400 frames run as fast as the window could draw them (2.5 to 6 s with software
+rendering) behind a "Loading" cover, and those frames' sound went to the speakers until
+200 ms was queued, then was dropped: sped-up, chopped sound, and the music 200 ms late
+from then on. Every move to another drill and every free play or Versus start loaded the
+same way.
+
+| Now | How |
+|-|-|
+| A new opponent in one frame | A match loads the deck's other opponents with it (`match ... CK...`): the overlay's character rotation, `src/melee/tm/rotation/rotation.c`, compiled into the native build, up to four fighters and its animation budget. `swap P CK` makes player P one of them (`tm_rot_SetFighter`, which keeps the slot a human slot so the drill still drives its pad). The course engine draws scenarios from the opponents loaded, as the overlay does (`Session.usable`, the bag); only a scenario chosen by hand whose opponent is not loaded loads a match |
+| The next drill with no load | `Session(reuse=True)` (the client): a match the last drill left is kept when it is the same character and stage and has all of this drill's opponents loaded. Nearly every Fox drill is on Final Destination |
+| A clean slate each attempt | `clean` (`host_clean`, `src/host/setup.c`), before the drill places the fighters: TM-CE's list, plus the stale-move queue (`plStale_ResetStaleMoveTableForPlayer`; TM-CE puts back the one saved at the match's start), so the tenth jab hits as hard as the first. Items are removed only when no fighter still points at them: removing Fox's blaster while he held it crashed the game in the blaster's code, and his own code lets go of it once he stands. Scenario drills played by a person clean too (`tools/melee_actor/scenario.py`) |
+| A load nobody sees or hears | `quiet 1` ... `quiet 0` (`Client.load_quietly`): no draw pass (a tenth of the time: 0.4 to 0.6 s for a match with software rendering, against 2.5 to 6), no pacing, and the window keeps its last picture (`aurora_set_present_hold`, added to the Aurora patch). The first frame drawn afterwards is whole and shown at once. Sound: the stretch's first 150 ms goes through as ordinary real-time sound (the menu's click that started it, the end of what was playing), then nothing; afterwards the sound effects it started are keyed off and music it asked for starts from its beginning (`host_pstream_start` waits for the end of the stretch; starting the music again instead stopped a stream whose first read was still coming, and the stream's code fell over). The device then waits for its 64 ms lead again |
+
+The "Loading" cover is gone from the client. Free play, Versus and scenario drills load
+quietly too; the menu stays on screen meanwhile (a menu covers the game's picture anyway).
+Not changed: the online match start (`online_match`), which still loads unpaced.
+
+Two traps found on the way: a frame held from the screen asked for no surface texture,
+and Aurora took the "Error" status that left for a failed surface and dropped it every
+frame, until Dawn lost the device (the patch now skips that while holding). And the
+harness's screenshots lag the screen by a frame, which first looked like a stale first
+frame after a quiet load.
+
+Tests: `tests/native/loading.py` (15, headless: four fighters loaded, a swap in one frame
+with no new match and the pad driving the new opponent, a character not loaded refused, a
+laser in flight cleaned but not the blaster Fox holds, a staled jab back to full damage, a
+quiet load writing exactly the 150 ms tail and the new music playing after it);
+`tests/client/loading.py` (10, off screen: the picture held through a quiet load with no
+black frame, a sixth of the time of a drawn one; seven whiff punish attempts against Marth
+and another opponent on one match; the next drill keeps the match). The course specs:
+227 of 227, as before.
+
+Not known: how long a quiet load takes on the owner's GPU (no drawing happens in it, so
+it should be about the same as here), and whether holding the picture for half a second
+is noticed when a load does happen (a stage change, a scenario chosen by hand, a solo drill
+after one with an opponent).
 
 ## The target (owner, 2026-11-13)
 

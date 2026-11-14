@@ -105,7 +105,7 @@ int host_live_fighter(const void* gobj);
 void host_match_install(void);
 /// End the current scene and enter the match described by host_match.
 void host_match_start(void);
-/// Make the fighter in `slot` a CPU of `ckind` in the same frame, if the
+/// Make the fighter in `slot` one of `ckind` in the same frame, if the
 /// match loaded that character: 1 replaced, 0 it already was, -1 not
 /// loaded.
 int host_match_swap(int slot, int ckind);

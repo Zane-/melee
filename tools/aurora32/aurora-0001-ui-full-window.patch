@@ -1,6 +1,6 @@
 --- a/include/aurora/aurora.h
 +++ b/include/aurora/aurora.h
-@@ -136,6 +136,22 @@
+@@ -136,6 +136,28 @@
  void aurora_set_pause_on_focus_lost(bool value);
  void aurora_set_background_input(bool value);
  void aurora_set_resampler(AuroraSampler sampler);
@@ -20,24 +20,131 @@
 + * frame instead of at its left (the client's column put away).
 + */
 +void aurora_set_game_centered(bool value);
++/**
++ * While held, frames are made as usual but none is shown, and the RmlUi layer
++ * is not drawn: the window keeps the last picture shown (a game run faster than
++ * real time for a moment, whose frames would flash by).
++ */
++void aurora_set_present_hold(bool value);
  
  AuroraBackend aurora_get_backend();
  const AuroraBackend* aurora_get_available_backends(size_t* count);
---- a/lib/rmlui.hpp
-+++ b/lib/rmlui.hpp
-@@ -17,6 +17,12 @@
- void initialize(const AuroraWindowSize& size) noexcept;
- void handle_event(SDL_Event& event) noexcept;
- RecordedFrame record_frame(const webgpu::Viewport& presentViewport) noexcept;
-+void set_full_window(bool value) noexcept;
-+bool full_window() noexcept;
-+void set_frame(uint32_t width, uint32_t height) noexcept;
-+void set_game_centered(bool value) noexcept;
-+bool game_centered() noexcept;
-+webgpu::Viewport frame_viewport(uint32_t width, uint32_t height) noexcept;
- void shutdown() noexcept;
+--- a/lib/aurora.cpp
++++ b/lib/aurora.cpp
+@@ -94,6 +94,8 @@
+ #endif
  
- } // namespace aurora::rmlui
+ bool g_initialFrame = false;
++// aurora_set_present_hold: frames are made but none is shown
++bool g_presentHold = false;
+ 
+ AuroraInfo initialize(int argc, char* argv[], const AuroraConfig& config) noexcept {
+   g_config = config;
+@@ -270,21 +272,34 @@
+   auto imguiDrawData = imgui::freeze();
+ 
+   const auto& presentSource = webgpu::present_source();
+-  const auto viewport = webgpu::calculate_present_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
++  auto viewport = webgpu::calculate_present_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
+                                                            webgpu::g_graphicsConfig.surfaceConfiguration.height,
+                                                            presentSource.size.width, presentSource.size.height);
+ 
+   wgpu::BindGroup rmlBindGroup;
+   bool rmlOverlay = false;
++  auto uiViewport = viewport;
+ #if AURORA_ENABLE_RMLUI
+-  if (rmlui::is_initialized()) {
+-    auto rmlFrame = rmlui::record_frame(viewport);
++  if (rmlui::full_window()) {
++    // The UI layer is a frame centred in the window (the whole window unless a shape was asked for); the game's
++    // picture keeps its shape at the left of that frame.
++    uiViewport = rmlui::frame_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
++                                       webgpu::g_graphicsConfig.surfaceConfiguration.height);
++    viewport = webgpu::calculate_present_viewport(static_cast<uint32_t>(uiViewport.width),
++                                                  static_cast<uint32_t>(uiViewport.height), presentSource.size.width,
++                                                  presentSource.size.height);
++    viewport.left = uiViewport.left +
++                    (rmlui::game_centered() ? (uiViewport.width - viewport.width) / 2.f : 0.f);
++    viewport.top += uiViewport.top;
++  }
++  if (rmlui::is_initialized() && !g_presentHold) {
++    auto rmlFrame = rmlui::record_frame(uiViewport);
+     rmlBindGroup = std::move(rmlFrame.bindGroup);
+     rmlOverlay = rmlFrame.overlay;
+   }
+ #endif
+ 
+-  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport,
++  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport, uiViewport, hold = g_presentHold,
+                   imguiDrawData = std::move(imguiDrawData)](
+                      wgpu::CommandEncoder& encoder, std::vector<gfx::AfterSubmitCallback> afterSubmitCallbacks) {
+     wgpu::Texture currentTexture;
+@@ -292,7 +307,7 @@
+     auto surfaceStatus = wgpu::SurfaceGetCurrentTextureStatus::Error;
+     {
+       window::SurfaceLock surfaceLock;
+-      if (window::is_presentable() && g_surface) {
++      if (!hold && window::is_presentable() && g_surface) {
+         ZoneScopedN("Acquire texture");
+         wgpu::SurfaceTexture surfaceTexture;
+         g_surface.GetCurrentTexture(&surfaceTexture);
+@@ -336,6 +351,8 @@
+ 
+         pass.Draw(3);
+         if (rmlBindGroup && rmlOverlay) {
++          set_present_viewport(pass, uiViewport, webgpu::g_graphicsConfig.surfaceConfiguration.width,
++                               webgpu::g_graphicsConfig.surfaceConfiguration.height);
+           pass.SetPipeline(webgpu::g_CopyPremultipliedAlphaPipeline);
+           pass.SetBindGroup(0, rmlBindGroup, 0, nullptr);
+           pass.Draw(3);
+@@ -362,7 +379,7 @@
+         imgui::render(pass, imguiDrawData);
+         pass.End();
+       }
+-    } else {
++    } else if (!hold) {
+       Log.info("Skipping present; window not presentable");
+     }
+     webgpu::gpu_prof::frame_end(encoder);
+@@ -388,7 +405,7 @@
+         Log.warn("Surface present failed");
+         webgpu::release_surface();
+       }
+-    } else if (g_surface) {
++    } else if (g_surface && !hold) { // held: no texture was asked for
+       switch (surfaceStatus) {
+       case wgpu::SurfaceGetCurrentTextureStatus::Timeout:
+         Log.warn("Surface texture acquisition timed out");
+@@ -466,6 +483,29 @@
+   aurora::g_config.allowJoystickBackgroundEvents = value;
+   aurora::window::set_background_input(value);
+ }
++void aurora_set_ui_full_window(bool value) {
++#if AURORA_ENABLE_RMLUI
++  aurora::rmlui::set_full_window(value);
++#else
++  (void)value;
++#endif
++}
++void aurora_set_ui_frame(uint32_t width, uint32_t height) {
++#if AURORA_ENABLE_RMLUI
++  aurora::rmlui::set_frame(width, height);
++#else
++  (void)width;
++  (void)height;
++#endif
++}
++void aurora_set_present_hold(bool value) { aurora::g_presentHold = value; }
++void aurora_set_game_centered(bool value) {
++#if AURORA_ENABLE_RMLUI
++  aurora::rmlui::set_game_centered(value);
++#else
++  (void)value;
++#endif
++}
+ void aurora_set_resampler(AuroraSampler sampler) {
+ #ifdef AURORA_ENABLE_GX
+   aurora::webgpu::set_resampler(sampler);
 --- a/lib/rmlui.cpp
 +++ b/lib/rmlui.cpp
 @@ -53,7 +53,14 @@
@@ -91,84 +198,21 @@
  bool is_initialized() noexcept { return g_context != nullptr; }
  
  void set_ui_scale(float scale) noexcept { s_uiScale = scale > 0.0f ? std::clamp(scale, 0.25f, 4.0f) : 0.0f; }
---- a/lib/aurora.cpp
-+++ b/lib/aurora.cpp
-@@ -270,21 +270,34 @@
-   auto imguiDrawData = imgui::freeze();
+--- a/lib/rmlui.hpp
++++ b/lib/rmlui.hpp
+@@ -17,6 +17,12 @@
+ void initialize(const AuroraWindowSize& size) noexcept;
+ void handle_event(SDL_Event& event) noexcept;
+ RecordedFrame record_frame(const webgpu::Viewport& presentViewport) noexcept;
++void set_full_window(bool value) noexcept;
++bool full_window() noexcept;
++void set_frame(uint32_t width, uint32_t height) noexcept;
++void set_game_centered(bool value) noexcept;
++bool game_centered() noexcept;
++webgpu::Viewport frame_viewport(uint32_t width, uint32_t height) noexcept;
+ void shutdown() noexcept;
  
-   const auto& presentSource = webgpu::present_source();
--  const auto viewport = webgpu::calculate_present_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
-+  auto viewport = webgpu::calculate_present_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
-                                                            webgpu::g_graphicsConfig.surfaceConfiguration.height,
-                                                            presentSource.size.width, presentSource.size.height);
- 
-   wgpu::BindGroup rmlBindGroup;
-   bool rmlOverlay = false;
-+  auto uiViewport = viewport;
- #if AURORA_ENABLE_RMLUI
-+  if (rmlui::full_window()) {
-+    // The UI layer is a frame centred in the window (the whole window unless a shape was asked for); the game's
-+    // picture keeps its shape at the left of that frame.
-+    uiViewport = rmlui::frame_viewport(webgpu::g_graphicsConfig.surfaceConfiguration.width,
-+                                       webgpu::g_graphicsConfig.surfaceConfiguration.height);
-+    viewport = webgpu::calculate_present_viewport(static_cast<uint32_t>(uiViewport.width),
-+                                                  static_cast<uint32_t>(uiViewport.height), presentSource.size.width,
-+                                                  presentSource.size.height);
-+    viewport.left = uiViewport.left +
-+                    (rmlui::game_centered() ? (uiViewport.width - viewport.width) / 2.f : 0.f);
-+    viewport.top += uiViewport.top;
-+  }
-   if (rmlui::is_initialized()) {
--    auto rmlFrame = rmlui::record_frame(viewport);
-+    auto rmlFrame = rmlui::record_frame(uiViewport);
-     rmlBindGroup = std::move(rmlFrame.bindGroup);
-     rmlOverlay = rmlFrame.overlay;
-   }
- #endif
- 
--  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport,
-+  gfx::end_frame([rmlBindGroup = std::move(rmlBindGroup), rmlOverlay, viewport, uiViewport,
-                   imguiDrawData = std::move(imguiDrawData)](
-                      wgpu::CommandEncoder& encoder, std::vector<gfx::AfterSubmitCallback> afterSubmitCallbacks) {
-     wgpu::Texture currentTexture;
-@@ -336,6 +349,8 @@
- 
-         pass.Draw(3);
-         if (rmlBindGroup && rmlOverlay) {
-+          set_present_viewport(pass, uiViewport, webgpu::g_graphicsConfig.surfaceConfiguration.width,
-+                               webgpu::g_graphicsConfig.surfaceConfiguration.height);
-           pass.SetPipeline(webgpu::g_CopyPremultipliedAlphaPipeline);
-           pass.SetBindGroup(0, rmlBindGroup, 0, nullptr);
-           pass.Draw(3);
-@@ -466,6 +481,28 @@
-   aurora::g_config.allowJoystickBackgroundEvents = value;
-   aurora::window::set_background_input(value);
- }
-+void aurora_set_ui_full_window(bool value) {
-+#if AURORA_ENABLE_RMLUI
-+  aurora::rmlui::set_full_window(value);
-+#else
-+  (void)value;
-+#endif
-+}
-+void aurora_set_ui_frame(uint32_t width, uint32_t height) {
-+#if AURORA_ENABLE_RMLUI
-+  aurora::rmlui::set_frame(width, height);
-+#else
-+  (void)width;
-+  (void)height;
-+#endif
-+}
-+void aurora_set_game_centered(bool value) {
-+#if AURORA_ENABLE_RMLUI
-+  aurora::rmlui::set_game_centered(value);
-+#else
-+  (void)value;
-+#endif
-+}
- void aurora_set_resampler(AuroraSampler sampler) {
- #ifdef AURORA_ENABLE_GX
-   aurora::webgpu::set_resampler(sampler);
+ } // namespace aurora::rmlui
 --- a/lib/rmlui/WebGPURenderInterface.hpp
 +++ b/lib/rmlui/WebGPURenderInterface.hpp
 @@ -13,7 +13,7 @@

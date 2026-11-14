@@ -160,7 +160,7 @@ class Client:
         self.game_song = None         # the music a match had (sound below)
         self.rays_html = ""           # the drill's light rays shown
         self.drill_stages = None      # its stages, when it can change them
-        self.has_cover = False        # the document has the loading cover
+        self.has_cover = False        # a match's or a drill's screen is up
         self.start_held = 0
         self.frames = 0
         self.out.mkdir(parents=True, exist_ok=True)
@@ -184,14 +184,20 @@ class Client:
     def say(self, text):
         self.w.ui("text desc " + screens.esc(text))
 
-    def loading(self, name):
-        """Loading `name`: on the cover over the game when a match or a
-        drill is on screen (from one drill to the next), else in the
-        menu's description line."""
-        if self.has_cover:
-            self.cover("Loading %s" % name)
-        else:
-            self.say("Loading %s." % name)
+    def load_quietly(self, fn):
+        """Load a match (fn): the game sets it up with its own presses, as
+        fast as it goes, unseen and unheard (`quiet`: the window keeps its
+        last picture, a menu's or a drill's, and the sound stops), and the
+        new one appears on the next frame. No loading screen, as TM-CE's
+        savestate loads: the owner, 2026-11-13, "no loading screens, no
+        chopiness, no fast forwarding"."""
+        self.w.live(self.port, "off")
+        self.w.quiet(True)
+        try:
+            return fn()
+        finally:
+            self.w.quiet(False)
+            self.w.live(self.port, self.source)
 
     def put(self, ident, rml):
         """Replace an element's content (through a file: a list of rows is
@@ -423,18 +429,9 @@ class Client:
             self.column_hidden = not self.column_hidden
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("bannerwrap", "cover", "pause", "rays"):
+        for ident in ("bannerwrap", "pause", "rays"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
-
-    def cover(self, text=None):
-        """The loading cover over the game: shown with `text`, None hides
-        it (nothing if the screen has none)."""
-        if not self.has_cover:
-            return
-        if text is not None:
-            self.w.ui("text covermsg " + screens.esc(text))
-        self.w.ui("class cover on %d" % (1 if text is not None else 0))
 
     def in_match(self, name, rml, mask):
         """Load a match's or a drill's screen: the buttons the game does
@@ -771,8 +768,6 @@ class Client:
         opp = self.roster[self.opp_at]
         name, what = self.players()[self.who]
         stage = STAGE_ORDER[self.stage_at]
-        self.say("Loading.")
-        self.w.step()
         if self.bot is not None:
             self.bot.close()
             self.bot = None
@@ -781,13 +776,10 @@ class Client:
                                      opponent=self.port, stage=stage)
         self.bot_said = None
         self.w.pad(1 - self.port)
-        self.w.pace(False)
-        try:
-            self.w.start(self.me["id"], opp["id"], stage,
-                         seed=random.randrange(1, 1 << 30),
-                         p2_human=name != CPU, settle=False)
-        finally:
-            self.w.pace(True)
+        self.load_quietly(lambda: self.w.start(
+            self.me["id"], opp["id"], stage,
+            seed=random.randrange(1, 1 << 30), p2_human=name != CPU,
+            settle=False))
         self.last = self.me
         self.screen = "versus"
         self.start_held = 0
@@ -1043,6 +1035,8 @@ class Client:
         if self.mode == "lab":
             f = self.w.fighter(other)
             if pressed & DOWN:
+                # put back, as a TM-CE savestate load: clean, then placed
+                self.w.clean()
                 self.w.place(self.port, -20, 0, 1)
                 self.w.place(other, 20, 0, -1, percent=self.damage)
             elif pressed & (LEFT | RIGHT) and f.fp:
@@ -1368,28 +1362,15 @@ class Client:
 
     def course_drill(self, d, results):
         """A drill on the course engine (tools/melee_course): the overlay's
-        drill, ported."""
-        self.loading(d["name"])
-        self.w.step()
-
-        def on_load(fn):
-            # the game sets a match up with its own presses, at full speed:
-            # behind the cover
-            self.cover("Loading")
-            self.w.live(self.port, "off")
-            self.w.pace(False)
-            try:
-                fn()
-            finally:
-                self.w.live(self.port, self.source)
-                self.w.pace(True)
-                self.cover(None)
-
+        drill, ported. The match the last drill left is kept when it can
+        play this one (`reuse`), and a new opponent is swapped in, so most
+        drills start at once; a match that must be loaded is loaded
+        quietly (on_load)."""
         drill = course_registry.get(d["id"])
         session = course_engine.Session(
             drill, self.w, person=self.port, character=self.c["id"],
-            live=True, on_load=on_load, seed=random.randrange(1, 1 << 30),
-            dpad=False)
+            live=True, on_load=self.load_quietly,
+            seed=random.randrange(1, 1 << 30), dpad=False, reuse=True)
         self.session = session
         self.drill_stages = drill.stages
         self.wait_released()
@@ -1501,19 +1482,15 @@ class Client:
         """A drill from a scenario file: a scenario against an opponent, or
         a tech drill judged by the frame (tools/melee_actor)."""
         sc = scn.load(str(self.here[d["id"]]))
-        self.loading(d["name"])
-        self.w.step()
-        # the game sets the match up with its own presses, at full speed
-        self.w.live(self.port, "off")
-        self.w.pace(False)
-        try:
+        box = {}
+
+        def make():
             if sc.get("tech"):
-                session = tech.Session(sc, self.w, self.port, self.c["id"])
+                box["s"] = tech.Session(sc, self.w, self.port, self.c["id"])
             else:
-                session = scn.Session(sc, game=self.w, person=self.port)
-        finally:
-            self.w.live(self.port, self.source)
-            self.w.pace(True)
+                box["s"] = scn.Session(sc, game=self.w, person=self.port)
+        self.load_quietly(make)
+        session = box["s"]
         self.session = session
         self.wait_released()
         self.screen = "drill"
@@ -1547,14 +1524,9 @@ class Client:
 
     def play(self, c):
         """Free play as this character."""
-        self.say("Loading %s." % c["name"])
-        self.w.step()
-        self.w.pace(False)
-        try:
-            self.w.start(c["id"], self.opponent, self.stage,
-                         seed=random.randrange(1, 1 << 30), settle=False)
-        finally:
-            self.w.pace(True)
+        self.load_quietly(lambda: self.w.start(
+            c["id"], self.opponent, self.stage,
+            seed=random.randrange(1, 1 << 30), settle=False))
         self.last = c
         self.screen = "match"
         self.start_held = 0

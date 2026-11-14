@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <melee/lb/lbaudio_ax.h>
 #include <sysdolphin/baselib/axdriver.h>
 
 #include <dolphin/ai.h>
@@ -479,6 +480,13 @@ void AISetStreamVolRight(u8 vol)
 /* --- music ------------------------------------------------------------------ */
 
 static char song[64];
+/// The last start, as asked: one asked for in a quiet stretch is made when
+/// the stretch ends (host_audio_quiet).
+static char song_path[256];
+static u8 song_volume;
+static int song_track;
+static int song_pending;
+static int quiet;
 
 /// The game's music starts here (lbaudio_ax.c's call, renamed by
 /// tools/native_build.py): which one it was is kept for `song`.
@@ -486,7 +494,56 @@ bool host_pstream_start(const char* path, u8 volume, int track)
 {
     const char* name = strrchr(path, '/');
     snprintf(song, sizeof song, "%s", name != NULL ? name + 1 : path);
+    snprintf(song_path, sizeof song_path, "%s", path);
+    song_volume = volume;
+    song_track = track;
+    if (quiet) {
+        song_pending = 1;
+        return true;
+    }
     return HSD_AudioPStreamStartChParam(path, volume, track);
+}
+
+/// And it stops here (the same file's call): a start still waiting is
+/// dropped.
+bool host_axdriver_stop(void)
+{
+    song_pending = 0;
+    return AXDriverStop();
+}
+
+/* --- quiet stretches -------------------------------------------------------
+ * Frames played to set something up (a match loading, at full speed) are
+ * not heard: the game's sound runs as ever, and its mix is dropped. Only
+ * the first moment of a stretch goes through (QUIET_TAIL), as sound in
+ * real time like any other: what was playing ends there instead of being
+ * cut, and a menu's click that started the stretch is heard whole. What
+ * the stretch started is not heard afterwards either: its sound effects
+ * are keyed off, and music it asked for starts when it ends, from its
+ * beginning, as a match's does when it is first seen. (Starting it again
+ * then instead stopped a stream whose first read was still on its way,
+ * and the stream's code fell over when the read came.) TM-CE's savestate
+ * loads are silent the same way (Savestate_Silent, and the fighters'
+ * sounds stopped). */
+
+#define QUIET_TAIL 30 /* 5 ms audio frames: 150 ms */
+
+static int quiet_tail;
+
+void host_audio_quiet(int on)
+{
+    if (on && !quiet) {
+        quiet = 1;
+        quiet_tail = QUIET_TAIL;
+        song_pending = 0;
+    } else if (!on && quiet) {
+        quiet = 0;
+        lbAudioAx_80023694(); /* every sound effect (HSD_AudioSFXKeyOffAll) */
+        if (song_pending) {
+            song_pending = 0;
+            HSD_AudioPStreamStartChParam(song_path, song_volume, song_track);
+        }
+    }
 }
 
 /// The music the game started last ("" for none yet).
@@ -618,6 +675,12 @@ static void ax_frame(void)
     }
     if (host_net_resimulating()) {
         return; /* a frame played again: it was heard the first time */
+    }
+    if (quiet) {
+        if (quiet_tail == 0) {
+            return; /* a frame nobody hears (host_audio_quiet) */
+        }
+        quiet_tail--;
     }
     if (raw != NULL) {
         fwrite(out, sizeof out[0], AX_FRAME * 2, raw);

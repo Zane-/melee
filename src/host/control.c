@@ -352,6 +352,35 @@ static int set_pad(const char* line)
 
 double host_driver_ms;
 
+/* --- quiet stretches ---------------------------------------------------- */
+
+static int quiet_now, draw_before;
+
+void host_quiet(int on)
+{
+    if (on && !quiet_now) {
+        quiet_now = 1;
+        draw_before = host.draw;
+        host.draw = 0; /* the draw pass is most of a frame's time */
+        host_audio_quiet(1);
+#ifdef HOST_WINDOW
+        host_window_quiet(1);
+#endif
+    } else if (!on && quiet_now) {
+        quiet_now = 0;
+        host.draw = draw_before;
+        host_audio_quiet(0);
+#ifdef HOST_WINDOW
+        host_window_quiet(0);
+#endif
+    }
+}
+
+int host_quiet_now(void)
+{
+    return quiet_now;
+}
+
 static void command(char* line)
 {
     char cmd[32] = "";
@@ -666,10 +695,23 @@ static void command(char* line)
             printf("@ ok\n");
         }
     } else if (strcmp(cmd, "match") == 0) {
-        int c1 = 2, c2 = 9, stage = 0x20, h2 = 1, stocks = 0;
+        /* "match P1 P2 STAGE HUMAN2 SEED STOCKS [CK...]": the CKs are
+           loaded with it, for "swap" */
+        int c1 = 2, c2 = 9, stage = 0x20, h2 = 1, stocks = 0, used2 = 0;
         unsigned seed = 1;
-        sscanf(line, "%d %d %d %d %u %d", &c1, &c2, &stage, &h2, &seed,
-               &stocks);
+        sscanf(line, "%d %d %d %d %u %d%n", &c1, &c2, &stage, &h2, &seed,
+               &stocks, &used2);
+        host_match.preloads = 0;
+        if (used2 > 0) {
+            char* rest = line + used2;
+            int ck, n;
+            while (host_match.preloads < 8 &&
+                   sscanf(rest, "%d%n", &ck, &n) == 1)
+            {
+                host_match.preload[host_match.preloads++] = ck;
+                rest += n;
+            }
+        }
         host_match.seed = seed;
         host_match.stocks = stocks;
         host_match.ckind[0] = c1;
@@ -678,6 +720,33 @@ static void command(char* line)
         host_match.human[1] = h2;
         host.pads[1].connected = 1;
         host_match_start();
+        printf("@ ok\n");
+    } else if (strcmp(cmd, "swap") == 0) {
+        /* "swap P CK": player P's fighter is now character CK, in this
+           frame, if the match loaded CK ("match ... CK") */
+        int p = 1, ck = -1, r;
+        sscanf(line, "%d %d", &p, &ck);
+        r = p >= 0 && p < 4 ? host_match_swap(p, ck) : -1;
+        if (r < 0) {
+            printf("@ error character %d is not loaded\n", ck);
+        } else {
+            printf("@ ok %d\n", r);
+        }
+    } else if (strcmp(cmd, "loaded") == 0) {
+        /* "loaded": the characters the match can swap to */
+        char out[128];
+        host_match_loaded(out, sizeof out);
+        printf("@ ok %s\n", out);
+    } else if (strcmp(cmd, "clean") == 0) {
+        /* "clean": what an attempt left behind gone (setup.c) */
+        host_clean();
+        printf("@ ok\n");
+    } else if (strcmp(cmd, "quiet") == 0) {
+        /* "quiet 1": the frames until "quiet 0" run unseen and unheard, as
+           fast as they go (a match loading) */
+        int on = 1;
+        sscanf(line, "%d", &on);
+        host_quiet(on);
         printf("@ ok\n");
     } else if (strcmp(cmd, "state") == 0) {
         print_state();

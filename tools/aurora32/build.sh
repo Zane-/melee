@@ -23,9 +23,11 @@ mkdir -p "$out"
 # the 4:3 game at the left of it (aurora_set_ui_full_window), and both kept
 # to a frame of that shape, centred, when the window has another: fullscreen
 # on a wider screen (aurora_set_ui_frame). The same patch switches on the
-# layer's 4x multisampling (its slanted edges were stair-stepped).
+# layer's 4x multisampling (its slanted edges were stair-stepped), and lets
+# the host hold the last picture while frames are made unseen
+# (aurora_set_present_hold: a load run faster than real time).
 patch="$root/tools/aurora32/aurora-0001-ui-full-window.patch"
-if ! grep -q aurora_set_game_centered "$src/include/aurora/aurora.h"; then
+if ! grep -q aurora_set_present_hold "$src/include/aurora/aurora.h"; then
     # an older version of the patch may be in the tree: start again from
     # the files as they came
     for f in $(grep '^+++ b/' "$patch" | sed 's|^+++ b/||'); do

@@ -255,27 +255,59 @@ class Native:
         return self.frame
 
     def match(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True, stocks=0):
+              p2_human=True, stocks=0, preload=()):
         """Ask for a match (the game's debug VS mode). It loads over the
         next frames; start() also waits for it. `stocks`: each player's;
-        0 is an endless time match."""
-        self._cmd("match %d %d %d %d %d %d" % (
+        0 is an endless time match. `preload`: further characters loaded
+        with it, which player 2 can become at once (swap); as many as fit
+        (four fighters in all, as the overlay's rotation): loaded() says
+        which."""
+        extra = [CHARACTERS[c] for c in preload if c != p2]
+        self._cmd("match %d %d %d %d %d %d%s" % (
             CHARACTERS[p1], CHARACTERS[p2] if p2 else -1, STAGES[stage],
-            1 if p2_human else 0, seed, stocks))
+            1 if p2_human else 0, seed, stocks,
+            "".join(" %d" % c for c in extra)))
         self.match_info = dict(p1=p1, p2=p2, stage=stage, seed=seed,
-                               p2_human=p2_human)
+                               p2_human=p2_human, preload=tuple(preload))
+
+    def swap(self, port, character):
+        """Player `port` becomes a CPU of `character` this frame, put where
+        it entered (the caller places it). The match must have loaded the
+        character (match's `preload`). True if it changed."""
+        return self._cmd("swap %d %d" % (port, CHARACTERS[character])) \
+            .split()[1] == "1"
+
+    def loaded(self):
+        """The characters this match has loaded: the ones swap() takes."""
+        names = {v: k for k, v in CHARACTERS.items()}
+        return [names[int(w)] for w in self._cmd("loaded").split()[1:]
+                if int(w) in names]
+
+    def clean(self):
+        """What the last attempt left behind gone, as TM-CE's savestate load
+        does: the fighters' sounds and the crowd's stopped, particles,
+        camera shakes and the fighters' items gone, colour overlays off."""
+        self._cmd("clean")
+
+    def quiet(self, on=True):
+        """Frames nobody sees or hears until quiet(False): no draw pass, no
+        sound, and (the window build) no pacing and the last picture kept.
+        Afterwards the sounds they started are stopped and music they
+        started plays from its beginning. For loading a match."""
+        self._cmd("quiet %d" % (1 if on else 0))
 
     def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True, settle=True, stocks=0):
+              p2_human=True, settle=True, stocks=0, preload=()):
         """A match with both fighters (p2=None: one) standing on the stage,
         ready to act:
         boot, ask for the match, wait for the fighters, and (settle) for
-        them to land from their entrance and the countdown to end."""
+        them to land from their entrance and the countdown to end.
+        `preload`: as match()."""
         self.step(30)
         # A match may already be running: its fighters go before the new
         # ones come, and "both fighters exist" must mean the new ones.
         had = bool(self.fighter(0).fp)
-        self.match(p1, p2, stage, seed, p2_human, stocks)
+        self.match(p1, p2, stage, seed, p2_human, stocks, preload)
         if had:
             for _ in range(300):
                 self.step()

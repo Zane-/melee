@@ -72,4 +72,8 @@ int tm_rot_Next(int previous);
 /// not loaded. Keeps the slot's CPU level, team, stocks and damage.
 int tm_rot_SetCpu(int slot, int ckind, int color);
 
+/// The same with the slot's kind given (Gm_PKind: 0 a human, who reads a
+/// pad, 1 a CPU): the native build's drills drive their opponent's pad.
+int tm_rot_SetFighter(int slot, int ckind, int color, int slot_type);
+
 #endif

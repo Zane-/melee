@@ -17,9 +17,11 @@
 #include <melee/ft/fighter.h>
 #include <melee/ft/ft_081B.h>
 #include <melee/ft/ft_0892.h>
+#include <melee/ft/ft_0881.h>
 #include <melee/ft/ft_0D4D.h>
 #include <melee/ft/ftcamera.h>
 #include <melee/ft/ftcliffcommon.h>
+#include <melee/ft/ftcolanimlist.h>
 #include <melee/ft/ftcoll.h>
 #include <melee/ft/kinds/ftCommon/ftCo_CliffWait.h>
 #include <melee/ft/ftcommon.h>
@@ -27,11 +29,21 @@
 #include <melee/ft/kinds/ftCommon/ftCo_Fall.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Throw.h>
 #include <melee/ft/types.h>
+#include <melee/it/forward.h>
+#include <melee/it/inlines.h>
+#include <melee/it/item.h>
+#include <melee/it/types.h>
 #include <melee/mp/mpcoll.h>
 #include <melee/mp/mplib.h>
 #include <melee/pl/player.h>
+#include <melee/pl/plstale.h>
+#include <melee/sfx/crowdsfx.h>
 #include <sysdolphin/baselib/gobj.h>
+#include <sysdolphin/baselib/gobjplink.h>
 #include <sysdolphin/baselib/jobj.h>
+#include <sysdolphin/baselib/psstructs.h>
+
+extern HSD_Particle* hsd_804D0908[16]; /* particle.c: the particle lists */
 
 /// How far below the point asked for a floor is looked for.
 #define FLOOR_REACH 400.0F
@@ -265,6 +277,99 @@ const char* host_set_shield(int slot, float health)
     }
     fp->shield_health = health;
     return NULL;
+}
+
+static int is_fighter(HSD_GObj* gobj)
+{
+    for (int slot = 0; slot < 6; slot++) {
+        if (gobj != NULL && (Player_GetEntityAtIndex(slot, 0) == gobj ||
+                             Player_GetEntityAtIndex(slot, 1) == gobj))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/// Whether a fighter still points at this item: one it holds or uses (a
+/// held item, Fox's blaster, a charging shot), which the fighter's own code
+/// lets go of (the blaster removes itself once Fox stands). Destroying it
+/// under the fighter left a dangling pointer, and the game fell over in
+/// the blaster's code. Any word of a fighter's data equal to the item's
+/// object or its data counts.
+static int held(HSD_GObj* item)
+{
+    const void* data = item->user_data;
+
+    for (int slot = 0; slot < 6; slot++) {
+        for (int sub = 0; sub < 2; sub++) {
+            HSD_GObj* gobj = Player_GetEntityAtIndex(slot, sub);
+            const uint32_t* w;
+            if (gobj == NULL || !host_live_fighter(gobj)) {
+                continue;
+            }
+            w = (const uint32_t*) gobj->user_data;
+            for (size_t i = 0; i < sizeof(Fighter) / 4; i++) {
+                if (w[i] == (uint32_t) (uintptr_t) item ||
+                    w[i] == (uint32_t) (uintptr_t) data)
+                {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/// TM-CE's clean slate (Savestate_Load_v1, savestate_v1.c), for an attempt
+/// that starts again in the middle of a match: what the last one left
+/// behind is gone the frame the fighters are put back, and the moves are
+/// fresh again (TM-CE puts back the stale-move queue it saved as the match
+/// began), so a tenth attempt hits as hard as the first.
+void host_clean(void)
+{
+    HSD_GObj* gobj;
+    HSD_GObj* next;
+
+    for (int slot = 0; slot < 6; slot++) {
+        if (Player_GetEntity(slot) != NULL) {
+            plStale_ResetStaleMoveTableForPlayer(slot);
+        }
+        for (int sub = 0; sub < 2; sub++) {
+            gobj = Player_GetEntityAtIndex(slot, sub);
+            if (gobj != NULL && host_live_fighter(gobj)) {
+                Fighter* fp = GET_FIGHTER(gobj);
+                ft_80088A50(fp);       /* its sounds (SFX_StopAllFighterSFX) */
+                ftCo_800C0200(fp, 9);  /* its colour overlay */
+            }
+        }
+    }
+    un_80321CE8(); /* the crowd's cheering (SFX_StopCrowd) */
+    /* the fighters' items let go of: a laser in flight, a thrown turnip
+       (Item_Destroy); not what a fighter still holds */
+    for (gobj = HSD_GObjPLinkHead[HSD_GOBJ_PLINK_ITEM]; gobj != NULL;
+         gobj = next)
+    {
+        next = gobj->next;
+        if (is_fighter(GET_ITEM(gobj)->owner) && !held(gobj)) {
+            Item_8026A8EC(gobj);
+        }
+    }
+    /* Particles: TM-CE frees them by hand; here each ends on its next
+       update, this same frame, through the game's own delete
+       (hsd_8039930C's life count). */
+    for (int i = 0; i < 16; i++) {
+        for (HSD_Particle* pp = hsd_804D0908[i]; pp != NULL; pp = pp->next) {
+            pp->life = 1;
+        }
+    }
+    /* camera shakes: class 3 on the match camera's link (18) */
+    for (gobj = HSD_GObjPLinkHead[18]; gobj != NULL; gobj = next) {
+        next = gobj->next;
+        if (gobj->classifier == 3) {
+            HSD_GObjFree(gobj);
+        }
+    }
 }
 
 const char* host_place(int slot, float x, float y, float facing, int air,
