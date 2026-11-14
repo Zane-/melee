@@ -276,16 +276,13 @@ span { display: inline; }
 .pick .key { margin-right: 8dp; }
 .botstate { margin-top: 12dp; }
 
-/* ---- over the game: the loading cover, the pause menu; the column hidden ---- */
+/* ---- over the game: the pause menu; the column hidden ---- */
 
 .rail.hidden { display: none; }
-.bannerwrap.mid, .cover.mid, .pause.mid, .rays.mid { left: 160dp; }
+.bannerwrap.mid, .pause.mid, .rays.mid { left: 160dp; }
 .rays { position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; }
 .ray { position: absolute; top: 0dp; width: 18dp; decorator: vertical-gradient(#9CF0FF00 #9CF0FFB4); }
 .rayfoot { position: absolute; width: 44dp; height: 10dp; border-radius: 5dp; background-color: #C8F8FFC8; }
-.cover { display: none; position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; background-color: #12161C; color: #F3F6FA; flex-direction: row; align-items: center; justify-content: center; }
-.cover.on { display: flex; }
-.cover .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 40dp; text-transform: uppercase; letter-spacing: 1dp; }
 .pause { display: none; position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; background-color: #12161CB4; flex-direction: row; align-items: center; justify-content: center; }
 .pause.on { display: flex; }
 .pbox { width: 540dp; background-color: #E9EDF2; color: #12161C; padding: 18dp 24dp 16dp 24dp; display: flex; flex-direction: column; border-left: 8dp #12161C; }
@@ -308,3 +305,8 @@ span { display: inline; }
 .onll { font-size: 12dp; letter-spacing: 1dp; color: #A9B4C2; }
 .onlc { font-family: "JetBrains Mono"; font-size: 26dp; font-weight: 700; letter-spacing: 1dp; }
 .onls { min-height: 22dp; margin-top: 10dp; font-size: 15dp; font-weight: 600; }
+
+/* Versus: local or online */
+#vlocal, #vonline { width: 556dp; }
+#vlocal .in, #vonline .in { padding: 22dp 64dp 18dp 64dp; }
+#vlocal .big, #vonline .big { font-size: 120dp; }

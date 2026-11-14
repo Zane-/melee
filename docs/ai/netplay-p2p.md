@@ -75,10 +75,11 @@ opens the same local port for the session. The client uses port 47700 each time,
 router that keeps ports gives the same code every time (this machine's does: 45938 mapped to
 45938). `tests/client/online_lobby.py` (9, one real STUN query with `--stun`).
 
-**In the client** (`client.py`): Versus, your character, then "a friend, online" as who
-plays the opponent: the online screen shows your code (A copies it to the clipboard), pastes
-a friend's code, and lists friends met before (saved by the nickname they sent, with their
-code). Both games then start the agreed match with nobody's input for 10 frames, and the
+**In the client** (`client.py`): Versus opens on Local or Online (the owner: "make sure we
+have like submenus within Versus. It should go Local and Online"). Online, then your
+character, then the online screen: your code (A copies it to the clipboard), paste a
+friend's code, and friends met before (saved by the nickname they sent, with their code).
+Local is the trained models, the game's CPU or nobody, as before. Both games then start the agreed match with nobody's input for 10 frames, and the
 session begins with the person's controller on the port the lobby gave them. START opens a
 menu that does not stop the game (stopping one side would desync it): resume, the column,
 leave the match. The friend is told when the other leaves and goes back to the online
@@ -86,7 +87,7 @@ screen. The window build paces as usual; when its side is ahead, time sync moves
 frame a frame period later (`host_window_delay_frame`); while it waits for the other side's
 inputs it keeps the window alive without presenting (`host_window_idle`).
 `tests/client/online.py` (9): two clients in two windows on two virtual displays, each driven
-by its own thread, meet from each other's codes, play the same match for ten seconds (about
+by its own thread (Versus, Online, a character), meet from each other's codes, play the same match for ten seconds (about
 500 frames: two software-drawn windows run under 60 frames a second), 34 desync checks
 agree, one leaves through its pause menu, the other is told and goes back, each has saved
 the other by nickname. The clipboard: the client copies with SDL's and xclip's and pastes

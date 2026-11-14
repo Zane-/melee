@@ -28,18 +28,17 @@ def page(title, body, paper=True):
 
 
 def over_game():
-    """What goes over the game's picture in a match or a drill: a cover
-    while a match loads (no fast-forwarding fighters in view), the pause
+    """What goes over the game's picture in a match or a drill: the pause
     menu, the verdict banner. Each has an id so the column can be hidden
-    and these moved to the middle (Client.toggle_column)."""
+    and these moved to the middle (Client.toggle_column). (No loading
+    cover: a match loads unseen, the window keeping its last picture:
+    Client.load_quietly.)"""
     return (
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
         'class="un">YES</div></div><div class="msg"><div id="bmsg" '
         'class="un">.</div></div></div></div>'
-        '<div id="cover" class="cover"><div class="un"><div id="covermsg">'
-        'Loading</div></div></div>'
         '<div id="pause" class="pause"><div class="pbox"><div class="ptitle">'
         '<div class="un"><div id="ptitle">Paused</div></div></div>'
         '<div id="prows" class="prows"/><div class="phint">%s<div>Choose'
@@ -167,7 +166,7 @@ MAIN = [
     ("events", "events", "03", "Events",
      "Training Mode's own events, page by page.", False),
     ("versus", "slate", "04", "Versus",
-     "A match against a trained model or the game's CPU.", True),
+     "Local or online: a trained model, the game's CPU, or a friend.", True),
     ("controls", "white", "05", "Controls",
      "Input delay and button layouts.", False),
 ]
@@ -205,6 +204,28 @@ def main_menu(last=None):
         _tile(by["controls"]) + '</div></div></div></div>' +
         footer(by["train"][4], [("A", "Choose"), ("F11", "Fullscreen")]))
     return page("Main menu", body)
+
+
+# ---- versus: local or online ------------------------------------------------------
+
+VERSUS = [
+    ("vlocal", "slate", "01", "Local",
+     "On this machine: against a trained model, the game's CPU, or "
+     "nobody.", True),
+    ("vonline", "ink", "02", "Online",
+     "Against a friend over the internet: swap codes, no server in "
+     "between.", True),
+]
+
+
+def versus_menu(focus):
+    body = (
+        header(["Main menu", "Versus"]) +
+        '<div class="mosaic vmosaic">' + _tile(VERSUS[0]) +
+        '<div class="gap"/>' + _tile(VERSUS[1]) + '</div>' +
+        footer(next(v[4] for v in VERSUS if v[0] == focus),
+               [("A", "Choose"), ("B", "Back")]))
+    return page("Versus", body)
 
 
 # ---- character select -----------------------------------------------------------

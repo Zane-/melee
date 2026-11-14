@@ -4,7 +4,7 @@
 
 Two clients, each in its own window on its own virtual display, each driven
 from its own thread as a person would: Versus, a character (Fox, Marth),
-"a friend, online" as who plays the opponent; each copies its code and the
+Versus, Online, a character (Fox, Marth); each copies its code and the
 other pastes it (the codes go through each display's clipboard); they meet
 (LAN addresses: MELEE_ONLINE_NO_STUN, nothing sent outside), start the same
 match and play it with rollback netcode (src/host/net.c) for ten seconds,
@@ -69,18 +69,15 @@ class Side:
         self.frames(6)
         for key in ("Right", "Down", "Right"):      # to Versus
             self.tap(key)
-        self.tap("x")                               # its character select
+        self.tap("x")                               # Local or Online
+        self.tap("Right")
+        self.tap("x")                               # Online: characters
         for _ in range(40):
             if c.roster[c.at]["id"] == self.char:
                 break
             self.tap("Right", after=2)
             if c.roster[c.at]["id"] != self.char and c.at % 9 == 8:
                 self.tap("Down", after=2)
-        self.tap("x")                               # the opponent screen
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.ONLINE:
-                break
-            self.tap("v", after=2)                  # X: who plays it
         self.tap("x", after=10)                     # the online screen
         return c.screen == "online" and c.lobby is not None
 

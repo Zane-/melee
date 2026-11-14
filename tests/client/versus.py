@@ -70,8 +70,12 @@ def main():
         for key in ("Right", "Down", "Right"):
             tap(key)
         tap("x")
+        check("Versus opens on Local or Online", c.screen == "vmenu" and
+              c.vfocus == "vlocal", c.screen)
+        shot("versus-menu")
         tap("x")
-        check("Versus: your character, then the opponent screen",
+        tap("x")
+        check("Local: your character, then the opponent screen",
               c.mode == "versus" and c.screen == "opp" and
               c.me["id"] == "fox")
         for key in ("Up", "Left", "Left"):
@@ -187,6 +191,9 @@ def main():
 
         # ---- the Lab ---------------------------------------------------------
         tap("z")
+        tap("z")
+        check("B from the character select goes back to Local or Online",
+              c.screen == "vmenu", c.screen)
         tap("z")
         for key in ("Left", "Up"):
             tap(key)
