@@ -82,6 +82,13 @@ SUPERSEDED = {
     "universal-dash-dance/six": "the dance is no longer cut at six dashes",
     "universal-dash-dance/stop": "a dance of one switch now counts",
     "universal-dash-dance/demo_fox": "the demonstration dances all twenty",
+    # one drill became two, ASDI down (standing, the C-stick) and crouch
+    # cancel, each with a deck of moves at percents they hold to
+    # (tests/course/asdi.py checks them)
+    "universal-asdi-down/demo": "split into ASDI down and crouch cancel",
+    "universal-asdi-down/no_punish": "split into ASDI down and crouch cancel",
+    "universal-asdi-down/high_percent": "split into ASDI down and crouch "
+                                        "cancel",
 }
 
 

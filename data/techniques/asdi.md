@@ -22,9 +22,13 @@ control stick one way for [DI](di.md) and the C-stick another way for ASDI
 
 The important special case is **ASDI down**: unlike SDI, ASDI is allowed to move an airborne
 character into the ground. A grounded character hit by a move that lifts them slightly is
-pushed back onto the floor on that frame. If the hit did not cause tumble, landing cancels
-the hitstun into a normal landing; if it did cause tumble, the character hits the floor at
-once and can [tech](teching.md) there [wiki:Smash_directional_influence] [wiki:Hitstun].
+pushed back onto the floor on that frame. If the hit did not cause tumble, the character
+lands at once: the landing lasts as long as the hitstun but can be left for an attack, a grab
+or a shine after the normal landing lag (4 frames for most characters: `ftCo_Landing_IASA`;
+seen on the native build, 2026-11-13). If it did cause tumble but the first frame's rise is
+less than the ASDI distance, the character hits the floor at once and can [tech](teching.md)
+there, or is knocked down at the attacker's feet; a bigger rise launches them as usual
+[wiki:Smash_directional_influence] [wiki:Hitstun].
 
 ## Inputs
 
@@ -50,8 +54,18 @@ once and can [tech](teching.md) there [wiki:Smash_directional_influence] [wiki:H
 | Shield ASDI | half of shield SDI, horizontal only, applied on the first frame of shieldstun | [wiki:Smash_directional_influence] |
 | Grounded victim of a downward, non-techable hit | stays stunned on the ground whatever is held ("forbidden" case) | [lib:A Guide to DI, Smash DI, C-stick DI, Teching, and Crouch Cancelling] |
 
-ASDI down stops cancelling stun at the percent where the move's knockback reaches tumble
-(80). Above that, the hit knocks the character down (they may tech).
+ASDI down has three bands as the percent rises (`ftCo_8008DCE0`, `ftCo_Damage.c`; research
+of 2026-11-13):
+
+1. knockback under 80: the character lands at once and can act after the normal landing lag;
+2. knockback 80 or more, but a first-frame rise (`0.03 * KB * sin(angle) - gravity`) of 3
+   units or less: the floor is touched in tumble, a tech or a knockdown at the attacker's
+   feet, not a launch;
+3. a bigger rise: launched as usual.
+
+The percents below (DruggedFox's "breaks ASDI down") are where band 3 starts, the launch, not
+band 2. Measured limits for the course's actors, where the hold still lets Fox punish, are in
+`tools/melee_course/drills/defense_asdi.py` (`tests/course/asdi.py`).
 
 ### Sheik's moves: percent at which they break ASDI down
 

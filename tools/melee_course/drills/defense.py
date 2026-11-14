@@ -618,4 +618,7 @@ class DefDiSurvival(Drill):
                 c.result(True, "Survived! the DI bent the path")
 
 
-DRILLS = [DefTech, DefAsdiDown, DefDiSurvival, DefTechChase, DefComboShine]
+# universal-asdi-down is now two drills, ASDI down and crouch cancel, with
+# a deck of actors (defense_asdi.py; the owner, 2026-11-13). DefAsdiDown is
+# the C's drill as it was, kept beside them for reference, not listed.
+DRILLS = [DefTech, DefDiSurvival, DefTechChase, DefComboShine]

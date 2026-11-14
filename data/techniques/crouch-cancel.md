@@ -17,8 +17,10 @@ summary: Being hit while crouching multiplies knockback and hitlag by 2/3, and h
 If a character is in a crouching state when hit, the knockback and the victim's hitlag are
 multiplied by 0.666667 [wiki:Knockback] [wiki:Hitlag]. Because the player is holding down,
 they normally also [ASDI](asdi.md) down, which puts them back on the ground on the first
-frame after hitlag; landing in non-tumble hitstun replaces the hitstun with the normal
-landing animation (4 frames for most characters) [wiki:Crouch_cancel] [wiki:Hitstun].
+frame after hitlag; landing in non-tumble hitstun puts the character in the normal landing
+animation, which lasts as long as the hitstun but can be left for an attack, a grab, a shine,
+a jump or a dash after the normal landing lag (4 frames for most characters:
+`ftCo_Landing_IASA`; seen on the native build, 2026-11-13) [wiki:Crouch_cancel] [wiki:Hitstun].
 The two effects together are what players call crouch cancelling:
 
 - the 2/3 factor keeps the hit below the tumble threshold (80 knockback) until a much higher
@@ -30,11 +32,11 @@ counterattack) long before the attacker recovers.
 
 ## Inputs
 
-1. Be crouching (hold down on the ground; states `Squat`, `SquatWait`, `SquatRv`) at the
-   moment the hit connects.
+1. Be crouching (hold down on the ground; states `Squat` or `SquatWait`, **not** `SquatRv`,
+   the standing up: `ftCo_Damage.c`, `ftcommon.c`) at the moment the hit connects.
 2. Keep holding down until hitlag ends so ASDI down applies.
-3. Act as soon as the landing animation ends: the "crouch cancel counter" is typically
-   dsmash, dtilt, grab or shine.
+3. Act as soon as the landing can be left (after the normal landing lag): the "crouch
+   cancel counter" is typically dsmash, dtilt, grab or shine.
 
 To survive a strong horizontal hit instead, switch the stick from down to up-and-in during
 hitlag ([DI](di.md)); this is tight because crouch cancel also shortens hitlag

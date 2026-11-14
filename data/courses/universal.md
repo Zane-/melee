@@ -50,7 +50,8 @@ L-cancelled, Ice Climbers' desynced wavedash).
 | id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
 |-|-|-|-|-|-|
 | `universal-tech` | Tech the ground | Tech in place, in and away; lockout shown | [teching](../techniques/teching.md) | - | planned |
-| `universal-asdi-down` | ASDI down and crouch cancel | Hold the ground and punish; know where it stops | [ASDI](../techniques/asdi.md), [crouch cancel](../techniques/crouch-cancel.md) | - | planned |
+| `universal-crouch-cancel` | Crouch cancel | Crouch through weak hits and punish; know where it stops | [crouch cancel](../techniques/crouch-cancel.md) | - | implemented natively (2026-11-13): split from `universal-asdi-down` |
+| `universal-asdi-down` | ASDI down | Hold the C-stick down through weak hits, land and punish; know where it stops | [ASDI](../techniques/asdi.md) | - | implemented natively (2026-11-13); the overlay's C drill is still the combined one |
 | `universal-di-survival` | Survival and combo DI | DI kill moves to live and starters to escape | [DI](../techniques/di.md) | - | planned |
 | `universal-sdi` | SDI multi-hits | SDI out of multi-hit moves | [SDI](../techniques/sdi.md) | legacy SDI Training | planned |
 | `universal-wall-tech` | Wall and ledge tech | Tech the stage while recovering | [wall tech](../techniques/wall-tech.md), [Amsah tech](../techniques/amsah-tech.md) | legacy Ledgetech, Amsah Tech | planned |

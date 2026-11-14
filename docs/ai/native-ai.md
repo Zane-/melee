@@ -610,6 +610,7 @@ behaviour; `tests/course/specs.py` plays these the C's way where an option can,
 | Aerial into shine | The shielding opponent is held in place (option Opponent): the host clears its sideways speeds, shield pushback among them, at every frame boundary (`anchor`) |
 | Ledgedash | Starts on the ledge, falling to it (the default), on the stage by it, or on a respawn platform (host `rebirth`, as TM-CE's ledgedash event), or any of them; a regrab is a refresh, not a failure |
 | Shortened Illusion | Levels 1 to 4, the frame of the window the second B is on (1 the shortest, 4 the longest), in turn or one of them |
+| ASDI down and crouch cancel (was one drill, "ASDI down and crouch cancel"; second note session) | Two drills ("Both of these are very important"), `tools/melee_course/drills/defense_asdi.py`. Each a deck of moves: Marth down tilt and fair, Sheik forward and down tilt, and for crouch cancel Falcon's nair (it launches a standing Fox at any percent). The player's percent is picked where the hold works against the move (or just under its limit: option Percent). The CPU shields once it can act (ground moves: its animation's interrupt frame; aerials: landed and standing); the punish must land before. ASDI down: standing, the C-stick down as the freeze ends; crouching there is a crouch cancel and does not count. The limits are measured on the native build and checked at the limit and 8% past it: `tests/course/asdi.py` (16). The landing after an ASDI-down hit lasts as long as the hitstun but can be left after 4 frames (`ftCo_Landing_IASA`), which is what a punish uses |
 
 `tests/course/native_changes.py` (62 checks) plays each change; `tests/client/drills.py`
 (9) checks the ray on screen, a stage change with R held and a timeline in the client.
@@ -625,6 +626,14 @@ L-cancel, SHFFL, wavedash, JC grab, JC up smash, shield drop, waveshine, shine-g
 aerial into shine, ledgedash, JC shine, multishine, SHDL, Illusion, shine out of shield.
 A line under the drill's description says what is asked now (`Drill.status`: the deck's
 scenario, the Illusion level, the rays reached).
+
+Also from the second notes: a drill's reset sent the player's own port a neutral pad,
+which beat the controller for a frame, so a C-stick held through the reset (to keep ASDI
+down) was read as a fresh flick and Fox down smashed on every attempt's first frame. In
+live play the reset leaves the player's pad alone (`Session._reset`). And the D-pad or a
+changed pause option between two attempts (the frames left to read the verdict) ended the
+client; they are handled as in an attempt now (`Client.course_abandon`,
+`tests/client/between.py`).
 
 Found on the way: a live pad, as `pads` reports it between frames, is the one sampled for
 the coming frame, so the engine saw a press a frame before the state it starts (on a
