@@ -473,26 +473,20 @@ img { display: inline-block; }
 .cpic { position: relative; width: 412dp; height: 216dp; background-color: #12161C; overflow: hidden; clip: always; }
 .cpic.tall { height: 340dp; }
 /* the input display over a panel (screens.pad_display) */
-/* the input display: a GameCube controller (screens.pad_display); its parts
-   placed in shares of its box, so the box's size is the display's */
+/* the input display: a GameCube controller (screens.pad_display, padart.py):
+   layers that each cover the same frame (4 of its 300 by 220 of room round
+   it), lying on each other; the box's size is the display's */
 .pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 86dp; }
 .cpic.tpic .pv { width: 138dp; height: 101dp; }
-.pv img, .pvw, .pvx { position: absolute; }
-.pvbody { left: 0dp; top: 0dp; width: 100%; height: 100%; opacity: 0.92; }
-.pvk { opacity: 0.35; }
+.pvm { position: absolute; left: 0dp; top: 0dp; width: 100%; height: 100%; }
+.pv .pvl { position: absolute; left: -1.333%; top: -1.818%; width: 102.667%; height: 103.636%; }
+.pvk, .pvlit { opacity: 0; }
 .pvk.on { opacity: 1; }
-.pvgate, .pvtr, .pvdb, .pvdir { left: 0dp; top: 0dp; width: 100%; height: 100%; }
-.pvgate { opacity: 0.6; }
-.pvcap { left: 21%; top: 21%; width: 58%; height: 58%; }
-.pvtr, .pvdb { opacity: 0.35; }
-.pvdir { opacity: 0; }
-.pvdir.on { opacity: 1; }
-.pvx { border-radius: 40dp; }
-.pvbody.pvx { left: 0dp; top: 0dp; width: 100%; height: 100%; background-color: #2E2A5E; border-radius: 30dp; }
-/* the port above START, in its colour */
-.pvp { position: absolute; height: 10dp; line-height: 10dp; border-radius: 3dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 8dp; font-weight: 600; color: #FFFFFF; }
-.cpic.tpic .pvp { height: 11dp; line-height: 11dp; font-size: 9dp; }
-.gpad .pvp { height: 13dp; line-height: 13dp; font-size: 10dp; }
+/* the port above START, in its colour, quiet ("reduce the size of the P1
+   tag and make it a little more transparent so it is more subtle") */
+.pvp { position: absolute; height: 8dp; line-height: 8dp; border-radius: 2dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 6.5dp; font-weight: 600; color: #FFFFFF; opacity: 0.7; }
+.cpic.tpic .pvp { height: 9dp; line-height: 9dp; font-size: 7dp; }
+.gpad .pvp { height: 10dp; line-height: 10dp; font-size: 8dp; }
 .pvp.p1 { background-color: #E5484D; }
 .pvp.p2 { background-color: #3E7BFA; }
 .pvp.p3 { background-color: #F5BE1B; color: #12161C; }

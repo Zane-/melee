@@ -16,14 +16,6 @@ Made from them, beside them: START cropped to its button and its label (the
 whole icon leaves the label unreadable at button size), once as it is and
 once with the label light, for the dark panels ("start-light"); and the
 D-pad with left and right both lit ("d-side"), which the wiki has not.
-
-And the input display's controller (screens.pad_display; the owner,
-2026-11-14: "use the official button icons so it looks more like an actual
-gamecube controller"): each stick in two, its gate and its cap, so that the
-cap moves in the gate; START as its button alone; the D-pad and its four
-lit arms cut to one box, so that they lie on each other; and the
-controller's body, drawn here (BODY: ours, not the wiki's, to the owner's
-references of the controller's shape).
 """
 import json
 import shutil
@@ -78,68 +70,6 @@ def _urls():
 # made here: name -> (what from)
 MADE = {"START-LIGHT": "START", "D-SIDE": ("D-LEFT", "D-RIGHT")}
 START_VIEW = 'viewBox="24 50 208 164"'
-# the input display's controller (_make_pad): name -> (what from)
-PAD = {"PAD-BODY": None, "STICK-GATE": "STICK", "STICK-CAP": "STICK",
-       "C-GATE": "C", "C-CAP": "C", "PAD-START": "START",
-       "PAD-D": "D-PAD", "PAD-D-UP": "D-UP", "PAD-D-DOWN": "D-DOWN",
-       "PAD-D-LEFT": "D-LEFT", "PAD-D-RIGHT": "D-RIGHT"}
-PAD_VERSION = 2     # made again when this changes
-# what of each stick's icon is its cap (the rest is the gate); the C-stick's
-# cap is one group
-CAP = {"STICK": ("circle4351", "circle4353", "circle4178", "circle4180",
-                 "circle4182", "path4367", "path4437", "path4463"),
-       "C": ("g4321",)}
-GATE = "path3399"
-# START's button alone, without its label
-START_BUTTON = 'viewBox="82 114 92 92"'
-# The controller's shell, ours, drawn on 300 by 220 (screens.PAD_W by
-# PAD_H) to the owner's references of the GameCube controller (2026-11-14:
-# "the shape of the controller is very off ... Ensure the shell looks like
-# this so we have a realistic controller!"): the top's long arch, the
-# shoulders, the grips, the lobes round the D-pad and the C-stick and the
-# arch between them. Its left half, from the top's middle round to the
-# arch's middle, as cubic curves (first handle, second handle, end); the
-# right half is it mirrored.
-SHELL_LEFT = (
-    ((108, 1), (80, 6), (64, 13)),          # the top
-    ((36, 5), (26, 22), (24, 32)),          # the shoulder
-    ((-6, 52), (0, 82), (1, 98)),           # the side round the stick
-    ((-1, 150), (0, 218), (26, 218)),       # the grip, out and down
-    ((53, 218), (54, 162), (55, 148)),      # its end, its inside up
-    ((61, 166), (70, 190), (103, 185)),     # the lobe round the D-pad
-    ((143, 180), (143, 128), (115, 104)),
-    ((122, 99), (138, 97), (150, 97)))      # the arch
-# the wells: round the control stick and the face buttons, under the D-pad
-# and the C-stick
-SHELL_WELLS = ((53.6, 76.3, 35), (246.4, 73, 40), (96.8, 146.2, 25),
-               (201.2, 144.7, 25))
-SHELL_W, SHELL_H, SHELL_EDGE = 300, 220, 4   # the picture's room round it
-
-
-def _shell():
-    pts = [(150, 0)] + [e for _, _, e in SHELL_LEFT]
-    d = ["M150,0"]
-    for c1, c2, e in SHELL_LEFT:
-        d.append("C%g,%g %g,%g %g,%g" % (c1 + c2 + e))
-    for i in range(len(SHELL_LEFT) - 1, -1, -1):
-        c1, c2, _ = SHELL_LEFT[i]
-        d.append("C%g,%g %g,%g %g,%g" % (
-            SHELL_W - c2[0], c2[1], SHELL_W - c1[0], c1[1],
-            SHELL_W - pts[i][0], pts[i][1]))
-    return " ".join(d) + "Z"
-
-
-# an edge drawn under the shell, the shell over it (only its outline
-# shows), the wells on it
-BODY = (
-    '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
-    'viewBox="%d %d %d %d"><path d="%s" fill="#5B52A6" stroke="#5B52A6" '
-    'stroke-width="7" stroke-linejoin="round"/><path d="%s" fill="#2E2A5E"/>'
-    '<g fill="#262252" stroke="#4A4392" stroke-width="2">%s</g></svg>' % (
-        SHELL_W + 2 * SHELL_EDGE, SHELL_H + 2 * SHELL_EDGE, -SHELL_EDGE,
-        -SHELL_EDGE, SHELL_W + 2 * SHELL_EDGE, SHELL_H + 2 * SHELL_EDGE,
-        _shell(), _shell(), "".join(
-            '<circle cx="%g" cy="%g" r="%g"/>' % w for w in SHELL_WELLS)))
 
 
 def path(name):
@@ -152,72 +82,8 @@ def _render(tool, svg, out, width, height):
                    timeout=30)
 
 
-def _hide(text, ids):
-    """An SVG with these elements not drawn."""
-    for i in ids:
-        text = text.replace('id="%s"' % i, 'id="%s" visibility="hidden"' % i,
-                            1)
-    return text
-
-
-def _make_pad(tool):
-    """The input display's controller (PAD), made again when PAD_VERSION
-    changes."""
-    import numpy as np
-    sys.path.insert(0, str(ROOT / "tools" / "melee_client"))
-    import art
-    stamp = OUT / "PAD_VERSION"
-    if stamp.exists() and stamp.read_text().strip() == str(PAD_VERSION) \
-            and all(path(n).exists() for n in PAD):
-        return
-    body = OUT / "pad-body.svg"
-    body.write_text(BODY)
-    _render(tool, body, path("PAD-BODY"), 2 * (SHELL_W + 2 * SHELL_EDGE),
-            2 * (SHELL_H + 2 * SHELL_EDGE))
-    for stick in ("STICK", "C"):
-        src = OUT / FILES[stick]
-        if not src.exists():
-            continue
-        text = src.read_text()
-        for part, hidden in (("GATE", CAP[stick]), ("CAP", (GATE,))):
-            name = "%s-%s" % (stick, part)
-            svg = OUT / (name.lower() + ".svg")
-            svg.write_text(_hide(text, hidden))
-            _render(tool, svg, path(name), SIZE, SIZE)
-            _trim(path(name))
-    src = OUT / FILES["START"]
-    if src.exists():
-        svg = OUT / "pad-start.svg"
-        svg.write_text(src.read_text().replace(
-            'viewBox="0 0 256 256"', START_BUTTON).replace(
-            'height="256" width="256"', 'height="92" width="92"'))
-        _render(tool, svg, path("PAD-START"), 96, 96)
-        _trim(path("PAD-START"))
-    # the D-pad and its lit arms, cut alike (each lit arm reaches out a
-    # little further than the plain one)
-    dirs = [n for n in ("D-PAD", "D-UP", "D-DOWN", "D-LEFT", "D-RIGHT")
-            if (OUT / FILES[n]).exists()]
-    if len(dirs) == 5:
-        whole = {}
-        for n in dirs:
-            tmp = OUT / (FILES[n][:-4] + "-whole.png")
-            _render(tool, OUT / FILES[n], tmp, SIZE, SIZE)
-            whole[n] = _read(tmp)
-        seen = np.zeros(whole["D-PAD"].shape[:2], bool)
-        for img in whole.values():
-            seen |= img[..., 3] > 8
-        ys, xs = np.nonzero(seen)
-        for n, img in whole.items():
-            cut = img[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
-            out = np.zeros((cut.shape[0] + 4, cut.shape[1] + 4, 4), np.uint8)
-            out[2:-2, 2:-2] = cut
-            art.write_png(path("PAD-D" if n == "D-PAD" else "PAD-" + n), out)
-    stamp.write_text(str(PAD_VERSION))
-
-
 def _make(tool):
-    """START cropped, light and dark; the D-pad lit left and right; the
-    input display's controller."""
+    """START cropped, light and dark; the D-pad lit left and right."""
     src = OUT / FILES["START"]
     if src.exists() and not path("START-LIGHT").exists():
         text = src.read_text().replace('viewBox="0 0 256 256"', START_VIEW)
@@ -248,7 +114,6 @@ def _make(tool):
         side[lit] = right[lit]
         art.write_png(path("D-SIDE"), side)
         _trim(path("D-SIDE"))
-    _make_pad(tool)
 
 
 def _read(png):
@@ -312,19 +177,14 @@ def _trim(png):
 def ensure():
     """{button: picture} for the icons there are (fetched and made the
     first time); {} if they cannot be had."""
-    names = list(FILES) + list(MADE) + list(PAD)
+    names = list(FILES) + list(MADE)
     have = {n: path(n) for n in names if path(n).exists()}
-    stamp = OUT / "PAD_VERSION"
-    if len(have) == len(names) and stamp.exists() and \
-            stamp.read_text().strip() == str(PAD_VERSION):
+    if len(have) == len(names):
         return have
     tool = shutil.which("rsvg-convert")
     if tool is None:
         return have
     try:
-        if all(path(n).exists() for n in FILES):
-            _make(tool)         # only what is made here is missing
-            return {n: path(n) for n in names if path(n).exists()}
         urls = _urls()
         OUT.mkdir(parents=True, exist_ok=True)
         for name, file in FILES.items():
@@ -346,7 +206,6 @@ def ensure():
 
 if __name__ == "__main__":
     got = ensure()
-    every = list(FILES) + list(MADE) + list(PAD)
-    for name in every:
+    for name in list(FILES) + list(MADE):
         print("%-11s %s" % (name, got.get(name, "missing")))
-    sys.exit(0 if len(got) == len(every) else 1)
+    sys.exit(0 if len(got) == len(FILES) + len(MADE) else 1)

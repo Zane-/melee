@@ -52,6 +52,7 @@ import online  # noqa: E402
 import opponents  # noqa: E402
 import fonts  # noqa: E402
 import icons  # noqa: E402
+import padart  # noqa: E402
 import marks  # noqa: E402
 import screens  # noqa: E402
 import settings  # noqa: E402
@@ -348,6 +349,8 @@ class Client:
         screens.MARKS.update(marks.ensure())
         # SmashWiki's GameCube button icons, fetched the first time
         screens.BUTTONS.update(buttons.ensure())
+        # the input display's controller, composed of them (padart.py)
+        screens.PAD_ART.update(padart.ensure())
         # the pause menu's icons (our own drawings, made into pictures)
         screens.ICONS.update(icons.ensure())
         for f in fonts.fonts():

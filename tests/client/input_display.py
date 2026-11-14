@@ -25,9 +25,9 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
-import buttons  # noqa: E402
 import client  # noqa: E402
 import fonts  # noqa: E402
+import padart  # noqa: E402
 import screens  # noqa: E402
 import window  # noqa: E402
 
@@ -50,13 +50,14 @@ def pct(text):
     return float(m.group(1)) if m else None
 
 
-def _same(card, s, lt):
+def _same(card, s, lt, ll):
     """The card's lines against the game's looks, as numbers (RmlUi reads
     a share back to the whole hundredth: within 0.6 of one; an opacity
     within 0.02)."""
-    nums = [float(x) for line in card for x in re.findall(r"[\d.]+", line)]
+    nums = [float(x) for line in card
+            for x in re.findall(r"-?[\d.]+", line.split("style", 1)[1])]
     game = [pct(s["left"]), pct(s["top"]), pct(lt["top"]),
-            float(lt["opacity"])]
+            float(ll["opacity"])]
     return len(nums) == 4 and all(
         abs(a - b) <= (0.6 if i < 3 else 0.02)
         for i, (a, b) in enumerate(zip(nums, game)))
@@ -69,15 +70,15 @@ def main():
     if args.shots:
         os.makedirs(args.shots, exist_ok=True)
 
-    screens.BUTTONS.update(buttons.ensure())
-    missing = [n for n in buttons.PAD if n not in screens.BUTTONS]
-    check("every part of the controller has its picture", not missing,
+    screens.PAD_ART.update(padart.ensure())
+    missing = [n for n in padart.LAYERS if n not in screens.PAD_ART]
+    check("every layer of the controller has its picture", not missing,
           ", ".join(missing))
     html = screens.pad_display("y")
     srcs = re.findall(r'src="file://([^"]+)"', html)
     check("the card's controller is made of them",
-          len(srcs) >= 18 and all(os.path.exists(s) for s in srcs) and
-          "pvx" not in html, "%d pictures" % len(srcs))
+          len(srcs) == len(padart.LAYERS) and
+          all(os.path.exists(s) for s in srcs), "%d pictures" % len(srcs))
     check("its port above START: the player's, P1, unless told",
           'class="pvp p1"' in html and ">P1</div>" in html and
           'class="pvp p2"' in screens.pad_display("y", 1))
@@ -89,9 +90,10 @@ def main():
           lines["Y"].endswith("on 1") and lines["DU"].endswith("on 1") and
           lines["B"].endswith("on 0"))
     check("the card's display: the stick right, the C-stick down, L half in",
-          "left: 41.0%; top: 21.0%" in lines["S"] and
-          "left: 21.0%; top: 41.0%" in lines["C"] and
-          "top: 8.0%; opacity: 0.68" in lines["L"], lines["S"])
+          "left: 3.33%; top: 0.00%" in lines["S"] and
+          "left: 0.00%; top: 2.95%" in lines["C"] and
+          "top: 1.59%" in lines["L"] and "opacity: 0.50" in lines["Ll"],
+          lines["S"])
 
     out = tempfile.mkdtemp(prefix="melee-ui-")
     w = None
@@ -122,21 +124,21 @@ def main():
               l=0.25)
         w.step(3)
         a, b, z = (look(w, "cg0i" + p) for p in ("A", "B", "Z"))
-        s, c, lt = (look(w, "cg0i" + p) for p in ("S", "C", "L"))
+        s, c, lt, ll = (look(w, "cg0i" + p) for p in ("S", "C", "L", "Ll"))
         check("A and Z held: lit; B not",
               "on" in a["class"].split() and "on" in z["class"].split() and
               "on" not in b["class"].split(),
               "%s / %s / %s" % (a["class"], z["class"], b["class"]))
         check("the stick pushed right: its cap at the gate's right",
-              pct(s["left"]) is not None and pct(s["left"]) > 35 and
-              abs(pct(s["top"]) - 21) < 3, "%s %s" % (s["left"], s["top"]))
+              pct(s["left"]) is not None and pct(s["left"]) > 2.5 and
+              abs(pct(s["top"])) < 0.6, "%s %s" % (s["left"], s["top"]))
         check("the C-stick pushed up: its cap at the top",
-              pct(c["top"]) is not None and pct(c["top"]) < 7,
+              pct(c["top"]) is not None and pct(c["top"]) < -2,
               "%s %s" % (c["left"], c["top"]))
-        check("L under half in: moved in a little, half lit",
-              pct(lt["top"]) is not None and 5 < pct(lt["top"]) < 9 and
-              0.55 < float(lt["opacity"]) < 0.75,
-              "%s, opacity %s" % (lt["top"], lt["opacity"]))
+        check("L under half in: moved in a little, its lit copy half shown",
+              pct(lt["top"]) is not None and 0.5 < pct(lt["top"]) < 2.2 and
+              0.35 < float(ll["opacity"]) < 0.55,
+              "%s, opacity %s" % (lt["top"], ll["opacity"]))
 
         # the coach's card, given the same pad recorded, shows the same
         class Lines:
@@ -149,10 +151,12 @@ def main():
         client.Play(rec, [])._pad("y", {"buttons": 0x100 | 0x10, "lx": 80,
                                         "cy": 80, "lt": 63})
         card = [x for x in rec.lines if x.startswith(("attr cyiS ",
-                                                      "attr cyiL "))]
+                                                      "attr cyiL ",
+                                                      "attr cyiLl "))]
         check("the card shows that pad as the game does",
-              _same(card, s, lt), "; ".join(card) + " / game %s %s %s %s" % (
-                  s["left"], s["top"], lt["top"], lt["opacity"]))
+              _same(card, s, lt, ll), "; ".join(card) +
+              " / game %s %s %s %s" % (s["left"], s["top"], lt["top"],
+                                       ll["opacity"]))
         if args.shots:
             w.shot(os.path.join(args.shots, "held.png"))
 
@@ -161,7 +165,7 @@ def main():
         a, s, lt = (look(w, "cg0i" + p) for p in ("A", "S", "L"))
         check("let go: A dark, the cap back in the middle, L out",
               "on" not in a["class"].split() and
-              abs(pct(s["left"]) - 21) < 1 and pct(lt["top"]) == 0,
+              abs(pct(s["left"])) < 0.6 and abs(pct(lt["top"])) < 0.01,
               "%s %s %s" % (a["class"], s["left"], lt["top"]))
 
         w.inputs(3)

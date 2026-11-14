@@ -105,12 +105,16 @@ static std::string rest(const char* line)
 }
 
 /* The input display's sums, as screens.pad_lines does them: a stick's cap
-   rests at PAD_REST of its gate and goes PAD_TRAVEL at full tilt; a
-   trigger goes PAD_PRESS of its height in, from PAD_DIM bright to full. */
-#define PAD_REST 21.0f
-#define PAD_TRAVEL 20.0f
-#define PAD_PRESS 16.0f
-#define PAD_DIM 0.35f
+   moves from where it rests, at full tilt, PAD_S_X of the controller's
+   box across and PAD_S_Y down (the C-stick's PAD_C_X and PAD_C_Y); a
+   trigger goes PAD_PRESS of the box down, in under the shell, and its lit
+   copy shows as far as it is in (padart.TRAVEL and PRESS, on its frame of
+   300 by 220). */
+#define PAD_S_X (10.0f / 300 * 100)
+#define PAD_S_Y (10.0f / 220 * 100)
+#define PAD_C_X (6.5f / 300 * 100)
+#define PAD_C_Y (6.5f / 220 * 100)
+#define PAD_PRESS (7.0f / 220 * 100)
 
 /// What a controller of the input display was last given, so that only
 /// what changes is set (a part per field: the buttons, the sticks'
@@ -139,7 +143,7 @@ static void pad_set(int slot, const char* part, const char* name,
 static std::string percent(float v)
 {
     char text[32];
-    snprintf(text, sizeof text, "%.1f%%", v);
+    snprintf(text, sizeof text, "%.2f%%", v);
     return text;
 }
 
@@ -219,10 +223,11 @@ int host_ui_pad(int slot, int shown, int port, unsigned held, float sx,
         }
         was->held = held;
     }
-    place[0] = (int) (10.0f * (PAD_REST + clamp(sx, -1, 1) * PAD_TRAVEL));
-    place[1] = (int) (10.0f * (PAD_REST - clamp(sy, -1, 1) * PAD_TRAVEL));
-    place[2] = (int) (10.0f * (PAD_REST + clamp(cx, -1, 1) * PAD_TRAVEL));
-    place[3] = (int) (10.0f * (PAD_REST - clamp(cy, -1, 1) * PAD_TRAVEL));
+    /* in hundredths of a percent of the box; the triggers in hundredths */
+    place[0] = (int) (100.0f * clamp(sx, -1, 1) * PAD_S_X);
+    place[1] = (int) (-100.0f * clamp(sy, -1, 1) * PAD_S_Y);
+    place[2] = (int) (100.0f * clamp(cx, -1, 1) * PAD_C_X);
+    place[3] = (int) (-100.0f * clamp(cy, -1, 1) * PAD_C_Y);
     place[4] = (int) (100.0f * clamp(ltrig, 0, 1));
     place[5] = (int) (100.0f * clamp(rtrig, 0, 1));
     for (int i = 0; i < 2; i++) {
@@ -230,19 +235,19 @@ int host_ui_pad(int slot, int shown, int port, unsigned held, float sx,
         if (place[2 * i] != was->place[2 * i] ||
             place[2 * i + 1] != was->place[2 * i + 1])
         {
-            pad_set(slot, part, "left", percent(place[2 * i] / 10.0f));
-            pad_set(slot, part, "top", percent(place[2 * i + 1] / 10.0f));
+            pad_set(slot, part, "left", percent(place[2 * i] / 100.0f));
+            pad_set(slot, part, "top", percent(place[2 * i + 1] / 100.0f));
         }
     }
     for (int i = 0; i < 2; i++) {
         const char* part = i == 0 ? "L" : "R";
+        const char* lit = i == 0 ? "Ll" : "Rl";
         int t = place[4 + i];
         if (t != was->place[4 + i]) {
             char op[16];
             pad_set(slot, part, "top", percent(t / 100.0f * PAD_PRESS));
-            snprintf(op, sizeof op, "%.2f",
-                     PAD_DIM + (1.0f - PAD_DIM) * t / 100.0f);
-            pad_set(slot, part, "opacity", op);
+            snprintf(op, sizeof op, "%.2f", t / 100.0f);
+            pad_set(slot, lit, "opacity", op);
         }
     }
     memcpy(was->place, place, sizeof place);

@@ -8,6 +8,7 @@ by element id.
 from pathlib import Path
 
 import art
+import padart
 
 # The style sheet is named beside the document: client.py copies it there
 # (RmlUi takes a path that starts with a slash for one below its own root).
@@ -1220,117 +1221,66 @@ def _path(dots, floor, kind):
     return "".join(out)
 
 
-# The input display: a GameCube controller made of SmashWiki's icons
-# (buttons.PAD; the owner, 2026-11-14: "use the official button icons so it
-# looks more like an actual gamecube controller"). Each part is placed on a
-# PAD_W by PAD_H controller: (id, picture, middle x, middle y, width, height),
-# one of the two None to keep the picture's shape. In the markup every place
-# is a share of the controller's box, so the box's size (style.rcss, .pv) is
-# the display's size wherever it is.
-PAD_W, PAD_H = 156.0, 114.4      # buttons.SHELL_W by SHELL_H, at 0.52
-PAD_PARTS = (
-    ("L", "L", 24, 3, 28, None), ("R", "R", 132, 3, 28, None),
-    ("Z", "Z", 110, 5, 20, None),
-    ("S", "STICK", 27.9, 39.7, 30, 30), ("D", "PAD-D", 50.3, 76, 19, 19),
-    ("ST", "PAD-START", 78, 38.5, 9, 9),
-    ("A", "A", 128.1, 39, None, 20), ("B", "B", 109.4, 49.6, None, 12),
-    ("X", "X", 145.4, 36.5, None, 19), ("Y", "Y", 121.4, 22.6, 18, None),
-    ("C", "C", 104.6, 75.2, 22, 22))
-# the triggers behind the shell (pressed, they go in under it)
-PAD_BEHIND = ("L", "R")
-# the port's label above START ("P1"): where its foot is, how wide it is
-PAD_LABEL = (78, 32, 22)
+# The input display: a GameCube controller, composed as one picture
+# (padart.py: SmashWiki's icons set into a shell of our own drawing; the
+# owner, 2026-11-14, "build them in with the body"). Its layers all cover
+# the same frame, so each lies on the others exactly; PAD_ART has them
+# (the client fills it). The box is the frame at 0.52 (style.rcss, .pv,
+# gives the size wherever it is).
+PAD_W, PAD_H = padart.SHELL_W * 0.52, padart.SHELL_H * 0.52
+PAD_ART = {}
+# the port's label above START ("P1"): where its foot is, how wide it is,
+# on the box
+PAD_LABEL = (78, 34, 16)
 # the port whose controller a card's display is, unless told (the client
 # sets it: the player's)
 PAD_PORT = 0
-# a stick's cap: its size, where it rests and how far it goes at full tilt,
-# in hundredths of its gate; how far a trigger moves when all the way in,
-# in hundredths of its height; how bright a part not held is. (The game's
-# own display, src/host/inputs.c, does the same sums.)
-PAD_CAP, PAD_TRAVEL, PAD_PRESS, PAD_DIM = 58.0, 20.0, 16.0, 0.35
-PAD_REST = (100.0 - PAD_CAP) / 2
 # the buttons lit while held, as the pad's bits
 PAD_BITS = (("A", 0x100), ("B", 0x200), ("X", 0x400), ("Y", 0x800),
             ("Z", 0x10), ("ST", 0x1000), ("DU", 0x8), ("DD", 0x4),
             ("DL", 0x1), ("DR", 0x2))
-# a part drawn plainly when its picture is missing (no rsvg-convert, never
-# online): its colour
-PAD_PLAIN = {"A": "#2BC8A0", "B": "#E5484D", "X": "#B8BEC8", "Y": "#B8BEC8",
-             "Z": "#6A5ACD", "L": "#B8BEC8", "R": "#B8BEC8",
-             "ST": "#B8BEC8", "D": "#B8BEC8", "C": "#F5D90A"}
+# how far a stick's cap goes at full tilt and a trigger goes in, in
+# hundredths of the box across and down (left and top are shares of its
+# width and of its height). The game's own display (ui.cpp) does the same.
+PAD_TRAVEL = {s: (t / padart.SHELL_W * 100, t / padart.SHELL_H * 100)
+              for s, t in padart.TRAVEL.items()}
+PAD_PRESS = padart.PRESS / padart.SHELL_H * 100
 
 
-def _shape(name):
-    """A picture's width over its height (1 without it)."""
-    import struct
-    try:
-        head = Path(BUTTONS[name]).read_bytes()[16:24]
-        w, h = struct.unpack(">II", head)
-        return w / float(h)
-    except (KeyError, OSError, struct.error, ZeroDivisionError):
-        return 1.0
-
-
-def _box(cx, cy, w, h):
-    return "left: %.2f%%; top: %.2f%%; width: %.2f%%; height: %.2f%%;" % (
-        (cx - w / 2) / PAD_W * 100, (cy - h / 2) / PAD_H * 100,
-        w / PAD_W * 100, h / PAD_H * 100)
-
-
-def _pad_img(name, ident, cls, style=""):
-    """A part's picture, or a plain stand-in for it."""
+def _pad_layer(name, ident=None, cls="pvl"):
+    """One of the controller's layers (a bare element of that id without
+    its picture: the display's updates still find it)."""
     at = ' id="%s"' % ident if ident else ""
-    sty = ' style="%s"' % style if style else ""
-    if name in BUTTONS:
-        return '<img%s class="%s" src="%s"%s/>' % (
-            at, cls, picture(BUTTONS[name]), sty)
-    plain = PAD_PLAIN.get(name.replace("PAD-", "")[:2].rstrip("-"),
-                          "#B8BEC8")
-    return '<div%s class="%s pvx" style="%sbackground-color: %s;"/>' % (
-        at, cls, style, plain)
+    if name in PAD_ART:
+        return '<img%s class="%s" src="%s"/>' % (at, cls,
+                                                  picture(PAD_ART[name]))
+    return '<div%s class="%s"/>' % (at, cls)
 
 
 def pad_display(k, port=None):
     """An input display (the coach's pictures, the tutorial's example, the
     game's own over a match): a GameCube controller whose buttons light
     while held, whose sticks' caps move in their gates and whose triggers
-    go in, its port above START ("P1": the owner, 2026-11-14, "a small
-    label above the start button on the controller so it is clear";
-    `port` from 0, PAD_PORT if None). Its parts' ids are `c` + `k` + "i" +
-    the part (A B X Y Z, ST for START, DU DD DL DR the D-pad, S and C the
-    sticks' caps, L and R the triggers, P the label); pad_lines says what
-    they show."""
+    go in under the shell, its port above START ("P1": the owner,
+    2026-11-14, "a small label above the start button on the controller so
+    it is clear"; `port` from 0, PAD_PORT if None). Its parts' ids are `c`
+    + `k` + "i" + the part (A B X Y Z, ST for START, DU DD DL DR the D-pad,
+    S and C the sticks' caps, L and R the triggers and Ll and Rl their
+    lit copies, P the label); pad_lines says what they show."""
     def at(part):
         return "c%si%s" % (k, part)
-    out = ['<div id="c%si" class="pv">' % k]
     n = (PAD_PORT if port is None else port) + 1
-    edge = PAD_W / 300.0 * 4           # the body's picture's room round it
-    body = _box(PAD_W / 2, PAD_H / 2, PAD_W + 2 * edge, PAD_H + 2 * edge)
-    parts = sorted(PAD_PARTS, key=lambda p: p[0] not in PAD_BEHIND)
-    for i, (part, name, cx, cy, w, h) in enumerate(parts):
-        if i == len(PAD_BEHIND):
-            out.append(_pad_img("PAD-BODY", None, "pvbody", body)
-                       if "PAD-BODY" in BUTTONS else
-                       '<div class="pvbody pvx"/>')
-        if w is None:
-            w = h * _shape(name)
-        elif h is None:
-            h = w / _shape(name)
-        box = _box(cx, cy, w, h)
-        if part in ("S", "C"):          # the gate, the cap in it
-            out.append('<div class="pvw" style="%s">%s%s</div>' % (
-                box, _pad_img(name + "-GATE", None, "pvgate"),
-                _pad_img(name + "-CAP", at(part), "pvcap")))
-        elif part in ("L", "R"):        # moves in as it is pressed
-            out.append('<div class="pvw" style="%s">%s</div>' % (
-                box, _pad_img(name, at(part), "pvtr")))
-        elif part == "D":               # the D-pad, an arm lit over it
-            arms = "".join(_pad_img("PAD-D-" + d, at("D" + d[0]), "pvdir")
-                           for d in ("UP", "DOWN", "LEFT", "RIGHT"))
-            out.append('<div class="pvw" style="%s">%s%s</div>' % (
-                box, _pad_img(name, None, "pvdb"), arms))
-        else:
-            out.append(_pad_img(name, at(part), "pvk", box))
+    out = ['<div id="c%si" class="pv">' % k]
+    for t in ("L", "R"):                # behind the shell
+        out.append('<div id="%s" class="pvm">%s%s</div>' % (
+            at(t), _pad_layer(t), _pad_layer(t + "-LIT", at(t + "l"),
+                                             "pvl pvlit")))
+    out.append(_pad_layer("BODY"))
+    for part in padart.LIT:
+        out.append(_pad_layer(part, at(part), "pvl pvk"))
+    for cap in padart.CAPS:
+        out.append('<div id="%s" class="pvm">%s</div>' % (at(cap),
+                                                         _pad_layer(cap)))
     x, foot, w = PAD_LABEL
     out.append('<div id="%s" class="pvp p%d" style="left: %.2f%%; bottom: '
                '%.2f%%; width: %.2f%%;">P%d</div>' % (
@@ -1352,12 +1302,15 @@ def pad_lines(k, held, stick, cstick, ltrig, rtrig):
     for part, (x, y) in (("S", stick), ("C", cstick)):
         x = max(-1.0, min(1.0, x))
         y = max(-1.0, min(1.0, y))
-        out.append((part, "attr c%si%s style left: %.1f%%; top: %.1f%%;" % (
-            k, part, PAD_REST + x * PAD_TRAVEL, PAD_REST - y * PAD_TRAVEL)))
+        tx, ty = PAD_TRAVEL[part]
+        out.append((part, "attr c%si%s style left: %.2f%%; top: %.2f%%;" % (
+            k, part, x * tx + 0.0, -y * ty + 0.0)))
     for part, t in (("L", ltrig), ("R", rtrig)):
         t = max(0.0, min(1.0, t))
-        out.append((part, "attr c%si%s style top: %.1f%%; opacity: %.2f;" % (
-            k, part, t * PAD_PRESS, PAD_DIM + (1 - PAD_DIM) * t)))
+        out.append((part, "attr c%si%s style top: %.2f%%;" % (
+            k, part, t * PAD_PRESS)))
+        out.append((part + "l", "attr c%si%sl style opacity: %.2f;" % (
+            k, part, t)))
     return out
 
 
