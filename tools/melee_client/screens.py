@@ -142,7 +142,7 @@ def online_body(code, rows, at, delay=2, router=None):
 ICONS = {}
 
 
-def icon(name, cls="pic"):
+def icon(name, cls="picon"):
     if name not in ICONS:
         return ""
     return '<img class="%s" src="%s"/>' % (cls, picture(ICONS[name]))
@@ -1178,7 +1178,7 @@ def coach_card(v):
     keys.append(("B", "Close"))
     return (
         '<div class="cdim"/><div class="ccard">'
-        '<div class="chead"><div class="cstrip"/><div class="cchip"><div '
+        '<div class="chead"><div class="cstrip"/><div class="cbadge"><div '
         'class="un">Coach</div></div><div class="ctitle" style="font-size: '
         '%ddp;">%s</div><div class="grow"/><div class="cwhat">%s<br/>%s '
         'MISSES IN A ROW</div></div>'

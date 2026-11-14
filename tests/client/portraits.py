@@ -13,9 +13,12 @@ build/shots/ they stay out of the repository).
 """
 import argparse
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "melee_client"))
@@ -36,6 +39,23 @@ def check(name, ok, detail=""):
     checks.append(ok)
     print("%s  %s%s" % ("ok  " if ok else "FAIL", name,
                         "  (" + detail + ")" if detail else ""))
+
+
+def panel_spread(path, places):
+    """How much the colour varies in the middle of each panel's picture
+    (1280x720): none on a panel that is only its colour."""
+    raw = subprocess.run(["magick", str(path), "rgb:-"], check=True,
+                         capture_output=True).stdout
+    img = np.frombuffer(raw, np.uint8).reshape(720, 1280, 3).astype(float)
+    out = []
+    for i in range(places):
+        row, col = divmod(i, client.COLUMNS)
+        # a panel is 98 wide on a pitch of 110 from x 54, 114 high on a
+        # pitch of 126 from y 120, its name strip the bottom 22; this is
+        # inside the slant and below where the strip once was drawn
+        x, y = 54 + 110 * col + 49, 120 + 126 * row
+        out.append(img[y + 25:y + 80, x - 25:x + 25].std())
+    return out
 
 
 def main():
@@ -102,6 +122,14 @@ def main():
               "portrait/fox-0.png" in page and
               "emblem/star-fox.png" in page and
               page.count('class="face"') == 25)
+        # and drawn: a class of the pause menu's (.pic) once also styled
+        # the panels' picture box, which shrank to a corner and showed
+        # every panel as its colour alone, the markup above still right
+        drawn = out / "characters.png"
+        w.shot(drawn)
+        spread = panel_spread(drawn, len(c.roster))
+        check("and draws them: no panel is its colour alone",
+              min(spread) > 8, "least spread %.1f" % min(spread))
         check("25 places: Zelda and Sheik share one",
               len(c.roster) == 25 and 'id="c24"' in page and
               'id="c25"' not in page)

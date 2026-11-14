@@ -388,8 +388,8 @@ img { display: inline-block; }
 .pcap { width: 6dp; height: 26dp; margin-right: 12dp; transform: skewX(-12deg); }
 .pr.tight .pcap { height: 20dp; }
 .pr.on .pcap { background-color: #1F49C9; }
-.pic { width: 20dp; height: 20dp; margin-right: 12dp; image-color: #F3F6FA; }
-.pr.on .pic { image-color: #12161C; }
+.picon { width: 20dp; height: 20dp; margin-right: 12dp; image-color: #F3F6FA; }
+.pr.on .picon { image-color: #12161C; }
 .pl { font-size: 16dp; font-weight: 700; white-space: nowrap; }
 .pr.tight .pl { font-size: 15dp; }
 .pval { display: flex; flex-direction: row; align-items: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 13dp; font-weight: 600; white-space: nowrap; }
@@ -417,8 +417,8 @@ img { display: inline-block; }
 .ccard { position: absolute; left: 36dp; top: 36dp; width: 888dp; height: 648dp; background-color: #E9EDF2; color: #12161C; display: flex; flex-direction: column; }
 .chead { height: 72dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; padding-right: 24dp; }
 .cstrip { width: 14dp; height: 72dp; background-color: #F5BE1B; margin-right: 16dp; }
-.cchip { width: 92dp; height: 30dp; background-color: #F5BE1B; color: #12161C; transform: skewX(-12deg); margin-right: 16dp; display: flex; flex-direction: row; align-items: center; justify-content: center; }
-.cchip .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; text-transform: uppercase; letter-spacing: 1dp; }
+.cbadge { width: 92dp; height: 30dp; background-color: #F5BE1B; color: #12161C; transform: skewX(-12deg); margin-right: 16dp; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.cbadge .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; text-transform: uppercase; letter-spacing: 1dp; }
 .ctitle { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; text-transform: uppercase; line-height: 1em; white-space: nowrap; }
 .cwhat { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; color: #A9B4C2; text-align: right; line-height: 1.4em; margin-left: 12dp; white-space: nowrap; }
 .cpanels { display: flex; flex-direction: row; padding: 14dp 24dp 0dp 24dp; }
