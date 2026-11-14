@@ -19,11 +19,27 @@ melee_course/react.py), the jump-in is the same table played by the Melee
 Actor: it moves back to the scenario's distance from wherever the player
 went during the wait, looks ahead, and jumps once the aerial would land.
 The drill's clock (attack_frame) starts at the jump either way.
+
+fox-anti-air plays by default against Opponent: Engine
+(melee_engine/jumpin.py): both fighters move; the CPU dash dances and walks
+about the scenario's distance, chooses its moment, and its jump, drift and
+aerial timing are found by the search engine so that the aerial lands
+where the player is. It jumps only once the engine has found the player an
+up tilt, up smash or back air that beats that jump-in, started no sooner
+than a person's reaction time after the jump; in the air it follows the
+player, and sees what the player commits to only after its own reaction
+time, so an anti-air thrown early is punished. The demonstration plays the
+answer the engine found.
 """
+import random
+
+from melee_actor.actor import STAGE_LIMIT
 from melee_course.engine import (
     A, R, X, Drill, Entry, In, Option, Ref, ATTACK_AIR_B, ATTACK_HI3,
     ATTACK_HI4, CAPTURE_PULLED_HI, GUARD_SET_OFF, LANDING_FALL_SPECIAL)
-from melee_course.react import FIXED, Opponent, opponent_option, sequence
+from melee_course.react import (
+    ENGINE, FIXED, Opponent, opponent_option, player_raw, put_raw, sequence,
+    thinker)
 
 # ftCo_MS_CaptureFoot (src/melee/ft/kinds/ftCommon/forward.h): the last of
 # the states of a fighter being held.
@@ -48,10 +64,12 @@ class WhiffScenario:
     the demonstration goes back in; `demo_out`: script frame of its first
     move (approaches)."""
 
-    def __init__(self, reach, inputs, hit_end, faf, demo_back=0, demo_out=0):
+    def __init__(self, reach, inputs, hit_end, faf, demo_back=0, demo_out=0,
+                 aerial=None):
         self.reach, self.inputs = reach, inputs
         self.hit_end, self.faf = hit_end, faf
         self.demo_back, self.demo_out = demo_back, demo_out
+        self.aerial = aerial      # the engine opponent's (Opponent: Engine)
 
 
 # ---- fox-whiff-punish: the attacks (desc.c) ---------------------------------
@@ -121,14 +139,16 @@ WAVEDASH_BACK_DECK = [
 
 ANTI_AIR_DECK = [
     Entry("captain-falcon",
-          WhiffScenario(47.0, _ap_falcon_fh_nair, 61, 80, 0, 40),
+          WhiffScenario(47.0, _ap_falcon_fh_nair, 61, 80, 0, 40, "nair"),
           "Falcon - Full Hop Nair"),
     Entry("captain-falcon",
-          WhiffScenario(45.0, _ap_falcon_fh_dair, 59, 83, 0, 40),
+          WhiffScenario(45.0, _ap_falcon_fh_dair, 59, 83, 0, 40, "dair"),
           "Falcon - Full Hop Dair"),
-    Entry("jigglypuff", WhiffScenario(60.0, _ap_puff_fh_fair, 62, 82, 0, 35),
+    Entry("jigglypuff",
+          WhiffScenario(60.0, _ap_puff_fh_fair, 62, 82, 0, 35, "fair"),
           "Jigglypuff - Fair"),
-    Entry("peach", WhiffScenario(50.0, _ap_peach_fh_fair, 71, 96, 0, 41),
+    Entry("peach",
+          WhiffScenario(50.0, _ap_peach_fh_fair, 71, 96, 0, 41, "fair"),
           "Peach - Fair"),
 ]
 
@@ -264,6 +284,8 @@ AP_WAIT_SPAN = 60
 class _Approach(Drill):
     """The CPU stands at a scenario's start distance and, after a wait the
     player cannot predict, jumps in with an aerial (ap_* in the C)."""
+    # what the engine opponent's check counts as the player's answer
+    ANSWERS = (ATTACK_HI3, ATTACK_HI4, ATTACK_AIR_B)
     part = "neutral"
     cpu = "captain-falcon"
     characters = ("fox",)
@@ -276,6 +298,7 @@ class _Approach(Drill):
 
     def setup(self, c):
         self.opp = None
+        self.eng = None
         gap = c.entry.data.reach
         hmn_x = -c.side * gap / 2
         c.place(hmn_x, hmn_x + c.side * gap, False,
@@ -293,6 +316,8 @@ class _Approach(Drill):
         jump."""
         v = self.v
         sc = c.entry.data
+        if c.opt(AP_OPT_OPPONENT) == ENGINE:
+            return self.advance_engine(c)
         fixed = c.opt(AP_OPT_OPPONENT) == FIXED
         if c.s.attempt_frame == 3:
             # the spacing the jump-in was designed from, as placed
@@ -318,6 +343,38 @@ class _Approach(Drill):
             self.opp.frame(c)
         if fixed:
             c.script(sc.inputs, v["attack_frame"])
+        v["attack_frame"] += 1
+        return True
+
+    def engine_opponent(self, c):
+        """The engine's jump-in (melee_engine/jumpin.py): it moves about the
+        scenario's distance, then jumps in with its aerial. A
+        demonstration's comes sooner and does not follow the player in the
+        air: the player there plays the answer that was checked."""
+        from melee_engine.jumpin import Footsies, JumpIn
+        sc, s = c.entry.data, c.s
+        rng = random.Random(c.rng.random())
+        half = STAGE_LIMIT.get(s.d.stage, 70.0)
+        body = Footsies(s.cpu_port, s.person,
+                        band=(sc.reach - 12.0, sc.reach + 15.0),
+                        rng=random.Random(rng.random()), half=half)
+        return JumpIn(thinker(c), s.cpu_port, s.person, sc.aerial, body,
+                      rng=rng, track=not c.is_demo,
+                      wait=(5, 15) if c.is_demo else (20, 110),
+                      states=self.ANSWERS,
+                      reach=(sc.reach - 20.0, sc.reach + 20.0))
+
+    def advance_engine(self, c):
+        v = self.v
+        if self.eng is None:
+            self.eng = self.engine_opponent(c)
+        put_raw(c, self.eng.pad(c.n.state(), player_raw(c)))
+        if c.phase == AP_WAIT:
+            if self.eng.jumped is None:
+                return False
+            c.mark(AP_MARK_ATTACK)
+            c.set_phase(AP_ATTACK)
+            v["attack_frame"] = 0
         v["attack_frame"] += 1
         return True
 
@@ -410,13 +467,33 @@ class FoxAntiAir(_Approach):
     goal = "Beat a jump-in with up tilt, up smash or back air"
     deck = ANTI_AIR_DECK
     track = "air"
+    options = (percent_option(), opponent_option(engine=True))
+    # an engine opponent that never finds its moment: a retry
+    ENGINE_LIMIT = 900
     help = ("Anti-air: beat the jump-in with up tilt, up smash",
             "or back air before it reaches you.",
             "D-Pad up: guide. D-Pad down: reset.")
 
     def build_reference(self, c):
-        """An up smash timed to meet the jump-in."""
+        """An up smash timed to meet the jump-in. Against the engine
+        opponent: the answer its check found (think())."""
+        if c.opt(AP_OPT_OPPONENT) == ENGINE:
+            return []
         return [Ref(AP_MARK_ATTACK, c.entry.data.demo_out, 1, cy=127)]
+
+    def play_answer(self, c):
+        """A demonstration against the engine: the player's pad is the
+        answer the opponent's check found, from the frame it was found
+        for."""
+        ans = self.eng.answer if self.eng is not None else None
+        if ans is None:
+            c.s.set_player_pad()
+            return
+        start, pads = ans
+        i = self.eng.frame - start
+        b, lx, ly, cx, cy, lt, rt = pads[i] if 0 <= i < len(pads) else \
+            (0, 0, 0, 0, 0, 0, 0)
+        c.s.set_player_pad(b, lx, ly, cx, cy, max(lt, rt))
 
     def guide(self, c):
         me = c.fd
@@ -431,9 +508,14 @@ class FoxAntiAir(_Approach):
     def think(self, c):
         v = self.v
         sc = c.entry.data
+        engine = c.opt(AP_OPT_OPPONENT) == ENGINE
+        if engine and c.is_demo:
+            self.play_answer(c)
         if not self.advance(c):
             if c.cpu_hit or cpu_grabbed(c):
                 c.result(False, "Hit before it jumped\nwait for the approach")
+            elif engine and c.s.attempt_frame > self.ENGINE_LIMIT:
+                c.retry("No approach came\nretrying")
             return
         state = c.me.state
         if c.hmn_hit:
@@ -444,7 +526,9 @@ class FoxAntiAir(_Approach):
         elif c.cpu_hit:
             anti = state in (ATTACK_HI3, ATTACK_HI4, ATTACK_AIR_B)
             c.report("frame", v["attack_frame"])
-            if v["attack_frame"] > sc.hit_end:
+            landed = (not c.cpu.airborne) if engine else \
+                v["attack_frame"] > sc.hit_end
+            if landed:
                 c.result(False, "Hit after they landed\nmeet them in the air")
             elif not anti:
                 c.result(False, "Hit, but not an anti-air\n"
@@ -453,7 +537,8 @@ class FoxAntiAir(_Approach):
                 c.measure(v["attack_frame"], v["attack_frame"])
                 c.result(True, "Anti-air!\non frame %d of the jump"
                          % v["attack_frame"])
-        elif v["attack_frame"] >= sc.faf:
+        elif (self.eng.mode == "done" if engine else
+              v["attack_frame"] >= sc.faf):
             c.result(False, "No anti-air\nthey landed and recovered")
 
 

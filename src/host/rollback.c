@@ -315,6 +315,68 @@ int host_rb_rewind(int frames)
     return 0;
 }
 
+/// The last two records as one: going back over it is going back over
+/// both. A search that moves its branch point forward along a line (the
+/// engine's timing scan, engine.c) keeps one record for it, not one per
+/// step, so it never runs out of records. A page in both keeps the older
+/// record's copy (what it was before both); a page only in the newer is
+/// added with its copy, which is what it was before both too.
+int host_rb_merge(void)
+{
+    static uint8_t** seen;
+    static uint32_t seen_cap;
+    Record *older, *newer;
+    uint32_t mask, have;
+
+    if (!running || kept < 2) {
+        return -1;
+    }
+    newer = &records[newest];
+    older = &records[(newest + DEPTH - 1) % DEPTH];
+    /* the older record's pages, in an open-addressing set */
+    have = 64;
+    while (have < older->count * 2 + 2) {
+        have *= 2;
+    }
+    if (seen_cap < have) {
+        seen = realloc(seen, have * sizeof *seen);
+        if (seen == NULL) {
+            host_fatal("rollback: no memory to merge records");
+        }
+        seen_cap = have;
+    }
+    memset(seen, 0, have * sizeof *seen);
+    mask = have - 1;
+    for (uint32_t k = 0; k < older->count; k++) {
+        uint32_t h = (uint32_t) ((uintptr_t) older->pages[k] / PAGE) & mask;
+        while (seen[h] != NULL) {
+            h = (h + 1) & mask;
+        }
+        seen[h] = older->pages[k];
+    }
+    for (uint32_t k = 0; k < newer->count; k++) {
+        uint8_t* page = newer->pages[k];
+        uint32_t h = (uint32_t) ((uintptr_t) page / PAGE) & mask;
+        int found = 0;
+        while (seen[h] != NULL) {
+            if (seen[h] == page) {
+                found = 1;
+                break;
+            }
+            h = (h + 1) & mask;
+        }
+        if (!found) {
+            /* (the set is not grown: a page the newer record holds once
+               is looked up once) */
+            record_page(older, page, newer->data + (size_t) k * PAGE);
+        }
+    }
+    newer->count = 0;
+    newest = (newest + DEPTH - 1) % DEPTH;
+    kept--;
+    return 0;
+}
+
 int host_rb_kept(void)
 {
     return kept;

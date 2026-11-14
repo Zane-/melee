@@ -5,13 +5,17 @@ scored, and undone.
     python tools/native_build.py
     python tests/native/engine.py
 """
+import os
 import sys
 import time
 
 sys.path.insert(0, "tools/melee_native")
 sys.path.insert(0, "tools")
 from native import Native, NativeError  # noqa: E402
-from melee_engine.search import player, search  # noqa: E402
+from melee_course.engine import (  # noqa: E402
+    ATTACK_AIR_B, ATTACK_HI3, ATTACK_HI4)
+from melee_engine.search import player, preroll, search  # noqa: E402
+from melee_engine.fork import Fork  # noqa: E402
 
 checks = []
 
@@ -113,6 +117,97 @@ def main():
         check("in a restored process it undoes everything too, and play "
               "goes on", n.state_hash() != h2 and n.frame == f + 1,
               "%d trials" % r.trials)
+
+        # a drill's moves only: the first (moves=) and the rest (then=)
+        n.restore(snap)
+        r = search(n, 1, 0, horizon=90, budget=3000, depth=3,
+                   moves="dash_,walk_", then="wait,dash_", split=2)
+        names = set(m for l in r.lines for m in l.moves[1:])
+        check("then= keeps the moves after the first to the drill's, and "
+              "split=2 reports a line per first two moves",
+              names and all(m == "wait" or m.startswith("dash_")
+                            for m in names) and
+              len(set(tuple(l.moves[:2]) for l in r.lines)) == len(r.lines)
+              and len(r.lines) > 4,
+              "%d lines, after the first: %s" % (len(r.lines),
+                                                  ", ".join(sorted(names))))
+
+        # the timing scan: a full hop, a drift, the aerial on each frame
+        n.restore(snap)
+        n.place(1, 25, 0, -1)
+        n.place(0, -22, 0, 1)
+        for _ in range(3):
+            n.step()
+        h3 = n.state_hash()
+        r = search(n, 1, 0, horizon=110, budget=0, depth=1,
+                   moves="jump_in,jump", then="nair_in,nair", scan=2,
+                   hold="in,none", contact=60, hit=20, lcancel=0, stop=1,
+                   near=45, trial=30)
+        lands = [l for l in r.lines if l.contact == "hit"]
+        ks = set(l.moves[1] for l in lands)
+        check("the timing scan finds full hop nairs that land, on many "
+              "frames, and leaves the game as it was",
+              len(lands) >= 10 and len(ks) >= 5 and
+              n.state_hash() == h3,
+              "%d of %d lines land, %d timings, %.0f ms" % (
+                  len(lands), len(r.lines), len(ks), r.ms))
+        best = lands[0] if lands else None
+        # a line scored as it is (eval=1): the same contact, same frame
+        if best is not None:
+            preroll(n, best.raw())
+            e = search(n, 1, 0, horizon=len(best.raw()) + 1, budget=0,
+                       depth=1, eval=1, stop=1)
+            same = e.lines and e.lines[0].contact == "hit" and \
+                e.lines[0].contact_at == best.contact_at
+        check("a line played back as a plan (eval=1) lands as the scan "
+              "found", best is not None and same,
+              repr(best) if best is not None else "no line")
+        # what the answer search reports: the target in the air, and what
+        # hit it (the player's port searched against the line)
+        player(n, [(1, r) for r in best.raw()] if best else None)
+        preroll(n, [(0, 0, 0, 0, 0, 0, 0)] * 15)
+        a = search(n, 0, 1, horizon=best.contact_at + 1 if best else 60,
+                   budget=0, depth=1, then="utilt,usmash,sh_bair", scan=1,
+                   hold="none,walk_out,out", hit=100, lcancel=0, stop=1,
+                   near=40, trial=20, enough=1)
+        player(n, None)
+        hits = [l for l in a.lines if l.contact == "hit"]
+        check("against that line, an anti-air 15 frames on is found: the "
+              "opponent hit in the air, by an up tilt, up smash or back air",
+              hits and hits[0].contact_air and
+              hits[0].contact_state in (ATTACK_HI3, ATTACK_HI4,
+                                        ATTACK_AIR_B),
+              repr(hits[0]) + " state %d" % hits[0].contact_state
+              if hits else "none")
+
+        # thinking in a forked copy, while the game goes on
+        n.restore(snap)
+        r0 = search(n, 1, 0, horizon=60, budget=800, depth=2, contact=30)
+        f = Fork(n)
+        at = f.state()["frame"]
+        for _ in range(20):
+            n.step()
+        r1 = search(f, 1, 0, horizon=60, budget=800, depth=2, contact=30)
+        refused = False
+        try:
+            f._cmd("step")
+        except NativeError:
+            refused = True
+        pid = f.pid
+        f.close()
+        time.sleep(0.2)
+        try:
+            os.kill(pid, 0)
+            gone = open("/proc/%d/stat" % pid).read().split()[2] == "Z"
+        except OSError:
+            gone = True
+        check("a forked copy stands at its frame while the game plays on, "
+              "finds what the game would, plays no frame, and leaves when "
+              "closed",
+              [(l.names, l.value) for l in r0.lines] ==
+              [(l.names, l.value) for l in r1.lines] and
+              f.state is not None and n.frame >= at + 20 and refused and
+              gone, "forked at %d, the game at %d" % (at, n.frame))
 
         # what it costs
         n.restore(snap)

@@ -228,6 +228,9 @@ static int read_line(char* out, size_t size)
             continue;
         }
         if (got <= 0) {
+            if (host_engine_forked()) {
+                _exit(0); /* a forked game (engine.c): its thinking is over */
+            }
             return 0;
         }
         in_len += (size_t) got;
@@ -403,6 +406,20 @@ static void command(char* line)
 
     sscanf(line, "%31s%n", cmd, &used);
     line += used;
+    if (host_engine_forked() &&
+        (strcmp(cmd, "step") == 0 || strcmp(cmd, "tick") == 0 ||
+         strcmp(cmd, "quit") == 0 || strcmp(cmd, "snap") == 0 ||
+         strcmp(cmd, "restore") == 0))
+    {
+        /* a forked game stands at its frame and only thinks (engine.c) */
+        if (strcmp(cmd, "quit") == 0) {
+            fflush(stdout);
+            _exit(0);
+        }
+        printf("@ error a forked game plays no frames\n");
+        fflush(stdout);
+        return;
+    }
     if (strcmp(cmd, "step") == 0) {
         int n = 1;
         sscanf(line, "%d", &n);

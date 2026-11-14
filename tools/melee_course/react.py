@@ -14,7 +14,10 @@ land unless the player answers them the way the drill teaches.
     opp.committed              # attempt frame of the commitment, or None
 
 Each converted drill has an option Opponent: Reactive (this) or Fixed
-timing (the C's table, which the overlay's specs check).
+timing (the C's table, which the overlay's specs check). fox-anti-air has a
+third, Engine (melee_engine/jumpin.py): the opponent moves about and plans
+the jump-in itself with the search engine, and jumps only when the player
+has an answer to it.
 """
 import os
 import random
@@ -29,7 +32,7 @@ from native import BUTTONS  # noqa: E402
 
 from melee_course.engine import Option  # noqa: E402
 
-REACTIVE, FIXED = 0, 1
+REACTIVE, FIXED, ENGINE = 0, 1, 2
 NAMES = {bit: name for name, bit in BUTTONS.items()}
 
 
@@ -59,12 +62,53 @@ def sequence(inputs):
     return pads
 
 
-def opponent_option():
-    return Option("Opponent", ["Reactive", "Fixed timing"], REACTIVE,
-                  "Reactive: the opponent looks ahead and moves, waits "
-                  "and aims so its attack lands unless you answer it. "
-                  "Fixed timing: it presses its buttons on set frames "
-                  "(Training Mode's), wherever you are.")
+def opponent_option(engine=False):
+    values = ["Reactive", "Fixed timing"]
+    desc = ("Reactive: the opponent looks ahead and moves, waits and aims "
+            "so its attack lands unless you answer it. Fixed timing: it "
+            "presses its buttons on set frames (Training Mode's), wherever "
+            "you are.")
+    if engine:
+        values.append("Engine")
+        desc += (" Engine: it moves about, chooses its moment and plans "
+                 "the jump-in by search; it jumps only when you have an "
+                 "anti-air that beats it, and punishes one thrown early.")
+    return Option("Opponent", values, ENGINE if engine else REACTIVE, desc)
+
+
+def thinker(c):
+    """Where an engine opponent thinks, kept for the session: the one it was
+    given (`Session.thinker`, a test's); in the window build, where a
+    person watches every frame, forked copies of the game (no frame waits
+    for a decision: melee_engine/fork.py); headless, the game itself."""
+    s = c.s
+    t = getattr(s, "thinker", None)
+    if t is None:
+        if hasattr(c.n, "pace"):          # the window build
+            from melee_engine.fork import InFork
+            t = InFork(c.n)
+        else:
+            from melee_engine.jumpin import Here
+            t = Here(c.n)
+        s.thinker = t
+    return t
+
+
+def player_raw(c):
+    """The player's pad this frame, as a raw pad."""
+    s = c.s
+    p = s.live_pad if s.live and s.live_pad is not None else s.player_pad
+    return (p["buttons"], p["lx"], p["ly"], p["cx"], p["cy"], p.get("lt", 0),
+            p.get("rt", 0))
+
+
+def put_raw(c, raw):
+    """A raw pad into the CPU's controller for this frame (`c._pad`)."""
+    b, lx, ly, cx, cy, lt, rt = raw
+    p = c._pad
+    p["buttons"] |= b
+    p["lx"], p["ly"], p["cx"], p["cy"] = lx, ly, cx, cy
+    p["lt"], p["rt"] = max(p["lt"], lt), max(p["rt"], rt)
 
 
 class Opponent:

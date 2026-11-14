@@ -23,19 +23,24 @@ CONTACT = {0: None, 1: "hit", 2: "shield", 3: "beaten", 4: "grab"}
 
 class Line:
     __slots__ = ("value", "dmg", "taken", "ko", "contact", "contact_at",
-                 "adv", "pos", "dist", "len", "first_len", "names",
-                 "segments")
+                 "contact_air", "contact_state", "adv", "pos", "dist", "len",
+                 "first_len", "names", "segments")
 
     def __init__(self, text):
-        v = text.split(" ", 12)
+        v = text.split(" ", 14)
         self.value, self.dmg, self.taken = float(v[0]), float(v[1]), \
             float(v[2])
         self.ko, self.contact, self.contact_at = int(v[3]), \
             CONTACT[int(v[4])], int(v[5])
         self.adv, self.pos, self.dist = float(v[6]), float(v[7]), float(v[8])
-        self.len, self.first_len, self.names = int(v[9]), int(v[10]), v[11]
+        self.len, self.first_len = int(v[9]), int(v[10])
+        # the target was in the air at the first contact; the searching
+        # fighter's action state then (what it hit with)
+        self.contact_air = v[11] == "1"
+        self.contact_state = int(v[12])
+        self.names = v[13]
         self.segments = []
-        for seg in (v[12].split(",") if len(v) > 12 and v[12] else []):
+        for seg in (v[14].split(",") if len(v) > 14 and v[14] else []):
             w = seg.split()
             self.segments.append((int(w[0]), int(w[1], 16)) +
                                  tuple(int(x) for x in w[2:8]))
@@ -83,8 +88,9 @@ class Result:
 def search(n, port, target, horizon=60, budget=4000, depth=3, **weights):
     """Search PORT's lines against TARGET from the current frame. Keyword
     weights: dmg, taken, ko, pos, adv, contact, shield, hit, close, dist,
-    held, lcancel; and moves="dash_,sh_" (the first moves allowed, by name
-    prefix). See engine.c."""
+    held, lcancel; moves="dash_,sh_" (the first moves allowed, by name
+    prefix), then="drift_,nair" (the moves after the first), ms=N (a time
+    limit). See engine.c."""
     state = n.state()
     extra = " ".join(("%s=%s" if isinstance(v, str) else "%s=%g") % (k, v)
                      for k, v in weights.items())

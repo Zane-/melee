@@ -35,32 +35,72 @@
  *
  * The reply: "@ ok MS TRIALS FRAMES NLINES" and then, per line, best first,
  * "@ line VALUE DMG TAKEN KO CONTACT CONTACT_FRAME ADV POS DIST LEN FIRST
- * NAMES PADS": FIRST the frames of the first move (to where the fighter can
- * act again), NAMES the macros joined by "+", PADS the frames as "N BUTTONS
- * LX LY CX CY L R" segments joined by ",". Then "@ end". KEY=VALUE: the
- * score's weights (dmg taken ko pos adv contact shield hit held close
- * dist), lcancel=0|1, moves=PREFIX,... for the first moves allowed, and
- * ms=N to stop after N milliseconds with the best found so far.
+ * AIR STATE NAMES PADS": FIRST the frames of the first move (to where the
+ * fighter can act again), AIR 1 if the target was in the air at the first
+ * contact, STATE PORT's action state then (what hit: an up smash, a dash
+ * attack),
+ * NAMES the macros joined by "+", PADS the frames as "N BUTTONS LX LY CX CY
+ * L R" segments joined by ",". Then "@ end". KEY=VALUE: the score's
+ * weights (dmg taken ko pos adv contact shield hit held close dist),
+ * lcancel=0|1, moves=PREFIX,... for the first moves allowed, then=PREFIX,...
+ * for the moves allowed after the first (a line made only of a drill's
+ * moves), split=N to report the best line from each of the first N moves
+ * (by default from each first move; at most LINES_MAX lines), and ms=N to
+ * stop after N milliseconds with the best found so far.
+ *
+ * The timing scan ("scan=STEP"): lines of one shape, [FIRST] + HOLD for K
+ * frames + LAST, every K (a multiple of STEP) tried. FIRST one of moves=
+ * (a jump; none if moves= is not given or none is possible), HOLD one of
+ * hold= (the stick in, none, out, walking in or out; ff_ for a fast fall
+ * on the way down), LAST one of then= (an aerial, an up smash). The
+ * branch point moves forward along the hold one frame at a time (its
+ * rollback records merged into one), so all the timings cost about one
+ * playout each. It finds the frames an aerial lands on (a jump-in) or an
+ * anti-air meets it, which the macro tree, stepping 6 frames at a time,
+ * misses. Its lines are named "FIRST+hold_KIND:K+LAST"; stop=1 ends each
+ * at its first contact, trial=N N frames after LAST is pressed, near=D
+ * presses only with the fighters within D of each other, from=K only after
+ * K frames of the hold, enough=N stops
+ * the scan once N lines connect (an answer exists: enough=1), counting only
+ * contacts made in one of PORT's action states want=S,S... if given. eval=1 scores
+ * the pre-roll ("engine preroll") alone as one line, "plan": what a plan
+ * does against the target's inputs as given (the lookahead's question,
+ * with "engine player").
+ *
+ * A forked game ("engine fork IN OUT"): the process forks at the frame
+ * boundary, and the copy reads its commands from the pipe IN and replies on
+ * OUT, the game standing at that frame for as long as it is asked: searches,
+ * lookaheads, the state. It plays no frame for real, draws nothing (the
+ * scene loop's render calls are skipped in it: a window's graphics are the
+ * game's it was forked from), and leaves when IN closes. The game it came
+ * from goes on at once: what the opponent thinks about, it thinks about in
+ * the copy, while a person plays (tools/melee_engine/fork.py).
  *
  * This file's statics are not the game's state: what the search found
  * survives its rewinds.
  */
 #include "host.h"
 
+#include <fcntl.h>
 #include <math.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <ucontext.h>
+#include <unistd.h>
 
 #include <melee/ft/inlines.h>
 #include <melee/ft/types.h>
 #include <melee/lb/types.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
+#include <sysdolphin/baselib/initialize.h>
+#include <sysdolphin/baselib/video.h>
 
 #define HORIZON_MAX 600
 #define DEPTH_MAX 8
@@ -116,6 +156,9 @@ enum {
     M_UTILT, M_DTILT, M_FSMASH, M_USMASH, M_DSMASH, M_GRAB, M_DASH_ATTACK,
     M_SHIELD, M_DOWN_B, M_NEUTRAL_B, M_SIDE_B, M_UP_B, M_WD_IN, M_WD_OUT,
     M_HOP_IN, M_HOP_OUT,
+    /* full hops with no aerial yet (drifting in, none, out): the air's
+       moves come next, an aerial pressed when the search finds it lands */
+    M_JUMP_IN, M_JUMP, M_JUMP_OUT,
     /* short hops: 5 aerials x (in, none) */
     M_SH_FIRST,
     M_SH_LAST = M_SH_FIRST + 9,
@@ -146,7 +189,8 @@ static void name_macros(void)
         "wait", "walk_in", "walk_out", "dash_in", "dash_out", "jab",
         "ftilt", "utilt", "dtilt", "fsmash", "usmash", "dsmash", "grab",
         "dash_attack", "shield", "down_b", "neutral_b", "side_b", "up_b",
-        "wavedash_in", "wavedash_out", "hop_in", "hop_out",
+        "wavedash_in", "wavedash_out", "hop_in", "hop_out", "jump_in",
+        "jump", "jump_out",
     };
     for (int i = 0; i < (int) (sizeof fixed / sizeof *fixed); i++) {
         snprintf(macro_names[i], sizeof macro_names[i], "%s", fixed[i]);
@@ -182,7 +226,7 @@ typedef struct Weights {
 typedef struct Line {
     float value;
     float dmg, taken, adv, pos, dist;
-    int ko, contact, contact_at, len;
+    int ko, contact, contact_at, contact_air, contact_state, len;
     int first_len; /* frames of the first move, to its branch point */
     char names[NAMES_MAX];
     HostPad pads[HORIZON_MAX];
@@ -208,10 +252,13 @@ static struct {
     HostPad path[HORIZON_MAX];
     int contact_at[HORIZON_MAX + 1]; /* first contact on the path by t */
     int contact_kind[HORIZON_MAX + 1];
+    int contact_air[HORIZON_MAX + 1]; /* the target airborne at it */
+    int contact_state[HORIZON_MAX + 1]; /* PORT's action state at it */
     int names[DEPTH_MAX + 1];
     int nnames;
     int first_len; /* frames the current line's first move took */
     unsigned char root_allowed[M_COUNT]; /* first moves allowed */
+    unsigned char then_allowed[M_COUNT]; /* the moves after the first */
     double ms_limit; /* stop searching after this long (0: no limit) */
     int out_of_time;
     int marks; /* marks made since the root's, the root's included */
@@ -219,9 +266,24 @@ static struct {
     float pct_t, pct_a;
     int stocks_t, stocks_a;
     HostPad last; /* PORT's pad on the frame before */
-    /* the best line from each first move */
-    Line lines[M_COUNT];
-    int have[M_COUNT];
+    /* the best line from each first move (from each of its first `split`
+       moves), the best LINES_MAX of them */
+    Line lines[LINES_MAX];
+    int keys[LINES_MAX][DEPTH_MAX];
+    int nlines, split;
+    /* the timing scan (scan=STEP; 0: the macro tree) */
+    int scan_step, scan_first, stop_contact;
+    int eval; /* eval=1: score the pre-roll alone, as one line */
+    unsigned hold_allowed;
+    float near;      /* press only with the fighters this close (0: any) */
+    int from;        /* press only from this many frames of hold on */
+    int trial;       /* frames a pressed move is followed (0: to the end) */
+    int trial_end;   /* the frame the current one stops at (0: none) */
+    int enough;      /* stop once this many lines connect (0: never) */
+    int connected;
+    /* want=S,S...: only a contact with PORT in one of these action states
+       counts toward enough (what a drill counts as its answer) */
+    int want[16], nwant;
     ucontext_t game, co;
     char* stack;
     struct timespec t0;
@@ -230,6 +292,105 @@ static struct {
 int host_engine_active(void)
 {
     return eng.active;
+}
+
+/* ---- a forked game -------------------------------------------------------- */
+
+static int fork_child;
+#define FORKS_MAX 16
+static pid_t forks[FORKS_MAX];
+
+int host_engine_forked(void)
+{
+    return fork_child;
+}
+
+/* The scene loop's render calls (gmscene.c is built with these names for
+   them: tools/native_build.py): none in a forked game. */
+void host_scene_start_render(HSD_RenderPass pass)
+{
+    if (!fork_child) {
+        HSD_StartRender(pass);
+    }
+}
+
+void host_scene_copy_xfb(HSD_RenderPass pass)
+{
+    if (!fork_child) {
+        HSD_VICopyXFBAsync(pass);
+    }
+}
+
+void GXInvalidateVtxCache(void);
+void GXInvalidateTexAll(void);
+
+void host_scene_invalidate_vtx(void)
+{
+    if (!fork_child) {
+        GXInvalidateVtxCache();
+    }
+}
+
+void host_scene_invalidate_tex(void)
+{
+    if (!fork_child) {
+        GXInvalidateTexAll();
+    }
+}
+
+/// "engine fork IN OUT": a copy of the game, standing at this frame, that
+/// reads commands from IN and replies on OUT. Its pid, here; "@ ok fork"
+/// on OUT, there.
+static const char* engine_fork(const char* line)
+{
+    char in[256], out[256];
+    static char reply[64];
+    pid_t pid;
+    int slot = -1;
+    if (sscanf(line, "%255s %255s", in, out) != 2) {
+        return "engine fork IN OUT";
+    }
+    if (fork_child) {
+        return "a forked game does not fork";
+    }
+    /* the copies that have left */
+    for (int i = 0; i < FORKS_MAX; i++) {
+        if (forks[i] > 0 && waitpid(forks[i], NULL, WNOHANG) != 0) {
+            forks[i] = 0;
+        }
+        if (forks[i] == 0 && slot < 0) {
+            slot = i;
+        }
+    }
+    if (slot < 0) {
+        return "too many forked games";
+    }
+    fflush(stdout);
+    fflush(stderr);
+    pid = fork();
+    if (pid < 0) {
+        return "fork failed";
+    }
+    if (pid == 0) {
+        int r = open(in, O_RDONLY), w = open(out, O_WRONLY);
+        if (r < 0 || w < 0) {
+            _exit(1);
+        }
+        dup2(r, 0);
+        dup2(w, 1);
+        close(r);
+        close(w);
+        fork_child = 1;
+        /* whoever stops it, it goes quietly */
+        signal(SIGPIPE, SIG_DFL);
+        printf("@ ok fork\n");
+        fflush(stdout);
+        return "";
+    }
+    forks[slot] = pid;
+    snprintf(reply, sizeof reply, "@ ok %d\n", (int) pid);
+    fputs(reply, stdout);
+    return "";
 }
 
 void host_engine_note_scene_end(void)
@@ -326,6 +487,8 @@ static Line score(void)
     l.len = eng.t - eng.base;
     l.contact = eng.contact_kind[eng.t];
     l.contact_at = eng.contact_at[eng.t];
+    l.contact_air = eng.contact_air[eng.t];
+    l.contact_state = eng.contact_state[eng.t];
     if (a == NULL || t == NULL) {
         l.value = -1e6F;
         return l;
@@ -361,7 +524,9 @@ static int play(HostPad pad)
 {
     Fighter* a;
     Fighter* t;
-    if (eng.t >= eng.horizon || eng.scene_end) {
+    if (eng.t >= eng.horizon || eng.scene_end ||
+        (eng.trial_end > 0 && eng.t >= eng.trial_end))
+    {
         return 0;
     }
     pad.connected = 1;
@@ -385,6 +550,8 @@ static int play(HostPad pad)
     t = fighter_of(eng.target);
     eng.contact_at[eng.t] = eng.contact_at[eng.t - 1];
     eng.contact_kind[eng.t] = eng.contact_kind[eng.t - 1];
+    eng.contact_air[eng.t] = eng.contact_air[eng.t - 1];
+    eng.contact_state[eng.t] = eng.contact_state[eng.t - 1];
     if (a == NULL || t == NULL) {
         return 0;
     }
@@ -406,6 +573,13 @@ static int play(HostPad pad)
     if (a->dmg.x1830_percent > eng.pct_a && eng.contact_kind[eng.t] == 0) {
         eng.contact_kind[eng.t] = 3; /* hit first */
         eng.contact_at[eng.t] = eng.t;
+    }
+    if (eng.contact_at[eng.t] == eng.t && eng.contact_kind[eng.t] != 0) {
+        eng.contact_air[eng.t] = airborne(t);
+        eng.contact_state[eng.t] = (int) a->motion_id;
+    }
+    if (eng.stop_contact && eng.contact_kind[eng.t] != 0) {
+        return 0; /* the line is decided */
     }
     return !eng.scene_end;
 }
@@ -636,6 +810,12 @@ static int run_macro(int m)
         return hop(-1, 1, 0);
     case M_HOP_OUT:
         return hop(-1, -1, 0);
+    case M_JUMP_IN:
+        return hop(-1, 1, 1);
+    case M_JUMP:
+        return hop(-1, 0, 1);
+    case M_JUMP_OUT:
+        return hop(-1, -1, 1);
     case M_DRIFT_IN:
         return hold(pad_of(0, in, 0, 0, 0, 0), 6);
     case M_DRIFT_OUT:
@@ -776,21 +956,63 @@ static void back_to(int at, int t)
     eng.spent += MARK_COST;
 }
 
-static void keep(int first, Line* l)
+/// The path so far as a line, named `name` (NULL: its macros joined),
+/// kept if it is the best of its key (`key`, DEPTH_MAX numbers) and the
+/// table has room or it beats the worst kept.
+static void keep_as(Line* l, const int* key, const char* name)
 {
-    char* s = l->names;
+    char* s;
+    int slot = -1;
+    for (int i = 0; i < eng.nlines; i++) {
+        if (memcmp(eng.keys[i], key, sizeof eng.keys[i]) == 0) {
+            slot = i;
+            break;
+        }
+    }
+    if (slot >= 0 && l->value <= eng.lines[slot].value) {
+        return;
+    }
+    if (slot < 0) {
+        if (eng.nlines < LINES_MAX) {
+            slot = eng.nlines++;
+        } else {
+            int worst = 0;
+            for (int i = 1; i < eng.nlines; i++) {
+                if (eng.lines[i].value < eng.lines[worst].value) {
+                    worst = i;
+                }
+            }
+            if (l->value <= eng.lines[worst].value) {
+                return;
+            }
+            slot = worst;
+        }
+        memcpy(eng.keys[slot], key, sizeof eng.keys[slot]);
+    }
+    s = l->names;
     s[0] = 0;
-    for (int i = 0; i < eng.nnames; i++) {
+    if (name != NULL) {
+        snprintf(s, NAMES_MAX, "%s", name);
+    }
+    for (int i = 0; name == NULL && i < eng.nnames; i++) {
         size_t used = strlen(s);
         snprintf(s + used, NAMES_MAX - used, "%s%s", i ? "+" : "",
                  macro_names[eng.names[i]]);
     }
     memcpy(l->pads, eng.path + eng.base, sizeof(HostPad) * (size_t) l->len);
     l->first_len = eng.first_len;
-    if (!eng.have[first] || l->value > eng.lines[first].value) {
-        eng.lines[first] = *l;
-        eng.have[first] = 1;
+    eng.lines[slot] = *l;
+}
+
+/// A line of the tree: its key is its first `split` moves (-1 past the end
+/// of a shorter one).
+static void keep(Line* l)
+{
+    int key[DEPTH_MAX];
+    for (int i = 0; i < DEPTH_MAX; i++) {
+        key[i] = i < eng.split && i < eng.nnames ? eng.names[i] : -1;
     }
+    keep_as(l, key, NULL);
 }
 
 /// From the branch point marked `at`, `depth` macros deep: try every move
@@ -802,10 +1024,16 @@ static float node(int at, int depth, long budget)
     float val[M_COUNT], best = -1e9F;
     long start = eng.spent, left;
 
-    if (depth == 0) {
+    {
+        /* the moves the drill allows here; a fighter that cannot act
+           still waits */
+        const unsigned char* allowed =
+            depth == 0 ? eng.root_allowed : eng.then_allowed;
         int k = 0;
         for (int i = 0; i < n; i++) {
-            if (eng.root_allowed[moves[i]]) {
+            if (allowed[moves[i]] ||
+                (depth > 0 && n == 1 && moves[i] == M_WAIT))
+            {
                 moves[k++] = moves[i];
             }
         }
@@ -833,7 +1061,7 @@ static float node(int at, int depth, long budget)
         l = score();
         val[i] = l.value;
         order[i] = i;
-        keep(eng.names[0], &l);
+        keep(&l);
         if (l.value > best) {
             best = l.value;
         }
@@ -897,32 +1125,181 @@ static float node(int at, int depth, long budget)
     return best;
 }
 
+/* ---- the timing scan --------------------------------------------------- */
+
+enum { H_IN, H_NONE, H_OUT, H_WALK_IN, H_WALK_OUT, H_FF_IN, H_FF_NONE,
+       H_FF_OUT, H_COUNT };
+static const char* const HOLD_NAME[H_COUNT] = {
+    "in", "none", "out", "walk_in", "walk_out", "ff_in", "ff_none", "ff_out",
+};
+
+/// This frame's pad of hold `h`: the stick toward the target (as it is
+/// now), none, or away; walking; ff_: and down once, the first frame the
+/// fighter falls (`*ff` then set).
+static HostPad hold_pad(int h, int* ff)
+{
+    static const int lx_of[H_COUNT] = { 127, 0, -127, 45, -45, 127, 0, -127 };
+    Fighter* a = fighter_of(eng.port);
+    HostPad p = pad_of(0, (int) (lx_of[h] * toward()), 0, 0, 0, 0);
+    if (h >= H_FF_IN && !*ff && a != NULL && airborne(a) &&
+        a->self_vel.y < 0.0F)
+    {
+        p.ly = -127;
+        *ff = 1;
+    }
+    return p;
+}
+
+static int out_of_budget(void)
+{
+    return out_of_time() || (eng.budget > 0 && eng.spent > eng.budget) ||
+           (eng.enough > 0 && eng.connected >= eng.enough);
+}
+
+/// Are the two fighters within `near` of each other (always, with 0)?
+static int near_enough(void)
+{
+    Fighter* a = fighter_of(eng.port);
+    Fighter* t = fighter_of(eng.target);
+    float dx, dy;
+    if (eng.near <= 0.0F) {
+        return 1;
+    }
+    if (a == NULL || t == NULL) {
+        return 0;
+    }
+    dx = a->cur_pos.x - t->cur_pos.x;
+    dy = a->cur_pos.y - t->cur_pos.y;
+    return dx * dx + dy * dy <= eng.near * eng.near;
+}
+
+static void scan(void)
+{
+    int firsts[M_COUNT], nf = 0, root = eng.marks, t_root = eng.t;
+    if (eng.scan_first) {
+        int moves[M_COUNT], n = moves_for(moves);
+        for (int i = 0; i < n; i++) {
+            if (eng.root_allowed[moves[i]]) {
+                firsts[nf++] = moves[i];
+            }
+        }
+    }
+    if (nf == 0) {
+        firsts[nf++] = -1;
+    }
+    for (int fi = 0; fi < nf && !out_of_budget(); fi++) {
+        int f = firsts[fi], at_f, t_f;
+        back_to(root, t_root);
+        eng.nnames = 0;
+        if (f >= 0) {
+            eng.names[0] = f;
+            eng.nnames = 1;
+            if (!run_macro(f)) {
+                continue;
+            }
+        }
+        eng.first_len = eng.t - eng.base;
+        mark();
+        at_f = eng.marks;
+        t_f = eng.t;
+        for (int h = 0; h < H_COUNT && !out_of_budget(); h++) {
+            int at_k = 0, ff = 0, flew = 0;
+            if (!(eng.hold_allowed & (1u << h))) {
+                continue;
+            }
+            back_to(at_f, t_f);
+            for (int k = 0; eng.t < eng.horizon && !out_of_budget(); k++) {
+                Fighter* a = fighter_of(eng.port);
+                if (a == NULL) {
+                    break;
+                }
+                if (airborne(a)) {
+                    flew = 1;
+                } else if (flew) {
+                    break; /* landed: nothing more to press in the air */
+                }
+                if (k >= eng.from && k % eng.scan_step == 0 &&
+                    near_enough())
+                {
+                    int moves[M_COUNT], n = moves_for(moves), t_k, tried = 0;
+                    /* the branch point, here: one record from at_f */
+                    mark();
+                    if (at_k == 0) {
+                        at_k = eng.marks;
+                    } else {
+                        host_rb_merge();
+                        eng.marks--;
+                    }
+                    t_k = eng.t;
+                    for (int i = 0; i < n && !out_of_budget(); i++) {
+                        int m = moves[i], key[DEPTH_MAX];
+                        char name[NAMES_MAX];
+                        Line l;
+                        if (!eng.then_allowed[m]) {
+                            continue;
+                        }
+                        if (tried++ > 0) {
+                            back_to(at_k, t_k);
+                        }
+                        eng.names[eng.nnames] = m;
+                        eng.trial_end = eng.trial > 0 ? eng.t + eng.trial : 0;
+                        run_macro(m);
+                        eng.trial_end = 0;
+                        eng.trials++;
+                        l = score();
+                        if (l.contact == 1 || l.contact == 2 || l.contact == 4) {
+                            int counts = eng.nwant == 0;
+                            for (int w = 0; w < eng.nwant; w++) {
+                                counts |= l.contact_state == eng.want[w];
+                            }
+                            eng.connected += counts;
+                        }
+                        snprintf(name, sizeof name, "%s%shold_%s:%d+%s",
+                                 f >= 0 ? macro_names[f] : "",
+                                 f >= 0 ? "+" : "", HOLD_NAME[h], k,
+                                 macro_names[m]);
+                        memset(key, -1, sizeof key);
+                        key[0] = f;
+                        key[1] = h;
+                        key[2] = k;
+                        key[3] = m;
+                        keep_as(&l, key, name);
+                    }
+                    if (tried > 0) {
+                        back_to(at_k, t_k);
+                    }
+                }
+                if (!play(hold_pad(h, &ff))) {
+                    break;
+                }
+            }
+        }
+    }
+}
+
 static void reply(void)
 {
     struct timespec t1;
-    int order[M_COUNT], n = 0;
+    int order[LINES_MAX], n = 0;
     double ms;
     clock_gettime(CLOCK_MONOTONIC, &t1);
     ms = (t1.tv_sec - eng.t0.tv_sec) * 1000.0 +
          (t1.tv_nsec - eng.t0.tv_nsec) / 1e6;
-    for (int i = 0; i < M_COUNT; i++) {
-        if (eng.have[i]) {
-            int j = n++;
-            while (j > 0 && eng.lines[order[j - 1]].value <
-                                eng.lines[i].value)
-            {
-                order[j] = order[j - 1];
-                j--;
-            }
-            order[j] = i;
+    for (int i = 0; i < eng.nlines; i++) {
+        int j = n++;
+        while (j > 0 && eng.lines[order[j - 1]].value < eng.lines[i].value) {
+            order[j] = order[j - 1];
+            j--;
         }
+        order[j] = i;
     }
     printf("@ ok %.3f %d %ld %d\n", ms, eng.trials, eng.spent, n);
     for (int r = 0; r < n; r++) {
         Line* l = &eng.lines[order[r]];
-        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %d %s ",
+        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %d %d %d %s ",
                l->value, l->dmg, l->taken, l->ko, l->contact, l->contact_at,
-               l->adv, l->pos, l->dist, l->len, l->first_len, l->names);
+               l->adv, l->pos, l->dist, l->len, l->first_len,
+               l->contact_air, l->contact_state, l->names);
         for (int i = 0; i < l->len;) {
             int j = i;
             while (j < l->len &&
@@ -954,6 +1331,8 @@ static void search_main(void)
     eng.t = 0;
     eng.contact_at[0] = 0;
     eng.contact_kind[0] = 0;
+    eng.contact_air[0] = 0;
+    eng.contact_state[0] = 0;
     eng.marks = 0;
     eng.base = 0;
     mark(); /* the root: 1 */
@@ -966,11 +1345,27 @@ static void search_main(void)
             ok = play(eng.preroll[i]);
         }
         eng.npreroll = 0;
-        if (ok) {
+        if (eng.eval) {
+            /* a plan, scored as it is (against the target's inputs as
+               given): "plan" */
+            int key[DEPTH_MAX];
+            Line l;
+            eng.base = 0;
+            eng.first_len = eng.t;
+            l = score();
+            memset(key, -1, sizeof key);
+            keep_as(&l, key, "plan");
+        } else if (ok) {
             eng.base = eng.t;
             mark();
-            node(eng.marks, 0, eng.budget);
+            if (eng.scan_step > 0) {
+                scan();
+            } else {
+                node(eng.marks, 0, eng.budget);
+            }
         }
+    } else if (eng.scan_step > 0) {
+        scan();
     } else {
         node(1, 0, eng.budget);
     }
@@ -980,14 +1375,52 @@ static void search_main(void)
     /* returns to eng.game (uc_link) */
 }
 
+/// "KEY=VALUE" in `line`, KEY a word of its own: "shield" is not found in
+/// "moves=shield_hold" (it once was, and its weight then ignored).
 static float parse_weight(const char* line, const char* key, float def)
 {
-    const char* p = strstr(line, key);
+    size_t n = strlen(key);
     float v = def;
-    if (p != NULL && p[strlen(key)] == '=') {
-        sscanf(p + strlen(key) + 1, "%f", &v);
+    for (const char* p = strstr(line, key); p != NULL;
+         p = strstr(p + 1, key))
+    {
+        if ((p == line || p[-1] == ' ') && p[n] == '=') {
+            sscanf(p + n + 1, "%f", &v);
+            break;
+        }
     }
     return v;
+}
+
+/// "KEY=PREFIX,PREFIX...": the macros whose names start with one of them
+/// into `allowed`; with no KEY, all of them.
+static void parse_moves(const char* line, const char* key,
+                        unsigned char* allowed)
+{
+    const char* m = NULL;
+    size_t n = strlen(key);
+    for (const char* p = strstr(line, key); p != NULL;
+         p = strstr(p + 1, key))
+    {
+        if ((p == line || p[-1] == ' ') && p[n] == '=') {
+            m = p + n + 1;
+            break;
+        }
+    }
+    memset(allowed, m == NULL, M_COUNT);
+    if (m != NULL) {
+        char list[512];
+        sscanf(m, "%511s", list);
+        for (char* tok = strtok(list, ","); tok != NULL;
+             tok = strtok(NULL, ","))
+        {
+            for (int i = 0; i < M_COUNT; i++) {
+                if (strncmp(macro_names[i], tok, strlen(tok)) == 0) {
+                    allowed[i] = 1;
+                }
+            }
+        }
+    }
 }
 
 /// "search ..." read at a frame boundary (control.c). NULL when the
@@ -1032,22 +1465,61 @@ const char* host_engine_begin(const char* line)
     /* holding the target: what a grab is worth before its throw */
     eng.w.held = parse_weight(line, "held", 20.0F);
     eng.lcancel = (int) parse_weight(line, "lcancel", 1.0F);
+    /* "split=2": the best line from each pair of first moves */
+    eng.split = (int) parse_weight(line, "split", 1.0F);
+    if (eng.split < 1) {
+        eng.split = 1;
+    }
+    if (eng.split > DEPTH_MAX) {
+        eng.split = DEPTH_MAX;
+    }
     /* "ms=N": stop after N milliseconds, with what has been found */
     eng.ms_limit = parse_weight(line, "ms", 0.0F);
     eng.out_of_time = 0;
-    /* "moves=dash_,sh_,wait": the first moves allowed, by name prefix */
+    /* "moves=dash_,sh_,wait": the first moves allowed, by name prefix;
+       "then=...": the moves after them */
+    parse_moves(line, "moves", eng.root_allowed);
+    parse_moves(line, "then", eng.then_allowed);
+    /* the timing scan: "scan=STEP hold=in,none stop=1" */
+    eng.scan_step = (int) parse_weight(line, "scan", 0.0F);
+    eng.stop_contact = (int) parse_weight(line, "stop", 0.0F);
+    eng.eval = (int) parse_weight(line, "eval", 0.0F);
+    eng.scan_first = strstr(line, "moves=") != NULL;
+    eng.near = parse_weight(line, "near", 0.0F);
+    eng.from = (int) parse_weight(line, "from", 0.0F);
+    eng.trial = (int) parse_weight(line, "trial", 0.0F);
+    eng.enough = (int) parse_weight(line, "enough", 0.0F);
+    eng.nwant = 0;
     {
-        const char* m = strstr(line, "moves=");
-        memset(eng.root_allowed, m == NULL, sizeof eng.root_allowed);
-        if (m != NULL) {
-            char list[512];
-            sscanf(m + 6, "%511s", list);
+        const char* w = strstr(line, " want=");
+        if (w != NULL) {
+            const char* p = w + 6;
+            int v, used = 0;
+            while (eng.nwant < 16 && sscanf(p, "%d%n", &v, &used) == 1) {
+                eng.want[eng.nwant++] = v;
+                p += used;
+                if (*p != ',') {
+                    break;
+                }
+                p++;
+            }
+        }
+    }
+    eng.connected = 0;
+    eng.trial_end = 0;
+    eng.hold_allowed = (1u << H_IN) | (1u << H_NONE);
+    {
+        const char* h = strstr(line, "hold=");
+        if (h != NULL) {
+            char list[256];
+            eng.hold_allowed = 0;
+            sscanf(h + 5, "%255s", list);
             for (char* tok = strtok(list, ","); tok != NULL;
                  tok = strtok(NULL, ","))
             {
-                for (int i = 0; i < M_COUNT; i++) {
-                    if (strncmp(macro_names[i], tok, strlen(tok)) == 0) {
-                        eng.root_allowed[i] = 1;
+                for (int i = 0; i < H_COUNT; i++) {
+                    if (strcmp(HOLD_NAME[i], tok) == 0) {
+                        eng.hold_allowed |= 1u << i;
                     }
                 }
             }
@@ -1068,7 +1540,7 @@ const char* host_engine_begin(const char* line)
     if (eng.stack == NULL) {
         eng.stack = malloc(STACK_SIZE);
     }
-    memset(eng.have, 0, sizeof eng.have);
+    eng.nlines = 0;
     eng.trials = 0;
     eng.spent = 0;
     eng.finished = 0;
@@ -1164,6 +1636,9 @@ const char* host_engine_command(const char* line)
         }
         return NULL;
     }
+    if (strcmp(what, "fork") == 0) {
+        return engine_fork(line);
+    }
     if (strcmp(what, "macros") == 0) {
         if (macro_names[0][0] == 0) {
             name_macros();
@@ -1175,5 +1650,6 @@ const char* host_engine_command(const char* line)
         printf("\n");
         return "";
     }
-    return "engine player ... | engine preroll ... | engine macros";
+    return "engine player ... | engine preroll ... | engine macros | "
+           "engine fork IN OUT";
 }

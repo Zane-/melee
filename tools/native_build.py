@@ -69,9 +69,15 @@ VANILLA = {
     "melee/gm/gmmain.c": ["-Dmain=game_main"],
     "melee/lb/lb_0195.c": ["-Dlb_80019894=lb_80019894_vanilla"],
     # A frame played ahead (src/host/ahead.c) must not end the scene: the
-    # scene loop would return before the lookahead could be undone.
+    # scene loop would return before the lookahead could be undone. A
+    # forked game (engine.c, "engine fork") thinks and draws nothing: the
+    # scene loop's render calls are the host's, and do nothing there.
     "melee/gm/gmscene.c": ["-Dgm_801A4B60=gm_801A4B60_vanilla",
-                           "-Dgm_801A4B74=gm_801A4B74_vanilla"],
+                           "-Dgm_801A4B74=gm_801A4B74_vanilla",
+                           "-DHSD_StartRender=host_scene_start_render",
+                           "-DHSD_VICopyXFBAsync=host_scene_copy_xfb",
+                           "-DGXInvalidateVtxCache=host_scene_invalidate_vtx",
+                           "-DGXInvalidateTexAll=host_scene_invalidate_tex"],
     "melee/lb/lbcardnew.c": [],
     "sysdolphin/baselib/fog.c": [],
     "sysdolphin/baselib/pobj.c": [],

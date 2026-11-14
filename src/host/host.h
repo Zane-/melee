@@ -262,6 +262,7 @@ void host_rb_stop(void);
 int host_rb_running(void);
 int host_rb_mark(void);
 int host_rb_rewind(int frames);
+int host_rb_merge(void);
 int host_rb_kept(void);
 void host_rb_report(char* out, size_t size);
 /* net.c: rollback netcode */
@@ -290,6 +291,7 @@ void host_control_resume(void);
 int host_predicting(void);
 /* engine.c: the search engine */
 int host_engine_active(void);
+int host_engine_forked(void);
 int host_engine_playing(void);
 const char* host_engine_begin(const char* line);
 int host_engine_boundary(void);

@@ -210,3 +210,106 @@ Not yet: the blend live (its searches in the shadow: `LiveMind` does it for the 
 alone); the drills on it; an optimised shadow build; a transposition table and the history
 heuristic; several sampled futures of the player (determinized search across shadows);
 reinforcement learning (E6); adaptation (E7).
+
+## Drills on the engine
+
+The owner, 2026-11-14: "will this even be good for training mode scripts? How will it find
+things that fulfill the function of the drill?" An engine that only plays to win would
+grab, wait, or never approach. A drill's opponent is the engine held to a **contract**:
+
+| Part | What it is | Anti-air (built) |
+|-|-|-|
+| The scenario | the moves allowed | the deck's aerial out of a full hop, nothing else |
+| The situation | what must happen if the player does nothing | the aerial lands where the player is |
+| The answer exists | searched from the player's side before the opponent commits | an up tilt, up smash or back air that hits it in the air before it lands, started no sooner than a person's reaction time (15 frames) after the jump |
+| Wrong answers lose | the opponent follows the player, but sees a commitment only after its own reaction time | in the air it corrects drift and the aerial's frame; an anti-air thrown early is whiffed and punished |
+| Variance | never the same twice | its own moment, place, jump, drift and aerial frame, chosen among the best by a softmax |
+
+Then play to win (sparring, the Lab) is the same engine without the contract.
+
+**The first drill on it: fox-anti-air, Opponent: Engine (2026-11-14), the default
+there.** The owner asked for a dynamic drill, "where both players have to move".
+`tools/melee_engine/jumpin.py`:
+
+- `Footsies`: the opponent's movement before it approaches: dash dances, walks, stops, a
+  crouch, at random lengths, keeping to a band of distances about the scenario's and on
+  the stage, turning back to face the player. Its pads are planned some frames ahead, so a
+  decision can be made for where they lead. (The slippi-ai body, `human.ModelBody`, can
+  take its place; Falcon has no model against Fox.)
+- `JumpIn`: from a random moment on (20 to 110 frames), every 3 frames within reach of
+  the scenario's distance, it asks: if I jumped *now* (or `lead` frames on), which jump-ins
+  land, against a player who stops? One of the best is chosen; then the answer check;
+  then it jumps, or moves on and looks again. After 90 frames without one it looks at
+  every jump and drift each time and closes in on the scenario's distance. In the air,
+  every 3 frames: does the plan still land, the player going on as they are for a few
+  frames and then standing (`eval=1`)? If not, the drift and the aerial's frame are
+  searched again from there. A player's commitment (anything but moving about) is not
+  seen until 15 frames after it.
+- The drill (`tools/melee_course/drills/fox_neutral.py`): the clock starts at the jump;
+  hit while the opponent is in the air with up tilt, up smash or back air is the success;
+  the demonstration plays the very answer the check found.
+
+What the engine gained for it (`src/host/engine.c`):
+
+| | |
+|-|-|
+| `jump_in`, `jump`, `jump_out` | full hops with no aerial yet: the air's moves follow |
+| `then=PREFIX,...` | the moves after the first, so a line is made of the drill's moves only |
+| `split=N` | the best line for each of the first N moves, not just the first (up to 64) |
+| The timing scan, `scan=STEP` | lines [FIRST] + a hold (`hold=`: the stick in, none, out, walking in or out, `ff_` with a fast fall) for K frames + LAST, every K tried. The branch point moves forward along the hold one frame at a time, its rollback records merged into one (`host_rb_merge`), so every timing costs about one playout. The macro tree, stepping 6 frames at a time, found landing full hops for Falcon's nair only with a fast fall, and none for his dair or Peach's fair; the scan finds dozens. `stop=1` ends a line at its first contact, `trial=N` follows LAST N frames, `near=D` presses only within D units, `from=K` only after K frames, `enough=N` stops after N lines connect, counting only contacts in PORT's states `want=S,...` (what the drill counts) |
+| `eval=1` | the pre-roll scored as one line ("plan"): a lookahead that honours `engine player` |
+| Each line's AIR and STATE | the target in the air at the first contact, and what PORT was doing (an up smash, not a dash attack) |
+
+`tests/course/anti_air_engine.py`, the four scenarios, the player's stand-in moving about
+too until the jump (12 attempts each way, headless):
+
+| The player, after the jump | Result |
+|-|-|
+| stops | the jump-in lands 11 of 11 (one attempt saw no approach and was not counted) |
+| answers: sees the jump-in perfectly, but no sooner than 15 frames after it, and searches for an anti-air | success 12 of 12 |
+| up smashes as soon as they can react | punished 12 of 12 |
+| keeps dash dancing | lands about half the time (3 to 7 of 12 between versions): a dash dancer under a full hop is hard to hit in a match too; the drill calls it "No anti-air" |
+| the demonstration | 8 of 8 |
+
+48 attempts: 48 different jump-ins (frame, where, which line), 37 different lines; both
+fighters moved before every one. Found on the way: aimed at a player "holding their pad",
+a dash held was a run across the stage, and it jumped from 116 units at a Fox who then
+stopped; the bodies dashed off the stage near the ledge (a dash and its slide carry 40
+units); Falcon's dair, which lands only at a narrow spacing, waited up to 7 seconds until
+half drift and the widened look were added.
+
+## Thinking while a person plays: forks
+
+The shadow games (E2) stay in step only if every command that changes the game is made in
+both, from the match's start; the client keeps matches across drills, swaps opponents,
+loads quietly, draws its own pictures. A game state cannot be copied from the window build
+to a headless one either: they are different programs, and the state holds code addresses.
+So the opponent thinks in **forks of the window game itself**: `engine fork IN OUT`
+(`src/host/engine.c`) forks the process at the frame boundary; the copy stands at that
+frame and answers searches, lookaheads and the state on its own pipes; it plays no frame
+for real (`step`, `tick`, `quit` refused or ending it), skips the scene loop's render calls
+(`gmscene.c` is built with them renamed: a window's graphics are its parent's), and leaves
+when its pipe closes. It is exact: it is the game, at that frame.
+
+`tools/melee_engine/fork.py`: `Fork(n)` (a game `search()` can be given), and `InFork`,
+the opponent's thinker in a live match: each decision forks at its frame and runs in a
+thread, for a frame some frames on; how far on (`lead_for(kind)`) follows how long that kind
+of decision takes, the second slowest of the last 8 (a decision to jump: about 70 ms
+headless; a correction in the air: a few ms when the plan still lands, capped at 24 frames
+when it must be searched again). `melee_course/react.thinker` uses it whenever the game is
+the window build, so the client needs no change.
+
+Measured: a fork of the window build (950 MB resident, software rendering) takes 7 ms of
+the frame, headless 1 ms; with one every 4 frames the paced window kept 16.7 ms frames (99th
+percentile 17.6 ms). A fork finds exactly what the game would. In real time (headless,
+paced at 60 frames a second): 6 of 7 jump-ins landed unanswered and 6 of 7 were beaten
+answered, no frame waited. With the machine loaded by three other window tests (load 25
+on 28 cores), decisions took up to 1.3 s: 4 of 8 landed, 6 of 8 were beaten. The drill in
+the window build off screen (software rendering, loaded): 2 of 4 landed, 4 of 4 beaten.
+The window build's forks search about 1.8 times slower than headless; on the owner's
+desktop the GPU draws and the cores are free, which none of these runs had.
+
+Not yet: the other drills on the engine (E5: wavedash back, shine out of shield, then the
+rest, each with its contract); the slippi-ai body and model of the player in the drills;
+several futures of the player (a jump-in that lands whether they stop or go on); faster
+searches (an optimised build, fewer rollback pages scanned); TT and history; E6, E7.

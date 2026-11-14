@@ -12,6 +12,7 @@ Start with the root `CLAUDE.md`, then read only what the task needs.
 | [training-courses.md](training-courses.md) | You are working on character courses: the hub, the drill engine, any Tech / Neutral / Punish / Defense drill |
 | [simulator.md](simulator.md) | You want to run or test game behaviour without Dolphin: the headless simulator, its limits, fixing it when it stops |
 | [melee-actor.md](melee-actor.md) | You want a CPU or a test that follows intentions ("approach, up tilt") instead of fixed frames: the Melee Actor, its script format, where it runs, and the slippi-ai research |
+| [melee-engine.md](melee-engine.md) | You want an opponent that thinks: the search engine on the real game, a drill's opponent held to a contract (its moves, what must happen, the answer it leaves you), thinking in forks of the live game, slippi-ai as its body and as a model of you |
 | [native-port.md](native-port.md) | You are building or running the game natively for Linux (no emulator), comparing it with the console's code, or fixing a difference between the two |
 | [netplay-p2p.md](netplay-p2p.md) | You are asked about our own online play: whether two players can connect with no server of ours, where rollback netcode can live, what it would be built from |
 | [ucf.md](ucf.md) | You touch stick reading, UCF, or a function Slippi patches for it: the eight rules, how they are reached without Slippi's addresses, how they are compared against Slippi's own code |
