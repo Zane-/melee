@@ -34,9 +34,12 @@
  * terms a drill asks for (contact, on the shield, a spacing).
  *
  * The reply: "@ ok MS TRIALS FRAMES NLINES" and then, per line, best first,
- * "@ line VALUE DMG TAKEN KO CONTACT CONTACT_FRAME ADV POS DIST LEN NAMES
- * PADS": NAMES the macros joined by "+", PADS the frames as "N BUTTONS LX
- * LY CX CY L R" segments joined by ",". Then "@ end".
+ * "@ line VALUE DMG TAKEN KO CONTACT CONTACT_FRAME ADV POS DIST LEN FIRST
+ * NAMES PADS": FIRST the frames of the first move (to where the fighter can
+ * act again), NAMES the macros joined by "+", PADS the frames as "N BUTTONS
+ * LX LY CX CY L R" segments joined by ",". Then "@ end". KEY=VALUE: the
+ * score's weights (dmg taken ko pos adv contact shield hit held close
+ * dist), lcancel=0|1, and moves=PREFIX,... for the first moves allowed.
  *
  * This file's statics are not the game's state: what the search found
  * survives its rewinds.
@@ -179,6 +182,7 @@ typedef struct Line {
     float value;
     float dmg, taken, adv, pos, dist;
     int ko, contact, contact_at, len;
+    int first_len; /* frames of the first move, to its branch point */
     char names[NAMES_MAX];
     HostPad pads[HORIZON_MAX];
 } Line;
@@ -200,6 +204,8 @@ static struct {
     int contact_kind[HORIZON_MAX + 1];
     int names[DEPTH_MAX + 1];
     int nnames;
+    int first_len; /* frames the current line's first move took */
+    unsigned char root_allowed[M_COUNT]; /* first moves allowed */
     int marks; /* marks made since the root's, the root's included */
     /* the root */
     float pct_t, pct_a;
@@ -750,6 +756,7 @@ static void keep(int first, Line* l)
                  macro_names[eng.names[i]]);
     }
     memcpy(l->pads, eng.path, sizeof(HostPad) * (size_t) l->len);
+    l->first_len = eng.first_len;
     if (!eng.have[first] || l->value > eng.lines[first].value) {
         eng.lines[first] = *l;
         eng.have[first] = 1;
@@ -765,6 +772,15 @@ static float node(int at, int depth, long budget)
     float val[M_COUNT], best = -1e9F;
     long start = eng.spent, left;
 
+    if (depth == 0) {
+        int k = 0;
+        for (int i = 0; i < n; i++) {
+            if (eng.root_allowed[moves[i]]) {
+                moves[k++] = moves[i];
+            }
+        }
+        n = k;
+    }
     if (n == 0) {
         return score().value;
     }
@@ -776,6 +792,9 @@ static float node(int at, int depth, long budget)
         eng.names[depth] = moves[i];
         eng.nnames = depth + 1;
         run_macro(moves[i]);
+        if (depth == 0) {
+            eng.first_len = eng.t;
+        }
         eng.trials++;
         l = score();
         val[i] = l.value;
@@ -830,6 +849,9 @@ static float node(int at, int depth, long budget)
             left -= share;
             continue;
         }
+        if (depth == 0) {
+            eng.first_len = eng.t;
+        }
         mark();
         child = eng.marks;
         v = node(child, depth + 1, share);
@@ -864,9 +886,9 @@ static void reply(void)
     printf("@ ok %.3f %d %ld %d\n", ms, eng.trials, eng.spent, n);
     for (int r = 0; r < n; r++) {
         Line* l = &eng.lines[order[r]];
-        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %s ",
+        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %d %s ",
                l->value, l->dmg, l->taken, l->ko, l->contact, l->contact_at,
-               l->adv, l->pos, l->dist, l->len, l->names);
+               l->adv, l->pos, l->dist, l->len, l->first_len, l->names);
         for (int i = 0; i < l->len;) {
             int j = i;
             while (j < l->len &&
@@ -960,6 +982,24 @@ const char* host_engine_begin(const char* line)
     /* holding the target: what a grab is worth before its throw */
     eng.w.held = parse_weight(line, "held", 20.0F);
     eng.lcancel = (int) parse_weight(line, "lcancel", 1.0F);
+    /* "moves=dash_,sh_,wait": the first moves allowed, by name prefix */
+    {
+        const char* m = strstr(line, "moves=");
+        memset(eng.root_allowed, m == NULL, sizeof eng.root_allowed);
+        if (m != NULL) {
+            char list[512];
+            sscanf(m + 6, "%511s", list);
+            for (char* tok = strtok(list, ","); tok != NULL;
+                 tok = strtok(NULL, ","))
+            {
+                for (int i = 0; i < M_COUNT; i++) {
+                    if (strncmp(macro_names[i], tok, strlen(tok)) == 0) {
+                        eng.root_allowed[i] = 1;
+                    }
+                }
+            }
+        }
+    }
     a = fighter_of(eng.port);
     t = fighter_of(eng.target);
     if (a == NULL || t == NULL) {

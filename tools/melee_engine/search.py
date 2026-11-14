@@ -23,18 +23,19 @@ CONTACT = {0: None, 1: "hit", 2: "shield", 3: "beaten", 4: "grab"}
 
 class Line:
     __slots__ = ("value", "dmg", "taken", "ko", "contact", "contact_at",
-                 "adv", "pos", "dist", "len", "names", "segments")
+                 "adv", "pos", "dist", "len", "first_len", "names",
+                 "segments")
 
     def __init__(self, text):
-        v = text.split(" ", 11)
+        v = text.split(" ", 12)
         self.value, self.dmg, self.taken = float(v[0]), float(v[1]), \
             float(v[2])
         self.ko, self.contact, self.contact_at = int(v[3]), \
             CONTACT[int(v[4])], int(v[5])
         self.adv, self.pos, self.dist = float(v[6]), float(v[7]), float(v[8])
-        self.len, self.names = int(v[9]), v[10]
+        self.len, self.first_len, self.names = int(v[9]), int(v[10]), v[11]
         self.segments = []
-        for seg in (v[11].split(",") if len(v) > 11 and v[11] else []):
+        for seg in (v[12].split(",") if len(v) > 12 and v[12] else []):
             w = seg.split()
             self.segments.append((int(w[0]), int(w[1], 16)) +
                                  tuple(int(x) for x in w[2:8]))
@@ -82,9 +83,11 @@ class Result:
 def search(n, port, target, horizon=60, budget=4000, depth=3, **weights):
     """Search PORT's lines against TARGET from the current frame. Keyword
     weights: dmg, taken, ko, pos, adv, contact, shield, hit, close, dist,
-    held, lcancel (see engine.c)."""
+    held, lcancel; and moves="dash_,sh_" (the first moves allowed, by name
+    prefix). See engine.c."""
     state = n.state()
-    extra = " ".join("%s=%g" % kv for kv in weights.items())
+    extra = " ".join(("%s=%s" if isinstance(v, str) else "%s=%g") % (k, v)
+                     for k, v in weights.items())
     head = n._cmd("search %d %d %d %d %d %s" % (port, target, horizon,
                                                 budget, depth, extra))
     lines = []

@@ -919,6 +919,42 @@ class Actor:
                 return s2
         return s
 
+    # ---- the engine plays (docs/ai/melee-engine.md) -------------------------------
+
+    def do_engine(self, goal=None, moves=None, until="contact", frames=600,
+                  temperature=4.0, budget=2500, depth=2, horizon=60, **_):
+        """Hand the controller to the search engine (melee_engine): each
+        time the fighter can act, its lines are searched in the game and
+        one of the best is played, chosen with some randomness. `goal`:
+        the score's weights ({"contact": 40} for an attack that lands);
+        `moves`: the first moves allowed, by name prefix; `until`:
+        "contact" (stops once an attack has met the target or its shield
+        and the fighter can act again) or None (plays `frames` frames)."""
+        try:
+            from melee_engine.opponent import Mind, raw_to_pad
+        except ImportError:
+            raise StepFailed("the engine needs tools/ on the path")
+        if not hasattr(self.sim, "_cmd"):
+            raise StepFailed("the engine needs the native build")
+        mind = Mind(self.sim, self.port, self.target, goal=goal, moves=moves,
+                    temperature=temperature, horizon=horizon, budget=budget,
+                    depth=depth, rng=self.rng)
+        before = dict(percent=self.them().percent, own=self.me().percent)
+        contact = None
+        source = mind.pads()
+        for _ in _frames(frames):
+            if contact is None:
+                contact = self._contact(before)
+                if contact is not None and self.committed is None:
+                    self.committed = self.frame
+            if until == "contact" and contact is not None and \
+                    self.grounded_idle(self.me()):
+                break
+            yield raw_to_pad(next(source))
+        return dict(contact=contact, decisions=len(mind.decisions),
+                    moves=[d[0] for d in mind.decisions][:20],
+                    search_ms=round(mind.search_ms))
+
     def _contact(self, before):
         """What has happened since `before`: "hit", "shield", "beaten"."""
         me, them = self.me(), self.them()

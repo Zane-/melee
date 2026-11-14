@@ -118,5 +118,38 @@ Ideas we adopt:
 
 ## Status
 
-Nothing of this is built yet beyond what it stands on: lookahead (`ahead`), rollback
-records, snapshots, the actor, the policy bridge (`melee-actor.md`, `native-ai.md`).
+**E1, the search engine: built (2026-11-13).** `search PORT TARGET HORIZON BUDGET DEPTH
+[KEY=VALUE ...]` (`src/host/engine.c`; Python `tools/melee_engine/search.py`). 72 macros:
+on the ground wait, walk and dash in and out, jab, the tilts and smashes, grab, dash attack
+(out of a run), shield, the four specials, wavedash in and out, a plain hop in and out,
+short hops with each aerial (drifting in or not) and full hops with each aerial at the top;
+in the air each aerial drifting in, not or out, drifts, fast fall, double jump; in shield
+grab, up smash, jump, spot dodge, rolls, hold, drop; holding the opponent the four throws.
+L is pulsed during aerials (any landing L-cancelled; `lcancel=0` to turn off). A line
+reports its first move's length, so a player of it knows where to decide again; `moves=`
+limits the first moves by name prefix (a drill's scenario). The search is a coroutine; its
+frames run as a lookahead's do (undrawn, unheard, never ending the scene).
+
+`tests/native/engine.py` (11 checks): the game untouched afterwards; deterministic; a best
+line played for real does exactly the damage it was scored with (Falcon, 30 units from a
+standing Fox: short hop nair, forward smash, 27%); with a shielding player's inputs given,
+the attacks meet the shield; grab then throws are searched (a late move with a reduced
+budget, as 4Stockfish's); about 14,000 simulated frames a second on the unoptimised build.
+
+Found on the way: a pure halving budget never reached a grab ranked sixth (it scores
+nothing until its throw); every one of the best twelve now gets a reduced share first, and
+holding the target scores (`held`, 20 by default).
+
+**E3, the engine as the opponent: begun.** `tools/melee_engine/opponent.py` (`Mind`): each
+time the fighter can act it searches, picks one of the best lines by a softmax over their
+scores (`temperature`), plays that line's first move, and searches again. The actor's step
+`{"do": "engine", "goal": {...}, "moves": "...", "until": "contact"}` hands it the
+controller. `tests/actor/engine_opponent.py`: Falcon, Falco and Marth approaching a player
+who stood, shielded, dashed or walked in or out, or dash danced during the wait: **72 of 72
+approaches land** (the reactive opponent missed the dash dances), and 21 of 24 situations
+saw more than one opening over three runs (short hop nair, fair or dair; a wavedash in and
+a full hop dair; a dash in and a dash attack). 140 ms a decision headless, unoptimised.
+
+Not yet: the shadow games (E2), without which a live match cannot think this long; the
+drills on the engine; slippi-ai as the model of the player and as the prior (E4); a
+transposition table and the history heuristic.
