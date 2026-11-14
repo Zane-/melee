@@ -10,7 +10,7 @@ Checked on a virtual display:
   ui.cpp's host_ui_pad): a button held is lit and let go is not, the
   sticks' caps move the way the sticks are pushed, a trigger goes in as far
   as it is pressed; one controller for one port, two for two, none when
-  the display is off;
+  the display is off, each labelled with its port above START;
 - the coach's card's display takes a pad the same way (Play._pad, the same
   sums: screens.pad_lines).
 """
@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import buttons  # noqa: E402
 import client  # noqa: E402
+import fonts  # noqa: E402
 import screens  # noqa: E402
 import window  # noqa: E402
 
@@ -77,6 +78,9 @@ def main():
     check("the card's controller is made of them",
           len(srcs) >= 18 and all(os.path.exists(s) for s in srcs) and
           "pvx" not in html, "%d pictures" % len(srcs))
+    check("its port above START: the player's, P1, unless told",
+          'class="pvp p1"' in html and ">P1</div>" in html and
+          'class="pvp p2"' in screens.pad_display("y", 1))
 
     # the card's sums, as Play._pad gives them
     lines = dict(screens.pad_lines("y", 0x800 | 0x8, (1.0, 0.0), (0.0, -1.0),
@@ -94,6 +98,8 @@ def main():
     try:
         w = window.Window(window=(1280, 720))
         w.step(10)
+        for f in fonts.fonts():             # the labels' (as the client)
+            w.ui("font " + str(f))
         with open(os.path.join(out, "style.rcss"), "w") as f:
             f.write(screens.STYLE.read_text())
         doc = os.path.join(out, "match.rml")
@@ -104,9 +110,11 @@ def main():
         w.step(30)
         w.inputs(1)
         w.step(3)
-        check("display on for port 1: one controller, at the corner",
+        check("display on for port 1: one controller, at the corner, "
+              "labelled P1",
               "on" in look(w, "gp0")["class"].split() and
-              "on" not in look(w, "gp1")["class"].split())
+              "on" not in look(w, "gp1")["class"].split() and
+              "p1" in look(w, "cg0iP")["class"].split())
 
         # L a quarter of the pad's range: 63 of the 140 the game counts as
         # all the way in (gmmain.c's scale_analogLR)
@@ -158,11 +166,20 @@ def main():
 
         w.inputs(3)
         w.step(3)
-        check("both ports: two controllers",
+        check("both ports: two controllers, P1 and P2",
               "on" in look(w, "gp0")["class"].split() and
-              "on" in look(w, "gp1")["class"].split())
+              "on" in look(w, "gp1")["class"].split() and
+              "p1" in look(w, "cg0iP")["class"].split() and
+              "p2" in look(w, "cg1iP")["class"].split())
         if args.shots:
             w.shot(os.path.join(args.shots, "both.png"))
+        w.inputs(2)
+        w.step(3)
+        check("the opponent's alone: one controller, labelled P2",
+              "on" in look(w, "gp0")["class"].split() and
+              "on" not in look(w, "gp1")["class"].split() and
+              "p2" in look(w, "cg0iP")["class"].split(),
+              look(w, "cg0iP")["class"])
         w.inputs(0)
         w.step(3)
         check("display off: none",

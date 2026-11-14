@@ -22,7 +22,8 @@ And the input display's controller (screens.pad_display; the owner,
 gamecube controller"): each stick in two, its gate and its cap, so that the
 cap moves in the gate; START as its button alone; the D-pad and its four
 lit arms cut to one box, so that they lie on each other; and the
-controller's body, drawn here (BODY: ours, not the wiki's).
+controller's body, drawn here (BODY: ours, not the wiki's, to the owner's
+references of the controller's shape).
 """
 import json
 import shutil
@@ -82,7 +83,7 @@ PAD = {"PAD-BODY": None, "STICK-GATE": "STICK", "STICK-CAP": "STICK",
        "C-GATE": "C", "C-CAP": "C", "PAD-START": "START",
        "PAD-D": "D-PAD", "PAD-D-UP": "D-UP", "PAD-D-DOWN": "D-DOWN",
        "PAD-D-LEFT": "D-LEFT", "PAD-D-RIGHT": "D-RIGHT"}
-PAD_VERSION = 1     # made again when this changes
+PAD_VERSION = 2     # made again when this changes
 # what of each stick's icon is its cap (the rest is the gate); the C-stick's
 # cap is one group
 CAP = {"STICK": ("circle4351", "circle4353", "circle4178", "circle4180",
@@ -91,20 +92,54 @@ CAP = {"STICK": ("circle4351", "circle4353", "circle4178", "circle4180",
 GATE = "path3399"
 # START's button alone, without its label
 START_BUTTON = 'viewBox="82 114 92 92"'
-# the controller's body, 300 by 200 (screens.PAD_W by PAD_H): the two sides
-# round the sticks and the buttons, the middle, the grips; an edge drawn
-# under the whole, then the whole over it, so only its outline shows
-_BODY_SHAPES = (
-    '<circle cx="80" cy="80" r="62"/><circle cx="220" cy="80" r="62"/>'
-    '<rect x="66" y="22" width="168" height="140" rx="46"/>'
-    '<ellipse cx="66" cy="136" rx="42" ry="56" transform="rotate(22 66 136)"/>'
-    '<ellipse cx="234" cy="136" rx="42" ry="56" '
-    'transform="rotate(-22 234 136)"/>')
+# The controller's shell, ours, drawn on 300 by 220 (screens.PAD_W by
+# PAD_H) to the owner's references of the GameCube controller (2026-11-14:
+# "the shape of the controller is very off ... Ensure the shell looks like
+# this so we have a realistic controller!"): the top's long arch, the
+# shoulders, the grips, the lobes round the D-pad and the C-stick and the
+# arch between them. Its left half, from the top's middle round to the
+# arch's middle, as cubic curves (first handle, second handle, end); the
+# right half is it mirrored.
+SHELL_LEFT = (
+    ((108, 1), (80, 6), (64, 13)),          # the top
+    ((36, 5), (26, 22), (24, 32)),          # the shoulder
+    ((-6, 52), (0, 82), (1, 98)),           # the side round the stick
+    ((-1, 150), (0, 218), (26, 218)),       # the grip, out and down
+    ((53, 218), (54, 162), (55, 148)),      # its end, its inside up
+    ((61, 166), (70, 190), (103, 185)),     # the lobe round the D-pad
+    ((143, 180), (143, 128), (115, 104)),
+    ((122, 99), (138, 97), (150, 97)))      # the arch
+# the wells: round the control stick and the face buttons, under the D-pad
+# and the C-stick
+SHELL_WELLS = ((53.6, 76.3, 35), (246.4, 73, 40), (96.8, 146.2, 25),
+               (201.2, 144.7, 25))
+SHELL_W, SHELL_H, SHELL_EDGE = 300, 220, 4   # the picture's room round it
+
+
+def _shell():
+    pts = [(150, 0)] + [e for _, _, e in SHELL_LEFT]
+    d = ["M150,0"]
+    for c1, c2, e in SHELL_LEFT:
+        d.append("C%g,%g %g,%g %g,%g" % (c1 + c2 + e))
+    for i in range(len(SHELL_LEFT) - 1, -1, -1):
+        c1, c2, _ = SHELL_LEFT[i]
+        d.append("C%g,%g %g,%g %g,%g" % (
+            SHELL_W - c2[0], c2[1], SHELL_W - c1[0], c1[1],
+            SHELL_W - pts[i][0], pts[i][1]))
+    return " ".join(d) + "Z"
+
+
+# an edge drawn under the shell, the shell over it (only its outline
+# shows), the wells on it
 BODY = (
-    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" '
-    'viewBox="0 0 300 200"><g fill="#5B52A6" stroke="#5B52A6" '
-    'stroke-width="8" stroke-linejoin="round">%s</g><g fill="#2E2A5E">%s</g>'
-    '</svg>' % (_BODY_SHAPES, _BODY_SHAPES))
+    '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+    'viewBox="%d %d %d %d"><path d="%s" fill="#5B52A6" stroke="#5B52A6" '
+    'stroke-width="7" stroke-linejoin="round"/><path d="%s" fill="#2E2A5E"/>'
+    '<g fill="#262252" stroke="#4A4392" stroke-width="2">%s</g></svg>' % (
+        SHELL_W + 2 * SHELL_EDGE, SHELL_H + 2 * SHELL_EDGE, -SHELL_EDGE,
+        -SHELL_EDGE, SHELL_W + 2 * SHELL_EDGE, SHELL_H + 2 * SHELL_EDGE,
+        _shell(), _shell(), "".join(
+            '<circle cx="%g" cy="%g" r="%g"/>' % w for w in SHELL_WELLS)))
 
 
 def path(name):
@@ -137,7 +172,8 @@ def _make_pad(tool):
         return
     body = OUT / "pad-body.svg"
     body.write_text(BODY)
-    _render(tool, body, path("PAD-BODY"), 600, 400)
+    _render(tool, body, path("PAD-BODY"), 2 * (SHELL_W + 2 * SHELL_EDGE),
+            2 * (SHELL_H + 2 * SHELL_EDGE))
     for stick in ("STICK", "C"):
         src = OUT / FILES[stick]
         if not src.exists():

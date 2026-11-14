@@ -27,7 +27,7 @@ span { display: inline; }
 .grow { flex: 1; }
 .un { transform: skewX(12deg); }
 
-/* ---- header, ruler, footer -------------------------------------------- */
+/* ---- header, footer ---------------------------------------------------- */
 
 .header { position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 84dp; display: flex; flex-direction: row; }
 .plate { margin-left: -14dp; padding: 0dp 40dp 0dp 62dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; }
@@ -42,9 +42,6 @@ span { display: inline; }
 .tag .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; text-transform: uppercase; letter-spacing: 1dp; }
 .hvs { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; color: #4A5361; margin-right: 12dp; }
 
-.ruler { position: absolute; left: 0dp; top: 84dp; width: 1280dp; height: 12dp; display: flex; flex-direction: row; }
-.tick { flex: 1; height: 6dp; margin-top: 6dp; border-left: 1dp #8A94A3; }
-.tick.ten { height: 12dp; margin-top: 0dp; border-left: 2dp #12161C; }
 
 .footer { position: absolute; left: 0dp; top: 640dp; width: 1280dp; height: 80dp; box-sizing: border-box; padding: 0dp 48dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
 .footer .tab { width: 14dp; height: 40dp; margin-right: 16dp; transform: skewX(-12deg); background-color: #F3F6FA; }
@@ -476,8 +473,8 @@ img { display: inline-block; }
 /* the input display over a panel (screens.pad_display) */
 /* the input display: a GameCube controller (screens.pad_display); its parts
    placed in shares of its box, so the box's size is the display's */
-.pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 78dp; }
-.cpic.tpic .pv { width: 138dp; height: 92dp; }
+.pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 86dp; }
+.cpic.tpic .pv { width: 138dp; height: 101dp; }
 .pv img, .pvw, .pvx { position: absolute; }
 .pvbody { left: 0dp; top: 0dp; width: 100%; height: 100%; opacity: 0.92; }
 .pvk { opacity: 0.35; }
@@ -489,14 +486,22 @@ img { display: inline-block; }
 .pvdir { opacity: 0; }
 .pvdir.on { opacity: 1; }
 .pvx { border-radius: 40dp; }
-.pvbody.pvx { background-color: #2E2A5E; border-radius: 30dp; }
+.pvbody.pvx { left: 0dp; top: 0dp; width: 100%; height: 100%; background-color: #2E2A5E; border-radius: 30dp; }
+/* the port above START, in its colour */
+.pvp { position: absolute; height: 10dp; line-height: 10dp; border-radius: 3dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 8dp; font-weight: 600; color: #FFFFFF; }
+.cpic.tpic .pvp { height: 11dp; line-height: 11dp; font-size: 9dp; }
+.gpad .pvp { height: 13dp; line-height: 13dp; font-size: 10dp; }
+.pvp.p1 { background-color: #E5484D; }
+.pvp.p2 { background-color: #3E7BFA; }
+.pvp.p3 { background-color: #F5BE1B; color: #12161C; }
+.pvp.p4 { background-color: #2BB673; }
 /* the game's own over a match, at the top right of its picture
    (src/host/inputs.c fills it in) */
 .gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
 .gpads.mid { left: 160dp; }
-.gpad { display: none; position: relative; width: 150dp; height: 100dp; margin-left: 10dp; }
+.gpad { display: none; position: relative; width: 150dp; height: 110dp; margin-left: 10dp; }
 .gpad.on { display: block; }
-.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 100dp; }
+.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 110dp; }
 .cpimg { position: absolute; }
 .cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
 .cfr.on { display: block; }

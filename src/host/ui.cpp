@@ -45,8 +45,8 @@ void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
 const char* host_ui_look(const char* line);
-int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
-                float cx, float cy, float ltrig, float rtrig);
+int host_ui_pad(int slot, int shown, int port, unsigned held, float sx,
+                float sy, float cx, float cy, float ltrig, float rtrig);
 }
 
 static Rml::ElementDocument* document;
@@ -119,6 +119,7 @@ struct PadShown {
     unsigned document; /* document_count when it was set */
     Rml::Element* box; /* "gp0" or "gp1"; NULL: the document has none */
     int shown;
+    int port;
     unsigned held;
     int place[6];
 };
@@ -148,11 +149,11 @@ static float clamp(float v, float lo, float hi)
 }
 
 /// Controller `slot` (0 or 1) of the input display over a match: shown or
-/// not, the buttons held (the pad's bits), the sticks from -1 to 1, the
-/// triggers from 0 to 1. Whether the document shown has it (nothing is
-/// done if not).
-int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
-                float cx, float cy, float ltrig, float rtrig)
+/// not, whose (the port, from 0: its label above START), the buttons held
+/// (the pad's bits), the sticks from -1 to 1, the triggers from 0 to 1.
+/// Whether the document shown has it (nothing is done if not).
+int host_ui_pad(int slot, int shown, int port, unsigned held, float sx,
+                float sy, float cx, float cy, float ltrig, float rtrig)
 {
     static const struct {
         const char* part;
@@ -178,6 +179,7 @@ int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
         snprintf(id, sizeof id, "gp%d", slot);
         was->box = document->GetElementById(id);
         was->shown = -1;
+        was->port = slot; /* the markup's: screens.over_game */
         was->held = ~0u;
         for (int& p : was->place) {
             p = -100000;
@@ -192,6 +194,18 @@ int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
     }
     if (!shown) {
         return 1;
+    }
+    if (port != was->port) {
+        snprintf(id, sizeof id, "cg%diP", slot);
+        Rml::Element* e = document->GetElementById(id);
+        if (e != nullptr) {
+            char text[16];
+            snprintf(text, sizeof text, "pvp p%d", port + 1);
+            e->SetClassNames(text);
+            snprintf(text, sizeof text, "P%d", port + 1);
+            e->SetInnerRML(text);
+        }
+        was->port = port;
     }
     if (held != was->held) {
         for (const auto& b : bits) {

@@ -159,6 +159,7 @@ static bool shown(int port)
 /// controllers shown, in their ports' order.
 static struct {
     int on;
+    int port;
     u32 held;
     float sx, sy, cx, cy, ltrig, rtrig;
 } pads[2];
@@ -210,6 +211,7 @@ static void think(HSD_GObj* gobj)
         }
         held = fp->input.held_buttons[0];
         pads[k].on = 1;
+        pads[k].port = port;
         pads[k].held = held;
         pads[k].sx = fp->input.lstick[0].x;
         pads[k].sy = fp->input.lstick[0].y;
@@ -372,9 +374,9 @@ void host_inputs_ui(void)
 {
     int has = 0;
     for (int k = 0; k < 2; k++) {
-        has |= host_ui_pad(k, mask != 0 && pads[k].on, pads[k].held,
-                           pads[k].sx, pads[k].sy, pads[k].cx, pads[k].cy,
-                           pads[k].ltrig, pads[k].rtrig);
+        has |= host_ui_pad(k, mask != 0 && pads[k].on, pads[k].port,
+                           pads[k].held, pads[k].sx, pads[k].sy, pads[k].cx,
+                           pads[k].cy, pads[k].ltrig, pads[k].rtrig);
     }
     ui_draws = has;
 }
