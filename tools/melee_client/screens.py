@@ -1238,25 +1238,29 @@ def pad_display(k):
             b("Y")))
 
 
-def _picture(pic, kind):
+def _picture(pic, kind, width=412.0):
     """A panel of the game's own pictures (Native.frames_view): `pic` is
     {"view": the interface's view, "crop": (left, top, width, height) of
-    the game's 640x480 shown}. The client plays them (Client.coach_play):
-    the frame, a tag at each press, how far along."""
+    the game's 640x480 shown}. The client plays them (Client.Play): the
+    frame, a tag at each press, how far along. `kind`: "you", "tgt", or
+    "ex" (the tutorial's example, `width` wide)."""
     left, top, w, h = pic["crop"]
-    s = 412.0 / w
-    k = "y" if kind == "you" else "t"
+    s = width / w
+    k = {"you": "y", "tgt": "t", "ex": "e"}[kind]
+    cls = "cpic" + (" tall" if pic.get("tall") else "") + \
+        (" tpic" if kind == "ex" else "")
+    # the tutorial's cue over its example: "let go now", "too late"
+    cue = '<div id="c%sq" class="tcue"/>' % k if kind == "ex" else ""
     return (
-        '<div class="cpic%s"><img class="cpimg" src="gxcopy://%d" style="left: '
+        '<div class="%s"><img class="cpimg" src="gxcopy://%d" style="left: '
         '%.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;"/>'
-        '<div id="c%sf" class="cfr"/><div id="c%sp" class="cptag %s"/>%s'
+        '<div id="c%sf" class="cfr"/><div id="c%sp" class="cptag %s"/>%s%s'
         '<div class="cbar"><div id="c%sb" class="cbarf %s"/></div></div>' % (
-            " tall" if pic.get("tall") else "", pic["view"], -left * s,
-            -top * s, 640.0 * s, 480.0 * s, k, k, kind, pad_display(k), k,
-            kind))
+            cls, pic["view"], -left * s, -top * s, 640.0 * s, 480.0 * s, k,
+            k, kind, cue, pad_display(k), k, kind))
 
 
-def coach_grid(tl, wrong):
+def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
     """The try's inputs frame by frame against the frame-perfect ones, and
     a bracket from where one was due to where it came (`wrong`: coach.
     first_wrong). The columns' heads are `cgn1`... (the pictures' frame,
@@ -1294,14 +1298,14 @@ def coach_grid(tl, wrong):
                (b - a) * cell / 2 - 60, "%d FRAME%s" % (k, "" if k == 1
                                                         else "S"),
                "LATE" if wrong[1] > wrong[2] else "EARLY"))
-    legend = ('<div class="cleg"><div class="cgc you"/><div>you</div>'
+    legend = ('<div class="cleg"><div class="cgc you"/><div>%s</div>'
               '<div class="cgc perf"/><div>frame-perfect</div>'
-              '<div class="cgc win"/><div>allowed</div></div>')
+              '<div class="cgc win"/><div>allowed</div></div>' % esc(you))
     # four rows or more: closer together (the card's height is fixed)
-    return ('<div class="csec">YOUR INPUTS, FRAME BY FRAME</div>'
+    return ('<div class="csec">%s</div>'
             '<div class="cgrid%s">%s</div>%s%s' % (
-                " tight" if len(tl["rows"]) >= 4 else "", "".join(rows),
-                bracket, legend))
+                esc(title), " tight" if len(tl["rows"]) >= 4 else "",
+                "".join(rows), bracket, legend))
 
 
 def coach_card(v):
@@ -1392,37 +1396,72 @@ def replay_view(part, number, total, name, title="Replay", hints=None,
             hint_rows(hints or REPLAY_HINTS)))
 
 
+def character_table(rows, me, unit="frames"):
+    """Every character's number (a lesson's table: the jump squat), grouped
+    by value, the player's character marked: `rows` [(value, id, name)]."""
+    groups = {}
+    for v, cid, name in rows:
+        groups.setdefault(v, []).append((cid, name))
+    out = []
+    for v in sorted(groups):
+        mine = any(cid == me for cid, _ in groups[v])
+        names = ", ".join(
+            ('<span class="tme">%s</span>' if cid == me else "%s")
+            % esc(name) for cid, name in groups[v])
+        out.append('<div class="trow%s"><div class="tval">%d</div><div '
+                   'class="tnames">%s</div></div>' % (" mine" if mine else "",
+                                                      v, names))
+    return ('<div class="ttable"><div class="th">%s, by character</div>%s'
+            '</div>' % (esc(unit.capitalize()), "".join(out)))
+
+
 def tutorial_card(v):
-    """The tutorial: how to do it (not the coach, which comes after misses
-    and is about the try). Over the game's picture, in the coach card's
-    frame with a teal head. `v`: title, sub (the line at the right), blocks
-    [(heading, text)], parts [(name, state: "done" | "now" | "")] or None,
-    keys [(button, words)]."""
-    blocks = "".join(
-        '<div class="tblock"><div class="th">%s</div><div class="tt">%s'
-        '</div></div>' % (esc(h), esc(t)) for h, t in v["blocks"] if t)
-    parts = ""
-    if v.get("parts"):
-        rows = []
-        for i, (name, state) in enumerate(v["parts"]):
-            rows.append('<div class="tpart %s"><div class="tpn">%d</div><div '
-                        'class="tpw">%s</div><div class="tps">%s</div></div>'
-                        % (state, i + 1, esc(name),
-                           {"done": "Done", "now": "Now"}.get(state, "")))
-        parts = ('<div class="tblock"><div class="th">How: one part at a '
-                 'time</div><div class="tparts">%s</div></div>' % "".join(rows))
-    size = 34 if len(v["title"]) <= 30 else 28
+    """The tutorial: how to do it, shown (not the coach, which comes after
+    misses and is about the try). The coach card's frame with a teal head.
+    A lesson (the concept: what a jump squat is, how it differs from one
+    character to the next, when to let go) or a part of the technique:
+    on the left what it shows, the game's own pictures of its example
+    played large with the input display and a cue on each frame ("let go
+    now"), frame by frame (Client.Play, panel "e"), or a table of every
+    character; on the right its words and the caption of the frame shown;
+    below, the example's inputs frame by frame, and the parts as chips.
+    `v`: title, sub, lead, pic (_picture's) or table (character_table's)
+    or neither, heading, text, timeline, parts [(name, state)], keys
+    [(button, words)]."""
+    if v.get("pic") is not None:
+        visual = _picture(v["pic"], "ex", 520.0)
+    elif v.get("table"):
+        visual = v["table"]
+    else:
+        visual = ('<div class="cpath cnone tpic">The example could not be '
+                  'recorded in this game.</div>')
+    side = '<div class="th">%s</div><div class="ttext">%s</div>' % (
+        esc(v.get("heading", "How")), esc(v.get("text", "")))
+    if v.get("pic") is not None:
+        side += ('<div class="th">This frame</div><div id="cecap" '
+                 'class="tcap"/>')
+    chips = "".join(
+        '<div class="tchip %s"><div class="tpn">%d</div><div class="tpw">%s'
+        '</div></div>' % (state, i + 1, esc(name))
+        for i, (name, state) in enumerate(v.get("parts") or []))
+    grid = coach_grid(v.get("timeline"), None,
+                      title="THE INPUTS, FRAME BY FRAME", you="pressed") \
+        if v.get("pic") is not None else ""
+    size = 34 if len(v["title"]) <= 26 else 28
     return (
         '<div class="cdim"/><div class="ccard tcard">'
         '<div class="chead"><div class="cstrip tut"/><div class="cbadge tut">'
         '<div class="un">Tutorial</div></div><div class="ctitle" style='
         '"font-size: %ddp;">%s</div><div class="grow"/><div class="cwhat">'
         '%s</div></div>'
-        '<div class="tutbody">%s%s</div>'
+        '<div class="tlead">%s</div>'
+        '<div class="tmain">%s<div class="tside">%s</div></div>'
+        '<div class="cmid">%s</div>'
+        '<div class="tchips">%s</div>'
         '<div class="grow"/><div class="cfoot">%s</div></div>' % (
             size, esc(v["title"]), esc(v.get("sub", "")).replace("\n",
                                                                 "<br/>"),
-            blocks, parts, "".join(
+            esc(v.get("lead", "")), visual, side, grid, chips, "".join(
                 '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
                                                              esc(w))
                 for b, w in v["keys"])))

@@ -501,6 +501,8 @@ img { display: inline-block; }
 .cbarf { height: 4dp; width: 0dp; }
 .cbarf.you { background-color: #F0643C; }
 .cbarf.tgt { background-color: #22B8A0; }
+.cbarf.ex { background-color: #22B8A0; }
+.cptag.ex { background-color: #22B8A0; color: #12161C; }
 .cpath.cnone { font-size: 14dp; color: #4A5361; padding: 100dp 24dp 0dp 24dp; box-sizing: border-box; text-align: center; }
 .cfloor { position: absolute; left: 0dp; width: 412dp; height: 2dp; background-color: #8A94A3; }
 .cdot { position: absolute; width: 7dp; height: 7dp; border-radius: 4dp; }
@@ -541,23 +543,37 @@ img { display: inline-block; }
 .ckey .gcimg, .ckey .gc, .ckey .key { margin-right: 8dp; }
 .coff { font-size: 13dp; font-weight: 500; color: #4A5361; }
 
-/* the tutorial: how to do it, before the first try and between parts
-   (Client.tutorial); the coach card's frame, a teal head */
+/* the tutorial: how to do it, shown (Client.tutorial): the coach card's
+   frame, a teal head, the part's example played large, frame by frame */
 .cstrip.tut { background-color: #22B8A0; }
 .cbadge.tut { background-color: #22B8A0; width: 112dp; }
-/* (not .tbody: the online ticket's, which is slanted) */
-.tutbody { padding: 16dp 28dp 0dp 28dp; display: flex; flex-direction: column; }
-.tblock { margin-bottom: 14dp; }
+.tlead { padding: 10dp 24dp 0dp 24dp; font-size: 16dp; font-weight: 600; color: #3A4452; white-space: nowrap; overflow: hidden; }
+.tmain { display: flex; flex-direction: row; padding: 10dp 24dp 0dp 24dp; }
+.cpic.tpic { width: 520dp; height: 300dp; }
+.cpath.tpic { width: 520dp; height: 300dp; }
+.tside { flex: 1; margin-left: 18dp; display: flex; flex-direction: column; }
 .th { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; color: #18977F; margin-bottom: 4dp; text-transform: uppercase; }
-.tt { font-size: 17dp; line-height: 1.35em; color: #12161C; }
-.tparts { display: flex; flex-direction: column; }
-.tpart { display: flex; flex-direction: row; align-items: center; height: 34dp; margin-bottom: 4dp; background-color: #FFFFFF; padding-right: 14dp; }
-.tpart.now { background-color: #12161C; color: #F3F6FA; }
-.tpart.done { color: #4A5361; }
-.tpn { width: 34dp; height: 34dp; background-color: #DCE2EA; color: #12161C; font-family: "Barlow Condensed"; font-weight: 800; font-size: 20dp; text-align: center; line-height: 34dp; margin-right: 12dp; }
-.tpart.now .tpn { background-color: #22B8A0; }
-.tpw { font-size: 16dp; font-weight: 700; }
-.tps { margin-left: auto; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
+.tcap { font-family: "Barlow Condensed"; font-weight: 700; font-size: 24dp; line-height: 1.15em; color: #12161C; height: 112dp; overflow: hidden; margin-bottom: 12dp; }
+.ttext { font-size: 16dp; line-height: 1.35em; color: #12161C; margin-bottom: 12dp; }
+.tcue { display: none; position: absolute; left: 0dp; right: 0dp; top: 34dp; padding: 8dp 12dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; text-align: center; }
+.tcue.on { display: block; }
+.tcue.go { background-color: #22B8A0E6; color: #12161C; }
+.tcue.late { background-color: #F0643CE6; color: #FFFFFF; }
+.tcue.info { background-color: #12161CCC; color: #F3F6FA; }
+.ttable { width: 520dp; height: 300dp; background-color: #FFFFFF; padding: 12dp 16dp; box-sizing: border-box; overflow: hidden; }
+.trow { display: flex; flex-direction: row; align-items: center; padding: 5dp 0dp; border-bottom: 1dp #DCE2EA; }
+.trow.mine { background-color: #E3F6F2; }
+.tval { width: 44dp; font-family: "Barlow Condensed"; font-weight: 800; font-size: 28dp; text-align: center; color: #12161C; }
+.tnames { flex: 1; font-size: 13dp; line-height: 1.3em; color: #3A4452; }
+.tme { font-weight: 800; color: #12161C; }
+.tchips { display: flex; flex-direction: row; padding: 10dp 24dp 0dp 24dp; }
+.tchip { display: flex; flex-direction: row; align-items: center; height: 30dp; margin-right: 8dp; background-color: #FFFFFF; padding-right: 12dp; }
+.tchip.now { background-color: #12161C; color: #F3F6FA; }
+.tchip.done { color: #4A5361; }
+.tpn { width: 30dp; height: 30dp; background-color: #DCE2EA; color: #12161C; font-family: "Barlow Condensed"; font-weight: 800; font-size: 18dp; text-align: center; line-height: 30dp; margin-right: 10dp; }
+.tchip.now .tpn { background-color: #22B8A0; }
+.tchip.done .tpn { background-color: #A9B4C2; }
+.tpw { font-size: 14dp; font-weight: 700; white-space: nowrap; }
 
 /* the replay of a try (the canvas's "Coach: replay of your try") */
 .replay { display: none; position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 720dp; z-index: 10; color: #F3F6FA; }

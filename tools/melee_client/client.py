@@ -181,10 +181,23 @@ class Play:
                 self._ui(pid + "pt", "text c%sp %s" % (pid, screens.esc(tag)))
             self._ui(pid + "p", "class c%sp on %d" % (pid, 1 if tag else 0))
             self._ui(pid + "b", "attr c%sb style width: %ddp;" % (
-                pid, round(412.0 * i / max(1, len(seq) - 1))))
+                pid, round(p.get("width", 412.0) * i / max(1,
+                                                           len(seq) - 1))))
             self._pad(pid, e.get("pad"))
+            if "caption" in e:          # the tutorial's: what happens here
+                self._ui(pid + "cap", "text c%scap %s" % (
+                    pid, screens.esc(e["caption"])))
+            if "cue" in e:              # and its cue: "let go now"
+                words, kind = e["cue"] or ("", None)
+                self._ui(pid + "q", "text c%sq %s" % (pid,
+                                                     screens.esc(words)))
+                for name in ("go", "late", "info"):
+                    self._ui(pid + "q" + name, "class c%sq %s %d" % (
+                        pid, name, 1 if kind == name else 0))
+                self._ui(pid + "qon", "class c%sq on %d" % (
+                    pid, 1 if words else 0))
             slow = slow or e["slow"]
-            if pid == "y":
+            if pid in ("y", "e"):       # the grid's column now
                 head = e["f"]
                 if head != self.head:
                     if self.head is not None:
@@ -1855,6 +1868,7 @@ class Client:
                 self.w.frames_clear(1)
             self.w.frames_rec(ring, getattr(self, "pic_follow", 15))
             self.pictures = True
+            self.pic_ring = ring
         except NativeError:
             self.pictures = False
         return self.pictures
@@ -2073,50 +2087,95 @@ class Client:
     # captioned. A part passed opens the next with its own page.
 
     def tutorial(self, drill, session, intro=True):
-        """The drill's tutorial (`intro`), or the page of the part now (a
-        part just opened). Up and down choose the part on the intro."""
+        """The tutorial (the owner, 2026-11-14: "show HOW to do the tech",
+        "similar to coach where it shows you a frame by frame playback in
+        the tutorial itself ... more visual rather than textual", "more
+        educational as well"). On a drill's first open and on D-pad up
+        (`intro`): its lessons, the concept (what a jump squat is, how it
+        differs from one character to the next, when to let go), each with
+        what it shows: the game's own pictures of an example, frame by
+        frame with the input display and a cue on each frame, or a table of
+        every character; then the part now. When a part opens: that part's
+        card. A goes on, B back, START to the drill; Y shows an example
+        full size; L and R choose the part."""
         from melee_drills import format as fmt
         spec = drill.spec
         nums = drill.nums(session.c)
 
-        def T(t):
-            return fmt.text(t, nums)
+        def T(t, **more):
+            return fmt.text(t, nums, **more)
+        lessons = spec["tutorial"].get("lessons", []) if intro else []
+        k = 0
+        while k < len(lessons):
+            le = lessons[k]
+            show = le.get("show") or {}
+            view = dict(title=T(le["title"]), sub="LESSON %d OF %d" % (
+                k + 1, len(lessons)), lead=T(spec["goal"]),
+                heading="What it is", text=T(le["text"]))
+            seq, ex = [], show.get("example")
+            if ex is not None:
+                result, seq = self.tutorial_seq(drill, session, ex["inputs"],
+                                                ex.get("marks", {}),
+                                                ex.get("cues", []))
+                view["timeline"] = (result or {}).get("timeline")
+                if seq:
+                    view["pic"] = dict(view=1, crop=coach.crop([], (520,
+                                                                     300)))
+            elif "characters" in show:
+                view["table"] = screens.character_table(
+                    fmt.every_character(show["characters"]), self.c["id"])
+            keys = [("A", "Next" if k + 1 < len(lessons) else
+                     "On to part %d" % (drill.part_index + 1))]
+            if seq:
+                keys += [("D-SIDE", "Frame by frame"),
+                         ("D-UP", "Play, pause"), ("Y", "Full size")]
+            if k > 0:
+                keys.append(("B", "Back"))
+            keys.append(("START", "Skip to the drill"))
+            view["keys"] = keys
+            what = self.tutorial_card(view, seq, dict(
+                a="next", b="back" if k > 0 else None, start="skip",
+                y="full" if seq else None))
+            if what == "next":
+                k += 1
+            elif what == "back":
+                k -= 1
+            elif what == "full":
+                self.tutorial_example(drill, session, ex["inputs"],
+                                      ex.get("marks", {}), T(le["title"]))
+            elif what == "skip":
+                break
         while True:
             part = drill.part_now
-            n = len(drill.parts)
-            i = drill.part_index
-            states = [(T(p["name"]), "done" if k < i else "now" if k == i
-                       else "") for k, p in enumerate(drill.parts)]
-            if intro:
-                tut = spec["tutorial"]
-                blocks = [("Goal", T(spec["goal"])), ("Why", T(spec["why"])),
-                          ("What it is", T(tut["what"])),
-                          ("What to expect", T(tut["expect"]))]
-                example, marks = tut["example"], tut.get("marks", {})
-                keys = [("A", "Show me, frame by frame"),
-                        ("D-UP", "Choose the part"),
-                        ("B", "Start part %d" % (i + 1))]
-                sub = "%s\n%d PARTS" % (nums["char"].upper(), n)
-                parts = states
-            else:
-                want = "; ".join(
-                    T(spec["checks"][c].get("expect", c))
-                    for c in part.get("checks", [])) or "Any try"
-                blocks = [("Part %d of %d: %s" % (i + 1, n, T(part["name"])),
-                           T(part["teach"])),
-                          ("To pass it, %d in a row" % part["streak"],
-                           want + ".")]
-                example, marks = part["example"], part.get("marks", {})
-                keys = [("A", "Show me, frame by frame"), ("B", "Start")]
-                sub = "PART %d OF %d" % (i + 1, n)
-                parts = None
-            view = dict(title=T(spec["name"]) if intro else T(part["name"]),
-                        sub=sub, blocks=blocks, parts=parts, keys=keys)
-            what = self.tutorial_card(view, choose=intro)
-            if what == "example":
-                self.tutorial_example(drill, session, example, marks,
-                                      T(spec["name"]) if intro
-                                      else T(part["name"]))
+            n, i = len(drill.parts), drill.part_index
+            result, seq = self.tutorial_seq(drill, session, part["example"],
+                                            part.get("marks", {}),
+                                            part.get("cues", []))
+            pic = dict(view=1, crop=coach.crop([], (520, 300))) if seq \
+                else None
+            lead = T(spec["goal"]) if intro else \
+                "Next: part %d, %s." % (i + 1, T(part["name"]))
+            keys = [("A", "Start")]
+            if seq:
+                keys += [("D-SIDE", "Frame by frame"),
+                         ("D-UP", "Play, pause"), ("Y", "Full size")]
+            if n > 1:
+                keys += [("L", ""), ("R", "Another part")]
+            view = dict(
+                title=T(spec["name"]), sub="PART %d OF %d\n%s" % (
+                    i + 1, n, T(part["name"]).upper()),
+                lead=lead, pic=pic, heading="How", text=T(part["teach"]),
+                timeline=(result or {}).get("timeline"),
+                parts=[(T(p["name"]), "done" if j < i else "now" if j == i
+                        else "") for j, p in enumerate(drill.parts)],
+                keys=keys)
+            what = self.tutorial_card(view, seq, dict(
+                a="go", b="go", start="go", y="full" if seq else None,
+                l=-1 if n > 1 else None, r=1 if n > 1 else None))
+            if what == "full":
+                self.tutorial_example(drill, session, part["example"],
+                                      part.get("marks", {}),
+                                      T(part["name"]))
                 continue
             if isinstance(what, int):
                 drill.set_part(drill.part_index + what)
@@ -2127,35 +2186,132 @@ class Client:
         prog["part"] = drill.part_index
         self.progress.save()
 
-    def tutorial_card(self, view, choose=False):
-        """The card until A ("example"), B ("go"), or with `choose` up or
-        down (-1, 1: another part)."""
+    TUT_LEAD = 4        # frames standing before an example's frame 1
+
+    def tutorial_seq(self, drill, session, inputs, marks, cues):
+        """An example recorded (tutorial_record) as the pictures a card
+        plays: (its result, [Play's entries]), each frame with its caption
+        (the latest of `marks` up to it) and its cue (`cues`: the one whose
+        frames hold it)."""
+        from melee_drills import format as fmt
+        nums = drill.nums(session.c)
+        at = {int(fmt.value(f, nums)): w for f, w in marks.items()}
+        spans = [(int(fmt.value(c["frames"][0], nums)),
+                  int(fmt.value(c["frames"][1], nums)), c["words"],
+                  c.get("kind", "info")) for c in cues]
+        result, track = self.tutorial_record(drill, session, inputs)
+        if result is None:
+            return None, []
+        seq = self.coach_seq(result, track, coach.AFTER)
+        start = (result.get("timeline") or {}).get("start")
+        if start is not None:       # a moment standing, then frame 1
+            seq = [e for e in seq if e["i"] - start + 1 > -self.TUT_LEAD]
+        for e in seq:
+            f = e["i"] - start + 1 if start is not None else None
+            if f is None or f < 1:
+                e["caption"] = "Before frame 1: standing"
+                e["label"] = ""
+                e["cue"] = None
+                continue
+            said = [at[k] for k in sorted(at) if k <= f]
+            e["caption"] = fmt.text(said[-1], nums, f=f) if said else ""
+            e["label"] = "F%d" % f
+            cue = next(((fmt.text(w, nums, f=f), kind) for lo, hi, w, kind
+                        in spans if lo <= f <= hi), None)
+            e["cue"] = cue
+        return result, seq
+
+    def tutorial_record(self, drill, session, inputs):
+        """The part's example played unseen and unheard from the drill's
+        start, drawn into ring 1 of the game's pictures (as the coach's
+        target is): (its result, its track), or (None, None)."""
+        from melee_drills.drill import inputs_to_refs
+        if not self.pictures:
+            return None, None
+        track = coach.Track(ring=1)
+        st = dict(drawn=False)
+
+        def each(game, frame):
+            if session.demo_pass == 2 and frame >= 0:
+                if not st["drawn"]:
+                    self.w.quiet(2)         # drawn now, still unseen
+                    st["drawn"] = self.pictures_rec(1)
+                track.add(session.c, session.player_pad, frame,
+                          self.w.frame)
+        kept = self.keep_session(session)
+        ring = getattr(self, "pic_ring", -1)    # the drill's, kept again
+        self.w.scripted(self.port, True)
+        session.live = False
+        self.w.quiet(True)
+        drill.build_reference = lambda c: inputs_to_refs(inputs,
+                                                         drill.nums(c))
+        drill.filming = True        # the tutorial's camera, if it has one
+        try:
+            out = session.run(each_frame=each, demo=True)
+            if st["drawn"]:
+                session.set_player_pad()
+                self.w.step(coach.AFTER)    # how it goes on
+        except NativeError:
+            return None, None
+        finally:
+            vars(drill).pop("build_reference", None)
+            drill.filming = False
+            try:
+                drill.camera(self.w, self.port)     # the drill's again
+            except Exception:       # the game is gone
+                pass
+            self.pictures_rec(ring)
+            self.w.quiet(False)
+            self.w.scripted(self.port, False)
+            session.live = True
+            self.restore_session(session, kept)
+        return out, track
+
+    def tutorial_card(self, view, seq, keys):
+        """The card, its example playing (Play, panel "e"), until a key of
+        `keys` ({"a", "b", "start", "y", "l", "r"}: what to return, None:
+        not here) is pressed. The D-pad steps the example, D-up plays it or
+        pauses it."""
         self.tutorial_now = view            # tests: what the card says
         self.w.ui("class banner on 0")
         self.banner = 0
         self.put("coach", screens.tutorial_card(view))
+        play = Play(self.w, [dict(id="e", view=1, ring=1, seq=seq,
+                                  width=520.0)] if seq else [])
+        self.tutorial_play = play           # tests: where it is
+        play.step()
         self.w.ui("class coach on 1")
         self.w.freeze(True)
+        bits = (("a", A), ("b", B), ("start", START), ("y", Y), ("l", L),
+                ("r", R))
         try:
             while True:
                 if self.person is not None:
                     self.person(self.w, -6)        # tests: the player
                 self.w.step()
+                play.step()
                 pressed, moves = self.read()
                 if self.game_quit():
                     raise Leave()
-                if pressed & A:
-                    self.sfx(self.SFX_FORWARD)
-                    return "example"
-                if pressed & (B | START):
-                    self.sfx(self.SFX_FORWARD)
-                    return "go"
-                if choose and moves & (UP | DOWN):
-                    return -1 if moves & UP else 1
+                if moves & LEFT:
+                    play.frame(-1)
+                elif moves & RIGHT:
+                    play.frame(1)
+                if pressed & UP:
+                    play.toggle()
+                for name, bit in bits:
+                    if pressed & bit and keys.get(name) is not None:
+                        self.sfx(self.SFX_BACK if name == "b"
+                                 else self.SFX_FORWARD)
+                        return keys[name]
         finally:
             self.w.ui("class coach on 0")
             self.consume()
             self.w.freeze(False)
+            try:
+                self.w.frames_view(1)
+            except NativeError:
+                pass
 
     def tutorial_example(self, drill, session, inputs, marks, name):
         """The example played from the drill's start, the input display
@@ -2193,6 +2349,7 @@ class Client:
         self.w.ui("text rmode HOW TO DO IT · HALF SPEED")
         kept = self.keep_session(session)
         seek = None
+        drill.filming = True        # the tutorial's camera, if it has one
         try:
             while True:
                 state = dict(paused=False, quiet=False, seen=set())
@@ -2213,6 +2370,11 @@ class Client:
                 if end == "back":
                     return
         finally:
+            drill.filming = False
+            try:
+                drill.camera(self.w, self.port)     # the drill's again
+            except Exception:       # the game is gone
+                pass
             self.w.ui("class replay on 0")
             self.inputs_now()
             if shown:
@@ -2459,7 +2621,7 @@ class Client:
                 label = ""
             pad = track.pads[i] if 0 <= i < len(track) else None
             seq.append(dict(pic=pic, f=f if within else None, label=label,
-                            tag=marks.get(i), slow=within, pad=pad))
+                            tag=marks.get(i), slow=within, pad=pad, i=i))
         # a picture missing at the start (the frame before the ring began):
         # the first there is
         first = next((e["pic"] for e in seq if e["pic"] is not None), None)

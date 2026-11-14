@@ -38,13 +38,13 @@ into one drill's file.
 | `characters` | `"all"` or a list of ids |
 | `goal` | one line: what the player can do at the end |
 | `why` | why it matters in a match, in two or three sentences |
-| `tutorial` | `what` (what the technique is), `expect` (how it is judged), `example` (inputs) and `marks` (frame captions): the drill's own page and example |
+| `tutorial` | `lessons` (the concept, before the parts: each a `title`, a `text` and what it `show`s), `what`, `expect`, an `example` with its `marks`, and a `camera` its examples are filmed with (optional: closer than the drill's, to see the animation) |
 | `scenarios` | where it happens: `stage`, `player` (`{"x": ...}`), `opponent`, `camera` |
 | `attempt` | `start` and `judge`: events |
 | `measures` | named measures: `{"held": {"held": "jump"}, "kind": "jump_kind"}` |
 | `checks` | named conditions: a measure, an expectation, and the words: `expect` (what was asked), `words` (what was measured), `headline` (the title when it fails), `fix` (what to change) |
 | `verdict` | `success`: the words of a success |
-| `parts` | the technique in links, in order: `name`, `teach`, `example`, `marks`, `checks` (the names that count), `streak` (in a row to pass), `success` (words, optional) |
+| `parts` | the technique in links, in order: `name`, `teach`, `example`, `marks` (frame captions), `cues` (frame windows with a colour), `checks` (the names that count), `streak` (in a row to pass), `success` (words, optional) |
 | `mistakes` | inputs that must fail, and the check they fail on (for the proof) |
 | `coach` | `rows` of the input timeline (`label`, `button`, `window`, `perfect`) and a `note` |
 
@@ -64,6 +64,13 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
   attempt's first; stick x positive is forward.
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
   from another drill sleeps: out of play, out of the picture).
+- **Lessons**: `{"title", "text", "show"}`; `show` is `{"example": {"inputs", "marks",
+  "cues"}}` (played frame by frame from the game's own pictures, each frame captioned) or
+  `{"characters": NUMBER}` (every character's NUMBER in a table, the player's marked;
+  `"jump_squat"`).
+- **Cues**: `{"frames": [lo, hi], "words", "kind": "go" | "late" | "info"}`: a band of
+  colour and words over the example's picture on those frames ("Let go now: short hop" in
+  green, "Still held: full hop" in red); `{f}` in the words is the frame shown.
 - **Cameras**: `"normal"` (the match camera), `"stage"` (the whole stage, still),
   `{"follow": "player", "distance": D, "height": H}`: the game's own free camera (the pause
   camera's) on the player, its eye D in front and H above; Training Mode's "Zoom" is 140
@@ -74,16 +81,26 @@ Numbers can be expressions of the character's numbers: `"J-1"` (J: its jump squa
 
 They are different things.
 
-**The tutorial shows how to do it.** It plays on a drill's first open, before any try, and
-on D-pad up:
+**The tutorial shows how to do it**, and teaches the concept, visually (the owner: "similar
+to coach where it shows you a frame by frame playback in the tutorial itself ... more visual
+rather than textual"; "more educational ... describing the concept of jump squat, how it
+varies with every character and how that affects short hop timing ... a visual cue of when
+they need to release the jump button"). On a drill's first open, and on D-pad up:
 
-1. The drill's card: the goal, why, what it is, what to expect, and its parts, the one
-   being played marked (up and down choose another).
-2. The example (A on the card): played from the drill's start with the input display, at
-   the game's speed to its first frame, then its frames at half speed, stopping on each
-   captioned frame ("frame 1: X pressed: the jump squat begins"); the D-pad steps a frame
-   either way, A plays or pauses, B goes back to the card.
-3. A part passed `streak` times in a row opens the next, with its own page and example.
+1. Its lessons, one card each: a few sentences beside what the lesson shows: an example
+   recorded from the game's own pictures (as the coach records its target), played in the
+   card with the input display, the caption of the frame shown and its cue over the
+   picture, the D-pad stepping a frame (D-up plays or pauses, Y shows it full size); or a
+   table of every character's number, the player's marked. A goes on, B back, START to
+   the drill.
+2. The part now: its example played the same way with its own captions and cues, the
+   example's inputs frame by frame below, the parts as chips (L and R choose another).
+3. A part passed `streak` times in a row opens the next, with its own card.
+
+Short hop's lessons: what the jump squat is (the character's squat, frame by frame, "frame 2
+of 3"); every character's (a table from 3 frames to Bowser's 8, the player's marked; the
+window to let go is J - 1); when to let go (the squat frame by frame: green "let go now" on
+frames 1 to J - 1, red "still held: full hop" on frame J).
 
 **The coach shows what went wrong.** After misses in a row (Settings: 2 to 5, or off) its
 card shows the try against the example of the part being played, from the same start (the
@@ -113,7 +130,7 @@ played it.
 3. **Every time**: ten short hops in a row.
 
 No CPU; the camera follows Fox, a little further out than the normal camera's close zoom
-on a lone fighter.
+on a lone fighter (180). The tutorial's examples are filmed closer (90), to see the crouch.
 
 ## Next
 

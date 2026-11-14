@@ -24,9 +24,12 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
+import screens  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
 from pausekeys import Chooser  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+from melee_drills import format as fmt  # noqa: E402
 
 WAIT = 14
 KEYS = ("c", "x", "z", "h", "f", "t", "g")
@@ -72,6 +75,12 @@ class Player:
         self.ex_steps = 0
         self.leaving = None
         self.want_example = False
+        self.plays = []
+        self.card_steps = 0
+        self.k1 = None
+        self.stepped = None
+        self.full_done = False
+        self.l3 = set()
 
     # calls (frames) a test may take before it is called stuck: a loop that
     # waits for a screen or a key that never comes fails, saying where
@@ -135,16 +144,53 @@ class Player:
             return
         if frame == -6:                         # the tutorial's card
             v = c.tutorial_now
-            # (the same card again, after its example, is not a new one)
+            play = c.tutorial_play
+            # (the same card again, after its full-size example, is not a
+            # new one)
             if not self.cards or (self.cards[-1]["title"], self.cards[-1]
                                   ["sub"]) != (v["title"], v["sub"]):
                 self.cards.append(v)
+                seq = play.panels[0]["seq"] if play.panels else []
+                self.plays.append(dict(
+                    n=play.n,
+                    caps={e.get("label"): e.get("caption") for e in seq},
+                    cues={e.get("label"): e.get("cue") for e in seq}))
                 self.shot(game, "card%d" % len(self.cards))
-                # the drill's own card: watch the example first
-                self.want_example = len(self.cards) == 1
-            if self.want_example:
-                self.want_example = False
-                self.tap(game, "x")             # A: show me
+                self.card_steps = 0
+            sub = v["sub"]
+            if sub.startswith("LESSON 1 "):
+                # step its example: the first press pauses it a frame on
+                self.card_steps += 1
+                if self.card_steps == 2:
+                    self.k1 = play.k
+                if self.card_steps <= 3:
+                    self.tap(game, "h")
+                else:
+                    self.stepped = (self.k1, play.k, play.paused)
+                    self.shot(game, "lesson-stepped")
+                    self.tap(game, "x")         # A: next
+                return
+            if sub.startswith("LESSON 3 "):
+                # frame by frame (round again if it played past them) onto
+                # frame 4, a picture of frames 1 to 3
+                seq = play.panels[0]["seq"] if play.panels else []
+                at = seq[play.k]["label"] if 0 <= play.k < len(seq) else ""
+                if play.paused and at in ("F1", "F2", "F3"):
+                    self.shot(game, "lesson3-" + at)
+                    self.l3.add(at)
+                self.card_steps += 1
+                if (len(self.l3) < 3 or at != "F4") and \
+                        self.card_steps < 100:
+                    self.tap(game, "h")
+                else:
+                    self.tap(game, "x")         # A: on to part 1
+                return
+            if sub.startswith("LESSON"):
+                self.tap(game, "x")             # A: next
+                return
+            if not self.full_done:
+                self.full_done = True
+                self.tap(game, "c")             # Y: the example, full size
             else:
                 self.tap(game, "z")             # B: start
             return
@@ -251,18 +297,49 @@ def main():
         # then three taps
         p = Player(c, [1, 6, 6, 1, 1, 1], args.shots)
         told = play(p)
-        card = p.cards[0] if p.cards else {}
-        check("first open: the tutorial's card, with the drill's goal, why, "
-              "what it is and its three parts",
-              card.get("title") == "Short hop" and
-              [b[0] for b in card.get("blocks", [])] ==
-              ["Goal", "Why", "What it is", "What to expect"] and
-              [x[0] for x in card.get("parts") or []] ==
-              ["The jump squat", "Tap, do not hold", "Every time"],
-              str(card.get("blocks", ""))[:120])
+        subs = [x.get("sub", "") for x in p.cards]
+        check("first open: the tutorial's three lessons, then part 1's card",
+              subs[:4] == ["LESSON 1 OF 3", "LESSON 2 OF 3", "LESSON 3 OF 3",
+                           "PART 1 OF 3\nTHE JUMP SQUAT"] and
+              [x["title"] for x in p.cards[:3]] ==
+              ["The jump squat", "Every character's is different",
+               "When to let go"], "; ".join(subs[:4]))
+        one = p.plays[0] if p.plays else {}
+        check("lesson 1 plays the jump squat, the game's own pictures, each "
+              "frame captioned and its frame of the squat counted",
+              p.cards[0].get("pic") is not None and one.get("n", 0) > 20 and
+              one["caps"].get("F1", "").startswith("Frame 1: jump pressed")
+              and one["cues"].get("F2") == ("Jump squat: frame 2 of 3",
+                                            "info") and
+              one["cues"].get("F4") == ("In the air", "info"),
+              "%d pictures; F2 %r" % (one.get("n", 0),
+                                      one.get("cues", {}).get("F2")))
+        st = p.stepped or (None, None, False)
+        check("the D-pad steps it a frame at a time, paused",
+              st[2] and st[0] is not None and st[1] == (st[0] + 2) %
+              max(1, one.get("n", 1)), str(st))
+        table = p.cards[1].get("table", "") if len(p.cards) > 1 else ""
+        everyone = fmt.every_character("jump_squat")
+        check("lesson 2: every character's jump squat, Fox's marked",
+              all(screens.esc(name) in table for _, _, name in everyone) and
+              table.count('class="trow') == len(set(v for v, _, _ in
+                                                    everyone)) and
+              '<span class="tme">Fox</span>' in table,
+              "%d characters, %d lengths" % (len(everyone),
+                                             table.count('class="trow')))
+        three = p.plays[2] if len(p.plays) > 2 else {"cues": {}}
+        cu = three["cues"]
+        check("lesson 3: when to let go, frame by frame: green on frames 1 "
+              "and 2, red on 3, then the air",
+              cu.get("F1", (None, None))[1] == "go" and
+              cu.get("F2", (None, None))[1] == "go" and
+              cu.get("F3") == ("Still held: full hop", "late") and
+              cu.get("F4", (None, None))[1] == "info",
+              "; ".join("%s %s" % (k, cu.get(k)) for k in ("F1", "F2", "F3",
+                                                           "F4")))
         caps = {e["frame"]: e["caption"] for e in p.examples
                 if e.get("frame") is not None}
-        check("its example: played, stopping on the captioned frames, "
+        check("Y shows it full size: stopping on the captioned frames, "
               "stepped a frame at a time, to its end",
               caps.get(1, "").startswith("X pressed") and
               caps.get(3, "").startswith("The squat's last frame") and
@@ -272,12 +349,16 @@ def main():
                         if k in (1, 2, 3, 4)))
         words = [r["words"] for r in told]
         parts = [r.get("part") for r in told]
-        check("a hop passes the first part, and the second's page opens",
+        check("a hop passes the first part, and the second's card opens, "
+              "playing its example",
               told and told[0]["success"] and told[0].get("part_passed")
               and len(p.cards) >= 2 and
-              p.cards[1].get("title") == "Tap, do not hold",
-              "%s; then the card %r" % (words[:1], p.cards[1].get("title")
-                                        if len(p.cards) > 1 else None))
+              len(p.cards) >= 5 and
+              "TAP, DO NOT HOLD" in p.cards[4].get("sub", "") and
+              p.plays[4]["n"] > 20 and
+              p.plays[4]["cues"].get("F3", (None, None))[1] == "late",
+              "%s; then the card %r" % (words[:1], p.cards[4].get("sub")
+                                        if len(p.cards) > 4 else None))
         check("jumps held through the squat fail, saying so",
               len(told) >= 3 and not told[1]["success"] and
               not told[2]["success"] and
@@ -285,11 +366,14 @@ def main():
               "; ".join(words[1:3]))
         co = p.coaches[0] if p.coaches else {}
         check("after two misses the coach: what was wrong (the try against "
-              "the example) and how to fix it",
+              "the example, the game's pictures of both) and how to fix it",
               co.get("headline") == "Held through the squat" and
               "within 2 frames" in co.get("fix", "") and
+              co.get("you_pic") is not None and
               co.get("target_pic") is not None,
-              "%r / %r" % (co.get("headline"), co.get("fix", "")[:60]))
+              "%r / %r; try pictured %s" % (
+                  co.get("headline"), co.get("fix", "")[:60],
+                  co.get("you_pic") is not None))
         check("three taps pass the second part, and the third opens",
               len(told) == 6 and all(r["success"] for r in told[3:]) and
               told[5].get("part_passed") and

@@ -22,6 +22,16 @@ The words:
   stick x positive is forward (toward the opponent, if there is one); -1..1
 - opponents: "none" (no CPU in the drill: none is spawned, and one a
   match already has is asleep: out of play, out of the picture)
+- lessons (the tutorial's, before the parts: the concept taught): a
+  title, a text, and what is shown: {"example": {"inputs", "marks",
+  "cues"}} (played frame by frame, each frame captioned) or
+  {"characters": NUMBER} (every character's NUMBER, the player's marked:
+  "jump_squat")
+- cues (on a lesson's example or a part's): {"frames": [lo, hi], "words",
+  "kind": "go" | "late" | "info"}: a colour and words on the picture for
+  those frames ("let go now", "too late"); {f} in them is the frame shown
+- the tutorial's camera (tutorial.camera, optional): the one its examples
+  are filmed with (closer, to see the animation); the scenario's otherwise
 - cameras: "normal" (the match camera), "stage" (the whole stage, still),
   {"follow": "player", "distance": D, "height": H} (the game's free camera
   on the player: D in front, H above; Training Mode's "Zoom" is 140 and
@@ -58,6 +68,11 @@ MEASURES = ("jump_kind", "held")
 EXPECTS = ("equals", "at_most", "at_least", "within")
 INPUTS = ("press", "stick", "cstick", "trigger")
 OPPONENTS = ("none",)
+CUE_KINDS = ("go", "late", "info")
+# a character's numbers a lesson can list for every character: its name in
+# expressions, where it is in data/framedata/<id>.json
+CHARACTER_NUMBERS = {"jump_squat": ("J", ("attributes",
+                                          "jump_startup_time"))}
 CAMERAS = ("normal", "stage")
 
 TOP = {
@@ -136,7 +151,8 @@ def _problems(spec):
             out.append("%s: %s" % (where, what))
         return cond
 
-    test = {"J": 3, "char": "Fox", "measure": "x", "frames": "2 frames"}
+    test = {"J": 3, "char": "Fox", "measure": "x", "frames": "2 frames",
+            "f": 1}
     for m in spec.get("measures", {}) if isinstance(spec.get("measures"),
                                                      dict) else ():
         test[m] = 2
@@ -211,20 +227,21 @@ def _problems(spec):
     for k in ("goal", "why"):
         words(spec[k], k)
 
-    t = spec["tutorial"]
-    for k in ("what", "expect"):
-        words(t.get(k), "tutorial.%s" % k)
-    inputs(t.get("example"), "tutorial.example")
-    marks(t.get("marks", {}), "tutorial.marks")
+    def cues(lst, where):
+        if not need(isinstance(lst, list), where, "a list of cues"):
+            return
+        for i, cue in enumerate(lst):
+            w = "%s[%d]" % (where, i)
+            fr = cue.get("frames")
+            if need(isinstance(fr, list) and len(fr) == 2, w,
+                    "frames: [lo, hi]"):
+                for x in fr:
+                    num(x, w + ".frames")
+            words(cue.get("words"), w + ".words")
+            need(cue.get("kind", "info") in CUE_KINDS, w,
+                 "kind: one of %s" % ", ".join(CUE_KINDS))
 
-    for i, sc in enumerate(spec["scenarios"]):
-        w = "scenarios[%d]" % i
-        need(isinstance(sc.get("name"), str), w, "no name")
-        need(sc.get("opponent") in OPPONENTS, w, "opponent: one of %s"
-             % ", ".join(OPPONENTS))
-        need(isinstance(sc.get("player", {}).get("x"), (int, float)), w,
-             "player: {\"x\": number}")
-        cam = sc.get("camera", "normal")
+    def camera(cam, w):
         if isinstance(cam, dict):
             need(cam.get("follow") == "player" and
                  isinstance(cam.get("distance"), (int, float)) and
@@ -233,6 +250,41 @@ def _problems(spec):
         else:
             need(cam in CAMERAS, w, "camera: one of %s, or follow"
                  % ", ".join(CAMERAS))
+
+    t = spec["tutorial"]
+    if "camera" in t:
+        camera(t["camera"], "tutorial")
+    for k in ("what", "expect"):
+        words(t.get(k), "tutorial.%s" % k)
+    inputs(t.get("example"), "tutorial.example")
+    marks(t.get("marks", {}), "tutorial.marks")
+    for i, le in enumerate(t.get("lessons", [])):
+        w = "tutorial.lessons[%d]" % i
+        words(le.get("title"), w + ".title")
+        words(le.get("text"), w + ".text")
+        show = le.get("show")
+        if show is None:
+            continue
+        if not need(isinstance(show, dict) and len(show) == 1, w,
+                    'show: {"example": ...} or {"characters": NUMBER}'):
+            continue
+        if "example" in show:
+            ex = show["example"]
+            inputs(ex.get("inputs"), w + ".show.example.inputs")
+            marks(ex.get("marks", {}), w + ".show.example.marks")
+            cues(ex.get("cues", []), w + ".show.example.cues")
+        else:
+            need(show.get("characters") in CHARACTER_NUMBERS, w,
+                 "characters: one of %s" % ", ".join(CHARACTER_NUMBERS))
+
+    for i, sc in enumerate(spec["scenarios"]):
+        w = "scenarios[%d]" % i
+        need(isinstance(sc.get("name"), str), w, "no name")
+        need(sc.get("opponent") in OPPONENTS, w, "opponent: one of %s"
+             % ", ".join(OPPONENTS))
+        need(isinstance(sc.get("player", {}).get("x"), (int, float)), w,
+             "player: {\"x\": number}")
+        camera(sc.get("camera", "normal"), w)
 
     a = spec["attempt"]
     event(a.get("start"), "attempt.start")
@@ -276,6 +328,7 @@ def _problems(spec):
             words(p["success"], w + ".success")
         inputs(p.get("example"), w + ".example")
         marks(p.get("marks", {}), w + ".marks")
+        cues(p.get("cues", []), w + ".cues")
         for c in p.get("checks", []):
             need(c in spec["checks"], w, "no check %r" % c)
         need(isinstance(p.get("streak"), int) and p["streak"] >= 1, w,
@@ -315,6 +368,24 @@ def load(drill_id=None, path=None):
         raise DrillError("%s does not hold to the drill format:\n  %s"
                          % (path, "\n  ".join(problems)))
     return spec
+
+
+def every_character(number):
+    """[(value, id, name)] of a character number (CHARACTER_NUMBERS) for
+    every character in data/framedata, by value."""
+    _, path = CHARACTER_NUMBERS[number]
+    out = []
+    d = os.path.join(ROOT, "data", "framedata")
+    for f in sorted(os.listdir(d)):
+        if not f.endswith(".json"):
+            continue
+        with open(os.path.join(d, f)) as fh:
+            data = json.load(fh)
+        v = data
+        for k in path:
+            v = v[k]
+        out.append((int(v), f[:-5], data.get("name", f[:-5])))
+    return sorted(out)
 
 
 def ids():

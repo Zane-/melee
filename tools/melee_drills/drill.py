@@ -68,12 +68,17 @@ class JsonDrill(Drill):
         self.camera(c.n, c.s.person)
         self.v = dict(rec=[])
 
+    filming = False     # the client recording the tutorial's examples
+
     def camera(self, n, person):
-        """The scenario's camera (the client puts the match camera back
-        when the drill is left). A game built before the camera command
-        keeps its own camera."""
+        """The scenario's camera, or while the tutorial's examples are
+        recorded (`filming`) the tutorial's (the client puts the match
+        camera back when the drill is left). A game built before the camera
+        command keeps its own camera."""
         from native import NativeError
         cam = self.spec["scenarios"][0].get("camera", "normal")
+        if self.filming:            # the tutorial's examples: its own
+            cam = self.spec["tutorial"].get("camera", cam)
         try:
             if isinstance(cam, dict):
                 n.camera("follow", person, cam["distance"],

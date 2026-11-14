@@ -7,6 +7,7 @@
   "why": "A short hop rises about half as high as a full jump and is back on the ground much sooner. Aerials out of it reach a standing opponent, and you land before they can punish.",
 
   "tutorial": {
+    "camera": {"follow": "player", "distance": 90, "height": 8},
     "what": "A short hop is a jump whose button you let go of early. Press X or Y and let go before {char} leaves the ground: the jump is about half as high.",
     "expect": "Each jump is judged the moment you leave the ground: short or full, and how many frames you held the button. Your presses show on the input display; after a miss the coach shows them frame by frame against the {J} frames of jump squat.",
     "example": [{"press": "jump", "frame": 1, "hold": 1}],
@@ -14,7 +15,48 @@
       "1": "X pressed: the jump squat begins. X let go on the next frame",
       "J": "The squat's last frame: X is already up, so the hop is short",
       "J+1": "In the air: a short hop"
-    }
+    },
+    "lessons": [
+      {
+        "title": "The jump squat",
+        "text": "Every jump starts on the ground. When you press jump, {char} crouches for {J} frames before leaving it: the jump squat. Short hop or full jump is decided inside those {J} frames.",
+        "show": {"example": {
+          "inputs": [{"press": "jump", "frame": 1, "hold": 1}],
+          "marks": {
+            "1": "Frame 1: jump pressed. The squat begins",
+            "2": "Still crouching: {char} has not left the ground",
+            "J": "Frame {J}: the squat's last frame",
+            "J+1": "Frame {J+1}: off the ground"
+          },
+          "cues": [
+            {"frames": [1, "J"], "words": "Jump squat: frame {f} of {J}", "kind": "info"},
+            {"frames": ["J+1", "J+40"], "words": "In the air", "kind": "info"}
+          ]
+        }}
+      },
+      {
+        "title": "Every character's is different",
+        "text": "Not every character crouches as long. The quickest squat is 3 frames, Bowser's is 8; {char}'s is {J}. The longer the squat, the more time to let go: {char} has {J-1} frames, every frame of the squat but its last. With another character, the timing changes.",
+        "show": {"characters": "jump_squat"}
+      },
+      {
+        "title": "When to let go",
+        "text": "Let go of jump by frame {J-1} and {char} short hops. Still held on frame {J}, the squat's last, the jump is a full one. Step through it: on green frames, let go; on the red one it is too late.",
+        "show": {"example": {
+          "inputs": [{"press": "jump", "frame": 1, "hold": 1}],
+          "marks": {
+            "1": "Frame 1: jump pressed. Let go now, or by frame {J-1}",
+            "J": "Frame {J}: too late to let go. Held here, the jump is full",
+            "J+1": "Frame {J+1}: in the air. Let go in time: a short hop"
+          },
+          "cues": [
+            {"frames": [1, "J-1"], "words": "Let go now: short hop", "kind": "go"},
+            {"frames": ["J", "J"], "words": "Still held: full hop", "kind": "late"},
+            {"frames": ["J+1", "J+40"], "words": "In the air", "kind": "info"}
+          ]
+        }}
+      }
+    ]
   },
 
   "scenarios": [
@@ -76,6 +118,11 @@
         "2": "X let go: still in the squat",
         "J+1": "In the air: a short hop, about half the height"
       },
+      "cues": [
+        {"frames": [1, "J-1"], "words": "Let go now: short hop", "kind": "go"},
+        {"frames": ["J", "J"], "words": "Still held: full hop", "kind": "late"},
+        {"frames": ["J+1", "J+40"], "words": "In the air", "kind": "info"}
+      ],
       "checks": ["with a button", "released in the squat", "short hop"],
       "streak": 3
     },
