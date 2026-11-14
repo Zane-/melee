@@ -474,22 +474,29 @@ img { display: inline-block; }
 .cpic { position: relative; width: 412dp; height: 236dp; background-color: #12161C; overflow: hidden; clip: always; }
 .cpic.tall { height: 340dp; }
 /* the input display over a panel (screens.pad_display) */
-.pv { position: absolute; right: 6dp; bottom: 10dp; padding: 5dp 7dp; background-color: #12161CD9; }
-.pvrow { display: flex; flex-direction: row; align-items: center; justify-content: center; }
-.pvrow + .pvrow { margin-top: 4dp; }
-.pvk { opacity: 0.22; margin: 0dp 2dp; }
+/* the input display: a GameCube controller (screens.pad_display); its parts
+   placed in shares of its box, so the box's size is the display's */
+.pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 78dp; }
+.cpic.tpic .pv { width: 138dp; height: 92dp; }
+.pv img, .pvw, .pvx { position: absolute; }
+.pvbody { left: 0dp; top: 0dp; width: 100%; height: 100%; opacity: 0.92; }
+.pvk { opacity: 0.35; }
 .pvk.on { opacity: 1; }
-.pv .gcimg { margin: 0dp; }
-.pv .gcimg.a { height: 22dp; }
-.pv .gcimg.b, .pv .gcimg.x, .pv .gcimg.y { height: 17dp; }
-.pv .gcimg.l, .pv .gcimg.r { height: 14dp; }
-.pv .gcimg.z { height: 11dp; }
-.pvt { width: 26dp; height: 6dp; background-color: #4A5361; margin: 0dp 3dp; }
-.pvf { height: 6dp; width: 0dp; background-color: #F3F6FA; }
-.pvg { position: relative; width: 34dp; height: 34dp; border-radius: 17dp; border: 2dp #8A94A3; box-sizing: border-box; margin-right: 5dp; }
-.pvg.c { width: 26dp; height: 26dp; border-radius: 13dp; border-color: #F5BE1B; }
-.pvd { position: absolute; left: 10dp; top: 10dp; width: 10dp; height: 10dp; border-radius: 5dp; background-color: #F3F6FA; }
-.pvg.c .pvd { left: 7dp; top: 7dp; width: 8dp; height: 8dp; border-radius: 4dp; background-color: #F5BE1B; }
+.pvgate, .pvtr, .pvdb, .pvdir { left: 0dp; top: 0dp; width: 100%; height: 100%; }
+.pvgate { opacity: 0.6; }
+.pvcap { left: 21%; top: 21%; width: 58%; height: 58%; }
+.pvtr, .pvdb { opacity: 0.35; }
+.pvdir { opacity: 0; }
+.pvdir.on { opacity: 1; }
+.pvx { border-radius: 40dp; }
+.pvbody.pvx { background-color: #2E2A5E; border-radius: 30dp; }
+/* the game's own over a match, at the top right of its picture
+   (src/host/inputs.c fills it in) */
+.gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
+.gpads.mid { left: 160dp; }
+.gpad { display: none; position: relative; width: 150dp; height: 100dp; margin-left: 10dp; }
+.gpad.on { display: block; }
+.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 100dp; }
 .cpimg { position: absolute; }
 .cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
 .cfr.on { display: block; }

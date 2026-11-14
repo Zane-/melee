@@ -207,11 +207,21 @@ void host_window_describe(char* out, size_t size);
 void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
+/// "ui look ID": the element as JSON; NULL for the other ui commands.
+const char* host_ui_look(const char* line);
+/// The input display over a match, controller `slot` (0 or 1): shown, the
+/// pad's bits held, the sticks from -1 to 1, the triggers from 0 to 1.
+/// Whether the document shown has it.
+int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
+                float cx, float cy, float ltrig, float rtrig);
 /// Pictures of a fighter alone (studio.c): the reply after "@ ".
 const char* host_studio_command(const char* line);
-/// TM-CE's input display (inputs.c): at each frame boundary, and asked for.
+/// The input display (inputs.c): at each frame boundary, and asked for;
+/// in the window build, the interface's given the frame's pads as the
+/// window's frame ends.
 void host_inputs_frame(void);
 const char* host_inputs_command(const char* line);
+void host_inputs_ui(void);
 /// The game's past pictures, kept for the coach (frames.c): at each frame
 /// boundary in the window build, and asked for.
 void host_frames_capture(void);

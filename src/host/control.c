@@ -924,8 +924,11 @@ static void command(char* line)
     {
 #ifdef HOST_WINDOW
         if (cmd[0] == 'u') {
-            const char* why = host_ui_command(line);
-            if (why != NULL) {
+            const char* look = host_ui_look(line);
+            const char* why = look != NULL ? NULL : host_ui_command(line);
+            if (look != NULL) {
+                printf("@ %s\n", look);
+            } else if (why != NULL) {
                 printf("@ error %s\n", why);
             } else {
                 printf("@ ok\n");

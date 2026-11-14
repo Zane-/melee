@@ -1,13 +1,21 @@
 /** @file
- * TM-CE's input display, natively (the owner, 2026-11-13: "a gamecube
- * controller overlay that shows inputs ... TM-CE has this already so let's
- * reuse it"). Its art and its logic: TM-CE's lab.dat (the controller model,
- * put on the disc as files/TM/lab.dat by tools/tmce_disc.py, never in
- * this repository) and src/lab.c's Inputs_Init and Inputs_Think, rewritten
- * against the decomp. A controller per shown port, at the top right of the
- * game's picture, drawn by the match's HUD camera. Its sticks and triggers
- * move and its buttons turn white while held, from what the fighter read
- * this frame (its input record, after the input delay; a CPU's too).
+ * The input display (the owner, 2026-11-13: "a gamecube controller overlay
+ * that shows inputs ... TM-CE has this already so let's reuse it"; then,
+ * 2026-11-14: "use the official button icons so it looks more like an
+ * actual gamecube controller"). A controller per shown port, at the top
+ * right of the game's picture, its sticks and triggers moving and its
+ * buttons lit while held, from what the fighter read this frame (its
+ * input record, after the input delay; a CPU's too): src/lab.c's
+ * Inputs_Init and Inputs_Think, rewritten against the decomp.
+ *
+ * Drawn by the client's interface where its match screens have the
+ * display (screens.pad_display: SmashWiki's icons as a controller): the
+ * match's frame leaves each controller's pad in `pads`, and as the window's
+ * frame ends host_inputs_ui gives them to the interface (ui.cpp,
+ * host_ui_pad). Elsewhere (no client: tools/melee_native/play.py), TM-CE's
+ * own model from its lab.dat (put on the disc as files/TM/lab.dat by
+ * tools/tmce_disc.py, never in this repository), drawn by the match's HUD
+ * camera.
  *
  *   inputs MASK    the ports shown: bit 0 port 1, bit 1 port 2 (0: none)
  *
@@ -16,7 +24,8 @@
  * needs is in it (its user data), so a state loaded from before it was
  * made, or from another time it was there, leaves nothing dangling: each
  * frame it is looked for among the match's GObjs, and made again if it is
- * missing. Only the mask, the player's choice, is kept here.
+ * missing. Only the mask, the player's choice, and what the interface was
+ * last given are kept here.
  */
 #include <stdio.h>
 #include <string.h>
@@ -145,6 +154,26 @@ static bool shown(int port)
            GET_FIGHTER(fighter) != NULL;
 }
 
+/// What the interface's input display shows (host_inputs_ui), set by
+/// think() as the match's frame runs, cleared when the display goes: the
+/// controllers shown, in their ports' order.
+static struct {
+    int on;
+    u32 held;
+    float sx, sy, cx, cy, ltrig, rtrig;
+} pads[2];
+/// The interface draws the display (the client's match screens have it:
+/// screens.pad_display); TM-CE's model is then hidden.
+static int ui_draws;
+
+static void hide(HSD_JObj* jobj)
+{
+    /* TM-CE hides it far behind the camera: the hidden flag did not work
+       for it */
+    jobj->translate.z = -99999.0F;
+    HSD_JObjSetMtxDirtySub(jobj);
+}
+
 /// Inputs_Think: each controller follows its fighter's inputs. Those shown
 /// fill TM-CE's places from the right: one alone is at the corner.
 static void think(HSD_GObj* gobj)
@@ -153,31 +182,25 @@ static void think(HSD_GObj* gobj)
     int count = 0, k = 0;
 
     for (int port = 0; port < 4; port++) {
-        count += d->ctl[port].jobj != NULL && shown(port);
+        count += shown(port);
     }
     if (count > 2) {
         count = 2; /* TM-CE's two places */
     }
+    pads[0].on = pads[1].on = 0;
     for (int port = 0; port < 4; port++) {
         HSD_JObj* jobj = d->ctl[port].jobj;
         Fighter* fp;
         float ltrig, rtrig;
+        u32 held;
 
-        if (jobj == NULL) {
-            continue;
-        }
         if (!shown(port) || k >= 2) {
-            /* TM-CE hides it far behind the camera: the hidden flag did
-               not work for it */
-            jobj->translate.z = -99999.0F;
-            HSD_JObjSetMtxDirtySub(jobj);
+            if (jobj != NULL) {
+                hide(jobj);
+            }
             continue;
         }
         fp = GET_FIGHTER(Player_GetEntity(port));
-        jobj->translate.x = places[2 - count + k].x;
-        jobj->translate.y = places[2 - count + k].y;
-        jobj->translate.z = 0.0F;
-        k++;
         if (Player_GetPlayerSlotType(port) == Gm_PKind_Human) {
             /* the pad the fighters read (fighter.c's triggers) */
             ltrig = HSD_PadGameStatus[port].nml_analogL;
@@ -185,6 +208,27 @@ static void think(HSD_GObj* gobj)
         } else {
             ltrig = rtrig = fp->input.triggers[0];
         }
+        held = fp->input.held_buttons[0];
+        pads[k].on = 1;
+        pads[k].held = held;
+        pads[k].sx = fp->input.lstick[0].x;
+        pads[k].sy = fp->input.lstick[0].y;
+        pads[k].cx = fp->input.cstick[0].x;
+        pads[k].cy = fp->input.cstick[0].y;
+        /* a click all the way in is all the way in */
+        pads[k].ltrig = (held & PAD_TRIGGER_L) ? 1.0F : ltrig;
+        pads[k].rtrig = (held & PAD_TRIGGER_R) ? 1.0F : rtrig;
+        if (jobj == NULL || ui_draws) {
+            if (jobj != NULL) {
+                hide(jobj);
+            }
+            k++;
+            continue;
+        }
+        jobj->translate.x = places[2 - count + k].x;
+        jobj->translate.y = places[2 - count + k].y;
+        jobj->translate.z = 0.0F;
+        k++;
         {
             HSD_JObj* j = child(jobj, JOINT_LSTICK);
             j->translate.x = fp->input.lstick[0].x * 2.3F;
@@ -217,6 +261,7 @@ static void think(HSD_GObj* gobj)
 static void gone(void* data)
 {
     HSD_Free(data);
+    pads[0].on = pads[1].on = 0;
 }
 
 /// The display among the match's GObjs, the first if a load brought back
@@ -251,15 +296,14 @@ static void make(void)
     int made = 0;
 
     if (DVDConvertPathToEntrynum("TM/lab.dat") < 0) {
-        host_log("inputs: no TM/lab.dat on the disc (tools/tmce_disc.py)");
-        mask = 0;
-        return; /* the client has not copied TM-CE's art */
-    }
-    model = controller_joint();
-    if (model == NULL) {
-        host_log("inputs: lab.dat has no controller");
-        mask = 0;
-        return;
+        /* the client has not copied TM-CE's art: the interface's display
+           alone (host_inputs_ui) */
+        model = NULL;
+    } else {
+        model = controller_joint();
+        if (model == NULL) {
+            host_log("inputs: lab.dat has no controller");
+        }
     }
     root_desc.flags = JOBJ_ROOT_XLU | JOBJ_ROOT_TEXEDGE;
     root_desc.scale.x = root_desc.scale.y = root_desc.scale.z = 1.0F;
@@ -269,7 +313,7 @@ static void make(void)
     for (int port = 0; port < 4; port++) {
         HSD_JObj* jobj;
         HSD_JObj* t;
-        if (Player_GetEntity(port) == NULL) {
+        if (model == NULL || Player_GetEntity(port) == NULL) {
             continue;
         }
         jobj = HSD_JObjLoadJoint(model);
@@ -312,6 +356,26 @@ const char* host_inputs_command(const char* line)
         return "error inputs MASK: 0..15, bit 0 port 1";
     }
     mask = m;
+    if (mask == 0) {
+        pads[0].on = pads[1].on = 0;
+    }
     host_inputs_frame();
     return "ok";
 }
+
+#ifdef HOST_WINDOW
+/// As the window's frame ends, before the interface is drawn: the
+/// interface's display given what the match's frame left in `pads`
+/// (ui.cpp, host_ui_pad). Whether the document shown has the display
+/// decides, for the next frame, whether TM-CE's model is drawn instead.
+void host_inputs_ui(void)
+{
+    int has = 0;
+    for (int k = 0; k < 2; k++) {
+        has |= host_ui_pad(k, mask != 0 && pads[k].on, pads[k].held,
+                           pads[k].sx, pads[k].sy, pads[k].cx, pads[k].cy,
+                           pads[k].ltrig, pads[k].rtrig);
+    }
+    ui_draws = has;
+}
+#endif

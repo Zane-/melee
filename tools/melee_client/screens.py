@@ -42,12 +42,16 @@ def page(title, body, paper=True):
 
 
 def over_game():
-    """What goes over the game's picture in a match or a drill: the pause
-    menu, the verdict banner. Each has an id so the column can be hidden
-    and these moved to the middle (Client.toggle_column). (No loading
-    cover: a match loads unseen, the window keeping its last picture:
-    Client.load_quietly.)"""
+    """What goes over the game's picture in a match or a drill: the input
+    display (two controllers, filled in by the game: src/host/inputs.c),
+    the pause menu, the verdict banner. Each has an id so the column can be
+    hidden and these moved to the middle (Client.toggle_column). (No
+    loading cover: a match loads unseen, the window keeping its last
+    picture: Client.load_quietly.)"""
     return (
+        '<div id="gpads" class="gpads"><div id="gp0" class="gpad">%s</div>'
+        '<div id="gp1" class="gpad">%s</div></div>' % (
+            pad_display("g0"), pad_display("g1")) +
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
@@ -1219,23 +1223,124 @@ def _path(dots, floor, kind):
     return "".join(out)
 
 
+# The input display: a GameCube controller made of SmashWiki's icons
+# (buttons.PAD; the owner, 2026-11-14: "use the official button icons so it
+# looks more like an actual gamecube controller"). Each part is placed on a
+# PAD_W by PAD_H controller: (id, picture, middle x, middle y, width, height),
+# one of the two None to keep the picture's shape. In the markup every place
+# is a share of the controller's box, so the box's size (style.rcss, .pv) is
+# the display's size wherever it is.
+PAD_W, PAD_H = 156.0, 104.0
+PAD_PARTS = (
+    ("L", "L", 30, 8, 30, None), ("R", "R", 126, 8, 30, None),
+    ("Z", "Z", 104, 12, 22, None),
+    ("S", "STICK", 41, 42, 36, 36), ("D", "PAD-D", 58, 70, 18, 18),
+    ("ST", "PAD-START", 78, 44, 9, 9),
+    ("A", "A", 116, 43, None, 23), ("B", "B", 98, 55, None, 14),
+    ("X", "X", 133, 38, None, 22), ("Y", "Y", 112, 25, 21, None),
+    ("C", "C", 100, 74, 26, 26))
+# a stick's cap: its size, where it rests and how far it goes at full tilt,
+# in hundredths of its gate; how far a trigger moves when all the way in,
+# in hundredths of its height; how bright a part not held is. (The game's
+# own display, src/host/inputs.c, does the same sums.)
+PAD_CAP, PAD_TRAVEL, PAD_PRESS, PAD_DIM = 58.0, 20.0, 16.0, 0.35
+PAD_REST = (100.0 - PAD_CAP) / 2
+# the buttons lit while held, as the pad's bits
+PAD_BITS = (("A", 0x100), ("B", 0x200), ("X", 0x400), ("Y", 0x800),
+            ("Z", 0x10), ("ST", 0x1000), ("DU", 0x8), ("DD", 0x4),
+            ("DL", 0x1), ("DR", 0x2))
+# a part drawn plainly when its picture is missing (no rsvg-convert, never
+# online): its colour
+PAD_PLAIN = {"A": "#2BC8A0", "B": "#E5484D", "X": "#B8BEC8", "Y": "#B8BEC8",
+             "Z": "#6A5ACD", "L": "#B8BEC8", "R": "#B8BEC8",
+             "ST": "#B8BEC8", "D": "#B8BEC8", "C": "#F5D90A"}
+
+
+def _shape(name):
+    """A picture's width over its height (1 without it)."""
+    import struct
+    try:
+        head = Path(BUTTONS[name]).read_bytes()[16:24]
+        w, h = struct.unpack(">II", head)
+        return w / float(h)
+    except (KeyError, OSError, struct.error, ZeroDivisionError):
+        return 1.0
+
+
+def _box(cx, cy, w, h):
+    return "left: %.2f%%; top: %.2f%%; width: %.2f%%; height: %.2f%%;" % (
+        (cx - w / 2) / PAD_W * 100, (cy - h / 2) / PAD_H * 100,
+        w / PAD_W * 100, h / PAD_H * 100)
+
+
+def _pad_img(name, ident, cls, style=""):
+    """A part's picture, or a plain stand-in for it."""
+    at = ' id="%s"' % ident if ident else ""
+    sty = ' style="%s"' % style if style else ""
+    if name in BUTTONS:
+        return '<img%s class="%s" src="%s"%s/>' % (
+            at, cls, picture(BUTTONS[name]), sty)
+    plain = PAD_PLAIN.get(name.replace("PAD-", "")[:2].rstrip("-"),
+                          "#B8BEC8")
+    return '<div%s class="%s pvx" style="%sbackground-color: %s;"/>' % (
+        at, cls, style, plain)
+
+
 def pad_display(k):
-    """An input display over a panel of the coach's pictures (the owner,
-    2026-11-14: "ensure that coach overlay has input displays on both what
-    you did wrong and what it should look like"): the triggers with Z
-    between them, the control stick and the C-stick in their gates, B A X Y;
-    a button lit while held. Client.Play moves it frame by frame (`c` +
-    `k` + "i" + the part's name)."""
-    def b(name):
-        return '<div id="c%si%s" class="pvk">%s</div>' % (k, name, key(name))
-    return (
-        '<div id="c%si" class="pv"><div class="pvrow">%s<div class="pvt">'
-        '<div id="c%siLf" class="pvf"/></div>%s<div class="pvt"><div id='
-        '"c%siRf" class="pvf"/></div>%s</div><div class="pvrow"><div class='
-        '"pvg"><div id="c%siS" class="pvd"/></div><div class="pvg c"><div '
-        'id="c%siC" class="pvd"/></div>%s%s%s%s</div></div>' % (
-            k, b("L"), k, b("Z"), k, b("R"), k, k, b("B"), b("A"), b("X"),
-            b("Y")))
+    """An input display (the coach's pictures, the tutorial's example, the
+    game's own over a match): a GameCube controller whose buttons light
+    while held, whose sticks' caps move in their gates and whose triggers
+    go in. Its parts' ids are `c` + `k` + "i" + the part (A B X Y Z, ST
+    for START, DU DD DL DR the D-pad, S and C the sticks' caps, L and R
+    the triggers); pad_lines says what they show."""
+    def at(part):
+        return "c%si%s" % (k, part)
+    out = ['<div id="c%si" class="pv">' % k]
+    out.append(_pad_img("PAD-BODY", None, "pvbody")
+               if "PAD-BODY" in BUTTONS else '<div class="pvbody pvx"/>')
+    for part, name, cx, cy, w, h in PAD_PARTS:
+        if w is None:
+            w = h * _shape(name)
+        elif h is None:
+            h = w / _shape(name)
+        box = _box(cx, cy, w, h)
+        if part in ("S", "C"):          # the gate, the cap in it
+            out.append('<div class="pvw" style="%s">%s%s</div>' % (
+                box, _pad_img(name + "-GATE", None, "pvgate"),
+                _pad_img(name + "-CAP", at(part), "pvcap")))
+        elif part in ("L", "R"):        # moves in as it is pressed
+            out.append('<div class="pvw" style="%s">%s</div>' % (
+                box, _pad_img(name, at(part), "pvtr")))
+        elif part == "D":               # the D-pad, an arm lit over it
+            arms = "".join(_pad_img("PAD-D-" + d, at("D" + d[0]), "pvdir")
+                           for d in ("UP", "DOWN", "LEFT", "RIGHT"))
+            out.append('<div class="pvw" style="%s">%s%s</div>' % (
+                box, _pad_img(name, None, "pvdb"), arms))
+        else:
+            out.append(_pad_img(name, at(part), "pvk", box))
+    out.append("</div>")
+    return "".join(out)
+
+
+def pad_lines(k, held, stick, cstick, ltrig, rtrig):
+    """What the input display `k` shows for a pad, as the interface's
+    commands: [(part, line)]. `held`: the pad's bits; `stick`, `cstick`:
+    (x, y) from -1 to 1; `ltrig`, `rtrig`: how far in, 0 to 1 (a click all
+    the way counts as 1)."""
+    out = []
+    for part, bit in PAD_BITS:
+        out.append((part, "class c%si%s on %d" % (k, part,
+                                                  1 if held & bit else 0)))
+    for part, (x, y) in (("S", stick), ("C", cstick)):
+        x = max(-1.0, min(1.0, x))
+        y = max(-1.0, min(1.0, y))
+        out.append((part, "attr c%si%s style left: %.1f%%; top: %.1f%%;" % (
+            k, part, PAD_REST + x * PAD_TRAVEL, PAD_REST - y * PAD_TRAVEL)))
+    for part, t in (("L", ltrig), ("R", rtrig)):
+        t = max(0.0, min(1.0, t))
+        out.append((part, "attr c%si%s style top: %.1f%%; opacity: %.2f;" % (
+            k, part, t * PAD_PRESS, PAD_DIM + (1 - PAD_DIM) * t)))
+    return out
 
 
 def _picture(pic, kind, width=412.0):

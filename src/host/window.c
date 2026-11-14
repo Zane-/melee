@@ -1128,6 +1128,7 @@ void host_window_frame(void)
             present_wait();
         }
         host_frames_capture(); /* the picture, for the coach (frames.c) */
+        host_inputs_ui();      /* the input display, over it (inputs.c) */
         aurora_end_frame();
         in_frame = 0;
     }

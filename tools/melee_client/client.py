@@ -118,9 +118,6 @@ class Play:
     far along, and the grid's column now."""
 
     SLOW, END, TAG = 2, 20, 8
-    # the pad's bits, as the input display names its buttons
-    BUTTONS = (("A", 0x100), ("B", 0x200), ("X", 0x400), ("Y", 0x800),
-               ("Z", 0x10), ("L", 0x40), ("R", 0x20))
 
     def __init__(self, w, panels):
         self.w = w
@@ -136,26 +133,20 @@ class Play:
             self.w.ui(line)
 
     def _pad(self, pid, pad):
-        """The input display: the buttons held, where the sticks are, how
-        far the triggers are in."""
+        """The input display (screens.pad_display): the buttons held, where
+        the sticks are, how far the triggers are in."""
         pad = pad or {}
         held = pad.get("buttons", 0)
-        for name, bit in self.BUTTONS:
-            self._ui(pid + "i" + name, "class c%si%s on %d" % (
-                pid, name, 1 if held & bit else 0))
-        for part, x, y, middle, reach in (
-                ("S", pad.get("lx", 0), pad.get("ly", 0), 10, 11),
-                ("C", pad.get("cx", 0), pad.get("cy", 0), 7, 8)):
-            x = max(-1.0, min(1.0, x / coach.STICK))
-            y = max(-1.0, min(1.0, y / coach.STICK))
-            self._ui(pid + "i" + part, "attr c%si%s style left: %ddp; top: "
-                     "%ddp;" % (pid, part, round(middle + x * reach),
-                                round(middle - y * reach)))
-        for part, analog, bit in (("Lf", pad.get("lt", 0), 0x40),
-                                  ("Rf", pad.get("rt", 0), 0x20)):
-            amount = 1.0 if held & bit else min(1.0, analog / 255.0)
-            self._ui(pid + "i" + part, "attr c%si%s style width: %ddp;" % (
-                pid, part, round(26 * amount)))
+        # as the game reads a trigger: all the way in at 140 of 255
+        # (gmmain.c's scale_analogLR), the click all the way
+        trig = [1.0 if held & bit else min(1.0, pad.get(t, 0) / 140.0)
+                for t, bit in (("lt", 0x40), ("rt", 0x20))]
+        for part, line in screens.pad_lines(
+                pid, held,
+                (pad.get("lx", 0) / coach.STICK, pad.get("ly", 0) / coach.STICK),
+                (pad.get("cx", 0) / coach.STICK, pad.get("cy", 0) / coach.STICK),
+                trig[0], trig[1]):
+            self._ui(pid + "i" + part, line)
 
     def show(self, k):
         """Frame `k` of each panel (its last, for one that is shorter)."""
@@ -647,7 +638,7 @@ class Client:
                 self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("bannerwrap", "pause", "rays", "coach"):
+        for ident in ("gpads", "bannerwrap", "pause", "rays", "coach"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
 

@@ -644,16 +644,34 @@ cleaner pause menu "with icons". Built from the canvas's approved boards (PauseI
 CoachCard, CoachReplay; memory `ui-mockups-canvas`).
 
 **Input display** (`src/host/inputs.c`, control `inputs MASK`, `Native.inputs`): TM-CE's
-`Inputs_Init`/`Inputs_Think` (lab.c) in C against the decomp, with TM-CE's own controller
-model from `lab.dat` (put on the disc as `files/TM/lab.dat` by `tools/tmce_disc.py`; not in
-the repository). A controller per shown port at the top right of the picture; sticks and
-triggers move, buttons turn white, from the fighter's input record (after the input delay;
-a CPU's too). Two departures: it draws on GX link 11, the HUD's, because no camera of the
-native match draws TM-CE's link 12; and the display keeps everything in its own GObj's user
-data and is looked for among the match's GObjs each frame, so a state loaded from before it
-existed (every reset of a drill) makes it again instead of leaving a dangling pointer. The
-setting is `settings["inputs"]` (off, you, opponent, both), in Settings > Display and the
-pause menu; the client sends the mask when a match or drill screen loads and 0 on leaving.
+`Inputs_Init`/`Inputs_Think` (lab.c) in C against the decomp. A controller per shown port at
+the top right of the picture; sticks and triggers move, buttons light, from the fighter's
+input record (after the input delay; a CPU's too). The display keeps everything in its own
+GObj's user data and is looked for among the match's GObjs each frame, so a state loaded
+from before it existed (every reset of a drill) makes it again instead of leaving a
+dangling pointer. The setting is `settings["inputs"]` (off, you, opponent, both), in
+Settings > Display and the pause menu; the client sends the mask when a match or drill
+screen loads and 0 on leaving.
+
+*What it looks like* (the owner, 2026-11-14: "use the official button icons so it looks
+more like an actual gamecube controller"): a GameCube controller made of SmashWiki's button
+icons (`screens.pad_display`), the same one in the match, on the coach's card and in the
+tutorial's example. The body is our own drawing (`buttons.BODY`); on it the icons sit where
+the controller has them: L and R on the shoulders, Z on R, the control stick top left with
+the D-pad below it, START in the middle, A with B, X and Y round it, the C-stick below. Each
+stick's icon is cut in two (`buttons._make_pad`), its gate and its cap, so the cap moves in
+the gate; a trigger moves in and brightens as far as it is pressed; a button not held is
+dim, held is lit. Every part is placed as a share of the controller's box, so one size in
+`style.rcss` (`.pv`) sizes it. Over a match the client's screens carry two of them
+(`screens.over_game`, ids `cg0i...`, `cg1i...`), and the game fills them in itself: the
+match's frame leaves each pad in `inputs.c`, and as the window's frame ends
+`host_inputs_ui` hands them to the interface (`ui.cpp`, `host_ui_pad`, which sets only what
+changed). On the card the client does the same with the recorded pads (`Play._pad`); the
+sums are `screens.pad_lines`, mirrored in `ui.cpp`. Where no client document has the
+display (`tools/melee_native/play.py`), TM-CE's own model from `lab.dat` is drawn instead
+(put on the disc as `files/TM/lab.dat` by `tools/tmce_disc.py`; not in the repository),
+on GX link 11, the HUD's, because no camera of the native match draws TM-CE's link 12.
+`ui look ID` reads an element back for tests: `tests/client/input_display.py`.
 
 **Pause sheet** (`screens.pause_tabs`/`pause_rows`/`pause_nav`, `Client.pause`): as the
 canvas, with our own line icons (`tools/melee_client/icons.py`, drawn on a 24 grid and
@@ -681,9 +699,8 @@ its history:
   first the timeline went at a quarter, each picture held four frames, with a longer
   stop: "freezes often and is slow to loop", the owner, 2026-11-14). Each panel shows the
   frame ("F4"), a tag where a press starts ("F1 · JUMP"), how far along it is, and an
-  **input display** of the pad on that frame (`screens.pad_display`: the triggers with
-  Z, the control stick and the C-stick in their gates, B A X Y; SmashWiki's button icons,
-  lit while held), the try's pad beside the target's ("ensure that coach overlay has
+  **input display** of the pad on that frame (`screens.pad_display`, the controller of
+  "Input display" above), the try's pad beside the target's ("ensure that coach overlay has
   input displays on both what you did wrong and what it should look like"); the grid's
   column for the frame is marked as it plays. **Frame by frame**: the D-pad (or the
   stick) left and right step both panels a frame back or on and pause there, up plays on

@@ -16,9 +16,15 @@
  *   ui text ID RML...       replace an element's content
  *   ui file ID PATH         the same, the content read from a file
  *   ui attr ID NAME VALUE   set an attribute
+ *   ui look ID              how an element is now, as JSON: its classes and
+ *                           its own left, top and opacity (for tests)
  *
  * Documents are written for a 1280 by 720 window in `dp` units; the scale
  * follows the window's height.
+ *
+ * The game fills in one thing itself, each frame: the input display over a
+ * match (host_ui_pad, from inputs.c), whose markup the client puts in its
+ * match screens (screens.pad_display, ids "cg0i..." and "cg1i...").
  */
 #ifdef HOST_WINDOW
 
@@ -38,9 +44,14 @@ void aurora_set_game_centered(bool value);
 void host_ui_init(int width, int height);
 void host_ui_frame(void);
 const char* host_ui_command(const char* line);
+const char* host_ui_look(const char* line);
+int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
+                float cx, float cy, float ltrig, float rtrig);
 }
 
 static Rml::ElementDocument* document;
+/* counts the documents loaded: a new one may be where an old one was */
+static unsigned document_count;
 
 /// `width` by `height`: the shape the window was made with. The interface
 /// and the game's picture keep to a frame of that shape, centred, when the
@@ -93,6 +104,163 @@ static std::string rest(const char* line)
     return out;
 }
 
+/* The input display's sums, as screens.pad_lines does them: a stick's cap
+   rests at PAD_REST of its gate and goes PAD_TRAVEL at full tilt; a
+   trigger goes PAD_PRESS of its height in, from PAD_DIM bright to full. */
+#define PAD_REST 21.0f
+#define PAD_TRAVEL 20.0f
+#define PAD_PRESS 16.0f
+#define PAD_DIM 0.35f
+
+/// What a controller of the input display was last given, so that only
+/// what changes is set (a part per field: the buttons, the sticks'
+/// places, the triggers' in hundredths).
+struct PadShown {
+    unsigned document; /* document_count when it was set */
+    Rml::Element* box; /* "gp0" or "gp1"; NULL: the document has none */
+    int shown;
+    unsigned held;
+    int place[6];
+};
+static PadShown pads_shown[2];
+
+static void pad_set(int slot, const char* part, const char* name,
+                    const std::string& value)
+{
+    char id[32];
+    snprintf(id, sizeof id, "cg%di%s", slot, part);
+    Rml::Element* e = document->GetElementById(id);
+    if (e != nullptr) {
+        e->SetProperty(name, value);
+    }
+}
+
+static std::string percent(float v)
+{
+    char text[32];
+    snprintf(text, sizeof text, "%.1f%%", v);
+    return text;
+}
+
+static float clamp(float v, float lo, float hi)
+{
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
+/// Controller `slot` (0 or 1) of the input display over a match: shown or
+/// not, the buttons held (the pad's bits), the sticks from -1 to 1, the
+/// triggers from 0 to 1. Whether the document shown has it (nothing is
+/// done if not).
+int host_ui_pad(int slot, int shown, unsigned held, float sx, float sy,
+                float cx, float cy, float ltrig, float rtrig)
+{
+    static const struct {
+        const char* part;
+        unsigned bit;
+    } bits[] = {
+        { "A", 0x100 }, { "B", 0x200 },  { "X", 0x400 },
+        { "Y", 0x800 }, { "Z", 0x10 },   { "ST", 0x1000 },
+        { "DU", 0x8 },  { "DD", 0x4 },   { "DL", 0x1 },
+        { "DR", 0x2 },
+    };
+    PadShown* was;
+    char id[32];
+    int place[6];
+
+    if (document == nullptr || slot < 0 || slot > 1) {
+        return 0;
+    }
+    was = &pads_shown[slot];
+    if (was->document != document_count) {
+        /* another document: all of it is set again */
+        memset(was, 0, sizeof *was);
+        was->document = document_count;
+        snprintf(id, sizeof id, "gp%d", slot);
+        was->box = document->GetElementById(id);
+        was->shown = -1;
+        was->held = ~0u;
+        for (int& p : was->place) {
+            p = -100000;
+        }
+    }
+    if (was->box == nullptr) {
+        return 0; /* no input display in this document */
+    }
+    if (shown != was->shown) {
+        was->box->SetClass("on", shown != 0);
+        was->shown = shown;
+    }
+    if (!shown) {
+        return 1;
+    }
+    if (held != was->held) {
+        for (const auto& b : bits) {
+            if (((held ^ was->held) & b.bit) != 0) {
+                snprintf(id, sizeof id, "cg%di%s", slot, b.part);
+                Rml::Element* e = document->GetElementById(id);
+                if (e != nullptr) {
+                    e->SetClass("on", (held & b.bit) != 0);
+                }
+            }
+        }
+        was->held = held;
+    }
+    place[0] = (int) (10.0f * (PAD_REST + clamp(sx, -1, 1) * PAD_TRAVEL));
+    place[1] = (int) (10.0f * (PAD_REST - clamp(sy, -1, 1) * PAD_TRAVEL));
+    place[2] = (int) (10.0f * (PAD_REST + clamp(cx, -1, 1) * PAD_TRAVEL));
+    place[3] = (int) (10.0f * (PAD_REST - clamp(cy, -1, 1) * PAD_TRAVEL));
+    place[4] = (int) (100.0f * clamp(ltrig, 0, 1));
+    place[5] = (int) (100.0f * clamp(rtrig, 0, 1));
+    for (int i = 0; i < 2; i++) {
+        const char* part = i == 0 ? "S" : "C";
+        if (place[2 * i] != was->place[2 * i] ||
+            place[2 * i + 1] != was->place[2 * i + 1])
+        {
+            pad_set(slot, part, "left", percent(place[2 * i] / 10.0f));
+            pad_set(slot, part, "top", percent(place[2 * i + 1] / 10.0f));
+        }
+    }
+    for (int i = 0; i < 2; i++) {
+        const char* part = i == 0 ? "L" : "R";
+        int t = place[4 + i];
+        if (t != was->place[4 + i]) {
+            char op[16];
+            pad_set(slot, part, "top", percent(t / 100.0f * PAD_PRESS));
+            snprintf(op, sizeof op, "%.2f",
+                     PAD_DIM + (1.0f - PAD_DIM) * t / 100.0f);
+            pad_set(slot, part, "opacity", op);
+        }
+    }
+    memcpy(was->place, place, sizeof place);
+    return 1;
+}
+
+/// "look ID": the reply (JSON, or "error ..."); NULL for any other command.
+const char* host_ui_look(const char* line)
+{
+    static std::string out;
+    std::string verb = word(line);
+
+    if (verb != "look") {
+        return nullptr;
+    }
+    if (document == nullptr) {
+        return "error no document is loaded";
+    }
+    Rml::Element* e = document->GetElementById(word(line));
+    if (e == nullptr) {
+        return "error no element has that id";
+    }
+    out = "{\"class\": \"" + e->GetClassNames() + "\"";
+    for (const char* name : { "left", "top", "opacity" }) {
+        const Rml::Property* p = e->GetLocalProperty(name);
+        out += std::string(", \"") + name + "\": \"" +
+               (p != nullptr ? p->ToString() : std::string()) + "\"";
+    }
+    out += "}";
+    return out.c_str();
+}
+
 /// NULL, or what went wrong.
 const char* host_ui_command(const char* line)
 {
@@ -124,6 +292,7 @@ const char* host_ui_command(const char* line)
             document->Close();
         }
         document = next;
+        document_count++;
         document->Show();
         return nullptr;
     }
