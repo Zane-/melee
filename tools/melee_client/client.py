@@ -1488,24 +1488,7 @@ class Client:
             try:
                 result = session.run(each_frame=self.drill_frame, demo=demo)
             except Abandon as a:
-                session.flowing = False
-                demo = False
-                if a.what == "scenario":
-                    session.change_scenario(a.step)
-                    self.banner_say("Scenario", session.scenario_names()[
-                        session.scenario])
-                elif a.what == "guide":
-                    demo = self.course_guide(drill, session)
-                elif a.what == "demo":
-                    demo = True
-                elif a.what == "stage":
-                    i = drill.stages.index(drill.stage)
-                    session.set_stage(drill.stages[(i + a.step) %
-                                                   len(drill.stages)])
-                    self.w.ui("text stage Stage: " + screens.esc(
-                        drill.stage.replace("-", " ").title()))
-                    self.banner_say("Stage", drill.stage.replace(
-                        "-", " ").title())
+                demo = self.course_abandon(a, drill, session)
                 continue
             finally:
                 self.w.scripted(self.port, False)
@@ -1520,10 +1503,39 @@ class Client:
                 results.append(bool(result["success"]))
                 self.show_result(result, results)
             # a moment to read the verdict (the C engine's reset delay),
-            # except where the drill carries on from where you stand
-            for _ in range(0 if drill.flow else 45):
-                self.drill_frame(self.w, -1)
-                self.w.step()
+            # except where the drill carries on from where you stand. The
+            # D-pad and the pause menu work here as in an attempt: what they
+            # ask for (the guide, a restart, a changed option) once ended
+            # the client, coming from outside the attempt (the owner,
+            # 2026-11-13: D-pad up in the shield drop drill, "Hits" in
+            # shield pressure)
+            try:
+                for _ in range(0 if drill.flow else 45):
+                    self.drill_frame(self.w, -1)
+                    self.w.step()
+            except Abandon as a:
+                demo = self.course_abandon(a, drill, session)
+
+    def course_abandon(self, a, drill, session):
+        """What an attempt was left for (the D-pad, the pause menu): do it.
+        Returns whether a demonstration comes next."""
+        session.flowing = False
+        if a.what == "scenario":
+            session.change_scenario(a.step)
+            self.banner_say("Scenario", session.scenario_names()[
+                session.scenario])
+        elif a.what == "guide":
+            return self.course_guide(drill, session)
+        elif a.what == "demo":
+            return True
+        elif a.what == "stage":
+            i = drill.stages.index(drill.stage)
+            session.set_stage(drill.stages[(i + a.step) %
+                                           len(drill.stages)])
+            self.w.ui("text stage Stage: " + screens.esc(
+                drill.stage.replace("-", " ").title()))
+            self.banner_say("Stage", drill.stage.replace("-", " ").title())
+        return False
 
     def course_guide(self, drill, session):
         """The guide, in the column, until D-pad up or B (go on) or right
@@ -1609,9 +1621,12 @@ class Client:
             # Against an opponent the situation is put back, so the verdict
             # gets a moment first; a tech drill has nothing to put back and
             # the player sets the pace.
-            for _ in range(0 if sc.get("tech") else 75):
-                self.drill_frame(self.w, -1)
-                self.w.step()
+            try:
+                for _ in range(0 if sc.get("tech") else 75):
+                    self.drill_frame(self.w, -1)
+                    self.w.step()
+            except Abandon:
+                pass                # as in an attempt: the next one starts
 
     # ---- free play --------------------------------------------------------------------
 
@@ -2025,6 +2040,26 @@ class Client:
             self.frame()
 
 
+CRASH_LOG = ROOT / "build" / "client-crash.log"
+
+
+def crash_log(game):
+    """The exception being handled and the game's last lines, appended to
+    build/client-crash.log."""
+    import traceback
+    try:
+        CRASH_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with open(CRASH_LOG, "a") as f:
+            f.write("---- %s\n%s" % (time.strftime("%Y-%m-%d %H:%M:%S"),
+                                    traceback.format_exc()))
+            if game is not None:
+                f.write("the game's last lines:\n%s\n" % "\n".join(
+                    line.rstrip() for line in game.log[-20:]))
+        print("what happened is in %s" % CRASH_LOG, file=sys.stderr)
+    except Exception:
+        pass
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--input", default="auto",
@@ -2079,7 +2114,13 @@ def main():
     except NativeError as e:
         if "the window was closed" not in "".join(w.log[-5:] if w else []):
             print(str(e)[-1500:], file=sys.stderr)
+            crash_log(w)
             return 1
+    except Exception:
+        # what ended the client, kept: it is printed in a terminal nobody
+        # may be reading (the owner reported crashes nothing had kept)
+        crash_log(w)
+        raise
     finally:
         if w is not None:
             if args.timing:
