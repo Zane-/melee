@@ -15,6 +15,7 @@ through its pause menu and the other is told and goes back.
 """
 import argparse
 import os
+import subprocess
 import sys
 import tempfile
 import threading
@@ -95,6 +96,17 @@ def main():
               "%s %s" % (a.c.screen, b.c.screen))
         if not (ok_a and ok_b):
             return 1
+        # the code is drawn: light text in its dark box (once it was set in
+        # a typeface the client does not load, and drew as nothing)
+        shot = os.path.join(tempfile.mkdtemp(), "online.png")
+        a.w.shot(shot)
+        bright = subprocess.run(
+            ["magick", shot, "-crop", "600x30+330+322", "+repage",
+             "-colorspace", "Gray", "-threshold", "70%", "-format",
+             "%[fx:mean]", "info:"], capture_output=True,
+            text=True).stdout
+        check("the code is drawn on the online screen",
+              float(bright or 0) > 0.05, "light share %s" % bright)
         # each pastes the other's code. The virtual displays' clipboards
         # do not keep SDL's text (checked: SDL_HasClipboardText is false
         # right after setting it), so the clipboard hands each the other's
