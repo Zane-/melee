@@ -278,7 +278,6 @@ def hub(c, course, here, progress, left):
     for i, part in enumerate(PARTS):
         drills = course["parts"][part]
         done = sum(progress.done(d["id"]) for d in drills)
-        plays = sum(d["id"] in here for d in drills)
         nxt = next((d for d in drills if not progress.done(d["id"])), None)
         squares = "".join('<div class="sq%s"/>' % (
             " on" if progress.done(d["id"]) else "") for d in drills)
@@ -287,13 +286,13 @@ def hub(c, course, here, progress, left):
             '<div class="in"><div class="row"><div class="idx">0%d</div>'
             '<div class="grow"/>%s</div><div><div class="big">%s</div>'
             '<div class="q">%s</div><div class="d">%s</div></div><div>'
-            '<div class="sqs">%s</div><div class="cnt2">%d of %d done · %d '
-            'play here</div><div class="cnt2">Next: %s</div></div></div>'
+            '<div class="sqs">%s</div><div class="cnt2">%d of %d done</div>'
+            '<div class="cnt2">Next: %s</div></div></div>'
             '</div>' % (
                 i, PART_CLASS[part], i + 1,
                 '<div class="first">START HERE</div>' if i == 0 else "",
                 part, esc(ABOUT[part][0]), esc(ABOUT[part][1]), squares,
-                done, len(drills), plays,
+                done, len(drills),
                 esc(nxt["name"]) if nxt else "all done"))
     if left:
         tail = (
@@ -346,14 +345,13 @@ def list_rows(course, part, here, progress, at, top):
             '"background-color: %s"/><div class="num">%d</div></div>'
             '<div class="c-name"><div class="nm">%s</div><div class="gl">%s'
             '</div></div><div class="c-t">%s</div><div class="c-t">%s</div>'
-            '<div class="c-b">%s</div><div class="c-h">%s</div><div class='
+            '<div class="c-b">%s</div><div class='
             '"c-d"><div class="box%s"/><div>%s</div></div></div>' % (
                 " on" if i == at else "",
                 PART_COLOR[part] if i == at else "#00000000", d["number"],
                 esc(d["name"]), esc(d["goal"]),
                 p["tries"] if p["tries"] else "-", _percent(p),
                 p["best"] if p["tries"] else "-",
-                '<div class="plays">PLAYS</div>' if d["id"] in here else "",
                 " on" if p["done"] else "", "done" if p["done"] else ""))
     return "".join(out)
 
@@ -407,7 +405,7 @@ def drill_list(c, course, part, here, progress, at, top):
         '<div class="listhead"><div class="c-n"><div class="cap"/><div>#'
         '</div></div><div class="c-name">DRILL</div><div class="c-t">TRIES'
         '</div><div class="c-t">SUCCESS</div><div class="c-b">BEST</div>'
-        '<div class="c-h">HERE</div><div class="c-d"><div>DONE</div></div>'
+        '<div class="c-d"><div>DONE</div></div>'
         '</div>'
         '<div id="rows" class="rows">' +
         list_rows(course, part, here, progress, at, top) + '</div>'

@@ -846,9 +846,14 @@ void host_window_frame(void)
          event++)
     {
         if (event->type == AURORA_EXIT) {
+            /* Not exit(): its teardown of the graphics libraries (Dawn,
+               SDL) never returned from here, and the window hung with
+               "not responding" (the owner, 2026-11-13). The process ends
+               now; the system frees the window and the GPU's memory. */
             fflush(stdout);
             host_log("the window was closed");
-            exit(0);
+            fflush(stderr);
+            _exit(0);
         }
         if (event->type == AURORA_SDL_EVENT &&
             event->sdl.type == SDL_EVENT_KEY_DOWN &&

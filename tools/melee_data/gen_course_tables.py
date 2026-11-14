@@ -73,6 +73,7 @@ def generate():
         "    s8 land;   ///< aerial landing lag, 0 = not an aerial",
         "    s8 land_l; ///< L-cancelled landing lag",
         "    u8 damage; ///< strongest hitbox",
+        "    s8 lag_from, lag_to; ///< aerial frames landing has lag, 0 = none",
         "    s8 intang_from, intang_to; ///< intangible frames, 0 = none",
         "} CourseMoveData;",
         "",
@@ -107,11 +108,15 @@ def generate():
             dmg = max([b["damage"] for h in m.get("hits", [])
                        for b in h["hitboxes"]] + [0])
             inv = m.get("intangible") or [[0, 0]]
-            out.append("        [CMOVE_%s] = { %d, %d, %d, %d, %d, %d, %d, %d },"
+            ac = m.get("autocancel") or {}
+            lag = (0, 0) if "before" not in ac else (ac["before"],
+                                                     ac["after"])
+            out.append("        [CMOVE_%s] = { %d, %d, %d, %d, %d, %d, %d, %d, "
+                       "%d, %d },"
                        % (name, m.get("first_hit_frame") or 0, calc.faf(m),
                           m["total_frames"], m.get("landing_lag", 0),
                           m.get("landing_lag_lcancel", 0), min(dmg, 255),
-                          inv[0][0], inv[-1][1]))
+                          lag[0], lag[1], inv[0][0], inv[-1][1]))
         out.append("    } },")
     out += ["};", ""]
     return "\n".join(out)

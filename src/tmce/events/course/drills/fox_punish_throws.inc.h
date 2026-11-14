@@ -450,8 +450,7 @@ static void kc_Think(CourseCtx* c)
             kc.thrown = 0;
         } else if (c->cpu_hit) {
             /* a kill move on a standing dummy is not a confirm */
-            course_Result(c, 0, "Open with a grab, shine,
-"
+            course_Result(c, 0, "Open with a grab, shine,\n"
                                 "up tilt or dash attack",
                           0, 0);
         }

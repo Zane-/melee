@@ -269,6 +269,70 @@ class Window(Native):
         t.XTestFakeKeyEvent(dpy, code, 1 if down else 0, 0)
         x.XFlush(dpy)
 
+    def close_window(self):
+        """Ask the game's window to close, as a desktop does when its close
+        button is pressed (a WM_DELETE_WINDOW message): for tests, on the
+        virtual display. Returns the number of windows asked."""
+        if self.display is None:
+            raise NativeError("close_window() is for the virtual display only")
+
+        class ClientMessage(ctypes.Structure):
+            _fields_ = [("type", ctypes.c_int), ("serial", ctypes.c_ulong),
+                        ("send_event", ctypes.c_int),
+                        ("display", ctypes.c_void_p),
+                        ("window", ctypes.c_ulong),
+                        ("message_type", ctypes.c_ulong),
+                        ("format", ctypes.c_int),
+                        ("data", ctypes.c_long * 5),
+                        ("pad", ctypes.c_long * 12)]
+
+        x = ctypes.CDLL("libX11.so.6")
+        x.XOpenDisplay.restype = ctypes.c_void_p
+        x.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        x.XDefaultRootWindow.restype = ctypes.c_ulong
+        x.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+        x.XInternAtom.restype = ctypes.c_ulong
+        x.XInternAtom.argtypes = [ctypes.c_void_p, ctypes.c_char_p,
+                                  ctypes.c_int]
+        x.XQueryTree.argtypes = [
+            ctypes.c_void_p, ctypes.c_ulong, ctypes.POINTER(ctypes.c_ulong),
+            ctypes.POINTER(ctypes.c_ulong),
+            ctypes.POINTER(ctypes.POINTER(ctypes.c_ulong)),
+            ctypes.POINTER(ctypes.c_uint)]
+        x.XSendEvent.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int,
+                                 ctypes.c_long, ctypes.c_void_p]
+        x.XFlush.argtypes = [ctypes.c_void_p]
+        x.XFree.argtypes = [ctypes.c_void_p]
+        x.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        dpy = x.XOpenDisplay(self.display.encode())
+        if not dpy:
+            raise NativeError("cannot open the virtual display")
+        try:
+            protocols = x.XInternAtom(dpy, b"WM_PROTOCOLS", 0)
+            delete = x.XInternAtom(dpy, b"WM_DELETE_WINDOW", 0)
+            root, parent = ctypes.c_ulong(), ctypes.c_ulong()
+            children = ctypes.POINTER(ctypes.c_ulong)()
+            count = ctypes.c_uint()
+            x.XQueryTree(dpy, x.XDefaultRootWindow(dpy), ctypes.byref(root),
+                         ctypes.byref(parent), ctypes.byref(children),
+                         ctypes.byref(count))
+            asked = 0
+            for i in range(count.value):
+                ev = ClientMessage()
+                ev.type = 33                       # ClientMessage
+                ev.window = children[i]
+                ev.message_type = protocols
+                ev.format = 32
+                ev.data[0] = delete
+                x.XSendEvent(dpy, children[i], 0, 0, ctypes.byref(ev))
+                asked += 1
+            if children:
+                x.XFree(children)
+            x.XFlush(dpy)
+            return asked
+        finally:
+            x.XCloseDisplay(dpy)
+
     def shot(self, path):
         """Save what is on the virtual screen as a picture."""
         if self.display is None:

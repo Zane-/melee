@@ -476,13 +476,27 @@ Python's, so the same seed makes the same choices in another order. Two specs de
 particular draw (the CPU's DI); `tests/course/specs.py` pins it to what the C drew
 (`DRAWS`).
 
-Found in the C drills while porting, not fixed there (the overlay build is unchanged):
-`fox-shdl` counts Fox's blaster as a laser when the first B comes after the first airborne
-frame (spec `first_on_six` passes because of it); the `fox-shine-knockdown` CPU keeps
-dropping its shield (a fresh R from Wait is GuardReflect, 182, which its test leaves out);
-the L-cancel and SHFFL demonstrations land Sheik's forward air in its auto-cancel window;
-two verdict strings in `fox_punish_throws.inc.h` and `fox_punish_confirms.inc.h` hold a raw
-line break inside the literal (the overlay's compiler takes it). One spec,
+Found in the C drills while porting, and fixed in both (the owner: "yes please, go ahead
+and fix!", 2026-11-13; overlay specs checked in the simulator, the port's natively):
+
+- `fox-shdl` counted Fox's blaster (an item from the moment the laser state starts) as a
+  laser, so one shot after the first airborne frame passed as two. It counts laser items
+  now. The spec that passed because of it (`first_on_six`) is replaced by two measured
+  ones: the first B on airborne frame 3 still leaves time for a second laser, on frame 4 it
+  does not.
+- The `fox-shine-knockdown` opponent let go of its shield: a fresh press from Wait is
+  GuardReflect (182), which its test left out, so it cycled Wait, GuardReflect, GuardOff.
+- The L-cancel and SHFFL demonstrations: the landing prediction checked the fast fall
+  against the speed after the frame's gravity (the game uses the speed the frame started
+  with) and kept adding gravity during a fast fall (the game holds it constant); and the
+  aerial was aimed at its first hit plus four frames whatever its lag window. Now the
+  prediction follows the game, the aim stays three frames inside the last frame with
+  landing lag (`lag_from`/`lag_to` in the generated tables, from the frame data's
+  autocancel window), and an aerial that would fall on a fast-fall tap comes a frame
+  earlier. Natively every character's five demonstrations succeed in both drills except
+  Mr. Game & Watch's neutral, back and up air, which cannot be L-cancelled (the drill waits
+  for a landing lag that never comes; a course for him replaces the drill).
+- Two verdict strings held a raw line break inside the literal; they are `\n` now. One spec,
 `fox-anti-air/hit_first`, fails natively for another reason than the one it is named for:
 at its frames Fox runs through Falcon before the dash attack starts.
 
@@ -510,6 +524,17 @@ inside the request here, before the sound manager had stored the load's id, so i
 completion callback started the same load again), and after a few different opponents the
 sound bank overflowed and an assertion stopped the game. A native patch stores the id
 first (`lbaudio_ax.c` in `PATCHES`). Nineteen opponents and five stages in one game since.
+
+### Closing the window (2026-11-13)
+
+The owner: "the game still seems to freeze on closing as well" (a desktop dialog,
+"melee_native is not responding"). Closing the window reached `exit(0)` from the frame
+loop, and the teardown it runs (Dawn's and SDL's) never returned. The window build now ends
+the process with `_exit` once its output is flushed, on a close, on `quit` and when the
+driver goes away (`host_quit`); the system frees the window and the GPU's memory. A
+drill's tries are saved even when the game goes away in the middle of it.
+`tests/client/close.py` closes the window as a desktop does (`Window.close_window`, a
+WM_DELETE_WINDOW message): the game is gone 0.03 s later and the tries are in the save.
 
 ### L+R+A+Start, and matches the game ends itself (2026-11-13)
 

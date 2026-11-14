@@ -5,7 +5,8 @@ Port of src/tmce/events/course/drills/fox_punish_confirms.inc.h (specs:
 data/courses/fox.md, Punish 7, 4).
 """
 from melee_course.engine import (
-    A, B, R, X, Z, Drill, Option, Ref, WAIT, GUARD, GUARD_ON, GUARD_SET_OFF)
+    A, B, R, X, Z, Drill, Option, Ref, WAIT, GUARD, GUARD_ON, GUARD_SET_OFF,
+    GUARD_REFLECT)
 from melee_course.drills.fox_punish import (
     FPR_DISTANCE, cpu_grabbed, dist, is_aerial, is_aerial_landing,
     is_double_jump, is_jump, is_shine, player_grabbed)
@@ -252,7 +253,8 @@ class FoxShineKnockdown(Drill):
                     c.cpu_press(lx=int(127 * c.toward))
                 elif v["down"] & 1:
                     c.cpu_press(A)
-            if c.cpu_state in (WAIT, GUARD, GUARD_ON):
+            # a fresh press from Wait is GuardReflect: kept, or he lets go
+            if c.cpu_state in (WAIT, GUARD, GUARD_ON, GUARD_REFLECT):
                 c.cpu_shield()
             c.report("choice", choice)
             if c.hmn_hit:

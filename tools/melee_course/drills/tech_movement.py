@@ -73,6 +73,10 @@ REF_START = 10            # script frame of the jump press
 REF_TAP_FROM = 4          # first airborne frame with a stick-down tap
 REF_TAP_EVERY = 3
 REF_PAST_HIT = 4          # aerial frames past its first hit at landing
+# ...but this many frames inside the last frame that still has landing lag:
+# past it the aerial autocancels (Sheik's forward air: lag on frames 5-10);
+# the landing comes the frame after the height crosses zero
+REF_LAG_SLACK = 3
 REF_PRESS_BEFORE = 2      # trigger this long before the height is 0
 REF_MAX = 40
 
@@ -104,17 +108,31 @@ def build_aerial_reference(c):
     fast = False
     cross = 1
     while cross < 200:
-        if not fast and v < 0 and is_tap(cross):
+        # the game fast-falls on a tap when the speed it started the frame
+        # with is downward: v + gravity (v is after this frame's gravity)
+        if not fast and _f32(v + gravity) < 0 and is_tap(cross):
             v = -ff
             fast = True
         y = _f32(y + v)
         if y < 0:
             break
-        v = _f32(v - gravity)
-        if v < -terminal and not fast:
-            v = -terminal
+        if not fast:            # a fast fall keeps its speed
+            v = _f32(v - gravity)
+            if v < -terminal:
+                v = -terminal
         cross += 1
-    aerial = cross - (m.hit + REF_PAST_HIT)
+    at = m.hit + REF_PAST_HIT       # the aerial's frame at landing
+    if m.lag_to > 0 and at > m.lag_to - REF_LAG_SLACK:
+        at = m.lag_to - REF_LAG_SLACK
+    if at < m.lag_from:
+        at = m.lag_from
+    aerial = cross - at
+    # the tap on the aerial's frame is left out (down with A is a down
+    # air); when that was the tap that starts the fast fall, the landing
+    # came three frames late, past the lag: the aerial comes a frame
+    # earlier instead (as the C now does)
+    if is_tap(aerial):
+        aerial -= 1
     if aerial < 1:
         aerial = 1
 

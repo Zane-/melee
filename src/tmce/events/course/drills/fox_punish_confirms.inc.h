@@ -182,8 +182,7 @@ static void ac_Think(CourseCtx* c)
         if (nr_PlayerGrabbed(c) || c->hmn_hit) {
             course_Result(c, 0, "Got hit", 0, 0);
         } else if (c->cpu_state == ASID_GUARDSETOFF) {
-            course_Result(c, 0, "Blocked: they crouch cancelled
-"
+            course_Result(c, 0, "Blocked: they crouch cancelled\n"
                                 "and shielded. Grab instead",
                           0, 0);
         } else if (fpr_CpuGrabbed(c) || (c->cpu_hit && !aerial)) {
@@ -346,8 +345,12 @@ static void kd_Think(CourseCtx* c)
                 cd->cpu.held |= PAD_BUTTON_A;
             }
         }
+        /* A fresh press from Wait is GuardReflect: without it here the
+         * shield was let go there, and he cycled Wait, GuardReflect,
+         * GuardOff instead of holding it (found by the native port,
+         * 2026-11-13). */
         if (c->cpu_state == ASID_WAIT || c->cpu_state == ASID_GUARD ||
-            c->cpu_state == ASID_GUARDON)
+            c->cpu_state == ASID_GUARDON || c->cpu_state == ASID_GUARDREFLECT)
         {
             course_CpuShield(c);
         }

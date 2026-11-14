@@ -1,0 +1,37 @@
+{
+  "event": "course",
+  "drill": "fox-shdl",
+  "hmn": "fox",
+  "seed": 1,
+  "max_frames": 400,
+  "options": [],
+  "comment": "The latest first B that still leaves time for a second laser: airborne frame 3, the second B 3 frames later (measured on the native build and in the simulator, 2026-11-13; an earlier spec said frame 6, which only passed because the blaster was counted as a laser).",
+  "inputs": [
+    {
+      "at": 40,
+      "hold": 1,
+      "buttons": [
+        "X"
+      ]
+    },
+    {
+      "at": 45,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    },
+    {
+      "at": 48,
+      "hold": 1,
+      "buttons": [
+        "B"
+      ]
+    }
+  ],
+  "expect": {
+    "event_result": "success",
+    "lasers": 2,
+    "first": 3
+  }
+}

@@ -234,6 +234,19 @@ int host_live_fighter(const void* gobj)
     return 0;
 }
 
+/// End the process. The window build does not run exit()'s teardown: the
+/// graphics libraries' never returned (see host_window_frame).
+void host_quit(void)
+{
+    fflush(stdout);
+    fflush(stderr);
+#ifdef HOST_WINDOW
+    _exit(0);
+#else
+    exit(0);
+#endif
+}
+
 void host_fighter_json(int slot, char* out, size_t size)
 {
     HSD_GObj* gobj = slot >= 4 && slot < 8
@@ -616,7 +629,7 @@ static void command(char* line)
     } else if (strcmp(cmd, "quit") == 0) {
         snap_drop_all();
         host_stub_report();
-        exit(0);
+        host_quit();
     } else if (cmd[0] != '\0') {
         printf("@ error unknown command %s\n", cmd);
     }
@@ -652,7 +665,7 @@ void host_control_frame(void)
             if (!read_line(line, sizeof line)) {
                 snap_drop_all();
                 host_stub_report();
-                exit(0);
+                host_quit();
             }
             command(line);
         }

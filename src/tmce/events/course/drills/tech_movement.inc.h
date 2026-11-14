@@ -58,6 +58,12 @@ static int mv_WasLCancelled(CourseCtx* c, int landing_state, int frames)
 #define MV_REF_TAP_FROM 4     /* first airborne frame with a stick-down tap */
 #define MV_REF_TAP_EVERY 3
 #define MV_REF_PAST_HIT 4     /* aerial frames past its first hit at landing */
+/* ...but this many frames inside the last frame that still has landing lag:
+ * past it the aerial autocancels and there is nothing to L-cancel (Sheik's
+ * forward air: lag from frame 5 to 10; found by the native port,
+ * 2026-11-13). The landing comes the frame after the height crosses zero,
+ * two aerial frames after the predicted one. */
+#define MV_REF_LAG_SLACK 3
 #define MV_REF_PRESS_BEFORE 2 /* trigger this long before the height is 0 */
 #define MV_REF_MAX 40
 
@@ -89,7 +95,12 @@ static const CourseRefInput* mv_BuildAerialReference(CourseCtx* c)
     int fast = 0, cross, aerial, k, n = 0;
 
     for (cross = 1; cross < 200; cross++) {
-        if (!fast && v < 0 && mv_IsTap(cross)) {
+        /* `v` is the speed this frame moves by (after its gravity); the
+         * game fast-falls on a tap when the speed it started the frame
+         * with is downward, v + gravity. Checked against v, the fast fall
+         * came three frames before the game's when a tap fell on the frame
+         * the fighter turns to fall (Sheik, native port, 2026-11-13). */
+        if (!fast && v + hd->attr.gravity < 0 && mv_IsTap(cross)) {
             v = -hd->attr.fastfall_velocity;
             fast = 1;
         }
@@ -97,12 +108,34 @@ static const CourseRefInput* mv_BuildAerialReference(CourseCtx* c)
         if (y < 0) {
             break;
         }
-        v -= hd->attr.gravity;
-        if (v < -hd->attr.terminal_velocity && !fast) {
-            v = -hd->attr.terminal_velocity;
+        /* a fast fall keeps its speed: no gravity on it (with gravity the
+         * landing was predicted a frame early, 2026-11-13) */
+        if (!fast) {
+            v -= hd->attr.gravity;
+            if (v < -hd->attr.terminal_velocity) {
+                v = -hd->attr.terminal_velocity;
+            }
         }
     }
-    aerial = cross - (m->hit + MV_REF_PAST_HIT);
+    {
+        /* the aerial's frame at landing */
+        int at = m->hit + MV_REF_PAST_HIT;
+        if (m->lag_to > 0 && at > m->lag_to - MV_REF_LAG_SLACK) {
+            at = m->lag_to - MV_REF_LAG_SLACK;
+        }
+        if (at < m->lag_from) {
+            at = m->lag_from;
+        }
+        aerial = cross - at;
+    }
+    /* The fast-fall tap on the aerial's frame is left out (down with A is
+     * a down air), and when that was the tap that starts the fast fall the
+     * landing came three frames late, past the lag (Sheik's forward air,
+     * Luigi's up air; found by the native port, 2026-11-13): the aerial
+     * comes a frame earlier instead, and every tap stays. */
+    if (mv_IsTap(aerial)) {
+        aerial -= 1;
+    }
     if (aerial < 1) {
         aerial = 1;
     }

@@ -684,8 +684,11 @@ class Client:
                     self.w.step()
         except Leave:
             pass
-        self.progress.record(d["id"], self.c["id"], results)
-        self.results = results
+        finally:
+            # kept even when the game goes away mid-drill (the window
+            # closed): the tries so far count
+            self.progress.record(d["id"], self.c["id"], results)
+            self.results = results
         self.show_list()
 
     def results_now(self):
@@ -794,8 +797,11 @@ class Client:
                     self.w.step()
         except Leave:
             pass
-        self.progress.record(d["id"], self.c["id"], results)
-        self.results = results
+        finally:
+            # kept even when the game goes away mid-drill (the window
+            # closed): the tries so far count
+            self.progress.record(d["id"], self.c["id"], results)
+            self.results = results
         self.show_list()
 
     # ---- free play --------------------------------------------------------------------

@@ -263,6 +263,10 @@ class MoveData:
         self.damage = min(max(dmg + [0]), 255)
         inv = m.get("intangible") or [[0, 0]]
         self.intang_from, self.intang_to = inv[0][0], inv[-1][1]
+        # the aerial frames on which landing has lag (else it autocancels)
+        ac = m.get("autocancel") or {}
+        self.lag_from, self.lag_to = (ac["before"], ac["after"]) \
+            if "before" in ac else (0, 0)
 
 
 class FighterData:

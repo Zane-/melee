@@ -169,8 +169,7 @@ if __name__ == "__main__":
     here = scenarios()
     for part in PARTS:
         print(part, len(c["parts"][part]), "drills;",
-              [d["name"] for d in c["parts"][part] if d["id"] in here],
-              "play here")
+              sum(d["id"] in here for d in c["parts"][part]), "playable")
     d = c["by_id"]["fox-waveshine"]
     print(d["name"], "| builds on", refer(c, d, d["requires"]), "| leads to",
           refer(c, d, d["leads"]), "| cpu:", d["cpu"])

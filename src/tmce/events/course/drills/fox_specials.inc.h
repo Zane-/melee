@@ -23,14 +23,19 @@
 #define FSP_ILLUSION_AIR_FIRST 0x15E
 #define FSP_ILLUSION_AIR_LAST 0x160
 
-/* Items in play that belong to the player (lasers, here). */
-static int fsp_OwnItems(CourseCtx* c)
+/* The player's lasers in play. Only the shots: the blaster Fox holds is an
+ * item too (ITEM_FOXBLASTER), out from the moment the laser state starts,
+ * and when it was counted a single shot fired after the first airborne
+ * frame came out as two (found by the native port, 2026-11-13). */
+static int fsp_OwnLasers(CourseCtx* c)
 {
     GOBJ* g;
     int n = 0;
     for (g = (*stc_gobj_lookup)[MATCHPLINK_ITEM]; g != NULL; g = g->next) {
         ItemData* id = g->userdata;
-        if (id != NULL && id->fighter_gobj == c->hmn) {
+        if (id != NULL && id->fighter_gobj == c->hmn &&
+            (id->kind == ITEM_FOXLASER || id->kind == ITEM_FALCOLASER))
+        {
             n++;
         }
     }
@@ -83,7 +88,7 @@ static void shdl_Think(CourseCtx* c)
 {
     FighterData* hd = c->hd;
     const CourseFighterData* me = course_Fighter(hd);
-    int items = fsp_OwnItems(c);
+    int items = fsp_OwnLasers(c);
 
     switch (c->phase) {
     case SHDL_WAIT:

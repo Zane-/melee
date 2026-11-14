@@ -89,6 +89,9 @@ typedef struct HostMatch {
 } HostMatch;
 
 extern HostMatch host_match;
+/// End the process (control.c): without exit()'s teardown in the window
+/// build.
+void host_quit(void);
 /// Whether a fighter's object still exists (the player table keeps it after
 /// its match has ended).
 int host_live_fighter(const void* gobj);

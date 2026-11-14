@@ -203,10 +203,7 @@ span { display: inline; }
 .r.on .gl { color: #D5DCE5; }
 .c-t { width: 74dp; box-sizing: border-box; text-align: right; font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
 .c-b { width: 56dp; box-sizing: border-box; text-align: right; font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
-.c-h { width: 80dp; box-sizing: border-box; padding-left: 18dp; }
-.plays { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 12dp; width: 48dp; box-sizing: border-box; padding: 2dp 0dp; border: 1dp #12161C; text-align: center; }
-.r.on .plays { border-color: #F3F6FA; }
-.c-d { width: 84dp; box-sizing: border-box; display: flex; flex-direction: row; align-items: center; font-size: 14dp; font-weight: 700; }
+.c-d { width: 104dp; box-sizing: border-box; padding-left: 28dp; display: flex; flex-direction: row; align-items: center; font-size: 14dp; font-weight: 700; }
 .box { width: 16dp; height: 16dp; margin-right: 8dp; border: 2dp #12161C; transform: skewX(-12deg); }
 .box.on { background-color: #12161C; }
 .r.on .box { border-color: #F3F6FA; }

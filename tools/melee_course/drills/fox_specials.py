@@ -28,12 +28,18 @@ ILLUSION_AIR_FIRST = 0x15E
 ILLUSION_AIR_LAST = 0x160
 
 
+FOX_LASER, FALCO_LASER = 54, 55     # It_Kind_Fox_Laser, It_Kind_Falco_Laser
+
+
 def own_items(c):
-    """Items in play that belong to the player (lasers, here; and the
-    blaster while it is out, as in the C). The native build's item list
-    does not say whose an item is; these drills have no opponent and the
-    match no items, so every item is the player's."""
-    return len(c.n.state().get("items") or ())
+    """The player's lasers in play (the C's fsp_OwnLasers). Only the shots:
+    the blaster is an item too (kind 74), and counting it made one shot
+    after the first airborne frame look like two (fixed in the C as well).
+    The native build's item list does not say whose an item is; these
+    drills have no opponent and the match no items, so every laser is the
+    player's."""
+    return sum(1 for i in c.n.state().get("items") or ()
+               if i["kind"] in (FOX_LASER, FALCO_LASER))
 
 
 # ---- fox-shdl ---------------------------------------------------------------
