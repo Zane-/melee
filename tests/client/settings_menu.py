@@ -200,6 +200,17 @@ def main():
         shot("display-hidden")
         tap("Right")
         check("and shown", not c.column_hidden and c.settings["sidebar"])
+        tap("Down")
+        check("Input display: off unless chosen",
+              c.SUB["sdisplay"][2][c.sub_at] == "inputs" and
+              c.settings["inputs"] == "off")
+        tap("Right")
+        tap("Right")
+        check("right: you, then the opponent",
+              c.settings["inputs"] == "opponent")
+        tap("Left")
+        tap("Left")
+        check("left: back to off", c.settings["inputs"] == "off")
         tap("z")
 
         # Online

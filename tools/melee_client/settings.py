@@ -17,8 +17,10 @@ DEFAULTS = {
     "menus": 100,                # the menus' own sounds
     "sidebar": True,             # the column beside the game's picture
     "size": [1280, 720],         # the window's, when it is not fullscreen
+    "inputs": "off",             # TM-CE's input display: whose (INPUTS)
 }
 SIZES = ([1280, 720], [1600, 900], [1920, 1080], [2560, 1440])
+INPUTS = ("off", "you", "opponent", "both")
 DELAY_MAX = 9                    # as far as Slippi's own setting goes
 FRAME_MS = 1000.0 * 1001 / 60000  # the console's 59.94 frames a second
 
@@ -35,6 +37,8 @@ def get(progress):
         s[key] = max(0, min(100, int(s[key])))
     if list(s["size"]) not in [list(x) for x in SIZES]:
         s["size"] = list(DEFAULTS["size"])
+    if s["inputs"] not in INPUTS:
+        s["inputs"] = DEFAULTS["inputs"]
     return s
 
 

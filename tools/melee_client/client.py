@@ -1895,7 +1895,8 @@ class Client:
     # Sound, Display and Online: rows on the left, the one in focus beside
     # them, as Controls
     SUB = {"ssound": ("Sound", "#F0643C", ("music", "effects", "menus")),
-           "sdisplay": ("Display", "#F5BE1B", ("window", "size", "sidebar")),
+           "sdisplay": ("Display", "#F5BE1B",
+                        ("window", "size", "sidebar", "inputs")),
            "sonline": ("Online", "#22B8A0",
                        ("nick", "port", "friends", "router"))}
 
@@ -1948,9 +1949,14 @@ class Client:
                     ("size", "Window size", "When it is not fullscreen.",
                      "%d x %d" % tuple(s["size"]), "#F5BE1B"),
                     ("sidebar", "Sidebar", "Beside the game in a match.",
-                     "Shown" if s["sidebar"] else "Hidden", "#F5BE1B")]
+                     "Shown" if s["sidebar"] else "Hidden", "#F5BE1B"),
+                    ("inputs", "Input display", "Buttons and sticks, drawn.",
+                     s["inputs"].title(), "#F5BE1B")]
             panel = screens.display_panel(s["sidebar"], full, s["size"])
-            desc = ("The sidebar can also be hidden in a match: hold "
+            desc = ("TM-CE's input display: whose buttons and sticks are "
+                    "drawn over the game in drills and matches."
+                    if ident == "inputs" else
+                    "The sidebar can also be hidden in a match: hold "
                     "START for three seconds.")
             hints = [("D-SIDE", "Change"), ("B", "Back")]
         else:
@@ -2032,9 +2038,14 @@ class Client:
                 except Exception:
                     pass
                 changed = True
-            else:
+            elif ident == "sidebar":
                 s["sidebar"] = not s["sidebar"]
                 self.column_hidden = not s["sidebar"]
+                changed = True
+            else:
+                i = settings.INPUTS.index(s["inputs"])
+                s["inputs"] = settings.INPUTS[(i + (step or 1)) %
+                                              len(settings.INPUTS)]
                 changed = True
         elif self.sub == "sonline":
             if ident == "nick" and pressed & X:
