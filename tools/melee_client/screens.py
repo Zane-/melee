@@ -1358,29 +1358,74 @@ def coach_card(v):
                 for b, w in keys)))
 
 
-def replay_view(part, number, total, name):
-    """The replay of a try: the game's picture left clear, a line at the
-    top, the frames along the bottom, and a column of its own over the
-    drill's (filled in by Client.replay)."""
+REPLAY_HINTS = [("D-SIDE", "Frame by frame"), ("A", "Play, pause"),
+                ("Y", "Your try, the target"), ("B", "Back to the coach")]
+EXAMPLE_HINTS = [("D-SIDE", "Frame by frame"), ("A", "Play, pause"),
+                 ("B", "Go on")]
+
+
+def replay_view(part, number, total, name, title="Replay", hints=None,
+                legend=True):
+    """The replay of a try (or a drill's example, played for the tutorial:
+    `title`, `hints`): the game's picture left clear, a line at the top,
+    the frames along the bottom, and a column of its own over the drill's
+    (filled in by Client.replay, Client.tutorial_example)."""
     fg = "#FFFFFF" if part == "Tech" else "#12161C"
+    leg = ('<div class="rleg"><div class="rsw now"/><div>this frame</div>'
+           '<div class="rsw you"/><div>a press</div><div class="rsw tgt"/>'
+           '<div>frame-perfect</div></div>') if legend else \
+        ('<div class="rleg"><div class="rsw now"/><div>this frame</div>'
+         '<div class="rsw you"/><div>a press</div></div>')
     return (
-        '<div class="rtop"><div class="rtitle">Replay</div><div id="rmode" '
+        '<div class="rtop"><div class="rtitle">%s</div><div id="rmode" '
         'class="rmode"/></div>'
-        '<div class="rbottom"><div id="rscrub" class="rscrub"/><div class='
-        '"rleg"><div class="rsw now"/><div>this frame</div><div class="rsw '
-        'you"/><div>a press</div><div class="rsw tgt"/><div>frame-perfect'
-        '</div></div></div>'
+        '<div class="rbottom"><div id="rscrub" class="rscrub"/>%s</div>'
         '<div class="rcol"><div class="rhead" style="background-color: %s; '
-        'color: %s;"><div class="tags">%s · %d OF %d · REPLAY</div><div '
+        'color: %s;"><div class="tags">%s · %d OF %d · %s</div><div '
         'class="dname">%s</div></div><div class="rbody"><div class="row '
         'rfr"><div id="rf" class="rfn">F1</div><div id="rof" class="rof">'
         'OF 1</div></div><div id="rpad" class="rpad"/><div id="rsay" '
         'class="rsay"/><div class="grow"/><div class="hints">%s</div></div>'
         '</div>' % (
-            PART_COLOR[part], fg, part.upper(), number, total, esc(name),
-            hint_rows([("D-SIDE", "Frame by frame"), ("A", "Play, pause"),
-                       ("Y", "Your try, the target"),
-                       ("B", "Back to the coach")])))
+            esc(title), leg, PART_COLOR[part], fg, part.upper(), number,
+            total, esc(title.upper()), esc(name),
+            hint_rows(hints or REPLAY_HINTS)))
+
+
+def tutorial_card(v):
+    """The tutorial: how to do it (not the coach, which comes after misses
+    and is about the try). Over the game's picture, in the coach card's
+    frame with a teal head. `v`: title, sub (the line at the right), blocks
+    [(heading, text)], parts [(name, state: "done" | "now" | "")] or None,
+    keys [(button, words)]."""
+    blocks = "".join(
+        '<div class="tblock"><div class="th">%s</div><div class="tt">%s'
+        '</div></div>' % (esc(h), esc(t)) for h, t in v["blocks"] if t)
+    parts = ""
+    if v.get("parts"):
+        rows = []
+        for i, (name, state) in enumerate(v["parts"]):
+            rows.append('<div class="tpart %s"><div class="tpn">%d</div><div '
+                        'class="tpw">%s</div><div class="tps">%s</div></div>'
+                        % (state, i + 1, esc(name),
+                           {"done": "Done", "now": "Now"}.get(state, "")))
+        parts = ('<div class="tblock"><div class="th">How: one part at a '
+                 'time</div><div class="tparts">%s</div></div>' % "".join(rows))
+    size = 34 if len(v["title"]) <= 30 else 28
+    return (
+        '<div class="cdim"/><div class="ccard tcard">'
+        '<div class="chead"><div class="cstrip tut"/><div class="cbadge tut">'
+        '<div class="un">Tutorial</div></div><div class="ctitle" style='
+        '"font-size: %ddp;">%s</div><div class="grow"/><div class="cwhat">'
+        '%s</div></div>'
+        '<div class="tutbody">%s%s</div>'
+        '<div class="grow"/><div class="cfoot">%s</div></div>' % (
+            size, esc(v["title"]), esc(v.get("sub", "")).replace("\n",
+                                                                "<br/>"),
+            blocks, parts, "".join(
+                '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
+                                                             esc(w))
+                for b, w in v["keys"])))
 
 
 def replay_scrub(n, now, you, perfect, labels):

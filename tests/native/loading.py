@@ -157,15 +157,29 @@ def main():
         # (freeing TM-CE's "camera shakes", class 3 on link 18, freed stage
         # objects too, and this one died in the sixth attempt)
         sys.path.insert(0, "tools")
-        from melee_course import engine, registry
-        s = engine.Session(registry.get("fox-shine-oos"), n, live=False,
-                           seed=5)
+        from melee_course import engine
+
+        class Swaps(engine.Drill):
+            """A drill with a deck of six opponents that does nothing but
+            place them: the course runtime's loads, swaps and cleans."""
+            id = "test-swaps"
+            deck = [engine.Entry(c) for c in (
+                "marth", "sheik", "captain-falcon", "falco", "peach",
+                "jigglypuff")]
+
+            def setup(self, c):
+                c.place(-10.0, 10.0)
+
+            def think(self, c):
+                if c.timer > 30:
+                    c.result(True, "placed")
+        s = engine.Session(Swaps(), n, live=False, seed=5)
         seen = set()
         for i in range(8):
             s.run(run=i)
             seen.add(s.cpu_char)
-        check("eight shine out of shield attempts in one match, each "
-              "cleaned, against its opponents", len(seen) >= 3,
+        check("eight attempts in one match, each cleaned, against the "
+              "deck's opponents swapped in", len(seen) >= 3,
               ", ".join(sorted(seen)))
 
         # ---- eight of the heaviest ------------------------------------------

@@ -291,6 +291,8 @@ void host_frame_tick_rest(void);
 void host_control_resume(void);
 int host_predicting(void);
 /* engine.c: the search engine */
+/* camera.c: the match camera, as a drill sets it */
+const char* host_camera_command(const char* line);
 int host_engine_active(void);
 int host_engine_forked(void);
 int host_engine_playing(void);

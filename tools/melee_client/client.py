@@ -59,8 +59,6 @@ import stages  # noqa: E402
 import window  # noqa: E402
 import native  # noqa: E402
 from native import STAGES, NativeError  # noqa: E402
-from melee_actor import scenario as scn  # noqa: E402
-from melee_actor import tech  # noqa: E402
 from melee_actor import train  # noqa: E402
 from melee_course import engine as course_engine  # noqa: E402
 from melee_course import registry as course_registry  # noqa: E402
@@ -300,6 +298,8 @@ class Client:
         self.start_held = 0
         self.frames = 0
         self.drill_now = None         # the drill being played
+        self.tutorial_now = None      # tests: the tutorial's card shown
+        self.example_now = None       # tests: the tutorial's example now
         self.track = None             # its try, frame by frame (coach)
         self.coach_misses = 0         # misses in a row since the coach
         self.pause_tab = None         # tests: the pause menu's tab
@@ -716,9 +716,6 @@ class Client:
             if s.d.stages:
                 rows.append(("stage", "Stage", s.d.stage.replace(
                     "-", " ").title(), "stage"))
-        elif kind == "drill" and isinstance(s, tech.Session):
-            rows.append(("tol", "Leniency", "%d frames late" % s.tolerance,
-                         "leniency"))
         if course:
             rows.append(("coach", "Coach", self.coach_words(), "coach"))
         rows.append(("inputs", "Input display",
@@ -1668,9 +1665,6 @@ class Client:
         s = self.session
         if frame < 0:
             return
-        if isinstance(s, tech.Session):
-            self.record_tech(s, frame)
-            return
         if not isinstance(s, course_engine.Session) or s.demo_pass:
             return
         if frame == 0 or self.track is None:
@@ -1678,39 +1672,8 @@ class Client:
         self.track.add(s.c, s.live_pad if s.live else s.player_pad, frame,
                        self.w.frame)
 
-    # A drill judged by the frame (tech.py) has no start of its own: the
-    # player sets the pace. Its record rolls (the last TECH_KEEP frames),
-    # and while the player is between attempts the game's state is saved
-    # every TECH_SAVE frames into one of two slots, in turn, so that the
-    # coach can play the try again from before it began (its target, its
-    # replay). Slot COACH_NOW keeps the moment the coach opened.
-    TECH_KEEP = 240
-    TECH_SAVE = 12
-    TECH_SLOTS = (30, 31)
+    # the slot that keeps the moment the coach opened
     COACH_NOW = 29
-
-    def record_tech(self, s, frame):
-        t = self.track
-        if t is None:
-            t = self.track = coach.Track()
-        if frame == 1:
-            t.attempt = len(t) - 1       # the frame the attempt began from
-        me, cpu = self.w.fighter(self.port), self.w.fighter(1 - self.port)
-        t.add_fighters(me if me.fp else None, cpu if cpu.fp else None,
-                       s._pad(), self.w.frame)
-        if len(t) > self.TECH_KEEP:
-            t.drop(len(t) - self.TECH_KEEP)
-        if frame == 0 and self.settings.get("coach", 0):
-            self.tech_count = getattr(self, "tech_count", 0) + 1
-            if self.tech_count % self.TECH_SAVE == 0:
-                slot = self.TECH_SLOTS[self.tech_count // self.TECH_SAVE % 2]
-                try:
-                    self.w.save(slot)
-                except NativeError:
-                    return
-                # the state this entry's frame starts from
-                self.tech_saves = [x for x in self.tech_saves
-                                   if x[0] != slot] + [(slot, self.w.frame)]
 
     def show_rays(self):
         """A drill's light rays (targets), where the camera shows them."""
@@ -1857,17 +1820,13 @@ class Client:
         self.drill_now = d
         self.coach_misses = 0
         self.track = None
-        self.tech_saves = []
-        # the pictures follow both fighters; in a drill judged by the frame
-        # the player alone (the opponent only stands there)
-        self.pic_follow = (3 if self.here[d["id"]] == courses.COURSE
-                           else 1 << self.port)
+        # the pictures follow both fighters; with no opponent the player
+        # alone
+        self.pic_follow = (1 << self.port if course_registry.get(
+            d["id"]).cpu is None else 3)
         self.pictures_rec(0)
         try:
-            if self.here[d["id"]] == courses.COURSE:
-                self.course_drill(d, results)
-            else:
-                self.judged_drill(d, results)
+            self.course_drill(d, results)
         except Leave as left:
             return left
         finally:
@@ -1875,6 +1834,10 @@ class Client:
             # closed): the tries so far count
             self.progress.record(d["id"], self.c["id"], results)
             self.results = results
+            try:
+                self.w.camera("normal")     # (a drill may have set its own)
+            except Exception:       # the game is gone
+                pass
             try:
                 self.pictures_rec(-1)
             except Exception:       # the game is gone
@@ -1952,6 +1915,16 @@ class Client:
         demo = False
         self.status_text = None
         self.rays_html = None
+        if getattr(drill, "spec", None) is not None:
+            # a drill in the drill format: the part the player was on, and
+            # its tutorial before the first try
+            prog = self.progress.drill(d["id"])
+            drill.set_part(prog.get("part", 0))
+            if not prog.get("tutorial"):
+                try:
+                    self.tutorial(drill, session, intro=True)
+                except Abandon as a:
+                    demo = self.course_abandon(a, drill, session)
         while True:
             if demo:
                 # the game plays the reference; the player is still read
@@ -1966,7 +1939,10 @@ class Client:
                 demo = self.course_abandon(a, drill, session)
                 continue
             finally:
-                self.w.scripted(self.port, False)
+                try:
+                    self.w.scripted(self.port, False)
+                except (NativeError, OSError):
+                    pass        # the game is gone (the window closed)
                 session.live = True
             demo = False
             self.last_result = result
@@ -1977,6 +1953,20 @@ class Client:
             else:
                 results.append(bool(result["success"]))
                 self.show_result(result, results)
+                if result.get("part_passed"):
+                    # the part done: on to the next, with its own page
+                    prog = self.progress.drill(d["id"])
+                    prog["part"] = drill.part_index
+                    self.progress.save()
+                    if result.get("next_part"):
+                        self.banner_say("Part done", "Next: " +
+                                        result["next_part"])
+                        try:
+                            self.tutorial(drill, session, intro=False)
+                        except Abandon as a:
+                            demo = self.course_abandon(a, drill, session)
+                        self.coach_misses = 0
+                        continue
                 self.coach_misses = 0 if result["success"] else \
                     self.coach_misses + 1
                 n = self.settings.get("coach", 0)
@@ -2010,6 +2000,9 @@ class Client:
             self.banner_say("Scenario", session.scenario_names()[
                 session.scenario])
         elif a.what == "guide":
+            if getattr(drill, "spec", None) is not None:
+                self.tutorial(drill, session, intro=True)
+                return False
             return self.course_guide(drill, session)
         elif a.what == "demo":
             return True
@@ -2068,6 +2061,284 @@ class Client:
         finally:
             self.in_guide = False
             self.consume()
+
+    # ---- the tutorial (a drill in the drill format: tools/melee_drills) --------
+    #
+    # The owner, 2026-11-14: "tutorial and coach are different. Tutorial
+    # should show HOW to do the tech, coach pops up when you mess up to help
+    # show you what you did wrong and how to fix it." The tutorial plays on a
+    # drill's first open (and on D-pad up): what it is and why, the
+    # technique in parts, what to expect, and an example played from the
+    # drill's start with the input display, then frame by frame, each frame
+    # captioned. A part passed opens the next with its own page.
+
+    def tutorial(self, drill, session, intro=True):
+        """The drill's tutorial (`intro`), or the page of the part now (a
+        part just opened). Up and down choose the part on the intro."""
+        from melee_drills import format as fmt
+        spec = drill.spec
+        nums = drill.nums(session.c)
+
+        def T(t):
+            return fmt.text(t, nums)
+        while True:
+            part = drill.part_now
+            n = len(drill.parts)
+            i = drill.part_index
+            states = [(T(p["name"]), "done" if k < i else "now" if k == i
+                       else "") for k, p in enumerate(drill.parts)]
+            if intro:
+                tut = spec["tutorial"]
+                blocks = [("Goal", T(spec["goal"])), ("Why", T(spec["why"])),
+                          ("What it is", T(tut["what"])),
+                          ("What to expect", T(tut["expect"]))]
+                example, marks = tut["example"], tut.get("marks", {})
+                keys = [("A", "Show me, frame by frame"),
+                        ("D-UP", "Choose the part"),
+                        ("B", "Start part %d" % (i + 1))]
+                sub = "%s\n%d PARTS" % (nums["char"].upper(), n)
+                parts = states
+            else:
+                want = "; ".join(
+                    T(spec["checks"][c].get("expect", c))
+                    for c in part.get("checks", [])) or "Any try"
+                blocks = [("Part %d of %d: %s" % (i + 1, n, T(part["name"])),
+                           T(part["teach"])),
+                          ("To pass it, %d in a row" % part["streak"],
+                           want + ".")]
+                example, marks = part["example"], part.get("marks", {})
+                keys = [("A", "Show me, frame by frame"), ("B", "Start")]
+                sub = "PART %d OF %d" % (i + 1, n)
+                parts = None
+            view = dict(title=T(spec["name"]) if intro else T(part["name"]),
+                        sub=sub, blocks=blocks, parts=parts, keys=keys)
+            what = self.tutorial_card(view, choose=intro)
+            if what == "example":
+                self.tutorial_example(drill, session, example, marks,
+                                      T(spec["name"]) if intro
+                                      else T(part["name"]))
+                continue
+            if isinstance(what, int):
+                drill.set_part(drill.part_index + what)
+                continue
+            break
+        prog = self.progress.drill(spec["id"])
+        prog["tutorial"] = True
+        prog["part"] = drill.part_index
+        self.progress.save()
+
+    def tutorial_card(self, view, choose=False):
+        """The card until A ("example"), B ("go"), or with `choose` up or
+        down (-1, 1: another part)."""
+        self.tutorial_now = view            # tests: what the card says
+        self.w.ui("class banner on 0")
+        self.banner = 0
+        self.put("coach", screens.tutorial_card(view))
+        self.w.ui("class coach on 1")
+        self.w.freeze(True)
+        try:
+            while True:
+                if self.person is not None:
+                    self.person(self.w, -6)        # tests: the player
+                self.w.step()
+                pressed, moves = self.read()
+                if self.game_quit():
+                    raise Leave()
+                if pressed & A:
+                    self.sfx(self.SFX_FORWARD)
+                    return "example"
+                if pressed & (B | START):
+                    self.sfx(self.SFX_FORWARD)
+                    return "go"
+                if choose and moves & (UP | DOWN):
+                    return -1 if moves & UP else 1
+        finally:
+            self.w.ui("class coach on 0")
+            self.consume()
+            self.w.freeze(False)
+
+    def tutorial_example(self, drill, session, inputs, marks, name):
+        """The example played from the drill's start, the input display
+        on: at the game's speed to the example's first frame, its frames at
+        half speed, stopping on each one that has a caption; the D-pad steps
+        a frame either way, A plays or pauses, B goes on."""
+        from melee_drills import format as fmt
+        from melee_drills.drill import REF_START
+        nums = drill.nums(session.c)
+        at = {}
+        for f, words in marks.items():
+            at[int(fmt.value(f, nums))] = fmt.text(words, nums)
+        pressed_on = {}
+        for i in inputs:
+            f = int(fmt.value(i["frame"], nums))
+            pressed_on.setdefault(f, (i.get("press") or i.get("trigger") or
+                                      ("Stick" if "stick" in i else "C"))
+                                  .replace("jump", "X")[:5])
+        last = max(list(at) + list(pressed_on) + [nums["J"] + 1])
+        n = last + 6                        # a few frames after the last mark
+        lead = course_engine.REF_LEAD + REF_START - 1   # frame 0 of it
+        d = self.drill_now or {"part": "Tech", "number": 1, "name": name}
+        total = len(self.course["parts"][d["part"]]) if self.course else 1
+        self.put("replay", screens.replay_view(
+            d["part"], d["number"], total, name, title="Example",
+            hints=screens.EXAMPLE_HINTS, legend=False))
+        shown = self.column_hidden
+        if shown:
+            self.column_hidden = False
+            self.toggle_column(apply_only=True)
+        self.inputs_now(extra=1 << self.port)
+        self.w.ui("class banner on 0")
+        self.banner = 0
+        self.w.ui("class replay on 1")
+        self.w.ui("text rmode HOW TO DO IT · HALF SPEED")
+        kept = self.keep_session(session)
+        seek = None
+        try:
+            while True:
+                state = dict(paused=False, quiet=False, seen=set())
+                try:
+                    end = self.tutorial_example_run(
+                        drill, session, inputs, nums, at, pressed_on, n,
+                        lead, seek, state)
+                except self.Seek as back:
+                    seek = max(lead + 1, back.to)
+                    continue
+                finally:
+                    if state["quiet"]:
+                        self.w.quiet(False)
+                    self.restore_session(session, kept)
+                    self.w.scripted(self.port, False)
+                    session.live = True
+                seek = None
+                if end == "back":
+                    return
+        finally:
+            self.w.ui("class replay on 0")
+            self.inputs_now()
+            if shown:
+                self.column_hidden = True
+                self.toggle_column(apply_only=True)
+            self.w.pad(self.port)
+            self.example_now = None
+
+    def tutorial_example_run(self, drill, session, inputs, nums, at,
+                             pressed_on, n, lead, seek, state):
+        """One pass of the example: "back" (B), or "again" (A at its end)."""
+        from melee_drills.drill import inputs_to_refs
+        labels = [str(i) for i in range(1, n + 1)]
+
+        def caption(f):
+            said = [at[k] for k in sorted(at) if k <= f]
+            if f < 1:
+                return "Standing. The example starts in %d frame%s." % (
+                    1 - f, "" if 1 - f == 1 else "s")
+            return said[-1] if said else ""
+
+        def show(f, pad):
+            self.example_now = dict(frame=f, of=n, paused=state["paused"],
+                                    caption=caption(f))
+            self.w.ui("text rf F%d" % max(f, 0))
+            self.w.ui("text rof " + ("OF %d" % n if f <= n else "AFTER"))
+            self.w.ui("text rpad " + screens.esc(coach.stick_words(pad)))
+            self.put("rsay", '<div class="ry">%s</div>' % screens.esc(
+                caption(f)))
+            self.put("rscrub", screens.replay_scrub(n, f, pressed_on, set(),
+                                                    labels))
+
+        def hide(on):
+            # (drawn unseen, quiet 2: a run played again undrawn is not
+            # quite the same run)
+            if on != state["quiet"]:
+                self.w.quiet(2 if on else 0)
+                state["quiet"] = on
+
+        def keys(frame):
+            if self.person is not None:
+                self.person(self.w, -7)            # tests: the player
+            pressed, moves = self.read()
+            if self.game_quit():
+                raise Leave()
+            if pressed & B:
+                raise Leave("example-back")
+            if pressed & A:
+                state["paused"] = not state["paused"]
+                if self.example_now is not None:
+                    self.example_now["paused"] = state["paused"]
+            if moves & LEFT:
+                raise self.Seek(frame - 1)
+            return bool(moves & RIGHT and state["paused"])
+
+        def wait(frames, frame):
+            if frames <= 0 and not state["paused"]:
+                keys(frame)
+                return
+            self.w.freeze(True)
+            try:
+                while frames > 0:
+                    frames -= 1
+                    self.w.step()
+                    if keys(frame):
+                        return
+                    if state["paused"]:
+                        frames = max(frames, 1)
+            finally:
+                self.w.freeze(False)
+
+        def each(game, frame):
+            # the picture now is the frame before this one, played
+            f = frame - lead - 1
+            if seek is not None and frame < seek:
+                hide(True)
+                return
+            if state["quiet"]:
+                hide(False)
+                state["paused"] = True
+            if f < -12:
+                return
+            if f in at and f not in state["seen"]:
+                state["seen"].add(f)
+                state["paused"] = True          # read its caption
+            show(f, session.player_pad)
+            wait((1 if 1 <= f <= n else 0) if not state["paused"] else 1,
+                 frame)
+
+        self.w.scripted(self.port, True)
+        session.live = False
+        drill.build_reference = lambda c: inputs_to_refs(inputs, nums)
+        try:
+            res = session.run(each_frame=each, demo=True)
+            # the rest of the example after the drill's judgement (the hop
+            # to its top): the frames go on, still shown and stepped, from
+            # the one the judgement stopped before playing
+            frame = res["frames"]
+            session.set_player_pad()
+            while frame - lead - 1 <= n + 30:
+                each(self.w, frame)
+                self.w.step()
+                frame += 1
+            state["paused"] = True
+            self.example_now = dict(self.example_now or {}, paused=True,
+                                    end=True)
+            self.put("rsay", '<div class="ry">%s</div><div class="rt">%s'
+                     '</div>' % (screens.esc(caption(n)), screens.esc(
+                         "The end of the example. A: again. B: go on.")))
+            while True:
+                if self.person is not None:
+                    self.person(self.w, -7)
+                self.w.step()
+                pressed, _ = self.read()
+                if self.game_quit():
+                    raise Leave()
+                if pressed & B:
+                    return "back"
+                if pressed & A:
+                    return "again"
+        except Leave as left:
+            if left.to == "example-back":
+                return "back"
+            raise
+        finally:
+            del drill.build_reference
 
     # ---- the coach ---------------------------------------------------------------
 
@@ -2354,293 +2625,6 @@ class Client:
                 except NativeError:
                     pass
 
-    # ---- the coach, for a drill judged by the frame (tech.py) ----------------
-
-    def coach_tech(self, sc, session, result):
-        """The coach's card for a tech drill: the try's pictures, and as
-        the target the same try with what was wrong put right (tech.
-        Session.corrected), played from a state saved before it; Y replays
-        either (tech_replay)."""
-        track = self.track
-        tl = result.get("timeline")
-        if tl is not None and track.attempt is not None:
-            tl["start"] = track.attempt + tl.get("at", 1) - 1
-        start = self.tech_start(track, result)
-        saved = self.coach_wait()
-        try:
-            target, ttrack = (None, None)
-            if start is not None and saved:
-                target, ttrack = self.tech_target(session, result, track,
-                                                  start)
-                self.w.load(self.COACH_NOW)
-            words = None
-            if target is not None:
-                words = "The same try, put right: %s." % (
-                    target.get("headline") or target["words"].split(":")[0]
-                ).rstrip(".")
-            # (the player alone: the opponent only stands there)
-            view = self.coach_view(result, track, target or {}, ttrack,
-                                   target_words=words, mask=1 << self.port)
-            view["replay"] = start is not None and saved
-
-            def replay():
-                self.tech_replay(session, result, track, target, ttrack,
-                                 start)
-                self.w.load(self.COACH_NOW)
-            self.coach_card(view, replay)
-        finally:
-            self.coach_back(saved)
-
-    def tech_start(self, track, result):
-        """The saved state to play the try again from: (slot, the entry of
-        the track it is the start of), the latest from far enough before
-        the timeline to show its lead, else the earliest from before the
-        attempt; None without one."""
-        if track is None or track.attempt is None:
-            return None
-        at = {pic: i for i, pic in enumerate(track.pictures)
-              if pic is not None}
-        tl = result.get("timeline") or {}
-        want = max(0, tl.get("start", track.attempt) - coach.LEAD)
-        found = [(slot, at[pic]) for slot, pic in self.tech_saves
-                 if pic in at and at[pic] <= track.attempt]
-        early = [x for x in found if x[1] <= want]
-        if early:
-            return max(early, key=lambda x: x[1])
-        return min(found, key=lambda x: x[1]) if found else None
-
-    def set_pad(self, pad):
-        """The player's pad, as the game takes it while scripted."""
-        p = self.w.h.pads[self.port]
-        p.update(buttons=pad["buttons"], lx=pad["lx"], ly=pad["ly"],
-                 cx=pad["cx"], cy=pad["cy"], lt=pad.get("lt", 0),
-                 rt=pad.get("rt", 0), connected=True)
-        self.w._dirty.add(self.port)
-
-    class Runaway(Exception):
-        """A run played again went on past where it should have ended."""
-
-    def tech_target(self, session, result, track, start):
-        """The try again from `start` with what was wrong put right, unseen
-        and unheard but drawn into ring 1: (its result, its track, from the
-        saved frame), or (None, None)."""
-        slot, first = start
-        fixer = session.corrected(result, track.pads[track.attempt:])
-        tt = coach.Track(ring=1)
-        st = dict(j=first)
-
-        def play(frame):
-            j = st["j"]
-            if j > len(track) + 120:
-                raise self.Runaway()
-            me = self.w.fighter(self.port)
-            cpu = self.w.fighter(1 - self.port)
-            pad = fixer(j - track.attempt + 1, me if me.fp else None,
-                        track.pads[j] if j < len(track) else None)
-            self.set_pad(pad)
-            if frame == 1 and tt.attempt is None:
-                tt.attempt = len(tt) - 1
-            tt.add_fighters(me if me.fp else None, cpu if cpu.fp else None,
-                            pad, self.w.frame)
-            st["j"] = j + 1
-
-        self.w.scripted(self.port, True)
-        session.live = False
-        self.w.quiet(2 if self.pictures else 1)
-        try:
-            self.w.load(slot)
-            self.pictures_rec(1)
-            out = session.run(each_frame=lambda game, frame: play(frame))
-            for _ in range(coach.AFTER):    # how it ended
-                play(-1)
-                self.w.step()
-        except (self.Runaway, NativeError):
-            return None, None
-        finally:
-            self.pictures_rec(-1)
-            self.w.quiet(False)
-            self.w.scripted(self.port, False)
-            session.live = True
-        tl = out.get("timeline")
-        if tl is not None and tt.attempt is not None:
-            tl["start"] = tt.attempt + tl.get("at", 1) - 1
-        return out, tt
-
-    def tech_replay(self, session, result, track, target, ttrack, start):
-        """The try played again from the saved state, the timeline's
-        frames at a quarter of the speed, the controller shown: as replay
-        for a course drill (the D-pad a frame, A play or pause, Y the
-        target, B back to the card)."""
-        d = self.drill_now or {"part": "Tech", "number": 1, "name": ""}
-        total = len(self.course["parts"][d["part"]]) if self.course else 1
-        self.put("replay", screens.replay_view(d["part"], d["number"], total,
-                                               d["name"]))
-        shown = self.column_hidden
-        if shown:
-            self.column_hidden = False
-            self.toggle_column(apply_only=True)
-        self.inputs_now(extra=1 << self.port)
-        self.w.ui("class banner on 0")
-        self.banner = 0
-        self.w.ui("class replay on 1")
-        slot, first = start
-        mode, seek = "you", None
-        try:
-            while True:
-                if mode == "target" and ttrack is None:
-                    mode = "you"
-                if mode == "you":
-                    pads, me = track.pads[first:], track.me[first:]
-                    res = result
-                    begin = (result.get("timeline") or {}).get(
-                        "start", track.attempt) - first
-                else:
-                    pads, me = ttrack.pads, ttrack.me
-                    res = target
-                    begin = (target.get("timeline") or {}).get(
-                        "start", ttrack.attempt or 0)
-                state = dict(paused=False, quiet=False)
-                try:
-                    end = self.tech_replay_run(slot, pads, me, res, begin,
-                                               mode, seek, state)
-                except self.Seek as back:
-                    seek = max(0, back.to)
-                    continue
-                finally:
-                    if state["quiet"]:
-                        self.w.quiet(False)
-                    self.w.scripted(self.port, False)
-                seek = None
-                if end == "back":
-                    return
-                if end == "mode":
-                    mode = "target" if mode == "you" else "you"
-        finally:
-            self.w.ui("class replay on 0")
-            self.inputs_now()
-            if shown:
-                self.column_hidden = True
-                self.toggle_column(apply_only=True)
-            self.w.pad(self.port)
-
-    def tech_replay_run(self, slot, pads, me, res, begin, mode, seek,
-                        state):
-        """One pass of tech_replay: the pads from the saved state, the
-        frames shown from `begin` - LEAD (indexes of `pads`): "back",
-        "mode" or "again". `me`: where the fighter was in the run played
-        again, to check the replay is the same run (replay_result's
-        "same")."""
-        tl = res.get("timeline") or {}
-        n = tl.get("frames", 0) or 1
-        you = {}
-        for r in tl.get("rows", []):
-            for f in coach.press_starts(r):
-                you.setdefault(f, r["label"][:5])
-        perfect = {f for r in tl.get("rows", []) for f in r["perfect"]}
-        labels = tl.get("labels") or [str(i) for i in range(1, n + 1)]
-        self.w.ui("text rmode " + ("YOUR TRY" if mode == "you"
-                                   else "PUT RIGHT") + " · 1/4 SPEED")
-        self.put("rsay", '<div class="ry">%s</div>' % screens.esc(
-            res.get("words", "")))
-        slow_from = max(0, begin - coach.LEAD)
-        last = len(pads) + coach.AFTER - 1
-
-        def hide(on):
-            # unseen but drawn (quiet 2): what the game draws takes random
-            # numbers (its effects), so a run played again undrawn is not
-            # quite the run it was
-            if on != state["quiet"]:
-                self.w.quiet(2 if on else 0)
-                state["quiet"] = on
-
-        def show(j, pad):
-            f = j - begin + 1
-            self.replay_now = dict(mode=mode, frame=f, of=n,
-                                   paused=state["paused"])
-            self.w.ui("text rf F%d" % f)
-            self.w.ui("text rof OF %d" % n)
-            self.w.ui("text rpad " + screens.esc(coach.stick_words(pad)))
-            self.put("rscrub", screens.replay_scrub(n, f, you, perfect,
-                                                    labels))
-
-        def keys(j):
-            """The player's buttons: "back", "mode", "on" (a frame on,
-            paused) or None."""
-            if self.person is not None:
-                self.person(self.w, -5)    # tests: the player
-            pressed, moves = self.read()
-            if self.game_quit():
-                raise Leave()
-            if pressed & B:
-                return "back"
-            if pressed & Y:
-                return "mode"
-            if pressed & A:
-                state["paused"] = not state["paused"]
-            if moves & LEFT and j > slow_from:
-                raise self.Seek(j - 1)
-            if moves & RIGHT and state["paused"]:
-                return "on"
-            return None
-
-        def wait(frames, j):
-            """Frames with the game still (more while paused), the
-            buttons read; none at the game's own speed: read only."""
-            if frames <= 0 and not state["paused"]:
-                end = keys(j)
-                return end if end in ("back", "mode") else None
-            self.w.freeze(True)
-            try:
-                while frames > 0:
-                    frames -= 1
-                    self.w.step()
-                    end = keys(j)
-                    if end in ("back", "mode"):
-                        return end
-                    if end == "on":
-                        return None             # a frame on
-                    if state["paused"]:
-                        frames = max(frames, 1)     # until a press
-            finally:
-                self.w.freeze(False)
-            return None
-
-        self.w.scripted(self.port, True)
-        hide(True)
-        self.w.load(slot)
-        neutral = dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
-        same = None
-        for j in range(0, last + 1):
-            pad = pads[j] if j < len(pads) and pads[j] is not None \
-                else neutral
-            if j == len(me) - 1 and me[j] is not None:
-                f = self.w.fighter(self.port)
-                same = abs(f.pos[0] - me[j][0]) < 0.01 and \
-                    abs(f.pos[1] - me[j][1]) < 0.01 and f.state == me[j][3]
-            self.set_pad(pad)
-            if j < slow_from or (seek is not None and j < seek):
-                self.w.step()
-                continue
-            if state["quiet"]:
-                hide(False)
-                if seek is not None:
-                    state["paused"] = True
-            show(j, pad)
-            # the timeline's frames at half the speed, the rest at the
-            # game's
-            slow = 0 <= j - begin < n
-            end = wait((1 if slow else 0) if not state["paused"] else 1, j)
-            if end:
-                return end
-            self.w.step()
-        self.replay_result = dict(success=res.get("success"),
-                                  words=res.get("words"), same=same)
-        state["paused"] = True
-        if self.replay_now is not None:
-            self.replay_now["paused"] = True
-        end = wait(1, last)
-        return end or "again"
-
     class Seek(Exception):
         """Back a frame in the replay: played again, unseen, to there."""
 
@@ -2845,64 +2829,6 @@ class Client:
                 return "mode"
             raise
         return "again"
-
-    def judged_drill(self, d, results):
-        """A drill from a scenario file: a scenario against an opponent, or
-        a tech drill judged by the frame (tools/melee_actor)."""
-        sc = scn.load(str(self.here[d["id"]]))
-        box = {}
-
-        def make():
-            if sc.get("tech"):
-                box["s"] = tech.Session(sc, self.w, self.port, self.c["id"])
-            else:
-                box["s"] = scn.Session(sc, game=self.w, person=self.port)
-        self.load_quietly(make)
-        session = box["s"]
-        self.session = session
-        self.wait_released()
-        self.screen = "drill"
-        self.playing()
-        self.in_match("drill", screens.drill_rail(
-            self.c, d, self.course, sc.get("about", d["goal"])), START | DPAD)
-        self.w.capture(False)
-        first = random.randrange(1 << 20)
-        while True:
-            try:
-                result = session.run(jitter=3.0, run=first + len(results),
-                                     each_frame=self.drill_frame)
-            except Abandon:
-                continue
-            if result.get("skip"):
-                # not an attempt (an aerial with no lag to cancel):
-                # say why, count nothing
-                self.banner_say("Not counted",
-                                result["words"].split(":")[0])
-                continue
-            results.append(bool(result["success"]))
-            self.show_result(result, results)
-            self.last_result = result
-            # the coach, after misses in a row (a tech drill's: the try
-            # played again needs a state saved before it, record_tech)
-            self.coach_misses = 0 if result["success"] else \
-                self.coach_misses + 1
-            n = self.settings.get("coach", 0)
-            if n and self.coach_misses >= n and sc.get("tech") and \
-                    self.track is not None and self.track.attempt is not None:
-                self.coach_misses = 0
-                try:
-                    self.coach_tech(sc, session, result)
-                except Abandon:
-                    pass
-            # Against an opponent the situation is put back, so the verdict
-            # gets a moment first; a tech drill has nothing to put back and
-            # the player sets the pace.
-            try:
-                for _ in range(0 if sc.get("tech") else 75):
-                    self.drill_frame(self.w, -1)
-                    self.w.step()
-            except Abandon:
-                pass                # as in an attempt: the next one starts
 
     # ---- settings -----------------------------------------------------------
 

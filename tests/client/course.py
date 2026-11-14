@@ -23,6 +23,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
 import courses  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+from melee_drills import format as fmt  # noqa: E402
 import window  # noqa: E402
 from pausekeys import Chooser, leave  # noqa: E402
 
@@ -43,6 +45,11 @@ def main():
     args = ap.parse_args()
     save = os.path.join(tempfile.mkdtemp(prefix="melee-client-"),
                         "client.json")
+    # (the tutorial, which opens a drill the first time, is not this
+    # test's subject: tests/client/short_hop.py)
+    seen = courses.Progress(save)
+    seen.drill(DRILL).update(tutorial=True, part=2)   # its last part
+    seen.save()
     w = None
 
     def frames(n):
@@ -90,10 +97,16 @@ def main():
               len(names) == 17, "%d drills" % len(names))
         every = [d["id"] for part in c.course["parts"].values()
                  for d in part]
-        missing = [d for d in every if d not in c.here]
-        check("every drill of the course plays here", not missing and
-              len(every) == 48, "%d drills, %d not" % (len(every),
-                                                      len(missing)))
+        playable = [d for d in every if d in c.here]
+        # (the drills were wiped 2026-11-14 and come back one at a time in
+        # the drill format, docs/ai/drill-format.md: the course lists them
+        # all, and the ones written in it play)
+        check("the course lists its 48 drills, and every one written in the "
+              "drill format plays here",
+              len(every) == 48 and "universal-short-hop" in playable and
+              all(d in c.here for d in fmt.ids() if d in every),
+              "%d of %d playable: %s" % (len(playable), len(every),
+                                         ", ".join(playable)))
         row = c.row[c.part]
         shot("drills")
 
@@ -103,6 +116,15 @@ def main():
         state = dict(tries=0, press=0, idle=0)
 
         def person(game, frame):
+            # (a budget: a stall fails here, saying where, instead of
+            # running out the test's timeout)
+            state["calls"] = state.get("calls", 0) + 1
+            if state["calls"] > 6000:
+                raise RuntimeError("stuck in the drill: frame %d, state %d, "
+                                   "%d tries, %d results" % (
+                                       frame, game.fighter(0).state,
+                                       state["tries"],
+                                       len(c.results_now())))
             if state["press"]:
                 state["press"] -= 1
                 if state["press"] == 0:

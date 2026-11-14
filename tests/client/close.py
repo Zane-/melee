@@ -36,6 +36,11 @@ def check(name, ok, detail=""):
 def main():
     save = os.path.join(tempfile.mkdtemp(prefix="melee-client-"),
                         "client.json")
+    # (the tutorial, which opens a drill the first time, is not this
+    # test's subject: tests/client/short_hop.py)
+    seen = courses.Progress(save)
+    seen.drill(DRILL).update(tutorial=True, part=2)   # its last part
+    seen.save()
     w = c = None
     try:
         w = window.Window(window=(1280, 720), timeout=20)

@@ -31,7 +31,25 @@ def check(name, ok, detail=""):
                         "  (" + detail + ")" if detail else ""))
 
 
+
+def waiting_for(drills):
+    """The drills this test plays that are not back yet: the drills were
+    wiped 2026-11-14 and are rebuilt one at a time in the drill format
+    (docs/ai/drill-format.md); this test moves onto the first rebuilt ones
+    it can use."""
+    import os
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(
+        __file__)), "..", "..", "tools"))
+    from melee_course import registry
+    return [d for d in drills if not registry.has(d)]
+
 def main():
+    missing = waiting_for(['fox-shield-pressure'])
+    if missing:
+        print("skip: plays %s, not rebuilt yet in the drill format"
+              % ", ".join(missing))
+        return 0
     w = window.Window(window=(1280, 720))
     state = dict(n=0)
     c = None

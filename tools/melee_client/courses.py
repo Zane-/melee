@@ -3,9 +3,9 @@ done in it.
 
 The course is read from data/courses/<id>.md: each part's plan table (one
 row per drill, in order). Which drills can be played in this client is a
-separate matter: a drill plays here when a scenario file names it
-(data/scenarios/*.json, "drill": "<drill id>"); the others are listed and
-say so.
+separate matter: a drill plays here when it is written in the drill format
+(data/drills/<drill id>.json, docs/ai/drill-format.md); the others are
+listed and say so.
 
 What the player has done (drills marked done, tries, the last drill) is
 kept in save/client.json at the top of the repository, which git ignores.
@@ -87,32 +87,17 @@ def refer(course, drill, text):
     return out
 
 
-#: In scenarios(): the drill runs on the course engine (tools/melee_course).
+#: In scenarios(): the drill runs on the course runtime (tools/melee_course).
 COURSE = "course"
 
 
 def scenarios():
     """{drill id: what plays it} for the drills that play in this client:
-    COURSE for a drill ported from the overlay's course engine
-    (tools/melee_course), else the scenario file that names it
-    (data/scenarios). A tech drill judged by the frame (a file with "tech":
-    tools/melee_actor/tech.py, with its input timeline) keeps its file."""
+    the drills in the drill format (data/drills/, tools/melee_drills,
+    docs/ai/drill-format.md), on the course runtime. (Scenario files in
+    data/scenarios/ are the Melee Actor's, not drills.)"""
     from melee_course import registry
-    files, judged = {}, set()
-    for path in sorted((ROOT / "data" / "scenarios").glob("*.json")):
-        try:
-            sc = json.loads(path.read_text())
-        except ValueError:
-            continue
-        if sc.get("drill"):
-            files[sc["drill"]] = path
-            if sc.get("tech"):
-                judged.add(sc["drill"])
-    out = {d: COURSE for d in registry.ids()}
-    for d, path in files.items():
-        if d in judged or d not in out:
-            out[d] = path
-    return out
+    return {d: COURSE for d in registry.ids()}
 
 
 class Progress:

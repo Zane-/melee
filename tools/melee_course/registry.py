@@ -1,7 +1,9 @@
-"""Every ported course drill, by its id in data/courses/.
+"""Every course drill, by its id in data/courses/.
 
-A module in drills/ lists its drills in `DRILLS` (classes); this collects
-them. `get(id)` gives a fresh instance.
+A drill in the drill format (data/drills/<id>.json, tools/melee_drills) is
+played by melee_drills.drill.JsonDrill; a module in drills/ lists drills
+written in Python in `DRILLS` (classes). This collects both, the format's
+first. `get(id)` gives a fresh instance.
 """
 import importlib
 import os
@@ -22,6 +24,11 @@ def _load():
                 if cls.id in _drills:
                     raise ValueError("drill %s is in two modules" % cls.id)
                 _drills[cls.id] = cls
+        from melee_drills import format as fmt
+        from melee_drills.drill import JsonDrill
+        for ident in fmt.ids():
+            _drills[ident] = (lambda i: lambda: JsonDrill(fmt.load(i)))(
+                ident)
     return _drills
 
 

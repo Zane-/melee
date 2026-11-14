@@ -298,6 +298,16 @@ class Native:
         fresh."""
         self._cmd("clean")
 
+    def camera(self, how="normal", port=0, distance=140.0, height=10.0):
+        """The match camera: "normal" (both fighters framed), "stage" (the
+        whole stage, still), or "follow" (the game's free camera on `port`,
+        its eye `distance` in front of the fighter and `height` above:
+        one fighter alone without the normal camera's close zoom)."""
+        if how == "follow":
+            return self._cmd("camera follow %d %g %g" % (port, distance,
+                                                           height))
+        return self._cmd("camera " + how)
+
     def quiet(self, on=True):
         """Frames nobody sees or hears until quiet(False): no draw pass, no
         sound, and (the window build) no pacing and the last picture kept.

@@ -579,8 +579,11 @@ class Ctx:
     def report(self, key, value):
         self.s.report[key] = value
 
-    def result(self, success, words):
+    def result(self, success, words, **extra):
+        """The verdict. `extra`: more of the result for the client and the
+        coach (headline, fix, checks, a drill's own; tools/melee_drills)."""
         self.s.end(bool(success), words)
+        self.s.extra.update(extra)
 
     def retry(self, words):
         self.s.end(None, words)
@@ -1021,6 +1024,7 @@ class Session:
         c, d, n = self.c, self.d, self.n
         self.demo_pass = demo_pass
         self.verdict = None
+        self.extra = {}
         self.ui = None
         self.measure = None
         self.report = {}
@@ -1143,6 +1147,7 @@ class Session:
                    frames=frame, demo=bool(demo_pass), checks=[],
                    messages=list(self.messages),
                    ui=self.ui[0] if self.ui else None)
+        out.update(self.extra)
         if not self.ui:
             tl = self._timeline()
             if tl:

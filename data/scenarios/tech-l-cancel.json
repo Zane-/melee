@@ -1,9 +1,0 @@
-{
-  "drill": "universal-l-cancel",
-  "tech": "l_cancel",
-  "name": "L-cancel",
-  "about": "Do any aerial and press L, R or Z in the 7 frames before you land. The landing lag is halved and it costs nothing: do it every time.",
-  "p2": "marth",
-  "stage": "final-destination",
-  "start": -20
-}

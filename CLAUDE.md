@@ -122,7 +122,7 @@ ninja
 | AI coach design | `docs/ai/ai-coach.md` |
 | Slippi direct-connect tandem training research | `docs/ai/slippi-tandem.md` |
 | Our own peer-to-peer rollback netcode: the study, and what is built (state save/restore, per-frame undo records, the UDP session, STUN codes and hole punching, playing a friend from the client's Versus) | `docs/ai/netplay-p2p.md`; `src/host/{state,gameheap,rollback,net}.c`, `tools/melee_client/online.py`; `python tests/native/netplay.py`, `tests/client/online.py` |
-| The coach (a card after misses in a row in any drill: the game's own pictures of the try against the demonstration, or a tech drill's try put right; inputs by frame, how to fix it; a replay), the game's past pictures kept and shown in the interface, TM-CE's input display, the pause sheet | `tools/melee_client/coach.py`, `icons.py`, `src/host/frames.c`, `src/host/inputs.c`, `tools/aurora32/aurora-0002-copy-views.patch`; "The coach" in `docs/ai/native-ai.md`; `tests/client/coach.py`, `tests/client/coach_tech.py` |
+| The coach (a card after misses in a row in any drill: the game's own pictures of the try against the example; inputs by frame, how to fix it; a replay), the game's past pictures kept and shown in the interface, TM-CE's input display, the pause sheet | `tools/melee_client/coach.py`, `icons.py`, `src/host/frames.c`, `src/host/inputs.c`, `tools/aurora32/aurora-0002-copy-views.patch`; "The coach" in `docs/ai/native-ai.md`; `tests/client/coach.py`, `tests/client/coach_tech.py` |
 | Control profiles and input delay (the pad sample hook) | `src/melee/tm/controls/`, `tests/sim/controls.py` |
 | The native client's Settings: input delay (Slippi's 2 frames by default), rumble, UCF, volumes, display, online | `tools/melee_client/settings.py`, the settings sections of `client.py` and `screens.py`; `src/host/window.c` (delay, rumble, volumes), `gcadapter.c` (the adapter's rumble), `hw.c` (`PADControlMotor`); "Settings" in `docs/ai/native-ai.md`; `tests/native/delay_rumble.py`, `tests/native/volume.py`, `tests/client/settings_menu.py` |
 | UCF 0.84 in C, and its comparison against Slippi's own code (overlay and native build) | `src/melee/tm/ucf/`, `docs/ai/ucf.md`, `tests/sim/ucf.py`, `tests/native/ucf.py` |
@@ -147,21 +147,41 @@ ninja
 | The character select's art: the game's portraits and series emblems read off the disc, Sheik drawn from her model, costumes, Zelda and Sheik in one place | `tools/melee_client/art.py`, `src/host/studio.c` (a fighter alone: camera, background); `tests/client/portraits.py`; "Character art" in `docs/ai/native-ai.md` |
 | The stage select (after the characters, in Versus and the Lab): the stages drawn by the native build, the game's name logos, blast zones read from the game; the menus' faded drawings; Versus first, the Lab in Train | `tools/melee_client/stages.py`, `marks.py`, `screens.stage_select`; `tests/client/stage_select.py`; "Versus first, the Lab in Train" in `docs/ai/native-ai.md` |
 | A trained slippi-ai model as the opponent in the native client (Versus, the Lab) | `tools/melee_client/opponents.py`, `tools/melee_actor/policy_server.py`; `tests/client/versus.py` |
-| The course drills on the native build: the overlay's engine and drills ported to Python, proven by the overlay's own specs | `tools/melee_course/` (engine.py, drills/), `python tests/course/specs.py [DRILL]`; "The courses on the native build" in `docs/ai/native-ai.md` |
+| Drills: the drill format (one JSON file per drill: goal, why, the tutorial and its example, the technique in parts, scenarios with whether a CPU is spawned and the camera, checks with their words and fixes, the coach's rows), its proof, the tutorial (how to do it) apart from the coach (what went wrong); the old drills were wiped 2026-11-14 and are rebuilt one at a time with the owner | `docs/ai/drill-format.md`; `data/drills/`, `tools/melee_drills/` (format.py, drill.py, check.py); `python tools/melee_drills/check.py <id>`, `tests/client/short_hop.py` |
 | Sound in the native build: the AX voices and mixer, music streams, menu sounds and music in the client | `src/host/audio.c`, `tests/native/audio.py`, `tests/client/sound.py`; "Sound" in `docs/ai/native-ai.md` |
 | Loads and resets with no loading screen, as TM-CE's savestates: the opponent swapped in place, a clean slate each attempt (`clean`), matches loaded unseen and unheard (`quiet`) | "Loading like TM-CE" in `docs/ai/native-ai.md`; `src/host/{match,setup,audio,window}.c`; `python tests/native/loading.py`, `tests/client/loading.py` |
-| Drills the owner changed natively (dash dance, shield drop, ledgedash, Illusion...), timelines in every timing drill | `tools/melee_course/drills/`, `python tests/course/native_changes.py`, `tests/client/drills.py`; "Drills the owner changed" in `docs/ai/native-ai.md` |
-| Make a course drill play in the native client | port it to `tools/melee_course/drills/` (it then plays on the course engine), or a file in `data/scenarios/` with `"drill": "<course drill id>"`: a scenario (skill `actor-scenario`) or a tech drill (`"tech"`, judged on the player's inputs by frame: `tools/melee_actor/tech.py`, `tests/actor/tech.py`) |
+| Make a drill play in the native client | write `data/drills/<id>.json` in the drill format (`docs/ai/drill-format.md`); a word the format lacks goes into `tools/melee_drills/format.py` with its proof; `python tools/melee_drills/check.py <id>` |
 | Which controllers the native client sees; the GameCube adapter, read directly | `python tools/melee_client/client.py --devices`; `src/host/gcadapter.c`, `tests/native/gcadapter.py` |
 | Train against a scenario yourself on the native build (verdicts in the terminal) | `python tools/melee_actor/train.py data/scenarios/FILE.json`; `tests/actor/train.py` |
 | Play the native build yourself (a window on your desktop, with sound) | `python tools/melee_native/play.py [p1] [p2] [--stage S] [--cpu] [--input keyboard]`; `tests/native/live.py` |
 | A picture from the native build's window variant, off screen | `tools/aurora32/build.sh`, `python tools/native_build.py --window`, `python tools/melee_native/window.py --out DIR`; "The game draws" in `docs/ai/native-ai.md` |
-| Opponents whose attacks land unless answered: the game played ahead before the CPU commits (`ahead`), actor steps `sequence`/`aerial`/`strike`, a drill's option Opponent: Reactive | `src/host/ahead.c`, `tools/melee_actor/ahead.py`, `tools/melee_course/react.py`; `python tests/native/ahead.py`, `tests/actor/react.py`, `tests/course/reactive.py`; "Attacks that land" in `docs/ai/melee-actor.md` |
-| The opponent that thinks: a chess engine's search on the real game (`search`: macros, the timing scan, `then=`, `eval=1`), the engine as a drill's opponent held to a contract (fox-anti-air, Opponent: Engine: both move, it jumps only when you have an anti-air), thinking in forked copies of the live game (`engine fork`), shadow games, slippi-ai as body and model of you | `docs/ai/melee-engine.md`; `src/host/engine.c`, `tools/melee_engine/` (search, jumpin, fork, opponent, shadow, human); `python tests/native/engine.py`, `tests/course/anti_air_engine.py`, `tests/native/shadow.py`, `tests/actor/engine_opponent.py`, `tests/actor/blend.py` |
+| Opponents whose attacks land unless answered: the game played ahead before the CPU commits (`ahead`), actor steps `sequence`/`aerial`/`strike` | `src/host/ahead.c`, `tools/melee_actor/ahead.py`, `tools/melee_course/react.py`; `python tests/native/ahead.py`, `tests/actor/react.py`; "Attacks that land" in `docs/ai/melee-actor.md` |
+| The opponent that thinks: a chess engine's search on the real game (`search`: macros, the timing scan, `then=`, `eval=1`), the engine as a drill's opponent held to a contract (`EngineOpponent`, `JumpIn`: both move, it jumps only when you have an anti-air), thinking in forked copies of the live game (`engine fork`), shadow games, slippi-ai as body and model of you | `docs/ai/melee-engine.md`; `src/host/engine.c`, `tools/melee_engine/` (search, jumpin, fork, opponent, shadow, human); `python tests/native/engine.py`, `tests/native/shadow.py`, `tests/actor/engine_opponent.py`, `tests/actor/blend.py` |
 | Scripts of intentions instead of frames (the Melee Actor), slippi-ai research | `docs/ai/melee-actor.md`, `tools/melee_actor/`; `python tests/actor/uptilt.py` |
 | The game as a native Linux process (vanilla only, headless), and how close it is to the console | `python tools/native_build.py` → `build/native/melee_headless`; `docs/ai/native-port.md` |
 | Does the native build play the same game as the console's code? | `python tools/melee_native/compare.py` (`--random N`, `--tolerance`) |
 | Does a native match depend on a variable the game never assigns? | `python tools/native_build.py --auto-init zero` and `pattern`, then `python tests/native/uninit.py`; kind 7 in `docs/ai/native-port.md` |
+
+## Running tests that drive the game: never let one hang the session
+
+The owner, 2026-11-14: commands were left hanging "forever" until they backgrounded them by
+hand. A test that drives the game (anything using `window.Window`, `tests/client/*`, a
+stand-in waiting for a state, a menu chooser) can wait for a screen, a key or a state that
+never comes, and then spins until its timeout. So:
+
+- Run any such test, and anything that may take over a minute, with `run_in_background`,
+  and read its output file while it runs. Never block the session on it.
+- With `python -u` (unbuffered: written to a file, Python's output otherwise appears only
+  at the end, and a working test looks hung), and a `timeout` of about twice the test's
+  usual time: most client tests take 30 to 90 s, so 120 to 180 s; never a blanket 300 or
+  more. Never piped through `tail`, `head` or `grep`: they hold the output back until the
+  end and turn the timeout's exit code 124 into a 0.
+- Every loop in a test (frames until a result, a stand-in waiting for a state, a key held
+  until a screen opens) has a frame budget and fails with a message saying what it waited
+  for. A key a stand-in taps is held at least two frames: one pressed and released inside a
+  single frame is not seen.
+- If output stops moving, stop the test (`TaskStop`, or kill its process group) and find
+  the loop; do not wait out the timeout.
 
 ## Verification status
 

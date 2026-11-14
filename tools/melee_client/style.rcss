@@ -541,6 +541,24 @@ img { display: inline-block; }
 .ckey .gcimg, .ckey .gc, .ckey .key { margin-right: 8dp; }
 .coff { font-size: 13dp; font-weight: 500; color: #4A5361; }
 
+/* the tutorial: how to do it, before the first try and between parts
+   (Client.tutorial); the coach card's frame, a teal head */
+.cstrip.tut { background-color: #22B8A0; }
+.cbadge.tut { background-color: #22B8A0; width: 112dp; }
+/* (not .tbody: the online ticket's, which is slanted) */
+.tutbody { padding: 16dp 28dp 0dp 28dp; display: flex; flex-direction: column; }
+.tblock { margin-bottom: 14dp; }
+.th { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; color: #18977F; margin-bottom: 4dp; text-transform: uppercase; }
+.tt { font-size: 17dp; line-height: 1.35em; color: #12161C; }
+.tparts { display: flex; flex-direction: column; }
+.tpart { display: flex; flex-direction: row; align-items: center; height: 34dp; margin-bottom: 4dp; background-color: #FFFFFF; padding-right: 14dp; }
+.tpart.now { background-color: #12161C; color: #F3F6FA; }
+.tpart.done { color: #4A5361; }
+.tpn { width: 34dp; height: 34dp; background-color: #DCE2EA; color: #12161C; font-family: "Barlow Condensed"; font-weight: 800; font-size: 20dp; text-align: center; line-height: 34dp; margin-right: 12dp; }
+.tpart.now .tpn { background-color: #22B8A0; }
+.tpw { font-size: 16dp; font-weight: 700; }
+.tps { margin-left: auto; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
+
 /* the replay of a try (the canvas's "Coach: replay of your try") */
 .replay { display: none; position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 720dp; z-index: 10; color: #F3F6FA; }
 .replay.on { display: block; }

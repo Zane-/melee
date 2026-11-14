@@ -633,6 +633,15 @@ static void command(char* line)
         } else if (host_engine_playing()) {
             steps_left = 1; /* this boundary goes on: the frames run */
         }
+    } else if (strcmp(cmd, "camera") == 0) {
+        /* "camera normal|stage|follow PORT DIST [H]" (camera.c) */
+        const char* r = host_camera_command(line);
+        if (r == NULL) {
+            printf("@ error camera normal | stage | follow PORT DIST "
+                   "[HEIGHT]\n");
+        } else {
+            printf("@ %s\n", r);
+        }
     } else if (strcmp(cmd, "engine") == 0) {
         /* "engine player ...", "engine macros" (engine.c) */
         const char* why = host_engine_command(line);

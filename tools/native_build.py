@@ -305,6 +305,11 @@ PATCHES = {
         ("(struct CameraStaticData*) &cm_803BCB18;",
          "(struct CameraStaticData*) ((u8*) &cm_803BCB64 - "
          "offsetof(struct CameraStaticData, desc));"),
+        # the match camera, for the host's "camera" command (src/host/
+        # camera.c: a drill's camera, following its player at a distance)
+        ("/* 452C68 */ static Camera game_camera;",
+         "/* 452C68 */ static Camera game_camera;\n"
+         "Camera* host_game_camera(void) { return &game_camera; }"),
     ],
     # An image descriptor, addressed from a struct laid over the globals
     # before it.

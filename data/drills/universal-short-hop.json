@@ -1,0 +1,108 @@
+{
+  "id": "universal-short-hop",
+  "name": "Short hop",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Leave the ground with a short hop every time.",
+  "why": "A short hop rises about half as high as a full jump and is back on the ground much sooner. Aerials out of it reach a standing opponent, and you land before they can punish.",
+
+  "tutorial": {
+    "what": "A short hop is a jump whose button you let go of early. Press X or Y and let go before {char} leaves the ground: the jump is about half as high.",
+    "expect": "Each jump is judged the moment you leave the ground: short or full, and how many frames you held the button. Your presses show on the input display; after a miss the coach shows them frame by frame against the {J} frames of jump squat.",
+    "example": [{"press": "jump", "frame": 1, "hold": 1}],
+    "marks": {
+      "1": "X pressed: the jump squat begins. X let go on the next frame",
+      "J": "The squat's last frame: X is already up, so the hop is short",
+      "J+1": "In the air: a short hop"
+    }
+  },
+
+  "scenarios": [
+    {"name": "On the stage", "stage": "final-destination",
+     "player": {"x": -20}, "opponent": "none",
+     "camera": {"follow": "player", "distance": 180, "height": 10}}
+  ],
+
+  "attempt": {"start": {"enters": "jump_squat"}, "judge": "airborne"},
+
+  "measures": {"held": {"held": "jump"}, "kind": "jump_kind"},
+
+  "verdict": {"success": "Short hop! X or Y held {held_frames}."},
+
+  "checks": {
+    "with a button": {
+      "measure": "held", "at_least": 1,
+      "expect": "A jump with X or Y",
+      "words": "X or Y held {frames}",
+      "headline": "Jumped with the stick",
+      "fix": "Jump with X or Y and tap it. With the stick up, the jump lasts as long as up is held: a full hop."
+    },
+    "released in the squat": {
+      "measure": "held", "at_most": "J-1",
+      "expect": "X or Y let go within {J-1} frames",
+      "words": "held {frames}, the squat is {J}",
+      "headline": "Held through the squat",
+      "fix": "Let go of X or Y within {J-1} frames of pressing it. Still held on the squat's last frame (frame {J}), the jump is a full hop."
+    },
+    "short hop": {
+      "measure": "kind", "equals": "short",
+      "expect": "A short hop",
+      "words": "a {measure} hop",
+      "headline": "Full hop",
+      "fix": "Tap X or Y: press it and let go at once, within {J-1} frames."
+    }
+  },
+
+  "parts": [
+    {
+      "name": "The jump squat",
+      "teach": "Press X once. Before {char} leaves the ground there are {J} frames of jump squat, a crouch before the jump. Whether the jump is short or full is decided in those {J} frames.",
+      "example": [{"press": "jump", "frame": 1, "hold": 1}],
+      "marks": {
+        "1": "X pressed: the jump squat begins",
+        "J": "The squat's last frame",
+        "J+1": "In the air"
+      },
+      "checks": [],
+      "success": "A jump: {J} frames of squat, then the air.",
+      "streak": 1
+    },
+    {
+      "name": "Tap, do not hold",
+      "teach": "Tap X: press it and let go within {J-1} frames, before the squat ends. Let go in time and {char} rises about half as high. Still held on the squat's last frame, it is a full hop.",
+      "example": [{"press": "jump", "frame": 1, "hold": 1}],
+      "marks": {
+        "1": "X pressed: the jump squat begins",
+        "2": "X let go: still in the squat",
+        "J+1": "In the air: a short hop, about half the height"
+      },
+      "checks": ["with a button", "released in the squat", "short hop"],
+      "streak": 3
+    },
+    {
+      "name": "Every time",
+      "teach": "Ten short hops in a row, at your own pace. Watch the height: every hop the same.",
+      "example": [{"press": "jump", "frame": 1, "hold": 1}],
+      "checks": ["with a button", "short hop"],
+      "streak": 10
+    }
+  ],
+
+  "mistakes": [
+    {"name": "held through the squat",
+     "inputs": [{"press": "jump", "frame": 1, "hold": "J"}],
+     "fails": "released in the squat"},
+    {"name": "held to the top of the jump",
+     "inputs": [{"press": "jump", "frame": 1, "hold": "J+20"}],
+     "fails": "released in the squat"},
+    {"name": "jumped with the stick",
+     "inputs": [{"stick": [0, 1], "frame": 1, "hold": "J+4"}],
+     "fails": "with a button"}
+  ],
+
+  "coach": {
+    "rows": [{"label": "Jump", "button": "jump", "held": true,
+              "perfect": [1], "window": [1, "J-1"]}],
+    "note": "The jump squat is {J} frames: let go of X or Y by frame {J-1}."
+  }
+}
