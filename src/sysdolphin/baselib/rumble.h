@@ -13,13 +13,14 @@ struct HSD_RumbleData {
     HSD_PadRumbleListData* listdatap;
 };
 
-/// One command of a rumble script.
-struct RumbleCommand {
+/// One command of a rumble script. The scripts are read from LbRb.dat in
+/// the console's bit order (the native build: PPC_LAYOUT).
+struct PPC_LAYOUT RumbleCommand {
     u16 op : 3;
     u16 frame : 13;
 };
 
-union HSD_Rumble {
+union PPC_LAYOUT HSD_Rumble {
     u16 def;
     RumbleCommand command;
 };

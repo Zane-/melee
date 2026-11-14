@@ -1035,8 +1035,10 @@ class Session:
                 # is the one sampled for the coming frame; the frame just
                 # played used the one before it, which is what this frame's
                 # state answers to (a press and the jump squat it starts
-                # come on the same frame, as with a scripted pad).
-                now = n.pads()[self.person]
+                # come on the same frame, as with a scripted pad). It is
+                # the pad the game is given: after the input delay, so that
+                # a press lines up with what it did.
+                now = n.pads(game=True)[self.person]
                 pad = self.live_pad if self.live_pad is not None else now
                 self.live_pad = now
             else:

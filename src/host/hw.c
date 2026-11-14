@@ -144,6 +144,22 @@ BOOL PADRecalibrate(u32 mask)
     return 1;
 }
 
+/* What the game asks of each controller's motor (HSD_PadRumbleInterpret).
+ * The window build passes it on to the controllers (window.c). */
+static u8 motor[4];
+
+void PADControlMotor(u32 chan, u32 command)
+{
+    if (chan < 4) {
+        motor[chan] = command == PAD_MOTOR_RUMBLE;
+    }
+}
+
+int host_motor(int chan)
+{
+    return motor[chan & 3];
+}
+
 u32 PADRead(PADStatus* status)
 {
     u32 mask = 0;

@@ -244,11 +244,39 @@ class Window(Native):
         """Keep the live ports' presses from the game (a menu is up)."""
         self._cmd("capture %d" % (1 if on else 0))
 
-    def pads(self):
+    def delay(self, frames=None):
+        """Input delay, as Slippi plays online: every live port's input
+        reaches the game `frames` frames after it is read (0 to 15).
+        pads() is not held back; pads(game=True) is. Returns the delay."""
+        reply = self._cmd("delay" if frames is None else "delay %d" % frames)
+        return int(reply.split()[-1])
+
+    def rumble(self, port=None, on=True):
+        """Port `port`'s rumble on or off. With no port: the state, a dict
+        of four-item lists: "game" (the game's motor command, 1 running),
+        "allowed", "running" (the controller's motor now) and "adapter"
+        (what the adapter's motors were last told: 1, 0, or -1 if not)."""
+        if port is not None:
+            self._cmd("rumble %d %d" % (port, 1 if on else 0))
+            return None
+        parts = self._cmd("rumble").split("|")
+        game = [int(x) for x in parts[0].split()[-4:]]
+        rest = [[int(x) for x in part.split()] for part in parts[1:]]
+        return dict(game=game, allowed=rest[0], running=rest[1],
+                    adapter=rest[2])
+
+    def rumble_test(self, port, frames=30):
+        """Run port `port`'s motor for `frames` frames, whatever the game
+        says (the Controls screen's "Feel it")."""
+        self._cmd("rumble %d test %d" % (port, frames))
+
+    def pads(self, game=False):
         """What the people at the live ports are holding, whether or not
         the game sees it: four dicts of buttons (a bit mask), lx, ly, cx,
-        cy (-127..127), lt, rt (0..255)."""
-        words = self._cmd("pads").split()
+        cy (-127..127), lt, rt (0..255). game=True: what the game is given
+        for the coming frame instead, after the input delay (delay()), the
+        mask and a menu's capture."""
+        words = self._cmd("pads game" if game else "pads").split()
         out = []
         for i in range(4):
             w = words[i * 7:i * 7 + 7]

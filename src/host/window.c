@@ -396,6 +396,91 @@ void host_window_scripted(int port, int on)
     }
 }
 
+/* Input delay, as Slippi plays online: what a live port's person holds
+ * reaches the game this many frames after it is read, so that practice
+ * keeps the timing of online play (Slippi's default is 2 frames). `seen`
+ * is not held back: the client's menus answer at once. A netplay session
+ * delays the local pad itself (net.c), so while one runs this adds
+ * nothing. */
+#define DELAY_MAX 15
+static int delay_frames;
+static HostPad held_back[4][DELAY_MAX + 1];
+static unsigned held_next[4];
+
+int host_window_delay(int frames)
+{
+    if (frames >= 0) {
+        if (frames > DELAY_MAX) {
+            frames = DELAY_MAX;
+        }
+        if (frames != delay_frames) {
+            /* what was held back goes: the game keeps what it has */
+            for (int port = 0; port < 4; port++) {
+                for (int i = 0; i <= DELAY_MAX; i++) {
+                    held_back[port][i] = host.pads[port];
+                }
+            }
+        }
+        delay_frames = frames;
+    }
+    return delay_frames;
+}
+
+/// The pad to give the game this frame, when it would be #give with no
+/// delay.
+static HostPad hold_back(int port, const HostPad* give)
+{
+    unsigned at = held_next[port]++ % (DELAY_MAX + 1);
+
+    held_back[port][at] = *give;
+    if (delay_frames == 0 || host_net_active()) {
+        return *give;
+    }
+    return held_back[port][(at + DELAY_MAX + 1 - (unsigned) delay_frames) %
+                           (DELAY_MAX + 1)];
+}
+
+/* Rumble: the game's motor commands (PADControlMotor, hw.c) reach the
+ * controller a live port reads, a GameCube controller on the adapter or
+ * another controller through SDL. A port's rumble can be switched off (a
+ * setting of the client's), it stops while a menu is up, and a test pulse
+ * runs it whatever the game says. */
+static int rumble_off[4];
+static int rumble_test[4]; ///< frames of test pulse left
+static int rumble_on[4];   ///< what the port's controller was last told
+static unsigned rumble_frames;
+
+void host_window_rumble(int port, int on)
+{
+    rumble_off[port & 3] = !on;
+}
+
+void host_window_rumble_test(int port, int frames)
+{
+    rumble_test[port & 3] = frames;
+}
+
+/// Per port: 1 if its rumble is allowed, and whether its controller's
+/// motor is running now.
+void host_window_rumble_state(int allowed[4], int running[4])
+{
+    for (int i = 0; i < 4; i++) {
+        allowed[i] = !rumble_off[i];
+        running[i] = rumble_on[i];
+    }
+}
+
+static void gamepad_rumble(SDL_Gamepad* g, int port, int want)
+{
+    /* the controller stops by itself after the duration, so a game that
+       ends without stopping it does not leave it running: a running motor
+       is told again before then */
+    if (want != rumble_on[port] || (want && rumble_frames % 20 == 0)) {
+        SDL_RumbleGamepad(g, want ? 0xC000 : 0, want ? 0x8000 : 0,
+                          want ? 500 : 0);
+    }
+}
+
 void host_window_capture(int on)
 {
     captured = on;
@@ -595,11 +680,16 @@ static void read_keyboard(HostPad* p)
 
 static void read_live(void)
 {
+    int adapter_motor[4] = { 0, 0, 0, 0 };
+    int adapter_used = 0;
+
+    rumble_frames++;
     for (int port = 0; port < 4; port++) {
         SDL_Gamepad* g = NULL;
         int how = live[port];
 
         if (how == LIVE_OFF) {
+            rumble_on[port] = 0;
             continue;
         }
         int adapter = -1;
@@ -628,11 +718,35 @@ static void read_live(void)
             now.connected = 1;
             rest.connected = 1;
             seen[port] = now;
+            {
+                int want = (host_motor(port) && !rumble_off[port] &&
+                            !captured) ||
+                           rumble_test[port] > 0;
+                if (rumble_test[port] > 0) {
+                    rumble_test[port]--;
+                }
+                if (adapter >= 0) {
+                    adapter_motor[adapter] |= want;
+                    adapter_used = 1;
+                } else if (g != NULL) {
+                    gamepad_rumble(g, port, want);
+                } else {
+                    want = 0; /* the keyboard has no motor */
+                }
+                rumble_on[port] = want;
+            }
             if (scripted[port]) {
-                continue; /* the driver's pad stays the game's */
+                /* the driver's pad stays the game's; the delay sees rest */
+                hold_back(port, &rest);
+                continue;
             }
             now.buttons &= (uint16_t) ~masked;
-            host.pads[port] = captured ? rest : now;
+            host.pads[port] = hold_back(port, captured ? &rest : &now);
+        }
+    }
+    if (adapter_used) {
+        for (int i = 0; i < 4; i++) {
+            host_gcc_motor(i, adapter_motor[i]);
         }
     }
 }
@@ -952,6 +1066,7 @@ void host_window_idle(void)
     {
         if (event->type == AURORA_EXIT) {
             fflush(stdout);
+            host_gcc_motors_off();
             host_log("the window was closed");
             fflush(stderr);
             _exit(0);
@@ -1006,6 +1121,7 @@ void host_window_frame(void)
                "not responding" (the owner, 2026-11-13). The process ends
                now; the system frees the window and the GPU's memory. */
             fflush(stdout);
+            host_gcc_motors_off();
             host_log("the window was closed");
             fflush(stderr);
             _exit(0);

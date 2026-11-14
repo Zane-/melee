@@ -251,6 +251,7 @@ void host_quit(void)
     fflush(stdout);
     fflush(stderr);
 #ifdef HOST_WINDOW
+    host_gcc_motors_off(); /* the adapter keeps a motor running otherwise */
     _exit(0);
 #else
     exit(0);
@@ -854,10 +855,16 @@ static void command(char* line)
             }
         } else if (cmd[0] == 'p') {
             /* what the people at the live ports hold: "BUTTONS LX LY CX CY
-               L R" for each of the four ports */
+               L R" for each of the four ports; "pads game": what the game
+               is given for the coming frame instead (after the input
+               delay, the mask and a menu's capture) */
+            char which[8] = "";
+            sscanf(line, "%7s", which);
             printf("@");
             for (int p = 0; p < 4; p++) {
-                const HostPad* pad = host_window_seen(p);
+                const HostPad* pad = strcmp(which, "game") == 0
+                                         ? &host.pads[p]
+                                         : host_window_seen(p);
                 printf(" %x %d %d %d %d %d %d", pad->buttons, pad->lx,
                        pad->ly, pad->cx, pad->cy, pad->lt, pad->rt);
             }
@@ -933,6 +940,54 @@ static void command(char* line)
 #else
         printf("@ error script needs the window build\n");
 #endif
+    } else if (strcmp(cmd, "delay") == 0) {
+#ifdef HOST_WINDOW
+        /* "delay N": every live port's input reaches the game N frames
+           after it is read (Slippi's online delay; 0 to 15); "delay":
+           how many */
+        int frames = -1;
+        sscanf(line, "%d", &frames);
+        printf("@ ok %d\n", host_window_delay(frames));
+#else
+        printf("@ error delay needs the window build\n");
+#endif
+    } else if (strcmp(cmd, "rumble") == 0) {
+        /* "rumble": the game's motor command for each port (1 running),
+           and with the window build each port's rumble allowed and its
+           controller's motor running; "rumble P 1|0": port P's rumble on
+           or off; "rumble P test [FRAMES]": run its motor that long (30) */
+        int p = -1, frames = 30;
+        char what[8] = "";
+        int n = sscanf(line, "%d %7s %d", &p, what, &frames);
+        if (n >= 2 && (p < 0 || p > 3)) {
+            printf("@ error no such port\n");
+        } else if (n >= 2) {
+#ifdef HOST_WINDOW
+            if (strcmp(what, "test") == 0) {
+                host_window_rumble_test(p, frames);
+            } else {
+                host_window_rumble(p, atoi(what));
+            }
+            printf("@ ok\n");
+#else
+            printf("@ error rumble needs the window build\n");
+#endif
+        } else {
+            printf("@ ok %d %d %d %d", host_motor(0), host_motor(1),
+                   host_motor(2), host_motor(3));
+#ifdef HOST_WINDOW
+            {
+                int allowed[4], running[4], told[4];
+                host_window_rumble_state(allowed, running);
+                host_gcc_motors(told);
+                printf(" | %d %d %d %d | %d %d %d %d | %d %d %d %d",
+                       allowed[0], allowed[1], allowed[2], allowed[3],
+                       running[0], running[1], running[2], running[3],
+                       told[0], told[1], told[2], told[3]);
+            }
+#endif
+            printf("\n");
+        }
     } else if (strcmp(cmd, "mask") == 0) {
 #ifdef HOST_WINDOW
         /* "mask HEX": buttons of the live ports kept from the game */

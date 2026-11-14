@@ -161,6 +161,14 @@ void host_window_capture(int on);
 void host_window_mask(unsigned buttons);
 void host_window_scripted(int port, int on);
 const HostPad* host_window_seen(int port);
+/// Frames every live port's input is held back (frames < 0 only asks).
+int host_window_delay(int frames);
+/// Rumble (window.c): a port's on or off, a test pulse, and the state.
+void host_window_rumble(int port, int on);
+void host_window_rumble_test(int port, int frames);
+void host_window_rumble_state(int allowed[4], int running[4]);
+/// The game's own motor command for a port: 1 running (hw.c).
+int host_motor(int chan);
 
 /// The last frame's wait for the driver on the control pipe, in ms.
 extern double host_driver_ms;
@@ -176,6 +184,9 @@ void host_window_devices(char* out, size_t size);
 void host_gcc_take(void);
 void host_gcc_counts(unsigned long* reports, unsigned long* errors,
                      unsigned long* opened, double* age);
+void host_gcc_motor(int port, int on);
+void host_gcc_motors_off(void);
+void host_gcc_motors(int told[4]);
 /// Fullscreen on (1), off (0), the other of what it is (2); anything else
 /// only asks. Returns what was last asked for.
 int host_window_fullscreen(int want);

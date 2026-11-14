@@ -143,6 +143,11 @@ static void on_enter(GameModeState* state)
         if (i < 4 && host_match.ckind[i] >= 0) {
             p->ckind = (s8) host_match.ckind[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
+            /* a person's controller rumbles, as the game's own default
+               (gm_LoadRumbleEnabled: humans only); whether it reaches
+               the controller is the host's setting (window.c), so both
+               sides of a netplay session keep one game state */
+            p->rumble_enabled = host_match.human[i] ? 1 : 0;
         } else if (i < 4) {
             p->ckind = CKind_Link; /* as the game's own state leaves it */
         }

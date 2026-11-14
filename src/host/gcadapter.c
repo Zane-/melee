@@ -20,6 +20,11 @@
  * boundary. Opening needs the device node to be writable by the user: the
  * udev rule Dolphin asks for. While another program has the adapter
  * (Dolphin), this one cannot, and the other way round.
+ *
+ * Rumble: 0x11 and a byte for each port (1: its motor on) on the out
+ * endpoint, as Dolphin sends it. The motors run on the power of the
+ * adapter's second (grey) plug. The adapter keeps the last command, so the
+ * motors are stopped when the adapter is opened and when the game ends.
  */
 #ifdef HOST_WINDOW
 
@@ -63,6 +68,13 @@ static double clock_ms(void)
 }
 static char status[200] = "not looked for";
 static int started;
+
+/// Rumble: what each of the adapter's motors should do, what it was last
+/// told (-1: not told since the adapter was opened), and the open device
+/// (-1 if none), all under #lock.
+static uint8_t motor_want[4];
+static int motor_told[4] = { -1, -1, -1, -1 };
+static int open_fd = -1;
 
 /// What each port's controller read when it was first seen.
 static struct Origin {
@@ -124,6 +136,24 @@ static int transfer(int fd, unsigned endpoint, uint8_t* data, unsigned len)
     return ioctl(fd, USBDEVFS_BULK, &t);
 }
 
+/// Tell the motors what #motor_want says, if that is news. With #lock held.
+static void motors_send(int fd)
+{
+    uint8_t command[5] = { 0x11 };
+    int news = 0;
+
+    for (int i = 0; i < 4; i++) {
+        command[1 + i] = motor_want[i];
+        news |= motor_told[i] != motor_want[i];
+    }
+    if (news && transfer(fd, 0x02, command, sizeof command) == sizeof command)
+    {
+        for (int i = 0; i < 4; i++) {
+            motor_told[i] = motor_want[i];
+        }
+    }
+}
+
 static void* reader(void* arg)
 {
     (void) arg;
@@ -162,6 +192,13 @@ static void* reader(void* arg)
         say("open%s", "");
         pthread_mutex_lock(&lock);
         n_opened++;
+        open_fd = fd;
+        /* a motor may still run from a game that ended without stopping
+           it: every motor is told */
+        for (int i = 0; i < 4; i++) {
+            motor_told[i] = -1;
+        }
+        motors_send(fd);
         pthread_mutex_unlock(&lock);
         for (;;) {
             uint8_t report[REPORT];
@@ -173,6 +210,7 @@ static void* reader(void* arg)
                 have = 1;
                 n_reports++;
                 latest_at = at;
+                motors_send(fd);
                 pthread_mutex_unlock(&lock);
             } else if (n < 0 && errno != ETIMEDOUT) {
                 pthread_mutex_lock(&lock);
@@ -183,6 +221,7 @@ static void* reader(void* arg)
         }
         pthread_mutex_lock(&lock);
         have = 0;
+        open_fd = -1;
         pthread_mutex_unlock(&lock);
         ioctl(fd, USBDEVFS_RELEASEINTERFACE, &interface);
         close(fd);
@@ -222,6 +261,36 @@ void host_gcc_start(void)
 void host_gcc_forget(void)
 {
     memset(origin, 0, sizeof origin);
+}
+
+/// One of the adapter's motors (port 0 to 3) on or off. The reader thread
+/// sends it with the next report it reads.
+void host_gcc_motor(int port, int on)
+{
+    pthread_mutex_lock(&lock);
+    motor_want[port & 3] = on ? 1 : 0;
+    pthread_mutex_unlock(&lock);
+}
+
+/// Stop every motor now (the game is ending).
+void host_gcc_motors_off(void)
+{
+    pthread_mutex_lock(&lock);
+    memset(motor_want, 0, sizeof motor_want);
+    if (open_fd >= 0) {
+        motors_send(open_fd);
+    }
+    pthread_mutex_unlock(&lock);
+}
+
+/// What each motor was last told (1 on, 0 off, -1 not yet), for tests.
+void host_gcc_motors(int told[4])
+{
+    pthread_mutex_lock(&lock);
+    for (int i = 0; i < 4; i++) {
+        told[i] = motor_told[i];
+    }
+    pthread_mutex_unlock(&lock);
 }
 
 static int8_t from_rest(int value, int rest)

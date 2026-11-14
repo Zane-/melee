@@ -51,7 +51,7 @@ def is_tech(state):
 def player_stick(c):
     """The player's main stick, raw (the C reads hd->input.lstick)."""
     s = c.s
-    pad = s.n.pads()[s.person] if s.live else s.player_pad
+    pad = s.n.pads(game=True)[s.person] if s.live else s.player_pad
     return pad["lx"], pad["ly"]
 
 

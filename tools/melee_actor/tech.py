@@ -147,9 +147,10 @@ class Session:
     # ---- watching -----------------------------------------------------------------
 
     def _pad(self):
-        """The pad the game uses in the next frame."""
+        """The pad the game uses in the next frame (after the input
+        delay)."""
         if self.live:
-            return dict(self.n.pads()[self.person])
+            return dict(self.n.pads(game=True)[self.person])
         return dict(self.n.h.pads[self.person])
 
     def _keep_on_stage(self, f):
