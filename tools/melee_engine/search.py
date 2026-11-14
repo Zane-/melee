@@ -101,6 +101,13 @@ def search(n, port, target, horizon=60, budget=4000, depth=3, **weights):
     return Result(head, lines)
 
 
+def preroll(n, raws):
+    """PORT's inputs for the next search's first frames, before it branches
+    (raw pads, one a frame): the search is then for where they end."""
+    words = ["1 %x %d %d %d %d %d %d" % tuple(r) for r in raws]
+    n._cmd("engine preroll " + " ".join(words))
+
+
 def player(n, segments=None):
     """The target's inputs for the next searches: [(frames, raw pad)] with
     raw pads (buttons, lx, ly, cx, cy, lt, rt); None: it holds its pad."""

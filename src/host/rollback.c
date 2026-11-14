@@ -38,6 +38,7 @@ void host_game_heap_stats(uint32_t* used, uint32_t* top, uint32_t* peak);
 #define SOFT_DIRTY (1ull << 55)
 #define DEPTH 24      /* frames that can be gone back */
 #define HEAP_TRACK (256u << 20)
+#define HEAP_SLACK (16u << 20) /* tracked past the heap's peak */
 
 typedef struct Region {
     uint8_t* start;
@@ -91,12 +92,25 @@ static void* mirror_of(size_t length)
 }
 
 /// The game heap as far as it has ever reached (pages past its top that
-/// were in use once hold whatever a later allocation will find there).
+/// were in use once hold whatever a later allocation will find there),
+/// and HEAP_SLACK past that: frames that are gone back over (a lookahead,
+/// a search: ahead.c, engine.c) may reach further, and what they wrote
+/// there must be undone too, or a later allocation finds it where the game
+/// that never played those frames finds what was there before (a shadow
+/// game once took 1% more damage from it: melee-engine.md).
 static size_t heap_length(void)
 {
     uint32_t used, top, peak;
+    size_t want;
     host_game_heap_stats(&used, &top, &peak);
-    return ((size_t) peak + PAGE - 1) & ~(size_t) (PAGE - 1);
+    if (peak > HEAP_TRACK) {
+        host_fatal("rollback: the game heap passed %u MB", HEAP_TRACK >> 20);
+    }
+    want = (size_t) peak + HEAP_SLACK; /* inside the heap's reservation */
+    if (want > HEAP_TRACK) {
+        want = HEAP_TRACK;
+    }
+    return (want + PAGE - 1) & ~(size_t) (PAGE - 1);
 }
 
 static void follow_heap(void)

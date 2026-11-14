@@ -39,7 +39,8 @@
  * act again), NAMES the macros joined by "+", PADS the frames as "N BUTTONS
  * LX LY CX CY L R" segments joined by ",". Then "@ end". KEY=VALUE: the
  * score's weights (dmg taken ko pos adv contact shield hit held close
- * dist), lcancel=0|1, and moves=PREFIX,... for the first moves allowed.
+ * dist), lcancel=0|1, moves=PREFIX,... for the first moves allowed, and
+ * ms=N to stop after N milliseconds with the best found so far.
  *
  * This file's statics are not the game's state: what the search found
  * survives its rewinds.
@@ -197,6 +198,11 @@ static struct {
     /* the player's inputs from the root, frame by frame (else held) */
     HostPad player[PLAYER_MAX];
     int nplayer;
+    /* PORT's inputs before the search branches (its move still playing
+       out: the search is for where that move ends), for the next search */
+    HostPad preroll[PLAYER_MAX];
+    int npreroll;
+    int base; /* frames of pre-roll on the current path */
     /* the current path from the root */
     int t;
     HostPad path[HORIZON_MAX];
@@ -206,6 +212,8 @@ static struct {
     int nnames;
     int first_len; /* frames the current line's first move took */
     unsigned char root_allowed[M_COUNT]; /* first moves allowed */
+    double ms_limit; /* stop searching after this long (0: no limit) */
+    int out_of_time;
     int marks; /* marks made since the root's, the root's included */
     /* the root */
     float pct_t, pct_a;
@@ -315,7 +323,7 @@ static Line score(void)
     Fighter* t = fighter_of(eng.target);
     float half = stage_half();
     memset(&l, 0, sizeof l);
-    l.len = eng.t;
+    l.len = eng.t - eng.base;
     l.contact = eng.contact_kind[eng.t];
     l.contact_at = eng.contact_at[eng.t];
     if (a == NULL || t == NULL) {
@@ -357,6 +365,11 @@ static int play(HostPad pad)
         return 0;
     }
     pad.connected = 1;
+    /* not drawn; set every frame, after the marks, so that going back to
+       the root brings the draw flag back as it was (set before the root's
+       mark, a search once left a shadow game undrawn for good: it then
+       drew random numbers differently, and fell out of step) */
+    host.draw = 0;
     host.pads[eng.port] = pad;
     if (eng.nplayer > 0) {
         host.pads[eng.target] =
@@ -723,6 +736,23 @@ static int moves_for(int* out)
 
 /* ---- the search ------------------------------------------------------------- */
 
+/// Past the search's time limit: what has been found is the answer.
+static int out_of_time(void)
+{
+    struct timespec now;
+    if (eng.ms_limit <= 0 || eng.out_of_time) {
+        return eng.out_of_time;
+    }
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    if ((now.tv_sec - eng.t0.tv_sec) * 1000.0 +
+            (now.tv_nsec - eng.t0.tv_nsec) / 1e6 >
+        eng.ms_limit)
+    {
+        eng.out_of_time = 1;
+    }
+    return eng.out_of_time;
+}
+
 static void mark(void)
 {
     host_rb_mark();
@@ -755,7 +785,7 @@ static void keep(int first, Line* l)
         snprintf(s + used, NAMES_MAX - used, "%s%s", i ? "+" : "",
                  macro_names[eng.names[i]]);
     }
-    memcpy(l->pads, eng.path, sizeof(HostPad) * (size_t) l->len);
+    memcpy(l->pads, eng.path + eng.base, sizeof(HostPad) * (size_t) l->len);
     l->first_len = eng.first_len;
     if (!eng.have[first] || l->value > eng.lines[first].value) {
         eng.lines[first] = *l;
@@ -786,6 +816,10 @@ static float node(int at, int depth, long budget)
     }
     for (int i = 0; i < n; i++) {
         Line l;
+        if (i > 0 && out_of_time()) {
+            n = i; /* the moves ranked so far */
+            break;
+        }
         if (i > 0) {
             back_to(at, t0);
         }
@@ -793,7 +827,7 @@ static float node(int at, int depth, long budget)
         eng.nnames = depth + 1;
         run_macro(moves[i]);
         if (depth == 0) {
-            eng.first_len = eng.t;
+            eng.first_len = eng.t - eng.base;
         }
         eng.trials++;
         l = score();
@@ -839,7 +873,7 @@ static float node(int at, int depth, long budget)
                      (extra >> (r + 1));
         int child;
         float v;
-        if (share < MIN_BUDGET) {
+        if (share < MIN_BUDGET || out_of_time()) {
             break;
         }
         back_to(at, t0);
@@ -850,7 +884,7 @@ static float node(int at, int depth, long budget)
             continue;
         }
         if (depth == 0) {
-            eng.first_len = eng.t;
+            eng.first_len = eng.t - eng.base;
         }
         mark();
         child = eng.marks;
@@ -921,9 +955,25 @@ static void search_main(void)
     eng.contact_at[0] = 0;
     eng.contact_kind[0] = 0;
     eng.marks = 0;
+    eng.base = 0;
     mark(); /* the root: 1 */
     eng.from_root = 1;
-    node(1, 0, eng.budget);
+    if (eng.npreroll > 0) {
+        /* PORT's move still playing out first; the branching starts where
+           it ends */
+        int ok = 1;
+        for (int i = 0; i < eng.npreroll && ok; i++) {
+            ok = play(eng.preroll[i]);
+        }
+        eng.npreroll = 0;
+        if (ok) {
+            eng.base = eng.t;
+            mark();
+            node(eng.marks, 0, eng.budget);
+        }
+    } else {
+        node(1, 0, eng.budget);
+    }
     back_to(1, 0);
     reply();
     eng.finished = 1;
@@ -982,6 +1032,9 @@ const char* host_engine_begin(const char* line)
     /* holding the target: what a grab is worth before its throw */
     eng.w.held = parse_weight(line, "held", 20.0F);
     eng.lcancel = (int) parse_weight(line, "lcancel", 1.0F);
+    /* "ms=N": stop after N milliseconds, with what has been found */
+    eng.ms_limit = parse_weight(line, "ms", 0.0F);
+    eng.out_of_time = 0;
     /* "moves=dash_,sh_,wait": the first moves allowed, by name prefix */
     {
         const char* m = strstr(line, "moves=");
@@ -1027,7 +1080,6 @@ const char* host_engine_begin(const char* line)
     eng.co.uc_link = &eng.game;
     makecontext(&eng.co, search_main, 0);
     eng.active = 1;
-    host.draw = 0; /* undone with the rest */
     swapcontext(&eng.game, &eng.co);
     /* the first frame's rest of the boundary comes as usual
        (host_frame_tick_rest) */
@@ -1075,15 +1127,20 @@ int host_engine_boundary(void)
 
 /// "engine player N BUTTONS LX LY CX CY L R ...": the target's inputs for
 /// the next searches, frame by frame from the root ("engine player" alone:
-/// it holds its pad).
+/// it holds its pad). "engine preroll ...": PORT's inputs for the next
+/// search's first frames, before it branches (the move it is still
+/// playing); lines then start where they end.
 const char* host_engine_command(const char* line)
 {
     char what[16] = "";
     int used = 0;
     sscanf(line, "%15s%n", what, &used);
     line += used;
-    if (strcmp(what, "player") == 0) {
-        eng.nplayer = 0;
+    if (strcmp(what, "player") == 0 || strcmp(what, "preroll") == 0) {
+        int pre = what[1] == 'r';
+        HostPad* out = pre ? eng.preroll : eng.player;
+        int* count = pre ? &eng.npreroll : &eng.nplayer;
+        *count = 0;
         for (;;) {
             int n = 0, lx, ly, cx, cy, lt, rt;
             unsigned buttons;
@@ -1093,8 +1150,8 @@ const char* host_engine_command(const char* line)
                 break;
             }
             line += used;
-            for (int i = 0; i < n && eng.nplayer < PLAYER_MAX; i++) {
-                HostPad* p = &eng.player[eng.nplayer++];
+            for (int i = 0; i < n && *count < PLAYER_MAX; i++) {
+                HostPad* p = &out[(*count)++];
                 p->buttons = (uint16_t) buttons;
                 p->lx = (int8_t) lx;
                 p->ly = (int8_t) ly;
@@ -1118,5 +1175,5 @@ const char* host_engine_command(const char* line)
         printf("\n");
         return "";
     }
-    return "engine player ... | engine macros";
+    return "engine player ... | engine preroll ... | engine macros";
 }

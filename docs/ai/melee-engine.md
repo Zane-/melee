@@ -150,6 +150,35 @@ approaches land** (the reactive opponent missed the dash dances), and 21 of 24 s
 saw more than one opening over three runs (short hop nair, fair or dair; a wavedash in and
 a full hop dair; a dash in and a dash attack). 140 ms a decision headless, unoptimised.
 
-Not yet: the shadow games (E2), without which a live match cannot think this long; the
-drills on the engine; slippi-ai as the model of the player and as the prior (E4); a
-transposition table and the history heuristic.
+**E2, shadow games: built (2026-11-13).** `tools/melee_engine/shadow.py`. `Shadow`: a
+headless game that runs the draw pass, in a thread of its own, applying the live game's
+frames and commands in order and answering searches asynchronously. `Mirrored`: the live
+game (the window build) with every change also made in the shadow (the commands that
+change the game, and each frame's inputs as the game was given them, a person's included);
+the fighters' and random seed's hash compared every 120 frames. `LiveMind`: the engine
+opponent for a live match. Every decision is for a frame still to come: while a move plays
+out, the next is searched from where it ends (its remaining inputs as the search's
+`preroll`); with nothing playing, the fighter holds still for the time a search takes
+(measured) and the decision is for where that ends; each search is given the time there is
+(`ms=`), and stops with the best found when it runs out.
+
+`tests/native/shadow.py` (5 checks, the window build on a virtual display): 1,200 frames of
+random inputs, the shadow the same game throughout; then the engine opponent live at 60
+frames a second, deciding in the shadow, lands hits against standing, dash dancing,
+walking-away and dashing-in stand-ins, 0 of 65 decisions late, and the two still in step.
+
+Found on the way: a search switched the draw pass off before taking its root mark, so going
+back to the root brought "off" back, and the shadow drew no more after its first search;
+with no draw pass its effects drew random numbers differently, and 70 frames later a hit
+did 1% more. Found by dumping a searching and a non-searching shadow and diffing them, then
+`save 0`, a search, `hash 0` in one process: the first byte that differed was `host.draw`.
+`tests/native/engine.py` now checks every byte after searches in a game that draws. Also:
+rollback tracks the game heap 16 MB past its peak, so that what frames gone back over
+allocated past it is undone too.
+
+What it does not do yet: it still holds still a lot (searches on the unoptimised build take
+about ten frames of real time, and "wait" often scores best); the drills do not use it; and
+it plays against a player assumed to hold their input.
+
+Not yet: the drills on the engine; slippi-ai as the model of the player and as the prior
+(E4); an optimised shadow build; a transposition table and the history heuristic.

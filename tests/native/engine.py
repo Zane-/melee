@@ -122,6 +122,24 @@ def main():
               "%.0f frames/s (%d frames, %d trials, %.0f ms)" % (
                   r.frames / (r.ms / 1000.0), r.frames, r.trials, r.ms))
 
+    # A game that draws (a shadow game does): nothing of the search may be
+    # left behind, the draw flag included (it once was: the shadow then
+    # drew no more and fell out of step).
+    with Native(draw=True) as n:
+        n.start("fox", "captain-falcon")
+        n.place(0, -15, 0, 1)
+        n.place(1, 15, 0, -1)
+        for _ in range(5):
+            n.step()
+        same = 0
+        for _ in range(5):
+            n._cmd("save 0")
+            search(n, 1, 0, horizon=60, budget=800, depth=2, contact=30)
+            same += n._cmd("hash 0") == "ok same"
+            n.step()
+        check("in a game that draws, every byte of its state is as before "
+              "each search", same == 5, "%d of 5 the same" % same)
+
     print("%d of %d checks passed (%.0f s)" % (sum(checks), len(checks),
                                                 time.time() - t0))
     return 0 if all(checks) else 1
