@@ -108,47 +108,74 @@ class Play:
     """The coach's card's pictures, played (the owner, 2026-11-14: "doesn't
     seem we have a robust animation system as well"): the try and the
     target side by side, frame for frame, from a little before the
-    timeline to a moment after the end; the timeline's own frames at a
-    quarter of the speed, the rest at half (a long try without one at full
-    speed), a stop on the last, and again. Each panel is {"id": "y" or
-    "t", "view", "ring", "seq": Client.coach_seq}; it shows the frame, a
-    tag where a press starts, how far along, and the grid's column now."""
+    timeline to a moment after the end; at the game's own speed, the
+    timeline's frames at half of it (a quarter, at 15 pictures a second,
+    stuttered: "freezes often and is slow to loop", the owner), a short
+    stop on the last, and again. Or frame by frame: `frame` steps one
+    (and pauses), `toggle` pauses or plays ("The overlay should have frame
+    by frame controls too so they can really see what the inputs should be
+    like vs. what they are doing!"). Each panel is {"id": "y" or "t",
+    "view", "ring", "seq": Client.coach_seq}; it shows the frame, a tag
+    where a press starts, the pad on that frame (screens.pad_display), how
+    far along, and the grid's column now."""
 
-    SLOW, HALF, END, TAG = 4, 2, 50, 6
+    SLOW, END, TAG = 2, 20, 8
+    # the pad's bits, as the input display names its buttons
+    BUTTONS = (("A", 0x100), ("B", 0x200), ("X", 0x400), ("Y", 0x800),
+               ("Z", 0x10), ("L", 0x40), ("R", 0x20))
 
     def __init__(self, w, panels):
         self.w = w
         self.panels = [p for p in panels if p and p["seq"]]
         self.n = max([len(p["seq"]) for p in self.panels] or [0])
-        self.fast = self.n > 150
         self.sent = {}
-        self.k, self.left, self.head = 0, 0, None
+        self.k, self.left, self.head = -1, 0, None
+        self.paused = self.ended = False
 
     def _ui(self, key, line):
         if self.sent.get(key) != line:
             self.sent[key] = line
             self.w.ui(line)
 
-    def step(self):
-        """One frame of the card: on to the next picture when it is
-        time."""
-        if not self.n:
-            return
-        if self.left > 0:
-            self.left -= 1
-            return
-        k, slow = self.k, False
+    def _pad(self, pid, pad):
+        """The input display: the buttons held, where the sticks are, how
+        far the triggers are in."""
+        pad = pad or {}
+        held = pad.get("buttons", 0)
+        for name, bit in self.BUTTONS:
+            self._ui(pid + "i" + name, "class c%si%s on %d" % (
+                pid, name, 1 if held & bit else 0))
+        for part, x, y, middle, reach in (
+                ("S", pad.get("lx", 0), pad.get("ly", 0), 10, 11),
+                ("C", pad.get("cx", 0), pad.get("cy", 0), 7, 8)):
+            x = max(-1.0, min(1.0, x / coach.STICK))
+            y = max(-1.0, min(1.0, y / coach.STICK))
+            self._ui(pid + "i" + part, "attr c%si%s style left: %ddp; top: "
+                     "%ddp;" % (pid, part, round(middle + x * reach),
+                                round(middle - y * reach)))
+        for part, analog, bit in (("Lf", pad.get("lt", 0), 0x40),
+                                  ("Rf", pad.get("rt", 0), 0x20)):
+            amount = 1.0 if held & bit else min(1.0, analog / 255.0)
+            self._ui(pid + "i" + part, "attr c%si%s style width: %ddp;" % (
+                pid, part, round(26 * amount)))
+
+    def show(self, k):
+        """Frame `k` of each panel (its last, for one that is shorter)."""
+        self.k = k
+        slow = False
         for p in self.panels:
-            seq, i = p["seq"], min(self.k, len(p["seq"]) - 1)
+            seq, i = p["seq"], min(k, len(p["seq"]) - 1)
             e = seq[i]
             if e["pic"] is not None and e["pic"] != p.get("pic"):
                 p["pic"] = e["pic"]
                 self.w.frames_view(p["view"], p["ring"], e["pic"])
             pid = p["id"]
-            self._ui(pid + "f", "text c%sf %s" % (pid, screens.esc(
-                e["label"])))
-            self._ui(pid + "fo", "class c%sf on %d" % (
-                pid, 1 if e["label"] else 0))
+            label = e["label"]
+            if self.paused:
+                label = (label + " · " if label else "") + "PAUSED"
+            self._ui(pid + "f", "text c%sf %s" % (pid, screens.esc(label)))
+            self._ui(pid + "fo", "class c%sf on %d" % (pid, 1 if label
+                                                      else 0))
             tag = next((seq[j]["tag"] for j in range(i, max(-1, i -
                                                           self.TAG), -1)
                         if seq[j]["tag"]), None)
@@ -157,6 +184,7 @@ class Play:
             self._ui(pid + "p", "class c%sp on %d" % (pid, 1 if tag else 0))
             self._ui(pid + "b", "attr c%sb style width: %ddp;" % (
                 pid, round(412.0 * i / max(1, len(seq) - 1))))
+            self._pad(pid, e.get("pad"))
             slow = slow or e["slow"]
             if pid == "y":
                 head = e["f"]
@@ -166,12 +194,41 @@ class Play:
                     if head is not None:
                         self.w.ui("class cgn%d now 1" % head)
                     self.head = head
-        hold = self.SLOW if slow else 1 if self.fast else self.HALF
-        self.left = hold - 1
-        self.k = k + 1
-        if self.k >= self.n:
-            self.k = 0
-            self.left += self.END
+        return slow
+
+    def step(self):
+        """One frame of the card: on to the next picture when it is time
+        (not while paused)."""
+        if not self.n or self.paused:
+            return
+        if self.left > 0:
+            self.left -= 1
+            return
+        if self.k + 1 >= self.n:
+            if self.k >= 0 and not self.ended:
+                self.ended = True       # a moment on the last, then again
+                self.left = self.END
+                return
+            k = 0
+        else:
+            k = self.k + 1
+        self.ended = False
+        self.left = (self.SLOW if self.show(k) else 1) - 1
+
+    def frame(self, by):
+        """A frame on (`by` 1) or back (-1), paused there; past either end,
+        round to the other, as it plays."""
+        if not self.n:
+            return
+        self.paused = True
+        self.show((max(0, self.k) + by) % self.n)
+
+    def toggle(self):
+        """Pause, or play on from here."""
+        self.paused = not self.paused
+        self.left = 0
+        if self.n:
+            self.show(max(0, self.k))
 
 
 # How long a button is held for its other meaning (frames, at 60 a second)
@@ -249,6 +306,7 @@ class Client:
         self.pause_idents = []        # tests: the rows of that tab
         self.coach_open = False       # tests: the coach's card is up
         self.coach_now = None         # tests: what it said
+        self.coach_play = None        # tests: its pictures, as they play
         self.replay_now = None        # tests: the replay's mode and frame
         self.replay_result = None     # tests: how the replayed try ended
         self.out.mkdir(parents=True, exist_ok=True)
@@ -2088,6 +2146,11 @@ class Client:
         lo, hi = coach.span(result, track, longest)
         start = tl.get("start")
         n = tl.get("frames", 0)
+        if start is not None and lo == max(0, start - coach.LEAD):
+            # the same lead before the timeline in every panel, so that
+            # the try and the target show the same frame side by side (a
+            # run kept from closer to its start holds its first picture)
+            lo = start - coach.LEAD
         marks = coach.marks(result)
         try:
             have = self.w.frames_range(track.ring)
@@ -2095,7 +2158,9 @@ class Client:
             have = None
         seq, last = [], None
         for i in range(lo, hi + after + 1):
-            if i < len(track):
+            if i < 0:
+                pic = None
+            elif i < len(track):
                 pic = track.pictures[i]
             elif last is not None:
                 pic = last + 1
@@ -2116,8 +2181,9 @@ class Client:
                 label = "F%d" % (i - lo + 1)
             else:
                 label = ""
+            pad = track.pads[i] if 0 <= i < len(track) else None
             seq.append(dict(pic=pic, f=f if within else None, label=label,
-                            tag=marks.get(i), slow=within))
+                            tag=marks.get(i), slow=within, pad=pad))
         # a picture missing at the start (the frame before the ring began):
         # the first there is
         first = next((e["pic"] for e in seq if e["pic"] is not None), None)
@@ -2246,6 +2312,7 @@ class Client:
             while True:
                 self.put("coach", screens.coach_card(view))
                 play = Play(self.w, view.get("anim") or [])
+                self.coach_play = play  # tests: where it is
                 play.step()             # the first pictures, before it shows
                 self.w.ui("class coach on 1")
                 while True:
@@ -2253,9 +2320,16 @@ class Client:
                         self.person(self.w, -4)    # tests: the player
                     self.w.step()
                     play.step()
-                    pressed, _ = self.read()
+                    pressed, moves = self.read()
                     if self.game_quit():
                         raise Leave()
+                    # frame by frame (the D-pad; the stick too), or on
+                    if moves & LEFT:
+                        play.frame(-1)
+                    elif moves & RIGHT:
+                        play.frame(1)
+                    if pressed & UP:
+                        play.toggle()
                     if pressed & (A | B):
                         self.sfx(self.SFX_BACK if pressed & B
                                  else self.SFX_FORWARD)
@@ -2473,8 +2547,11 @@ class Client:
         last = len(pads) + coach.AFTER - 1
 
         def hide(on):
+            # unseen but drawn (quiet 2): what the game draws takes random
+            # numbers (its effects), so a run played again undrawn is not
+            # quite the run it was
             if on != state["quiet"]:
-                self.w.quiet(on)
+                self.w.quiet(2 if on else 0)
                 state["quiet"] = on
 
         def show(j, pad):
@@ -2642,8 +2719,11 @@ class Client:
                                                     labels))
 
         def hide(on):
+            # unseen but drawn (quiet 2): what the game draws takes random
+            # numbers (its effects), so a run played again undrawn is not
+            # quite the run it was
             if on != state["quiet"]:
-                self.w.quiet(on)
+                self.w.quiet(2 if on else 0)
                 state["quiet"] = on
 
         def wait(frames, frame):

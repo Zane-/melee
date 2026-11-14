@@ -670,11 +670,19 @@ default 3; Settings > Display and the pause menu), a card over the frozen game:
   long", "Air dodge 3 frames late", "L 2 frames early"), else the first timeline row off
   its window ("Dodge 5 frames late", "No jump in time"), else the drill's verdict;
 - the try against the target, played side by side in the game's own pictures (below):
-  from 8 frames before the timeline to a moment after the try ended, the timeline's frames
-  at a quarter of the speed and the rest at half (a long try without a timeline at full
-  speed), each panel showing the frame ("F4"), a tag where a press starts ("F1 · JUMP")
-  and how far along it is, the grid's column for the frame marked as it plays, a stop on
-  the last frame and again. Each panel is cropped to where the fighters were all through
+  from 8 frames before the timeline to a moment after the try ended, at the game's speed
+  and the timeline's frames at half of it, a short stop on the last frame and again (at
+  first the timeline went at a quarter, each picture held four frames, with a longer
+  stop: "freezes often and is slow to loop", the owner, 2026-11-14). Each panel shows the
+  frame ("F4"), a tag where a press starts ("F1 · JUMP"), how far along it is, and an
+  **input display** of the pad on that frame (`screens.pad_display`: the triggers with
+  Z, the control stick and the C-stick in their gates, B A X Y; SmashWiki's button icons,
+  lit while held), the try's pad beside the target's ("ensure that coach overlay has
+  input displays on both what you did wrong and what it should look like"); the grid's
+  column for the frame is marked as it plays. **Frame by frame**: the D-pad (or the
+  stick) left and right step both panels a frame back or on and pause there, up plays on
+  ("frame by frame controls too so they can really see what the inputs should be like vs.
+  what they are doing!"). Each panel is cropped to where the fighters were all through
   it (the player alone in a tech drill). The target of a course-engine drill is its
   demonstration played unseen (`quiet`) from the same situation: the same scenario, the
   same draws (`Session.run` with the try's `scenario_index`; run 0 draws the same
@@ -726,6 +734,19 @@ the latest of those saved at least 8 frames before the attempt began (else the e
 from before it), with the recorded pads (after the input delay) given to a scripted port.
 `tests/client/coach_tech.py` checks the replay reaches the try's last frame with the
 fighter in the same place and state.
+
+**The replay's crash (fixed 2026-11-14).** The owner's first replay in a tech drill
+aborted the game inside Aurora (`push_uniform` on the GX worker thread). `host`, which
+holds whether the draw pass runs, is among the statics a state saves; the replay loaded
+its saved state inside a `quiet 1` stretch, which had turned drawing off, and the load
+turned it back on. The game then drew frame after frame with no frame of Aurora's begun:
+Aurora keeps such commands queued until the next frame, which took them all at once,
+past its 24 MB of uniforms a frame. `host_state_load` now keeps `host.draw`; the window
+build's draw pass is skipped whenever no Aurora frame is open (`host_window_drawable`,
+`cuts.c`); and a replay's unseen frames are drawn (`quiet 2`), because what the game
+draws takes random numbers (its effects) and a run played again undrawn is not quite the
+run it was. Reproduced with a save, `quiet 1`, a load and 60 frames (the game aborted),
+and gone after the fix (240 frames).
 
 **Replay** (`Client.replay`, `screens.replay_view`): the try played again from its reset
 with the pads the game was given in it (recorded each frame in `Client.record`: the

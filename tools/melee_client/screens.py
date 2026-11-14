@@ -1213,6 +1213,25 @@ def _path(dots, floor, kind):
     return "".join(out)
 
 
+def pad_display(k):
+    """An input display over a panel of the coach's pictures (the owner,
+    2026-11-14: "ensure that coach overlay has input displays on both what
+    you did wrong and what it should look like"): the triggers with Z
+    between them, the control stick and the C-stick in their gates, B A X Y;
+    a button lit while held. Client.Play moves it frame by frame (`c` +
+    `k` + "i" + the part's name)."""
+    def b(name):
+        return '<div id="c%si%s" class="pvk">%s</div>' % (k, name, key(name))
+    return (
+        '<div id="c%si" class="pv"><div class="pvrow">%s<div class="pvt">'
+        '<div id="c%siLf" class="pvf"/></div>%s<div class="pvt"><div id='
+        '"c%siRf" class="pvf"/></div>%s</div><div class="pvrow"><div class='
+        '"pvg"><div id="c%siS" class="pvd"/></div><div class="pvg c"><div '
+        'id="c%siC" class="pvd"/></div>%s%s%s%s</div></div>' % (
+            k, b("L"), k, b("Z"), k, b("R"), k, k, b("B"), b("A"), b("X"),
+            b("Y")))
+
+
 def _picture(pic, kind):
     """A panel of the game's own pictures (Native.frames_view): `pic` is
     {"view": the interface's view, "crop": (left, top, width, height) of
@@ -1224,10 +1243,11 @@ def _picture(pic, kind):
     return (
         '<div class="cpic%s"><img class="cpimg" src="gxcopy://%d" style="left: '
         '%.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;"/>'
-        '<div id="c%sf" class="cfr"/><div id="c%sp" class="cptag %s"/>'
+        '<div id="c%sf" class="cfr"/><div id="c%sp" class="cptag %s"/>%s'
         '<div class="cbar"><div id="c%sb" class="cbarf %s"/></div></div>' % (
             " tall" if pic.get("tall") else "", pic["view"], -left * s,
-            -top * s, 640.0 * s, 480.0 * s, k, k, kind, k, kind))
+            -top * s, 640.0 * s, 480.0 * s, k, k, kind, pad_display(k), k,
+            kind))
 
 
 def coach_grid(tl, wrong):
@@ -1309,8 +1329,10 @@ def coach_card(v):
         len(v["headline"]) <= 40 else 22
     keys = [("A", "Try again")]
     if v.get("replay"):
-        keys.append(("Y", "Replay my try"))
+        keys.append(("Y", "Replay"))
     keys.append(("B", "Close"))
+    if v.get("anim"):
+        keys += [("D-SIDE", "Frame by frame"), ("D-UP", "Play, pause")]
     return (
         '<div class="cdim"/><div class="ccard">'
         '<div class="chead"><div class="cstrip"/><div class="cbadge"><div '
@@ -1321,9 +1343,7 @@ def coach_card(v):
         '<div class="cmid">%s</div>'
         '<div class="cfix"><div class="cfixh">How to fix it</div><div '
         'class="cfixt">%s</div></div>'
-        '<div class="grow"/><div class="cfoot">%s<div class="grow"/><div '
-        'class="coff">The coach can be turned off in the pause menu.</div>'
-        '</div></div>' % (
+        '<div class="grow"/><div class="cfoot">%s</div></div>' % (
             size, esc(v["headline"]), esc(v["drill"].upper()), v["misses"],
             you, target, coach_grid(v.get("timeline"), v.get("wrong")),
             esc(v["fix"]), "".join(

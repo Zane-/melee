@@ -464,6 +464,23 @@ img { display: inline-block; }
 /* the game's own pictures of a try, played in the panel (Client.coach_play) */
 .cpic { position: relative; width: 412dp; height: 236dp; background-color: #12161C; overflow: hidden; clip: always; }
 .cpic.tall { height: 340dp; }
+/* the input display over a panel (screens.pad_display) */
+.pv { position: absolute; right: 6dp; bottom: 10dp; padding: 5dp 7dp; background-color: #12161CD9; }
+.pvrow { display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.pvrow + .pvrow { margin-top: 4dp; }
+.pvk { opacity: 0.22; margin: 0dp 2dp; }
+.pvk.on { opacity: 1; }
+.pv .gcimg { margin: 0dp; }
+.pv .gcimg.a { height: 22dp; }
+.pv .gcimg.b, .pv .gcimg.x, .pv .gcimg.y { height: 17dp; }
+.pv .gcimg.l, .pv .gcimg.r { height: 14dp; }
+.pv .gcimg.z { height: 11dp; }
+.pvt { width: 26dp; height: 6dp; background-color: #4A5361; margin: 0dp 3dp; }
+.pvf { height: 6dp; width: 0dp; background-color: #F3F6FA; }
+.pvg { position: relative; width: 34dp; height: 34dp; border-radius: 17dp; border: 2dp #8A94A3; box-sizing: border-box; margin-right: 5dp; }
+.pvg.c { width: 26dp; height: 26dp; border-radius: 13dp; border-color: #F5BE1B; }
+.pvd { position: absolute; left: 10dp; top: 10dp; width: 10dp; height: 10dp; border-radius: 5dp; background-color: #F3F6FA; }
+.pvg.c .pvd { left: 7dp; top: 7dp; width: 8dp; height: 8dp; border-radius: 4dp; background-color: #F5BE1B; }
 .cpimg { position: absolute; }
 .cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
 .cfr.on { display: block; }

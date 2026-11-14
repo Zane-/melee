@@ -107,12 +107,14 @@ int host_state_load(int slot)
     void* heap;
     uint32_t heap_length;
     const uint8_t* at;
+    int draw;
 
     if (slot < 0 || slot >= SLOTS || !slots[slot].valid) {
         return -1;
     }
     s = &slots[slot];
     host_game_heap_extent(&heap, &heap_length);
+    draw = host.draw;
     at = s->data;
     memcpy(ARENA, at, ARENA_SIZE);
     at += ARENA_SIZE;
@@ -121,6 +123,14 @@ int host_state_load(int slot)
     /* the heap's own bookkeeping (its top) comes back with it; what lies
        past that top is free */
     memcpy(heap, at, s->heap_length);
+    /* Whether the draw pass runs is the host's (a quiet stretch turns it
+       off, control.c), not the game's: `host` is among the statics, and a
+       state saved while drawing, loaded in a stretch that does not draw,
+       had the game drawing again with no frame of Aurora's begun. Its
+       commands piled up until the next frame took them all at once, past
+       Aurora's 24 MB of uniforms a frame: an abort (the owner's replay in
+       the coach, 2026-11-14). */
+    host.draw = draw;
     return 0;
 }
 

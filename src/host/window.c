@@ -554,6 +554,13 @@ void host_window_pace(int on)
     paced = on;
 }
 
+/// Whether what the game draws now has a frame of Aurora's to go into
+/// (cuts.c): before the window starts, Aurora takes no frames at all.
+int host_window_drawable(void)
+{
+    return !started || in_frame;
+}
+
 static void audio_relead(void);
 
 /// Frames nobody sees (host_quiet): they run as fast as they go and

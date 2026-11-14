@@ -14,6 +14,15 @@ void HSD_GObj_80390FC0_vanilla(void);
 
 void HSD_GObj_80390FC0(void)
 {
+#ifdef HOST_WINDOW
+    /* The window build: not into nothing. With no frame of Aurora's begun
+       (one that could not be, or a quiet stretch) the graphics commands
+       would wait in Aurora's queue for the next frame, and a few frames'
+       worth of them overflow it (window.c). */
+    if (!host_window_drawable()) {
+        return;
+    }
+#endif
     if (host.draw) {
         HSD_GObj_80390FC0_vanilla();
     }

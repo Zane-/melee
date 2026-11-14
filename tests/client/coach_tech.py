@@ -9,7 +9,10 @@ jumps; never presses L; only short hops): the coach's card opens, says what
 was off and how to fix it, and plays the game's own pictures of the try
 next to the same try with that put right, played again from a state saved
 before it, which the judge passes. In Short hop, Y replays the try to the
-same verdict, B goes back to the card and A to the drill, which goes on.
+same verdict, B goes back to the card and A to the drill, which goes on;
+on its card the D-pad steps the pictures a frame at a time (paused) and up
+plays them on, and each panel's input display shows that frame's pad: the
+try's jump held longer than the target's.
 (The owner, 2026-11-14: "I tried short hop tech drill and intentionally
 failed 5 times in a row and no coach appeared!")
 """
@@ -79,11 +82,36 @@ def main():
                     seen["step"] = 1
                 seen["waited"] += 1
                 if seen["step"] == 1:
+                    play = c.coach_play
+                    for pid in "yt":
+                        if play.sent.get(pid + "iY", "").endswith("1"):
+                            seen["lit_" + pid] = True
                     # pictures at a few moments of their playing
                     if args.shots and seen["waited"] in (8, 40, 90):
                         game.shot(os.path.join(args.shots, "%s-card%d.png" %
                                                (name, seen["shots"])))
                         seen["shots"] += 1
+                    if replay:
+                        # frame by frame: D-pad up pauses, right twice,
+                        # left once, up plays on (keys: t up, h right, f
+                        # left)
+                        w_ = seen["waited"]
+                        if w_ == 50:
+                            seen["k0"] = play.k
+                        for at, k in ((44, "t"), (50, "h"), (56, "h"),
+                                      (62, "f"), (70, "t")):
+                            if w_ == at:
+                                game.key(k)
+                            elif w_ == at + 1:
+                                game.key(k, False)
+                        if w_ == 68:
+                            seen["stepped"] = (play.paused, (
+                                play.k - seen["k0"]) % play.n)
+                        if w_ == 76:
+                            seen["played"] = not play.paused
+                        if w_ == 66 and args.shots:
+                            game.shot(os.path.join(args.shots,
+                                                   name + "-paused.png"))
                     if seen["waited"] == 100:
                         if replay:
                             game.key("c")           # Y: replay
@@ -192,6 +220,20 @@ def main():
             check("%s: put right, the judge passes it" % name,
                   put_right in (card.get("target_words") or ""),
                   card.get("target_words") or "none")
+            if replay:
+                held = [sum(1 for e in seq if e["pad"] and
+                            e["pad"]["buttons"] & 0x800) for seq in (you, tgt)]
+                check("%s: an input display on each panel, from that frame's "
+                      "pad: Y lit in both, held longer in the try" % name,
+                      seen.get("lit_y") and seen.get("lit_t") and
+                      held[0] > held[1] > 0, "Y held %d and %d frames" %
+                      tuple(held))
+                check("%s: the D-pad steps the pictures a frame at a time, "
+                      "paused, and up plays them on" % name,
+                      seen.get("stepped") == (True, 1) and
+                      seen.get("played") is True,
+                      "%s, then playing %s" % (seen.get("stepped"),
+                                               seen.get("played")))
             if replay:
                 r = seen["replay"] or {}
                 check("%s: Y replays the try, the same to the end, frame by "
