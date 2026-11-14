@@ -37,6 +37,7 @@
 #include <dolphin/pad.h>
 #include <melee/ft/fighter.h>
 #include <melee/ft/inlines.h>
+#include <melee/ft/kinds/ftCommon/ftCo_0A01.h>
 #include <melee/ft/types.h>
 #include <melee/gm/types.h>
 #include <melee/lb/lbarchive.h>
@@ -202,14 +203,25 @@ static void think(HSD_GObj* gobj)
             continue;
         }
         fp = GET_FIGHTER(Player_GetEntity(port));
+        /* the buttons as pressed: the fighter's own record has A and a
+           light press of the triggers added while Z is held (fighter.c:
+           Z grabs), which a display of the controller must not show */
+        if (ftCo_IsCpuControlled(fp)) {
+            held = ftCo_GetCpuButtons(fp);
+        } else {
+            held = HSD_PadGameStatus[fp->pad_port].button;
+        }
         if (Player_GetPlayerSlotType(port) == Gm_PKind_Human) {
             /* the pad the fighters read (fighter.c's triggers) */
             ltrig = HSD_PadGameStatus[port].nml_analogL;
             rtrig = HSD_PadGameStatus[port].nml_analogR;
+        } else if ((held & PAD_TRIGGER_Z) &&
+                   !(held & (PAD_TRIGGER_L | PAD_TRIGGER_R)))
+        {
+            ltrig = rtrig = 0.0F; /* Z's light press, not the triggers */
         } else {
             ltrig = rtrig = fp->input.triggers[0];
         }
-        held = fp->input.held_buttons[0];
         pads[k].on = 1;
         pads[k].port = port;
         pads[k].held = held;
@@ -249,10 +261,9 @@ static void think(HSD_GObj* gobj)
             HSD_DObj* d =
                 nth_dobj(child(jobj, buttons[i].jobj), buttons[i].dobj);
             if (d != NULL && d->mobj != NULL && d->mobj->mat != NULL) {
-                d->mobj->mat->diffuse =
-                    (fp->input.held_buttons[0] & buttons[i].bit)
-                        ? pressed
-                        : buttons[i].color;
+                d->mobj->mat->diffuse = (held & buttons[i].bit)
+                                            ? pressed
+                                            : buttons[i].color;
             }
         }
         HSD_JObjSetMtxDirtySub(jobj);

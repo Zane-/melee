@@ -107,14 +107,14 @@ static std::string rest(const char* line)
 /* The input display's sums, as screens.pad_lines does them: a stick's cap
    moves from where it rests, at full tilt, PAD_S_X of the controller's
    box across and PAD_S_Y down (the C-stick's PAD_C_X and PAD_C_Y); a
-   trigger goes PAD_PRESS of the box down, in under the shell, and its lit
-   copy shows as far as it is in (padart.TRAVEL and PRESS, on its frame of
-   300 by 220). */
-#define PAD_S_X (10.0f / 300 * 100)
-#define PAD_S_Y (10.0f / 220 * 100)
-#define PAD_C_X (6.5f / 300 * 100)
-#define PAD_C_Y (6.5f / 220 * 100)
-#define PAD_PRESS (7.0f / 220 * 100)
+   trigger's light shows as far as it is in, and it goes PAD_PRESS down
+   (padart.TRAVEL and PRESS, in the picture's pixels on its 2072 by 1480
+   box). */
+#define PAD_S_X (66.0f / 2072 * 100)
+#define PAD_S_Y (66.0f / 1480 * 100)
+#define PAD_C_X (56.0f / 2072 * 100)
+#define PAD_C_Y (56.0f / 1480 * 100)
+#define PAD_PRESS 0.0f
 
 /// What a controller of the input display was last given, so that only
 /// what changes is set (a part per field: the buttons, the sticks'

@@ -49,10 +49,12 @@ def over_game():
     hidden and these moved to the middle (Client.toggle_column). (No
     loading cover: a match loads unseen, the window keeping its last
     picture: Client.load_quietly.)"""
+    pads = ('<div id="gpads" class="gpads"><div id="gp0" class="gpad">%s'
+            '</div><div id="gp1" class="gpad">%s</div></div>' % (
+                pad_display("g0", 0), pad_display("g1", 1))
+            if PAD_ART else "")
     return (
-        '<div id="gpads" class="gpads"><div id="gp0" class="gpad">%s</div>'
-        '<div id="gp1" class="gpad">%s</div></div>' % (
-            pad_display("g0", 0), pad_display("g1", 1)) +
+        pads +
         '<div id="rays" class="rays"/>'
         '<div id="bannerwrap" class="bannerwrap"><div id="banner" '
         'class="banner"><div id="chip" class="chip"><div id="bword" '
@@ -1248,17 +1250,18 @@ def _path(dots, floor, kind):
     return "".join(out)
 
 
-# The input display: a GameCube controller, composed as one picture
-# (padart.py: SmashWiki's icons set into a shell of our own drawing; the
-# owner, 2026-11-14, "build them in with the body"). Its layers all cover
-# the same frame, so each lies on the others exactly; PAD_ART has them
-# (the client fills it). The box is the frame at 0.52 (style.rcss, .pv,
-# gives the size wherever it is).
-PAD_W, PAD_H = padart.SHELL_W * 0.52, padart.SHELL_H * 0.52
+# The input display: a GameCube controller, the owner's picture of one made
+# into layers (padart.py: "make it look exactly like this, just slightly
+# transparent with the interactive button highlights on press", the owner,
+# 2026-11-14). Its layers all cover the same box, so each lies on the
+# others exactly; PAD_ART has them (the client fills it; without them, no
+# controller here, and the match shows TM-CE's). style.rcss (.pv) gives
+# the box's size wherever it is.
+PAD_W, PAD_H = float(padart.SHELL_W), float(padart.SHELL_H)
 PAD_ART = {}
-# the port's label above START ("P1"): where its foot is, how wide it is,
-# on the box
-PAD_LABEL = (78, 34, 16)
+# the port's label ("P1"): its middle and foot, its width, as shares of
+# the box (between the logo and START/PAUSE)
+PAD_LABEL = padart.LABEL + (0.075,)
 # the port whose controller a card's display is, unless told (the client
 # sets it: the player's)
 PAD_PORT = 0
@@ -1286,33 +1289,32 @@ def _pad_layer(name, ident=None, cls="pvl"):
 
 def pad_display(k, port=None):
     """An input display (the coach's pictures, the tutorial's example, the
-    game's own over a match): a GameCube controller whose buttons light
-    while held, whose sticks' caps move in their gates and whose triggers
-    go in under the shell, its port above START ("P1": the owner,
-    2026-11-14, "a small label above the start button on the controller so
-    it is clear"; `port` from 0, PAD_PORT if None). Its parts' ids are `c`
-    + `k` + "i" + the part (A B X Y Z, ST for START, DU DD DL DR the D-pad,
-    S and C the sticks' caps, L and R the triggers and Ll and Rl their
-    lit copies, P the label); pad_lines says what they show."""
+    game's own over a match): a GameCube controller, slightly see-through,
+    whose buttons light up while held, whose sticks' caps move and whose
+    triggers light as far as they are pressed, its port on it ("P1": "a
+    small label ... so it is clear"; `port` from 0, PAD_PORT if None). Its
+    parts' ids are `c` + `k` + "i" + the part (A B X Y Z, ST for START,
+    DU DD DL DR the D-pad, S and C the sticks' caps, L and R the triggers
+    and Ll and Rl their lights, P the label); pad_lines says what they
+    show."""
     def at(part):
         return "c%si%s" % (k, part)
     n = (PAD_PORT if port is None else port) + 1
-    out = ['<div id="c%si" class="pv">' % k]
-    for t in ("L", "R"):                # behind the shell
-        out.append('<div id="%s" class="pvm">%s%s</div>' % (
-            at(t), _pad_layer(t), _pad_layer(t + "-LIT", at(t + "l"),
-                                             "pvl pvlit")))
-    out.append(_pad_layer("BODY"))
+    out = ['<div id="c%si" class="pv">' % k, _pad_layer("BASE", None,
+                                                       "pvl pvbase")]
+    for t in ("L", "R"):
+        out.append('<div id="%s" class="pvm">%s</div>' % (
+            at(t), _pad_layer(t + "-LIT", at(t + "l"), "pvl pvlit")))
     for part in padart.LIT:
         out.append(_pad_layer(part, at(part), "pvl pvk"))
-    for cap in padart.CAPS:
-        out.append('<div id="%s" class="pvm">%s</div>' % (at(cap),
-                                                         _pad_layer(cap)))
+    for cap in ("S", "C"):
+        out.append('<div id="%s" class="pvm">%s</div>' % (
+            at(cap), _pad_layer(cap, None, "pvl pvcap")))
     x, foot, w = PAD_LABEL
     out.append('<div id="%s" class="pvp p%d" style="left: %.2f%%; bottom: '
                '%.2f%%; width: %.2f%%;">P%d</div>' % (
-                   at("P"), n, (x - w / 2) / PAD_W * 100,
-                   (PAD_H - foot) / PAD_H * 100, w / PAD_W * 100, n))
+                   at("P"), n, (x - w / 2) * 100, (1 - foot) * 100,
+                   w * 100, n))
     out.append("</div>")
     return "".join(out)
 

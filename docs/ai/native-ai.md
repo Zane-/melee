@@ -653,25 +653,24 @@ dangling pointer. The setting is `settings["inputs"]` (off, you, opponent, both)
 Settings > Display and the pause menu; the client sends the mask when a match or drill
 screen loads and 0 on leaving.
 
-*What it looks like* (the owner, 2026-11-14: "use the official button icons so it looks
-more like an actual gamecube controller"; then "it should feel like a cohesive controller
-component, not random PNGs spliced together", "I like the realistic buttons ... build them
-in with the body", and a photo of the controller: "I want to create the overlay as close as
-possible so it feels intuitive when you are looking at that vs. using your controller"):
-one controller, composed as a picture (`tools/melee_client/padart.py`), the same in the
-match, on the coach's card and in the tutorial's example. A flat shell in the controller's
-indigo, our own drawing (`padart.SHELL_LEFT`, mirrored) to the owner's references of its
-shape (not in the repository: one carries Nintendo's logo and no licence); SmashWiki's
-button icons set into it, each in a socket of its own outline with a shadow under it, lit
-from above alike: the control stick in its gate top left, the D-pad below it, START in the
-middle with the port above it (a small, faint "P1" in the port's colour: "a small label
-above the start button"), A with B, X and Y round it, the C-stick in its yellow gate
-below; L and R light grey behind the top corners, a rim of each showing; Z flat and blue
-on the top edge by R (drawn, not the wiki's purple icon). At rest a button is shaded;
-held it is bright with a light round it; a stick's cap moves in its gate; a trigger goes
-in under the shell, its bright copy showing as far as the game reads it pressed. Each part
-that changes is a layer of the same frame, a picture of the same size (`build/ui/pad/`),
-so the layers lie on each other exactly; one size in
+*What it looks like* (the owner, 2026-11-14, after three drawn versions: "I have a hyper
+resolution image ... If you can make it look exactly like this, just slightly transparent
+with the interactive button highlights on press I'd be very happy"): the owner's own render
+of the controller, made into layers by `tools/melee_client/padart.py`, the same in the
+match, on the coach's card and in the tutorial's example. The render is Nintendo's and not
+in the repository: it is copied once into `build/ui/pad/source.png`
+(`python3 tools/melee_client/padart.py PICTURE`, which needs Pillow; the client only reads
+the layers it makes, and without them the match shows TM-CE's model instead). The layers
+all cover the same box, so they lie on each other exactly: the controller cut from its
+white, slightly see-through, with the sticks' caps lifted out (under each, the gate's floor);
+the caps, which move with the sticks; and, for each button, the D-pad's arms and the
+triggers, that part brightened with a white rim and a glow, shown while it is held (a
+trigger as far as the game reads it pressed). Each part was found in the render by its
+colour, from a point inside it, so its light follows its own outline. The port's tag
+(a small, faint "P1" in the port's colour: "a small label ... so it is clear") sits
+between the logo and START/PAUSE. Z alone lights only Z: the game adds A and a light
+press of the triggers to Z for grabs (`fighter.c`), so the display reads the pad's own
+buttons (a CPU's, before that). One size in
 `style.rcss` (`.pv`) sizes it. Over a match the client's screens carry two of them
 (`screens.over_game`, ids `cg0i...`, `cg1i...`), and the game fills them in itself: the
 match's frame leaves each pad in `inputs.c`, and as the window's frame ends

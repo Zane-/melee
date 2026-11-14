@@ -8,7 +8,7 @@ Checked on a virtual display:
 - every part of the controller has its picture (buttons.ensure made them);
 - over a match, the game fills it in each frame (src/host/inputs.c,
   ui.cpp's host_ui_pad): a button held is lit and let go is not, the
-  sticks' caps move the way the sticks are pushed, a trigger goes in as far
+  sticks' caps move the way the sticks are pushed, a trigger lights as far
   as it is pressed; one controller for one port, two for two, none when
   the display is off, each labelled with its port above START;
 - the coach's card's display takes a pad the same way (Play._pad, the same
@@ -90,9 +90,9 @@ def main():
           lines["Y"].endswith("on 1") and lines["DU"].endswith("on 1") and
           lines["B"].endswith("on 0"))
     check("the card's display: the stick right, the C-stick down, L half in",
-          "left: 3.33%; top: 0.00%" in lines["S"] and
-          "left: 0.00%; top: 2.95%" in lines["C"] and
-          "top: 1.59%" in lines["L"] and "opacity: 0.50" in lines["Ll"],
+          "left: 3.19%; top: 0.00%" in lines["S"] and
+          "left: 0.00%; top: 3.78%" in lines["C"] and
+          "top: 0.00%" in lines["L"] and "opacity: 0.50" in lines["Ll"],
           lines["S"])
 
     out = tempfile.mkdtemp(prefix="melee-ui-")
@@ -135,10 +135,9 @@ def main():
         check("the C-stick pushed up: its cap at the top",
               pct(c["top"]) is not None and pct(c["top"]) < -2,
               "%s %s" % (c["left"], c["top"]))
-        check("L under half in: moved in a little, its lit copy half shown",
-              pct(lt["top"]) is not None and 0.5 < pct(lt["top"]) < 2.2 and
+        check("L under half in: its light half shown",
               0.35 < float(ll["opacity"]) < 0.55,
-              "%s, opacity %s" % (lt["top"], ll["opacity"]))
+              "opacity %s" % ll["opacity"])
 
         # the coach's card, given the same pad recorded, shows the same
         class Lines:
@@ -167,6 +166,17 @@ def main():
               "on" not in a["class"].split() and
               abs(pct(s["left"])) < 0.6 and abs(pct(lt["top"])) < 0.01,
               "%s %s %s" % (a["class"], s["left"], lt["top"]))
+
+        # Z alone: the game adds A to it for grabs (fighter.c); the display
+        # shows what is pressed (the owner: "pressing Z also highlights A")
+        w.pad(0, buttons=("Z",))
+        w.step(3)
+        a, z = look(w, "cg0iA"), look(w, "cg0iZ")
+        check("Z alone: Z lit, A not",
+              "on" in z["class"].split() and "on" not in a["class"].split(),
+              "%s / %s" % (z["class"], a["class"]))
+        w.pad(0)
+        w.step(3)
 
         w.inputs(3)
         w.step(3)

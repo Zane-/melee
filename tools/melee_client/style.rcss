@@ -476,19 +476,20 @@ img { display: inline-block; }
 .cpic.tall { height: 340dp; }
 /* the input display over a panel (screens.pad_display) */
 /* the input display: a GameCube controller (screens.pad_display, padart.py):
-   layers that each cover the same frame (4 of its 300 by 220 of room round
-   it), lying on each other; the box's size is the display's */
-.pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 86dp; }
-.cpic.tpic .pv { width: 138dp; height: 101dp; }
+   layers that each cover the whole box (1.4 times as wide as high), lying
+   on each other; the controller slightly see-through, its lights not */
+.pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 84dp; }
+.cpic.tpic .pv { width: 138dp; height: 99dp; }
 .pvm { position: absolute; left: 0dp; top: 0dp; width: 100%; height: 100%; }
-.pv .pvl { position: absolute; left: -1.333%; top: -1.818%; width: 102.667%; height: 103.636%; }
+.pv .pvl { position: absolute; left: 0dp; top: 0dp; width: 100%; height: 100%; }
+.pvbase, .pvcap { opacity: 0.85; }
 .pvk, .pvlit { opacity: 0; }
 .pvk.on { opacity: 1; }
-/* the port above START, in its colour, quiet ("reduce the size of the P1
-   tag and make it a little more transparent so it is more subtle") */
-.pvp { position: absolute; height: 8dp; line-height: 8dp; border-radius: 2dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 6.5dp; font-weight: 600; color: #FFFFFF; opacity: 0.7; }
-.cpic.tpic .pvp { height: 9dp; line-height: 9dp; font-size: 7dp; }
-.gpad .pvp { height: 10dp; line-height: 10dp; font-size: 8dp; }
+/* the port, in its colour, quiet ("reduce the size of the P1 tag and make
+   it a little more transparent so it is more subtle") */
+.pvp { position: absolute; height: 7dp; line-height: 7dp; border-radius: 2dp; text-align: center; font-family: "IBM Plex Mono"; font-style: normal; font-size: 5.5dp; font-weight: 600; color: #FFFFFF; opacity: 0.7; }
+.cpic.tpic .pvp { height: 8dp; line-height: 8dp; font-size: 6.5dp; }
+.gpad .pvp { height: 9dp; line-height: 9dp; font-size: 7dp; }
 .pvp.p1 { background-color: #E5484D; }
 .pvp.p2 { background-color: #3E7BFA; }
 .pvp.p3 { background-color: #F5BE1B; color: #12161C; }
@@ -497,9 +498,9 @@ img { display: inline-block; }
    (src/host/inputs.c fills it in) */
 .gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
 .gpads.mid { left: 160dp; }
-.gpad { display: none; position: relative; width: 150dp; height: 110dp; margin-left: 10dp; }
+.gpad { display: none; position: relative; width: 150dp; height: 107dp; margin-left: 10dp; }
 .gpad.on { display: block; }
-.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 110dp; }
+.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 107dp; }
 .cpimg { position: absolute; }
 .cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
 .cfr.on { display: block; }
