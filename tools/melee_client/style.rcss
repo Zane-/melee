@@ -476,7 +476,7 @@ img { display: inline-block; }
 .cpic.tall { height: 340dp; }
 /* the input display over a panel (screens.pad_display) */
 /* the input display: a GameCube controller (screens.pad_display, padart.py):
-   layers that each cover the whole box (1.4 times as wide as high), lying
+   layers that each cover the whole box (624 by 449: 1.39 to 1), lying
    on each other; the controller slightly see-through, its lights not */
 .pv { position: absolute; right: 6dp; bottom: 8dp; width: 117dp; height: 84dp; }
 .cpic.tpic .pv { width: 138dp; height: 99dp; }
@@ -498,9 +498,9 @@ img { display: inline-block; }
    (src/host/inputs.c fills it in) */
 .gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
 .gpads.mid { left: 160dp; }
-.gpad { display: none; position: relative; width: 150dp; height: 107dp; margin-left: 10dp; }
+.gpad { display: none; position: relative; width: 150dp; height: 108dp; margin-left: 10dp; }
 .gpad.on { display: block; }
-.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 107dp; }
+.gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 108dp; }
 .cpimg { position: absolute; }
 .cfr { display: none; position: absolute; left: 8dp; top: 8dp; padding: 2dp 7dp; background-color: #12161CCC; color: #F3F6FA; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; }
 .cfr.on { display: block; }

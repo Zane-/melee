@@ -90,8 +90,8 @@ def main():
           lines["Y"].endswith("on 1") and lines["DU"].endswith("on 1") and
           lines["B"].endswith("on 0"))
     check("the card's display: the stick right, the C-stick down, L half in",
-          "left: 3.19%; top: 0.00%" in lines["S"] and
-          "left: 0.00%; top: 3.78%" in lines["C"] and
+          "left: 2.56%; top: 0.00%" in lines["S"] and
+          "left: 0.00%; top: 4.01%" in lines["C"] and
           "top: 0.00%" in lines["L"] and "opacity: 0.50" in lines["Ll"],
           lines["S"])
 
@@ -130,7 +130,7 @@ def main():
               "on" not in b["class"].split(),
               "%s / %s / %s" % (a["class"], z["class"], b["class"]))
         check("the stick pushed right: its cap at the gate's right",
-              pct(s["left"]) is not None and pct(s["left"]) > 2.5 and
+              pct(s["left"]) is not None and pct(s["left"]) > 2.0 and
               abs(pct(s["top"])) < 0.6, "%s %s" % (s["left"], s["top"]))
         check("the C-stick pushed up: its cap at the top",
               pct(c["top"]) is not None and pct(c["top"]) < -2,

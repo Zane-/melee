@@ -108,12 +108,12 @@ static std::string rest(const char* line)
    moves from where it rests, at full tilt, PAD_S_X of the controller's
    box across and PAD_S_Y down (the C-stick's PAD_C_X and PAD_C_Y); a
    trigger's light shows as far as it is in, and it goes PAD_PRESS down
-   (padart.TRAVEL and PRESS, in the picture's pixels on its 2072 by 1480
+   (padart.TRAVEL and PRESS, in the drawing's pixels on its 624 by 449
    box). */
-#define PAD_S_X (66.0f / 2072 * 100)
-#define PAD_S_Y (66.0f / 1480 * 100)
-#define PAD_C_X (56.0f / 2072 * 100)
-#define PAD_C_Y (56.0f / 1480 * 100)
+#define PAD_S_X (16.0f / 624 * 100)
+#define PAD_S_Y (16.0f / 449 * 100)
+#define PAD_C_X (18.0f / 624 * 100)
+#define PAD_C_Y (18.0f / 449 * 100)
 #define PAD_PRESS 0.0f
 
 /// What a controller of the input display was last given, so that only
