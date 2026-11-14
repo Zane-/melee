@@ -192,6 +192,7 @@ class Window(Native):
         """Run at the console's speed (59.94 frames a second) instead of
         as fast as the machine goes."""
         self._cmd("pace %d" % (1 if on else 0))
+        self.paced = bool(on)
 
     # ---- the window itself ---------------------------------------------------
 

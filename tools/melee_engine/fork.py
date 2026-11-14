@@ -144,11 +144,30 @@ class InFork:
         self.errors = []
         self.forgotten = set()    # decisions no longer wanted
 
+    def realtime(self):
+        """Whether the frames are a person's to watch, at the console's
+        pace. Frames played unseen, as fast as they go (the coach's
+        demonstration, a load), can wait: decisions are made there and
+        then, in the game itself."""
+        return getattr(self.n, "paced", False) and \
+            not getattr(self.n, "quieted", 0)
+
     def lead_for(self, kind):
+        if not self.realtime():
+            return 0
         with self.lock:
             return self.leads.get(kind, self.lead)
 
     def submit(self, tag, fn, kind="any"):
+        if not self.realtime():
+            out = None
+            try:
+                out = fn(self.n)
+            except Exception as e:
+                self.errors.append(repr(e))
+            with self.lock:
+                self.results[tag] = out
+            return
         child = Fork(self.n)
         t = threading.Thread(target=self._run, args=(tag, fn, child, kind),
                              daemon=True)

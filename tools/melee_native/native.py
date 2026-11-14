@@ -147,6 +147,8 @@ class Native:
         self.h = _Pads()
         self._dirty = set()    # ports whose pad the game has not been told
         self._state = None     # the last frame's state, if still current
+        self.quieted = 0       # quiet(): frames unseen, as fast as they go
+        self.paced = False     # (the window build) at the console's speed
         self._snaps = {}       # snapshot id -> (frame, pads) on this side
         # Marked as started by this process: what looks for games left
         # running (window.leftovers) must not take someone else's for one.
@@ -302,7 +304,9 @@ class Native:
         Afterwards the sounds they started are stopped and music they
         started plays from its beginning. For loading a match. `on` 2: the
         frames are drawn, into pictures nobody sees (frames_rec)."""
-        self._cmd("quiet %d" % (on if on in (0, 1, 2) else 1))
+        on = on if on in (0, 1, 2) else 1
+        self._cmd("quiet %d" % on)
+        self.quieted = on         # (what thinks for an opponent asks)
 
     def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
               p2_human=True, settle=True, stocks=0, preload=()):

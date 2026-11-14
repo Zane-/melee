@@ -134,6 +134,7 @@ def live(drill, args, misses):
                                options={"Opponent": ENGINE}, live=False,
                                seed=17, dpad=False)
             s.thinker = InFork(game)
+            game.paced = True        # paced here, by the stand-in's clock
             run = 0
             for after in ("stand", "answer"):
                 for a in range(args.live):

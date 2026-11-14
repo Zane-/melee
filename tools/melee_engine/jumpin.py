@@ -234,19 +234,26 @@ class Footsies:
             way = toward if r < 0.5 else -toward
         kind = rng.choices(("dash", "walk", "wait", "crouch"),
                            weights=(0.5, 0.2, 0.22, 0.08))[0]
-        # not off the stage: a dash and its slide carry a fighter some 40
-        # units, a walk some 20
-        reach = 40.0 if kind == "dash" else 20.0
-        if way * me["x"] > 0 and abs(me["x"]) + reach > self.half:
+        # Not off the stage. Where it is going counts, not where it is: a
+        # run let go of slides 20 units and its turn carries it on (a Fox
+        # ran off Final Destination that way). From where its momentum
+        # takes it, a dash covers some 30 units more, a walk 25.
+        coast = me["x"] + me.get("vx", 0.0) * 12
+        limit = self.half - 12.0
+        reach = 30.0 if kind == "dash" else 25.0
+        if abs(coast) > limit - 10.0:
+            way, kind = (-1 if coast > 0 else 1), "dash"   # back in
+        elif way * coast > 0 and abs(coast) + reach > limit:
             way = -way
         out = []
         if kind == "dash":
             if self.last_lx * way > 0:
                 out.append(NONE)         # a dash starts from the middle
-            out += [(0, 127 * way, 0, 0, 0, 0, 0)] * rng.randint(3, 13)
+            # an initial dash at most (a dash dance), not a run
+            out += [(0, 127 * way, 0, 0, 0, 0, 0)] * rng.randint(3, 9)
         elif kind == "walk":
             lx = rng.choice((40, 55, 70)) * way
-            out += [(0, lx, 0, 0, 0, 0, 0)] * rng.randint(6, 24)
+            out += [(0, lx, 0, 0, 0, 0, 0)] * rng.randint(6, 16)
         elif kind == "crouch":
             out += [(0, 0, -127, 0, 0, 0, 0)] * rng.randint(4, 14)
         else:
@@ -416,11 +423,9 @@ class JumpIn:
         if p is None:
             return
         if not self.think.ready(p["tag"]):
-            if self.frame > p["at"]:
-                self.pending = None       # too late: dropped
-                self.think.forget(p["tag"])
-                self.late += 1
-                self._count(p["kind"] + " late")
+            # Too late, it is waited out all the same (and then dropped):
+            # one decision at a time, never a pile of them (forks are
+            # processes; the unseen coach's run once had sixteen).
             return
         got = self.think.result(p["tag"])
         self.pending = None
