@@ -66,7 +66,7 @@ A, B, X, Y, START = 0x100, 0x200, 0x400, 0x800, 0x1000
 L, R = 0x40, 0x20
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
-COLUMNS = 7
+COLUMNS = screens.COLUMNS
 STAGE_ORDER = ("final-destination", "battlefield", "yoshis-story",
                "dream-land", "fountain-of-dreams", "pokemon-stadium")
 assert set(STAGE_ORDER) == set(STAGES)

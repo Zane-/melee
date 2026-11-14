@@ -41,12 +41,19 @@ def check(name, ok, detail=""):
                         "  (" + detail + ")" if detail else ""))
 
 
-def panel_spread(path, places):
-    """How much the colour varies in the middle of each panel's picture
-    (1280x720): none on a panel that is only its colour."""
-    raw = subprocess.run(["magick", str(path), "rgb:-"], check=True,
+def panel_spread(path, places, size=(1280, 720)):
+    """How much the colour varies in the middle of each panel's picture,
+    in a window of `size` (the 16:9 interface centred in it): none on a
+    panel that is only its colour, -1 for one outside the window."""
+    width, height = size
+    # (the window is at the screen's corner; a picture can hold more)
+    raw = subprocess.run(["magick", str(path), "-crop", "%dx%d+0+0" % size,
+                          "+repage", "rgb:-"], check=True,
                          capture_output=True).stdout
-    img = np.frombuffer(raw, np.uint8).reshape(720, 1280, 3).astype(float)
+    img = np.frombuffer(raw, np.uint8).reshape(height, width, 3).astype(
+        float)
+    s = min(width / 1280, height / 720)
+    ox, oy = (width - 1280 * s) / 2, (height - 720 * s) / 2
     out = []
     for i in range(places):
         row, col = divmod(i, client.COLUMNS)
@@ -54,7 +61,10 @@ def panel_spread(path, places):
         # pitch of 126 from y 120, its name strip the bottom 22; this is
         # inside the slant and below where the strip once was drawn
         x, y = 54 + 110 * col + 49, 120 + 126 * row
-        out.append(img[y + 25:y + 80, x - 25:x + 25].std())
+        x0, x1 = int(ox + (x - 25) * s), int(ox + (x + 25) * s)
+        y0, y1 = int(oy + (y + 25) * s), int(oy + (y + 80) * s)
+        out.append(img[y0:y1, x0:x1].std() if x1 <= width and
+                   y1 <= height else -1.0)
     return out
 
 
@@ -108,7 +118,7 @@ def main():
         if art.sheik_missing():
             print("drawing Sheik first (half a minute)")
             art.render_sheik(log=lambda *a: None)
-        w = window.Window(window=(1280, 720))
+        w = window.Window(window=(1280, 720), size=(2600, 1500))
         w.step(30)
         c = client.Client(w, source="keyboard", out=out)
         w.pace(False)
@@ -130,6 +140,26 @@ def main():
         spread = panel_spread(drawn, len(c.roster))
         check("and draws them: no panel is its colour alone",
               min(spread) > 8, "least spread %.1f" % min(spread))
+        # seven to a row in a window of any shape: one box wrapping them
+        # once put six in a row at 2000x1111, the last place below the
+        # screen and Up and Down a column off
+        bad = []
+        for size in ((2000, 1111), (1024, 768), (2560, 1080)):
+            w.resize(*size)
+            frames(10)
+            w.shot(drawn)
+            least = min(panel_spread(drawn, len(c.roster), size))
+            if least <= 8:
+                bad.append("%dx%d: %.1f" % (size + (least,)))
+        w.resize(1280, 720)
+        frames(10)
+        check("all 25 drawn, seven to a row, at 2000x1111, 4:3 and 21:9",
+              not bad, "; ".join(bad))
+        tap("Down", after=3)
+        below = c.roster[c.at]["id"]
+        tap("Up", after=3)
+        check("Down from Fox is the place below him, Up back",
+              below == "mario" and c.roster[c.at]["id"] == "fox", below)
         check("25 places: Zelda and Sheik share one",
               len(c.roster) == 25 and 'id="c24"' in page and
               'id="c25"' not in page)

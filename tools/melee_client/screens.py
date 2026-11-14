@@ -12,6 +12,8 @@ import art
 # The style sheet is named beside the document: client.py copies it there
 # (RmlUi takes a path that starts with a slash for one below its own root).
 STYLE = Path(__file__).with_name("style.rcss")
+# The character select's panels in a row (the arrows move by it too)
+COLUMNS = 7
 PART_CLASS = {"Tech": "tech", "Punish": "punish", "Defense": "defense",
               "Neutral": "neutral"}
 PART_COLOR = {"Tech": "#1F49C9", "Punish": "#F0643C", "Defense": "#22B8A0",
@@ -495,9 +497,14 @@ def character_select(roster, focus, title="Choose your character",
         tiles.append('<div id="c%d" class="char%s" style="background-color: '
                      '%s">%s</div>' % (i, " focus" if i == focus else "",
                                        c["color"], tile(c)))
+    # a row of its own for each COLUMNS panels: wrapped in one box, a
+    # window whose scale rounded a panel up by a pixel wrapped them six to
+    # a row, and the last place fell below the screen
+    rows = "".join('<div class="rrow">%s</div>' % "".join(
+        tiles[i:i + COLUMNS]) for i in range(0, len(tiles), COLUMNS))
     body = (
         header([title]) +
-        '<div class="roster">' + "".join(tiles) + '</div>' +
+        '<div class="roster">' + rows + '</div>' +
         '<div id="card" class="card art">' +
         (inside or card(roster[focus], costume)) + '</div>' +
         footer(about, hints or [("A", "Choose"), ("Y", "Costume"),

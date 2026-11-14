@@ -148,7 +148,8 @@ span { display: inline; }
 
 /* ---- character select -------------------------------------------------- */
 
-.roster { position: absolute; left: 54dp; top: 120dp; width: 770dp; height: 496dp; display: flex; flex-direction: row; flex-wrap: wrap; }
+.roster { position: absolute; left: 54dp; top: 120dp; width: 770dp; height: 496dp; display: flex; flex-direction: column; }
+.rrow { display: flex; flex-direction: row; flex-wrap: nowrap; }
 /* A panel: the game's portrait over its series emblem, cut to the slant
    (.pic clips; .pin, slanted back, holds the pictures upright), the name
    on an ink strip, the part colours above it if it has a course. */
