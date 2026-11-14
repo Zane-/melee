@@ -142,6 +142,43 @@ def main():
               "%d states" % len(seen))
         leave()
 
+        # ---- quitting from the game's pause ------------------------------------
+        # The owner: "pressing start + LRAB crashes the game, it shows the
+        # no memory card screen, then it crashes". L+R+A+Start in the pause
+        # ends the match; the native game used to go on to its own menus.
+        for _ in range(len(c.players())):
+            if c.players()[c.who][0] == client.NOBODY:
+                break
+            tap("v", after=2)
+        tap("x", after=20)
+        frames(60)
+        before = w.state().get("ended", 0)
+        tap("Return", after=20)                  # pause
+        for key in ("a", "s", "x"):              # L, R, A
+            w.key(key)
+        frames(4)
+        w.key("Return")
+        frames(3)
+        w.key("Return", False)
+        for key in ("a", "s", "x"):
+            w.key(key, False)
+        frames(60)
+        st = w.state()
+        check("L+R+A+Start in the pause leaves the match for the opponent "
+              "screen", c.screen == "opp" and st.get("ended") == before + 1,
+              "%s, ended %s" % (c.screen, st.get("ended")))
+        check("and the game is in a match again, not in its own menus",
+              st["p"][0] is not None and st["p"][1] is not None)
+        tap("x", after=20)
+        frames(60)
+        check("the next match starts as usual", c.screen == "versus" and
+              w.fighter(0).state in (14, 324) or w.fighter(0).airborne,
+              "state %d" % w.fighter(0).state)
+        w.key("Return")
+        frames(50)
+        w.key("Return", False)
+        frames(6)
+
         # ---- the Lab ---------------------------------------------------------
         tap("z")
         tap("z")

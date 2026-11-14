@@ -437,6 +437,27 @@ the first try waits (up to a second and a half) for the buttons to be let go.
 Where a person can train **today** is still the overlay build on Dolphin
 (`training-courses.md`).
 
+### L+R+A+Start, and matches the game ends itself (2026-11-13)
+
+The owner: "pressing start + LRAB crashes the game, it shows the no memory card screen,
+then it crashes!" L+R+A+Start in the game's pause ends the match (no contest), and the
+game then asks which mode comes next. The host passed it the game's own boot choice: the
+memory card check, then menus the native build does not provide for. Also, the fighter
+report went on describing the fighters of the ended match from freed memory, which the
+client reads every frame.
+
+Now (`src/host/match.c`): once a driver has asked for a match, the game never goes back to
+its own scenes; a match it ends itself is followed at once by the same match again, and
+counted (`state`'s "ended"). The fighter report, `fp` and placement check that a fighter
+still exists (`host_live_fighter`). The client leaves a match or a drill when the game
+ended it, as it does when START is held (`Client.game_quit`). `tests/client/versus.py`
+does it with the keyboard: pause, hold L+R+A, press Start; the client is back on the
+opponent screen and the game in a fresh match.
+
+Found on the way, not fixed: a stock match (`match ... stocks`, new) does not end when a
+fighter loses its last stock. The fighter stays dead and nothing follows; probably the
+end-of-game sequence waits for something the native build does not have (sound).
+
 ### How it feels: UCF, and when the controller is read (2026-11-13)
 
 The owner, after playing: "I also feel like the gameplay feels slightly off; I am not sure

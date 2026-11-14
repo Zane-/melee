@@ -78,9 +78,20 @@ typedef struct HostMatch {
     int human[4]; ///< a human (reads its pad) or a CPU
     int stage;    ///< stage id as in the match rules (0x20: FD)
     unsigned seed; ///< the game's random seed as the match is set up
+    int stocks;    ///< stocks each; 0: an endless time match (the default)
+    /// Matches entered so far (`state`'s "match").
+    unsigned entered;
+    /// Matches the game ended itself (L+R+A+Start in its pause, the end of
+    /// a stock match), as opposed to a driver asking for another. Each is
+    /// followed at once by the same match again, never by the game's own
+    /// boot scenes (`state`'s "ended").
+    unsigned ended;
 } HostMatch;
 
 extern HostMatch host_match;
+/// Whether a fighter's object still exists (the player table keeps it after
+/// its match has ended).
+int host_live_fighter(const void* gobj);
 /// Each frame: keeps the host's mode override installed.
 void host_match_install(void);
 /// End the current scene and enter the match described by host_match.
@@ -89,6 +100,13 @@ void host_match_start(void);
 /// Put player `slot`'s fighter standing on the floor at or below (x, y), or
 /// (air) falling from there, facing `facing`, at `percent` damage
 /// (setup.c). Returns NULL, or why not.
+/// The stage's left ledge (the left end of the floor under the middle of the
+/// stage, followed left): its floor line, or -1, and where it is.
+int host_left_ledge(float* x, float* y);
+/// Player `slot` hanging on that ledge, as after a fresh grab of it (full
+/// ledge intangibility), with that much damage.
+const char* host_ledge(int slot, float percent);
+const char* host_set_shield(int slot, float health);
 const char* host_place(int slot, float x, float y, float facing, int air,
                        float percent);
 /// The control protocol (control.c), when enabled.

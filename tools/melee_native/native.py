@@ -238,25 +238,27 @@ class Native:
         return self.frame
 
     def match(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True):
+              p2_human=True, stocks=0):
         """Ask for a match (the game's debug VS mode). It loads over the
-        next frames; start() also waits for it."""
-        self._cmd("match %d %d %d %d %d" % (
-            CHARACTERS[p1], CHARACTERS[p2], STAGES[stage],
-            1 if p2_human else 0, seed))
+        next frames; start() also waits for it. `stocks`: each player's;
+        0 is an endless time match."""
+        self._cmd("match %d %d %d %d %d %d" % (
+            CHARACTERS[p1], CHARACTERS[p2] if p2 else -1, STAGES[stage],
+            1 if p2_human else 0, seed, stocks))
         self.match_info = dict(p1=p1, p2=p2, stage=stage, seed=seed,
                                p2_human=p2_human)
 
     def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True, settle=True):
-        """A match with both fighters standing on the stage, ready to act:
+              p2_human=True, settle=True, stocks=0):
+        """A match with both fighters (p2=None: one) standing on the stage,
+        ready to act:
         boot, ask for the match, wait for the fighters, and (settle) for
         them to land from their entrance and the countdown to end."""
         self.step(30)
         # A match may already be running: its fighters go before the new
         # ones come, and "both fighters exist" must mean the new ones.
         had = bool(self.fighter(0).fp)
-        self.match(p1, p2, stage, seed, p2_human)
+        self.match(p1, p2, stage, seed, p2_human, stocks)
         if had:
             for _ in range(300):
                 self.step()
@@ -264,7 +266,7 @@ class Native:
                     break
         for _ in range(600):
             self.step()
-            if self.fighter(0).fp and self.fighter(1).fp:
+            if self.fighter(0).fp and (self.fighter(1).fp or not p2):
                 break
         else:
             raise NativeError("the match never started")
@@ -280,10 +282,11 @@ class Native:
             self.pad(0)
             for _ in range(200):
                 self.step()
+                other = self.fighter(1)
                 if not self.fighter(0).airborne and \
-                        not self.fighter(1).airborne and \
                         self.fighter(0).state == 14 and \
-                        self.fighter(1).state == 14:
+                        (not p2 or (not other.airborne and
+                                    other.state == 14)):
                     break
         return self
 
@@ -293,6 +296,20 @@ class Native:
         if on is None:
             return self._cmd("ucf") == "1"
         return self._cmd("ucf %d" % (1 if on else 0)) == "1"
+
+    def ledge(self, port=None, percent=0.0):
+        """Where the stage's left ledge is, (x, y); with `port`, that
+        fighter is put hanging on it as after a fresh grab of it (full
+        ledge intangibility), with that much damage."""
+        if port is None:
+            words = self._cmd("ledge").split()
+        else:
+            words = self._cmd("ledge %d %.9g" % (port, percent)).split()
+        return float(words[0]), float(words[1])
+
+    def shield(self, port, health=60.0):
+        """Set a fighter's shield health (60 is full)."""
+        self._cmd("shield %d %.9g" % (port, health))
 
     def place(self, port, x, y=0.0, facing=1, air=False, percent=0.0):
         """Put a fighter standing on the floor at or below (x, y), or (air)

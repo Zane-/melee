@@ -25,6 +25,8 @@
  *   rng                           callers of the last frame's random draws
  *   fp SLOT                       address of a fighter's data, for "r"
  *   ucf [0|1]                     UCF 0.84 off or on (on by default)
+ *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
+ *   shield P HEALTH               a fighter's shield health
  *   ui ...                        the client's interface (ui.cpp)
  *   window [fullscreen 0|1|toggle | size W H]
  *                                 the window: its size, the frame the
@@ -217,6 +219,21 @@ static int read_line(char* out, size_t size)
 
 /// Slots 4 to 7 are the second fighter of ports 0 to 3 (the Ice Climbers'
 /// partner; Zelda's other form).
+/// Whether `gobj` is one of the fighters that exist now. The player table
+/// keeps a fighter's object after its match has ended and the object has
+/// been freed; reading it then reads freed memory.
+int host_live_fighter(const void* gobj)
+{
+    for (HSD_GObj* cur = HSD_GObjPLinkHead[HSD_GOBJ_PLINK_FIGHTER];
+         cur != NULL; cur = cur->next)
+    {
+        if (cur == gobj) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void host_fighter_json(int slot, char* out, size_t size)
 {
     HSD_GObj* gobj = slot >= 4 && slot < 8
@@ -224,7 +241,9 @@ void host_fighter_json(int slot, char* out, size_t size)
                          : Player_GetEntity(slot);
     Fighter* fp;
 
-    if (gobj == NULL || (fp = GET_FIGHTER(gobj)) == NULL) {
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
         snprintf(out, size, "null");
         return;
     }
@@ -278,8 +297,10 @@ static void print_state(void)
 
     host_fighter_json(0, a, sizeof a);
     host_fighter_json(1, b, sizeof b);
-    printf("@ {\"frame\":%u,\"rng\":%u,\"p\":[%s,%s],\"items\":",
-           host.frame, (unsigned) *HSD_RandSeedPtr, a, b);
+    printf("@ {\"frame\":%u,\"rng\":%u,\"match\":%u,\"ended\":%u,"
+           "\"p\":[%s,%s],\"items\":",
+           host.frame, (unsigned) *HSD_RandSeedPtr, host_match.entered,
+           host_match.ended, a, b);
     print_items();
     printf("}\n");
 }
@@ -380,11 +401,42 @@ static void command(char* line)
             snaps[id].alive = 0;
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "ledge") == 0) {
+        /* "ledge": where the stage's left ledge is ("@ x y", or an error);
+           "ledge P [PERCENT]": player P hanging on it */
+        int p = -1;
+        float percent = 0.0F, x, y;
+        if (sscanf(line, "%d %f", &p, &percent) >= 1) {
+            const char* why = host_ledge(p, percent);
+            if (why != NULL) {
+                printf("@ error %s\n", why);
+                fflush(stdout);
+                return;
+            }
+        }
+        if (host_left_ledge(&x, &y) < 0) {
+            printf("@ error no ledge found\n");
+        } else {
+            printf("@ %.9g %.9g\n", x, y);
+        }
+    } else if (strcmp(cmd, "shield") == 0) {
+        int p = 0;
+        float health = 60.0F;
+        const char* why;
+        sscanf(line, "%d %f", &p, &health);
+        why = host_set_shield(p, health);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "match") == 0) {
-        int c1 = 2, c2 = 9, stage = 0x20, h2 = 1;
+        int c1 = 2, c2 = 9, stage = 0x20, h2 = 1, stocks = 0;
         unsigned seed = 1;
-        sscanf(line, "%d %d %d %d %u", &c1, &c2, &stage, &h2, &seed);
+        sscanf(line, "%d %d %d %d %u %d", &c1, &c2, &stage, &h2, &seed,
+               &stocks);
         host_match.seed = seed;
+        host_match.stocks = stocks;
         host_match.ckind[0] = c1;
         host_match.ckind[1] = c2;
         host_match.stage = stage;
@@ -410,9 +462,10 @@ static void command(char* line)
         sscanf(line, "%d", &i);
         gobj = i >= 4 && i < 8 ? Player_GetEntityAtIndex(i - 4, 1)
                                : Player_GetEntity(i);
-        printf("@ %x\n",
-               (unsigned) (uintptr_t) (gobj != NULL ? GET_FIGHTER(gobj)
-                                                    : NULL));
+        printf("@ %x\n", (unsigned) (uintptr_t) (
+                              gobj != NULL && host_live_fighter(gobj)
+                                  ? GET_FIGHTER(gobj)
+                                  : NULL));
     } else if (strcmp(cmd, "seed") == 0) {
         unsigned seed = 0;
         sscanf(line, "%u", &seed);

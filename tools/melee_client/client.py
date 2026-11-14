@@ -95,6 +95,7 @@ class Client:
         self.person = None            # tests: called before every frame
         self.results = None           # the attempts of the drill last left
         self.banner = 0               # frames the verdict banner stays up
+        self.ended = None             # matches the game had ended itself
         self.mode = "train"           # what the character is being picked for
         self.me = None                # versus and lab: the player's character
         self.opp_at = 0               # the opponent in focus
@@ -200,7 +201,27 @@ class Client:
         self.w.step()
         self.frames += 1
         pressed, moves = self.read()
+        if self.screen in ("match", "versus") and self.game_quit():
+            self.start_held = 40          # the way out, as if START held
         getattr(self, "on_" + self.screen)(pressed, moves)
+
+    def playing(self):
+        """A match has just been started here: from now on the game ending
+        one itself means the player quit it (game_quit)."""
+        self.ended = self.w.state().get("ended", 0)
+
+    def game_quit(self):
+        """Did the game end the match itself? L+R+A+Start in its pause
+        does: the native game then starts the same match again (it never
+        goes back to its own menus), and the client leaves it, as it does
+        when START is held."""
+        if self.ended is None:
+            return False
+        now = self.w.state().get("ended", 0)
+        if now != self.ended:
+            self.ended = now
+            return True
+        return False
 
     def on_main(self, pressed, moves):
         for d in (LEFT, RIGHT, DOWN, UP):
@@ -345,6 +366,7 @@ class Client:
         self.last = self.me
         self.screen = "versus"
         self.start_held = 0
+        self.playing()
         self.damage = 0
         self.load("versus", screens.versus_rail(
             self.me, opp, name, what, stage.replace("-", " ").title(),
@@ -529,7 +551,7 @@ class Client:
         """Before every frame of a drill: the way out, and (in tests) the
         stand-in for the player."""
         self.read()
-        if self.start_held >= 40:
+        if self.start_held >= 40 or self.game_quit():
             raise Leave()
         if self.banner > 0:
             self.banner -= 1
@@ -598,6 +620,7 @@ class Client:
                 break
         self.screen = "drill"
         self.start_held = 0
+        self.playing()
         self.load("drill", screens.drill_rail(
             self.c, d, self.course, sc.get("about", d["goal"])))
         self.w.capture(False)
@@ -645,6 +668,7 @@ class Client:
         self.last = c
         self.screen = "match"
         self.start_held = 0
+        self.playing()
         self.load("match", screens.match_rail(
             c, self.opponent.replace("-", " ").title(),
             self.stage.replace("-", " ").title()))

@@ -18,6 +18,9 @@
 #include <melee/ft/ft_0892.h>
 #include <melee/ft/ft_0D4D.h>
 #include <melee/ft/ftcamera.h>
+#include <melee/ft/ftcliffcommon.h>
+#include <melee/ft/ftcoll.h>
+#include <melee/ft/kinds/ftCommon/ftCo_CliffWait.h>
 #include <melee/ft/ftcommon.h>
 #include <melee/ft/inlines.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Fall.h>
@@ -57,23 +60,119 @@ static void still(Fighter* fp, float facing)
     fp->x8c_kb_vel = zero;
 }
 
-const char* host_place(int slot, float x, float y, float facing, int air,
-                       float percent)
+/// Let go of whoever it holds, and of it if it is held, the way the game
+/// ends a grab; otherwise the two stay linked.
+static void release(HSD_GObj* gobj, Fighter* fp)
 {
-    HSD_GObj* gobj = Player_GetEntity(slot);
-    Fighter* fp;
-
-    if (gobj == NULL || (fp = GET_FIGHTER(gobj)) == NULL) {
-        return "no such fighter";
-    }
-    /* Let go of whoever it holds, and of it if it is held, the way the game
-       ends a grab; otherwise the two stay linked. */
     if (fp->victim_gobj != NULL) {
         ftCo_800DC920(gobj, fp->victim_gobj);
     }
     if (fp->x1A5C != NULL) {
         ftCo_800DC920(fp->x1A5C, gobj);
     }
+}
+
+static int left_ledge(Vec3* pos)
+{
+    CollLine* lines = mpGetGroundCollLine();
+    Vec3 hit, normal;
+    int line = -1;
+    u32 flags = 0;
+
+    if (!mpCheckFloor(0.0F, 5.0F, 0.0F, -FLOOR_REACH, 0.0F, &hit, &line,
+                      &flags, &normal, -1, -1, -1, NULL, NULL))
+    {
+        return -1;
+    }
+    for (int k = 0; k < 64; k++) {
+        int prev = mpLineGetPrev(line);
+        if (prev < 0 || (lines[prev].flags & LINE_FLAG_KIND) != CollLine_Floor)
+        {
+            break;
+        }
+        line = prev;
+    }
+    mpLib_80053ECC_Floor(line, pos);
+    return line;
+}
+
+const char* host_ledge(int slot, float percent)
+{
+    HSD_GObj* gobj = Player_GetEntity(slot);
+    Fighter* fp;
+    Vec3 pos;
+    int line;
+
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
+        return "no such fighter";
+    }
+    line = left_ledge(&pos);
+    if (line < 0) {
+        return "no ledge found";
+    }
+    /* As the course engine does it (src/tmce/events/course/event.c,
+       course_PlaceOnLedge, TM-CE's Fighter_PlaceOnLedge): as if it had
+       just come back, then hanging, then put where hanging puts it. */
+    release(gobj, fp);
+    still(fp, 1.0F);
+    fp->used_tether = 0;
+    ftCo_800D4F24(gobj, 0);
+    ftCo_800D4FF4(gobj);
+    fp->facing_dir = 1.0F; /* a left ledge: facing the stage */
+    fp->mv.co.cliff.ledge_id = line;
+    ftCo_8009A804(gobj);
+    fp->mv.co.cliff.x8 = 0; /* TM-CE's FtCliffCatch.timer (x4 is the
+                               frames left before it lets go by itself) */
+    ftCommon_8007D5D4(fp); /* airborne */
+    ftCommon_UnlockECB(fp);
+    mpColl_80048160(&fp->coll_data);
+    ftCo_CliffCatch_Phys(gobj);
+    moved(gobj, fp);
+    ftColl_8007B760(gobj, p_ftCommonData->x49C + 1);
+    fp->dmg.x1830_percent = percent;
+    Player_SetHUDDamage(fp->player_idx, (int) percent);
+    ftCamera_UpdateCameraBox(gobj);
+    Camera_8002F3AC();
+    return NULL;
+}
+
+int host_left_ledge(float* x, float* y)
+{
+    Vec3 pos;
+    int line = left_ledge(&pos);
+    *x = pos.x;
+    *y = pos.y;
+    return line;
+}
+
+const char* host_set_shield(int slot, float health)
+{
+    HSD_GObj* gobj = Player_GetEntity(slot);
+    Fighter* fp;
+
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
+        return "no such fighter";
+    }
+    fp->shield_health = health;
+    return NULL;
+}
+
+const char* host_place(int slot, float x, float y, float facing, int air,
+                       float percent)
+{
+    HSD_GObj* gobj = Player_GetEntity(slot);
+    Fighter* fp;
+
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
+        return "no such fighter";
+    }
+    release(gobj, fp);
 
     if (air) {
         ftCo_800D4F24(gobj, 0); /* as if it had just come back */
