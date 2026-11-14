@@ -96,6 +96,13 @@ int host_ahead_active(void)
     return ahead.active;
 }
 
+/// Frames are being played ahead, by a lookahead or a search (engine.c):
+/// nothing of them is heard or reaches the real-time side.
+int host_predicting(void)
+{
+    return ahead.active || host_engine_active();
+}
+
 void gm_801A4B60_vanilla(void);
 void gm_801A4B74_vanilla(void);
 
@@ -106,6 +113,10 @@ void gm_801A4B60(void)
         ahead.scene_end = 1;
         return;
     }
+    if (host_engine_active()) {
+        host_engine_note_scene_end();
+        return;
+    }
     gm_801A4B60_vanilla();
 }
 
@@ -113,6 +124,10 @@ void gm_801A4B74(void)
 {
     if (ahead.active) {
         ahead.scene_end = 1;
+        return;
+    }
+    if (host_engine_active()) {
+        host_engine_note_scene_end();
         return;
     }
     gm_801A4B74_vanilla();

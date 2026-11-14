@@ -600,6 +600,24 @@ static void command(char* line)
         } else {
             steps_left = 1; /* this boundary goes on: the frames run */
         }
+    } else if (strcmp(cmd, "search") == 0) {
+        /* "search PORT TARGET HORIZON BUDGET DEPTH [KEY=VALUE ...]": PORT's
+           lines of play tried in the game and scored (engine.c); the reply
+           comes when they have been undone */
+        const char* why = host_engine_begin(line);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else if (host_engine_playing()) {
+            steps_left = 1; /* this boundary goes on: the frames run */
+        }
+    } else if (strcmp(cmd, "engine") == 0) {
+        /* "engine player ...", "engine macros" (engine.c) */
+        const char* why = host_engine_command(line);
+        if (why == NULL) {
+            printf("@ ok\n");
+        } else if (*why != 0) {
+            printf("@ error %s\n", why);
+        }
     } else if (strcmp(cmd, "save") == 0) {
         /* "save N": the game's whole state into slot N (state.c) */
         int n = 0;

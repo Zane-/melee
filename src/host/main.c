@@ -81,11 +81,11 @@ void host_frame_tick(void)
 void host_frame_tick_rest(void)
 {
     host_anchor_frame();
-    if (!host_ahead_active()) {
+    if (!host_predicting()) {
         host_audio_frame();
     }
     host_rng_frame();
-    if (host.on_frame != NULL && !host_ahead_active()) {
+    if (host.on_frame != NULL && !host_predicting()) {
         host.on_frame();
     }
     if (host.max_frames != 0 && host.frame > host.max_frames) {
@@ -107,6 +107,16 @@ u8 lb_80019894(void)
            at the boundary its command was read at, and that boundary goes
            on: more commands, then the rest of it (ahead.c) */
         if (!host_ahead_boundary()) {
+            host_control_resume();
+            host_frame_tick_rest();
+        }
+        fn_800195FC();
+        return HSD_PadGetRawQueueCount();
+    }
+    if (host_engine_active()) {
+        /* a frame of a search (engine.c), or the search is over and the
+           game back where it was asked: the same as a lookahead's */
+        if (!host_engine_boundary()) {
             host_control_resume();
             host_frame_tick_rest();
         }

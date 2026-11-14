@@ -280,5 +280,13 @@ const char* host_ahead_begin(const char* line);
 int host_ahead_boundary(void);
 void host_frame_tick_rest(void);
 void host_control_resume(void);
+int host_predicting(void);
+/* engine.c: the search engine */
+int host_engine_active(void);
+int host_engine_playing(void);
+const char* host_engine_begin(const char* line);
+int host_engine_boundary(void);
+const char* host_engine_command(const char* line);
+void host_engine_note_scene_end(void);
 
 #endif
