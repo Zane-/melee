@@ -798,8 +798,9 @@ music the match asked for starts as the stretch ends, and with its stream's firs
 still on its way when rollback began, Alpha's game hung in `tests/client/online.py`'s
 leave step in 3 runs of 4 (another session's bisection). Ended earlier: 9 runs of 11
 passed whole; one hung in the leave step and one did not reach "Leave match" in its 200
-frames. That step is still flaky: its pause menu plays menu sounds through the game in
-the middle of a session, on one side only, and the test drives it with key presses.
+frames. The rest was the menu sounds: the client played them through the game during a
+session (every A or START in an online match), on one side only; it no longer does
+(1acbda006, which also gave the test's leave step more frames), and 5 runs of 5 passed.
 
 Traps found on the way:
 
