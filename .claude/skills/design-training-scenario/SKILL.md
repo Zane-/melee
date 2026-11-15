@@ -19,7 +19,7 @@ memory.
 | Question | Where the answer comes from |
 |-|-|
 | What skill is being trained, and what does one repetition look like? | The prompt; `Character tech` and `Drill seeds` in `data/characters/<player>.md`; `Drill seeds` and `How to detect it in a training mode` in `data/techniques/<id>.md` |
-| Who is the player, who is the CPU? | The prompt. If the CPU is unspecified, pick opponents where the situation is real: `Matchup notes`, `As the training dummy`, and `data/characters/README.md` (weight, fall speed, tier) |
+| Who is the player, who is the CPU? | The prompt. A drill with an opponent covers the top tier, many scenarios across it (the owner, 2026-11-15: "make sure that every drill has many scenarios across the top tier characters"): Fox, Marth, Jigglypuff, Falco, Sheik, Captain Falcon, Peach, Ice Climbers, Pikachu, Yoshi, Samus (the 2021 list's S, A and B+; `tier:` in `data/characters/*.md`), several options each where the technique allows; a character with no fitting option is left out with the reason. Pick each one's options where the situation is real: `Matchup notes`, `As the training dummy`, and `data/characters/README.md` (weight, fall speed, tier) |
 | What is the CPU doing? | An attack to punish, a recovery to edgeguard, a tech/DI choice to react to, a shield to pressure. Take realistic options from the CPU character's `Neutral game`, `Recovery`, `As the training dummy` |
 | What state does a repetition start from? | Positions, facing, percent, who is in which action state on frame 0 |
 | What is success, observably? | Action states, hits, frame counts. Never "the player played well" |
