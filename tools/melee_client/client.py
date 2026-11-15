@@ -2591,7 +2591,9 @@ class Client:
                 _, seq = self.tutorial_seq(
                     drill, session, fmt.pick(still, "inputs", cid), {},
                     [dict(cue, frames=[at, at])] if cue else [])
-                seq = [e for e in seq if e["label"] == "F%d" % at][:1]
+                # (by its frame number: frame 0, the one before the
+                # inputs, has no label: the ledgedash's still is the hang)
+                seq = [e for e in seq if e.get("fn") == at][:1]
                 for e in seq:
                     e["label"] = ""
                     e.pop("caption", None)  # (a still has no caption
@@ -2697,6 +2699,7 @@ class Client:
             seq = [e for e in seq if e["i"] - start + 1 > -self.TUT_LEAD]
         for e in seq:
             f = e["i"] - start + 1 if start is not None else None
+            e["fn"] = f
             if f is None or f < 1:
                 e["caption"] = "Before frame 1"
                 e["label"] = ""

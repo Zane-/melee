@@ -1905,7 +1905,7 @@ def tutorial_card(v):
     # place and clipped "LESSON 1 OF 1")
     n = sum(len(t) for t in paras) + (60 if v.get("pic") is not None and
                                       not v.get("still") else 0)
-    size = "t16" if n <= 360 else "t15" if n <= 440 else "t14" if \
+    fit = "t16" if n <= 360 else "t15" if n <= 440 else "t14" if \
         n <= 520 else "t13" if n <= 620 else "t12"
     if v.get("pic") is not None and not v.get("still"):
         side += ('<div class="th">This frame</div><div id="cecap" '
@@ -1933,7 +1933,7 @@ def tutorial_card(v):
         '<div class="grow"/><div class="cfoot">%s</div></div>' % (
             size, esc(v["title"]), esc(v.get("sub", "")).replace("\n",
                                                                 "<br/>"),
-            visual, size, side, below, chips, "".join(
+            visual, fit, side, below, chips, "".join(
                 '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
                                                              esc(w))
                 for b, w in v["keys"])))
