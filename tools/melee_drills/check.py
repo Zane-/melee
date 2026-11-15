@@ -1,6 +1,7 @@
 """The proof of a drill in the drill format (docs/ai/drill-format.md):
 
     python tools/melee_drills/check.py universal-short-hop [--chars fox,marth]
+    python tools/melee_drills/check.py path/to/a-drill.json
 
 For every character the drill allows (or those named), headless:
 - the tutorial's example and each part's example pass that part's checks;
@@ -48,12 +49,14 @@ def play(session, drill, inputs, part, strict=False, scenario=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("drill")
+    ap.add_argument("drill", help="a drill's id, or a drill file's path "
+                    "(.json)")
     ap.add_argument("--chars", help="characters, comma separated")
     ap.add_argument("--quiet", action="store_true",
                     help="only failures and the totals")
     args = ap.parse_args()
-    spec = F.load(args.drill)
+    spec = F.load(path=args.drill) if args.drill.endswith(".json") else \
+        F.load(args.drill)
     chars = args.chars.split(",") if args.chars else (
         ALL if spec.get("characters", "all") == "all"
         else spec["characters"])

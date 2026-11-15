@@ -157,6 +157,8 @@ class JsonDrill(Drill):
         self.part_index = 0
         self.streak = 0
         self.v = {}
+        self.op_refs = []
+        self.op_script = None   # a scripted opponent (melee_engine/script.py)
 
     # ---- the drill's numbers -------------------------------------------------------
 
@@ -274,8 +276,10 @@ class JsonDrill(Drill):
             self.op_refs = inputs_to_refs(op.get("inputs", []), nums, 1) \
                 if op.get("inputs") else []
             self.op_toward = toward
+            self._script(c, op if "script" in op else None)
         else:
             self.op_refs = []
+            self._script(c, None)
         self.camera(c.n, c.s.person)
         self.trace(c.n, c.s.person)
         self.v = dict(rec=[], last=None)
@@ -386,10 +390,35 @@ class JsonDrill(Drill):
                     p=self.v.get("last"), i=-1, nums=self.v.get("nums"),
                     gf=c.n.state().get("frame"))
 
+    def _script(self, c, op):
+        """The scenario's scripted opponent (`op`: its "script", "react",
+        "loop"; None: none), made new at each reset: its random choices
+        drawn from the attempt's numbers (a demonstration's two passes and
+        check.py's every case play the same opponent), its decisions made
+        where the session's thinker makes them (forked copies of the window
+        build while a person plays, the game itself headless)."""
+        if self.op_script is not None:
+            self.op_script.stop()
+            self.op_script = None
+        if op is None:
+            return
+        from melee_course.react import thinker
+        from melee_engine.script import Opponent
+        ledge = c.ledge_pos()
+        self.op_script = Opponent(
+            thinker(c), c.s.cpu_port, c.s.person, op,
+            seed=c.rng.getrandbits(32),
+            half=abs(ledge[0]) if ledge and abs(ledge[0]) > 1 else 85.0,
+            char=c.fd.id)
+
     def _opponent(self, c):
-        """The opponent's inputs this frame (its "inputs", frame 1 the
-        first after the reset, again every "every" frames); stick x
-        toward the player."""
+        """The opponent's inputs this frame: its script's pad, or its
+        "inputs" (frame 1 the first after the reset, again every "every"
+        frames; stick x toward the player)."""
+        if self.op_script is not None:
+            from melee_course.react import player_raw, put_raw
+            put_raw(c, self.op_script.pad(c.n.state(), player_raw(c)))
+            return
         if not self.op_refs:
             return
         op = self.scenario()["opponent"]

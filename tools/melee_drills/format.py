@@ -21,7 +21,11 @@ The words:
   {"cstick": [x, y], ...}, {"trigger": "L"|"R", "amount": 0..1, ...};
   stick x positive is forward (toward the opponent, if there is one); -1..1
 - opponents: "none" (no CPU in the drill: none is spawned, and one a
-  match already has is asleep: out of play, out of the picture)
+  match already has is asleep: out of play, out of the picture); a CPU
+  with frame inputs ({"character", "x", "inputs", "every", ...}); or a
+  scripted one ({"character", "x", "react", "script", "loop"}: behaviours,
+  conditions and combinators, docs/ai/opponent-vocabulary.md, checked
+  against melee_engine/script.py's tables)
 - lessons (the tutorial's, before the parts: the concept taught): a
   title, a text (a paragraph or a list of them), and what is shown:
   {"example": {"inputs", "marks", "cues"}} (played frame by frame, each
@@ -158,7 +162,8 @@ OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str}
 # success too"); the pause menu's Swap changes it
 SWITCHES = ("manual", "success", "every")
 PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent")
-OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every")
+OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
+                 "react", "script", "loop")
 # within: frames after the reset by which the start must have come, or the
 # scenario is reset uncounted ("missed": the words then: the opponent's
 # attack whiffed, the player jumped behind it)
@@ -558,6 +563,21 @@ def _problems(spec):
             if "every" in op:
                 need(isinstance(op["every"], int) and op["every"] > 0, w,
                      "opponent.every: frames")
+            if "script" in op:
+                # a scripted opponent (melee_engine/script.py): every
+                # behaviour, condition and combinator it names checked
+                # against the tables
+                from melee_engine import script as SC
+                need("inputs" not in op and "every" not in op, w,
+                     "opponent: a script or inputs, not both")
+                names = set(STATES)
+                for cs in CHAR_STATES.values():
+                    names |= set(cs)
+                out.extend(SC.problems(op, w + ".opponent", names))
+            else:
+                for k in ("react", "loop"):
+                    need(k not in op, w,
+                         "opponent.%s: only with a script" % k)
             extra = set(op) - set(OPPONENT_KEYS)
             need(not extra, w, "opponent: unknown %s" %
                  ", ".join(sorted(extra)))

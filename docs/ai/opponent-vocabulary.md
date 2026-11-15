@@ -88,25 +88,31 @@ throw's regrabs catch him in his jump squat.
 
 A condition is true or false on a frame, as the opponent sees it. A condition about the
 player is seen `react` frames late (15 by default: a person's reaction; a drill sets it),
-so the opponent cannot answer what it could not have seen.
+so the opponent cannot answer what it could not have seen: `Sense` keeps the last
+`react` + 3 frames' states and reads the player on the one `react` frames ago, the
+opponent itself on this one. Most are pure functions of states (`holds(cond, view)`); the
+ranges and the lag are found by the game (below), every `cache` frames (4), all in one
+job: in a forked copy of the game while a person plays, in the game itself headless; what
+they found is kept by the frame it was found on and read on the frame the condition is.
 
 | Condition | True when |
 |-|-|
 | `{"distance": [LO, HI]}` | the fighters are that far apart (units, along the stage) |
-| `"in_their_range"`, `"out_of_their_range"` | the player can (cannot) hit the opponent within `frames` (12) with any move: searched from the player's side, as an answer is (`contracts.Answer`), cached a few frames |
+| `"in_their_range"`, `"out_of_their_range"` | the player can (cannot) hit the opponent within `frames` (12) with any move: searched from the player's side, as an answer is (`contracts.Answer`), cached a few frames. Built: `sense.reach`, the timing scan from standing or a dash toward (every ground attack and special, the grab, a dash attack, short hops with each aerial; pressed within 38 units, every 3 frames), the opponent doing what its behaviour plans; unknown before the first search (then neither in nor out) |
 | `"in_my_range"`, `"out_of_my_range"` | the same from the opponent's side |
-| `"approach"` | the player closes in: dashing, running, walking or jumping toward, or the gap shrinking by more than a unit a frame |
+| `"approach"` | the player closes in: dashing, running, walking or jumping toward, or the gap shrinking by more than a unit a frame (built: by the player's own movement, so the opponent's own dash in is not their approach) |
 | `"retreat"` | the player moves away |
-| `"committed"` | the player cannot act: an attack, landing lag, shield stun, a roll or dodge, hitstun, tumble, lying down, grabbed |
+| `"committed"` | the player cannot act: an attack, landing lag, shield stun, a roll or dodge, hitstun, tumble, lying down, grabbed (built: any state but moving about, a jump squat, a crouch, a shield, the ledge's wait; or frozen in hitlag. A move's interruptible frames count as committed until it ends) |
+| `"free"` | (built beside the scope) the opposite: the player can act |
 | `{"state": NAME}` | the player in a state of the drill format's names (`STATES`) |
 | `"shielding"`, `{"shield_below": H}` | the player shields; its health under H |
 | `"airborne"`, `"grounded"` | the player in the air, on the floor |
 | `"on_ledge"`, `"offstage"`, `"on_platform"` | where the player is |
 | `{"percent": [LO, HI]}` | the player's damage |
-| `{"lag": N}` | the player can act no sooner than N frames from now (an opening) |
+| `{"lag": N}` | the player can act no sooner than N frames from now (an opening). Built: the commitment seen (`react` late) and at least N frames left now, played ahead in the game with the player letting go (`sense.lag_of`) |
 | `{"me": CONDITION}` | the same, of the opponent itself, seen at once |
 | `{"not": C}`, `{"any": [...]}`, `{"all": [...]}` | combinations |
-| `{"after": N}` | N frames into the behaviour |
+| `{"after": N}` | N frames into the behaviour (in an `if` or a `while`: since the innermost repeat began, or the script) |
 
 ## 3. Behaviours (`behave.py`)
 
@@ -117,17 +123,17 @@ frames ahead, as `Footsies` is) or a decision the engine searches in a fork, as
 
 | Behaviour | What it does |
 |-|-|
-| `footsies` `range` | dash dances, walks, stops and crouches, keeping to a band: `"outside"` (just out of the player's range), `"edge"` (at the edge of its own), or `[LO, HI]` |
+| `footsies` `range` | dash dances, walks, stops and crouches, keeping to a band: `"outside"` (just out of the player's range), `"edge"` (at the edge of its own), or `[LO, HI]`. Built: `"outside"` looks at each segment it plans before playing it, and every 4 frames: the player's range over 16 frames (12 and the 4 between looks) as it plans to move; one that would take it in is dropped for a dash back. Its band follows the reach found (up to the closest a rejected plan came, sinking slowly while none is), kept for the next behaviour (`ctx.memory`). `"edge"`: a first version, the same with its own range |
 | `hold` `pad` | stands, shields, crouches (`"stand"`, `"shield"`, `"crouch"`) |
-| `retreat` | moves out of the player's range and stays there |
-| `approach` `moves` `lands` | commits to one of `moves` (by name prefix) that the engine finds lands (`"hit"`, `"shield"`, `"any"`), from wherever it is; with a contract (below) only one the player can answer |
+| `retreat` | moves out of the player's range and stays there (built: `"outside"` with 12 units more) |
+| `approach` `moves` `lands` | commits to one of `moves` (by name prefix) that the engine finds lands (`"hit"`, `"shield"`, `"any"`), from wherever it is; with a contract (below) only one the player can answer. Built: `EngineOpponent` with the contract `behave.Commit`: the timing scan, the stick held K frames (still, toward, walking toward) then one of `moves`, on a shielding player as shielding on, any other as stopping; `body` (footsies closing in, or stand, shield, crouch) until then, `wait` [LO, HI] frames before it may |
 | `move` `name` | plays one named move exactly (a scripted moment) |
-| `punish` | plays to win from here until the player can act again: the best combo the engine finds |
-| `pressure` | attacks the shield with options that are safe on it, until the shield breaks or the player acts |
-| `chase` | waits for the player's tech, getup or ledge option (seen `react` late) and covers it |
-| `chain_grab` `throw` | grab, the throw, a regrab while the engine finds one that lands before the player can act |
-| `edgeguard`, `recover` | off the stage (later) |
-| `play` | moves as a person does (the slippi-ai body where a model exists, `footsies` otherwise) |
+| `punish` | plays to win from here until the player can act again: the best combo the engine finds (built: each move two deep, for damage, a kill and hitstun left, one of the best by a softmax; `moves` limits the first) |
+| `pressure` | attacks the shield with options that are safe on it, until the shield breaks or the player acts (a first version: each option's safety is the player's out-of-shield grab, up smash, shine and up-B searched as its stun ends; none safe, a dash back) |
+| `chase` | waits for the player's tech, getup or ledge option (seen `react` late) and covers it (a first version: standing until it is seen, then the punish's search) |
+| `chain_grab` `throw` | grab, the throw, a regrab while the engine finds one that lands before the player can act (built: `regrab` prefixes, `grab,dash_grab,pivot_grab,jc_grab` by default; a regrab connects before the player's first frame free or on the ground, played ahead with them letting go, and within 40 frames of the throw; a knockdown or a tech ends it: `chase`'s. A regrab searched against a player jumping out caught that jump, or a flight its stick's DI changed) |
+| `edgeguard`, `recover` | off the stage (later: not built, and a script naming them is refused) |
+| `play` | moves as a person does (the slippi-ai body where a model exists, `footsies` otherwise; a first version: footsies in [25, 60], the model's body not wired in) |
 
 ## 4. Scripts (in a drill)
 
@@ -158,7 +164,13 @@ A drill's opponent is a script: steps in order, each a behaviour or a combinator
 **Contracts.** A committing behaviour may carry one: `{"do": "approach", "moves": "...",
 "lands": "shield", "contract": {"answer": "oos_down_b", "within": 15}}`: it commits only to
 an option the player can answer with that move, searched from the player's side before it
-commits (`contracts.Answer`), as fox-anti-air's jump-in does. That is what makes a drill
+commits (`contracts.Answer`), as fox-anti-air's jump-in does. `within`: frames from the
+first frame the player can answer by which the answer hits: a shielding player out of
+the shield the frame its stun is over (found by playing the option ahead), any other no
+sooner than `react` frames after the commitment and before the option lands. Up to four
+of the best lines are looked at each time; the first answered is committed to, and the
+player's answer is kept with it (`Approach.answer`: the frame asked at, its pads), as the
+check and the demonstration play it. That is what makes a drill
 fair: the situation happens if the player does nothing, an answer exists, wrong answers
 lose.
 
@@ -175,3 +187,19 @@ plays what the check found.
   boost grabs, dash dance, crouch, platform drop, three wavelands; regrabs after
   throws), opt-in by name; `tests/native/engine_moves.py` 43 of 43, `engine.py` 17 of
   17, `ahead.py` 12 of 12.
+- 2026-11-15: layers 2 to 4 built. `tools/melee_engine/sense.py` (every condition of the
+  table, and `free`), `behave.py` (`hold`, `footsies`, `retreat`, `approach`, `move`,
+  `punish`, `chain_grab`; first versions of `pressure`, `chase`, `play`, footsies'
+  `"edge"`; `edgeguard` and `recover` not built), `script.py` (do, if, mix, repeat, loop;
+  seeded; at most 32 steps begun in a frame, and a repeat that begins nothing stops, so a
+  script cannot hang a frame). A scenario's `"opponent": {"script"}` is checked by
+  `format.py`, played by `JsonDrill`, proved by `check.py` (which takes a drill file's
+  path). A script names moves by prefix: today's and the scope's, which a search finds
+  once the engine it runs on has them. `tests/engine/sense.py` 24 of 24,
+  `tests/engine/script.py` 20 of 20 (the interpreter alone, then footsies, `until`,
+  approach on a shield, the shine out of shield contract played, punish, chain grab, the
+  same seed, decisions in forks at 60 frames a second, an approach with pivots), the 27
+  drills' `check.py` all passing. Found on the way: a match started while port 1 holds A
+  or the stick leaves the engine's searches blind to port 1's grab for the rest of the
+  process (a real Z still grabs): a C-side bug, not fixed; the chain grab's test plays in
+  a game of its own.

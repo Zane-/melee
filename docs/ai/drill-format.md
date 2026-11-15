@@ -173,7 +173,29 @@ its proof, never written into one drill's file.
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
   from another drill sleeps: out of play, out of the picture). Or `{"character", "x",
   "facing": "player"|"away", "percent", "inputs", "every"}`: a CPU that plays `inputs` from
-  the frame after each reset (stick x toward the player), again every `every` frames.
+  the frame after each reset (stick x toward the player), again every `every` frames. Or a
+  scripted one, `{"character", "x", "facing", "percent", "react", "script", "loop"}`: its
+  `script` is behaviours (`{"do": "footsies", "range": "outside", "until": "approach"}`,
+  `approach`, `punish`, `chain_grab`...) and combinators (`if`/`then`/`else`, `mix` by
+  weight, `repeat` with `while` and `times`), with conditions (`approach`, `in_their_range`,
+  `{"lag": 10}`...), as `docs/ai/opponent-vocabulary.md` lists them; `react` is the frames
+  it takes to see what the player does (15); `loop` plays the script again when it ends.
+  `JsonDrill` plays it each frame through `tools/melee_engine/script.py`, made new at each
+  reset and seeded from the attempt's random numbers (so a demonstration's two passes and
+  every case `check.py` plays meet the same opponent); its decisions are made in forked
+  copies of the game while a person plays (the window build) and in the game itself
+  headless. `format.py` checks every name against the tables (`script.py`, `behave.py`,
+  `sense.py`; moves by name prefix against the engine's), and a script with `inputs` is
+  refused. `check.py` takes a drill file's path too (`check.py path/to/drill.json`).
+
+    ```json
+    "opponent": {"character": "marth", "x": 30, "react": 15, "script": [
+      {"do": "footsies", "range": [40, 55], "for": 20},
+      {"mix": [{"weight": 2, "steps": [{"do": "approach", "moves": "sh_", "lands": "any"}]},
+               {"weight": 1, "steps": [{"do": "approach", "moves": "dash_attack,fsmash",
+                                        "lands": "any"}]}]},
+      {"do": "hold", "pad": "stand"}]}
+    ```
 - **Lessons**: `{"title", "text", "show", "characters", "scenario"}` (played in their own
   scenario, the first by default, whichever part the player is on, and charted with the
   drill's own coach rows, the whole technique); `text` is a paragraph or a list, 500
