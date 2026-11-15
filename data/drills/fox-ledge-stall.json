@@ -174,7 +174,7 @@
   },
   "scenarios": [
     {
-      "name": "On the ledge",
+      "name": "Left ledge",
       "stage": "final-destination",
       "player": {
         "ledge": "left"
@@ -185,8 +185,22 @@
         "distance": 220,
         "height": 10
       }
+    },
+    {
+      "name": "Right ledge",
+      "stage": "final-destination",
+      "player": {
+        "ledge": "right"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
     }
   ],
+  "switch": "success",
   "attempt": {
     "start": {
       "leaves": "ledge"
@@ -317,7 +331,11 @@
       "coach": {
         "rows": [],
         "note": "Let go with the stick away from the stage, or down for one frame: down held into a second frame fast falls Fox."
-      }
+      },
+      "scenario": [
+        0,
+        1
+      ]
     },
     {
       "name": "Up-B at once",
@@ -406,7 +424,11 @@
           }
         ],
         "note": "Up-B within {3} frames of letting go."
-      }
+      },
+      "scenario": [
+        0,
+        1
+      ]
     },
     {
       "name": "Catch the ledge",
@@ -462,7 +484,11 @@
         "up-B in time",
         "regrabbed"
       ],
-      "streak": 5
+      "streak": 5,
+      "scenario": [
+        0,
+        1
+      ]
     }
   ],
   "mistakes": [

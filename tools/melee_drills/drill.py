@@ -163,7 +163,15 @@ class JsonDrill(Drill):
 
     lesson_scenario = None  # a lesson's own, while the client records it
     scenario_at = None      # the one of a part's list played now
-    switch = SWITCH_MANUAL  # a list's scenario kept until the player turns
+    @property
+    def switch(self):
+        """How a part's scenarios change by themselves (the engine's
+        OPT_SWITCH): the drill's `switch`, "manual" (kept until the player
+        turns it, D-pad left or right) by default, "success" (the other
+        side after a success: ledge work) or "every"."""
+        from melee_course.engine import SWITCH_EVERY, SWITCH_ON_SUCCESS
+        return {"success": SWITCH_ON_SUCCESS, "every": SWITCH_EVERY}.get(
+            self.spec.get("switch"), SWITCH_MANUAL)
 
     def _part_scenarios(self):
         """The part's scenarios: [index] (its "scenario"), or the list the
@@ -249,6 +257,12 @@ class JsonDrill(Drill):
         else:
             c.side, c.toward = 1.0, -1.0
             c.n.place(c.s.person, px, 0.0, facing, False, pct)
+        if not pl.get("ledge"):
+            # an example's stick forward is the way the scenario faces: a
+            # scenario on the other side of the stage, facing left, plays
+            # the same example mirrored (the ledge's placement knows its
+            # side already)
+            c.toward = -1.0 if facing > 0 else 1.0
         op = sc.get("opponent", "none")
         if isinstance(op, dict):
             x = float(op["x"])

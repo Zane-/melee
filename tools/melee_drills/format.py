@@ -148,7 +148,12 @@ TOP = {
     "tutorial": dict, "scenarios": list, "attempt": dict, "measures": dict,
     "checks": dict, "verdict": dict, "parts": list, "coach": dict,
 }
-OPTIONAL = {"characters": (str, list), "mistakes": list}
+OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str}
+# a drill's `switch`: how a part's scenarios change by themselves (the
+# owner, 2026-11-14: ledge work on "both sides of the stage so players
+# don't overtrain one side! It should have options to swap ledges on
+# success too"); the pause menu's Swap changes it
+SWITCHES = ("manual", "success", "every")
 PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent")
 OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every")
 # within: frames after the reset by which the start must have come, or the
@@ -426,6 +431,9 @@ def _problems(spec):
             need(isinstance(spec[k], typ), k, "%s expected" % typ.__name__)
     for k in spec:
         need(k in TOP or k in OPTIONAL, "drill", "unknown key %r" % k)
+    if "switch" in spec:
+        need(spec["switch"] in SWITCHES, "drill.switch",
+             "one of %s" % ", ".join(SWITCHES))
     if out:
         return out
     need(re.match(r"^[a-z0-9-]+$", spec["id"]) is not None, "id",

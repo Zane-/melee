@@ -204,7 +204,7 @@
       },
       {
         "title": "Below the ledge: a diagonal",
-        "scenario": 1,
+        "scenario": 2,
         "text": "From out and below the ledge, the ledge is up and across: aim {30} to {50} degrees. Flatter, Fox flies into the side of the stage under the ledge; steeper, he falls short.",
         "show": {
           "example": {
@@ -282,7 +282,7 @@
       },
       {
         "title": "Under the ledge: a steep angle",
-        "scenario": 2,
+        "scenario": 4,
         "text": "From close under the ledge, the underside of the stage is in the way of anything flatter: aim {70} to {90} degrees, nearly straight up. Fox rises past the ledge and catches it as he falls back.",
         "show": {
           "example": {
@@ -362,7 +362,7 @@
   },
   "scenarios": [
     {
-      "name": "Far out, above the stage",
+      "name": "Far out, above the stage: left",
       "stage": "final-destination",
       "player": {
         "air": true,
@@ -377,7 +377,23 @@
       }
     },
     {
-      "name": "Out and below the ledge",
+      "name": "Far out, above the stage: right",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": 175,
+        "y": 75,
+        "facing": "left"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
+    },
+    {
+      "name": "Out and below the ledge: left",
       "stage": "final-destination",
       "player": {
         "air": true,
@@ -392,7 +408,23 @@
       }
     },
     {
-      "name": "Close under the ledge",
+      "name": "Out and below the ledge: right",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": 150,
+        "y": 0,
+        "facing": "left"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
+    },
+    {
+      "name": "Close under the ledge: left",
       "stage": "final-destination",
       "player": {
         "air": true,
@@ -405,8 +437,25 @@
         "distance": 300,
         "height": 10
       }
+    },
+    {
+      "name": "Close under the ledge: right",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": 90,
+        "y": -30,
+        "facing": "left"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
     }
   ],
+  "switch": "success",
   "attempt": {
     "start": {
       "enters": "firefox_charge"
@@ -504,7 +553,10 @@
     {
       "name": "Far out: a shallow angle",
       "teach": "Far out and above the stage: up-B, and hold the stick almost level toward the stage, between {10} degrees down and {30} up, as the charge ends: the stick is read on frame {43}.",
-      "scenario": 0,
+      "scenario": [
+        0,
+        1
+      ],
       "example": [
         {
           "stick": [
@@ -611,7 +663,10 @@
     {
       "name": "Below the ledge: a diagonal",
       "teach": "Out and below the ledge: up-B, and hold the stick up and toward the stage, {30} to {50} degrees, as the charge ends.",
-      "scenario": 1,
+      "scenario": [
+        2,
+        3
+      ],
       "example": [
         {
           "stick": [
@@ -717,7 +772,10 @@
     {
       "name": "Under the ledge: a steep angle",
       "teach": "Close under the ledge: up-B, and hold the stick up, {70} to {90} degrees, as the charge ends. Fox rises past the ledge and catches it on the way down.",
-      "scenario": 2,
+      "scenario": [
+        4,
+        5
+      ],
       "example": [
         {
           "stick": [

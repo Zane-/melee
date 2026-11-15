@@ -771,6 +771,10 @@ class Client:
                 rows.append(("scen", "Scenario",
                              names[s.common[course_engine.OPT_SCENARIO]],
                              "shuffle"))
+                # how it changes by itself (the owner, 2026-11-14:
+                # "options to swap ledges on success too")
+                rows.append(("swap", "Swap", self.SWAP_WORDS[
+                    s.common[course_engine.OPT_SWITCH]], "shuffle"))
             if s.cpu_port is not None:
                 rows.append(("side", "CPU side", ("Random", "Left", "Right")[
                     s.common[course_engine.OPT_SIDE]], "side"))
@@ -844,6 +848,9 @@ class Client:
             n = len(s.d.deck) + 1
             s.common[course_engine.OPT_SCENARIO] = \
                 (s.common[course_engine.OPT_SCENARIO] + step) % n
+        elif ident == "swap":
+            s.common[course_engine.OPT_SWITCH] = \
+                (s.common[course_engine.OPT_SWITCH] + step) % 3
         elif ident == "side":
             s.common[course_engine.OPT_SIDE] = \
                 (s.common[course_engine.OPT_SIDE] + step) % 3
@@ -858,6 +865,10 @@ class Client:
         else:
             return False, False
         return True, True
+
+    # the engine's OPT_SWITCH, in its order (SWITCH_EVERY, _ON_SUCCESS,
+    # _MANUAL): how a drill's scenarios change by themselves
+    SWAP_WORDS = ("Every try", "After a success", "By hand")
 
     def pause_tags(self, kind):
         """The line over "Paused": where the player is."""

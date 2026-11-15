@@ -140,7 +140,12 @@ its proof, never written into one drill's file.
   player's `x` may be an expression, `"84-SHD"`;
   match is loaded once; a part's `"scenario"` may be a list, which the player turns through
   with D-pad left and right or the pause menu's Scenario, kept until changed: the
-  ledgedash's two ledges, `"ledge": "left"` and `"right"`), `lead` (frames from the reset to
+  ledgedash's two ledges, `"ledge": "left"` and `"right"`; or changed by itself, the
+  drill's `"switch"`: `"manual"` (the default), `"success"` (the next after a success:
+  every drill of ledge work plays both sides of the stage, the owner: "so players don't
+  overtrain one side! It should have options to swap ledges on success too"), `"every"`;
+  the pause menu's Swap changes it. A scenario facing left on a platform, the stage or in
+  the air plays the examples mirrored: forward is the way it faces), `lead` (frames from the reset to
   an example's frame 1: 10, and 0
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
