@@ -29,7 +29,12 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#define RESERVE (512u << 20) /* address space; pages are used as needed */
+/* address space; pages are used as needed. A match's heap reaches some
+   55 MB (2026-11-14: 49 to 55 MB on Final Destination, Pokemon Stadium,
+   Yoshi's Story and with items at very high), and the 32-bit window build
+   ran out of address space (a netplay session's mirror, the renderer's
+   textures): 256 MB, as far as rollback.c follows it */
+#define RESERVE (256u << 20)
 #define ALIGN 16u
 #define HEADER 8u /* size|used, and the previous block's size */
 #define MIN_BLOCK 32u

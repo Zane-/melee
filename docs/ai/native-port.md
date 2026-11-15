@@ -183,6 +183,24 @@ patch to a copy of the file at build time (`PATCHES`: exact text, checked to occ
 expected number of times) or builds the file with one function renamed so `src/host/`
 can supply it (`VANILLA`: the native counterpart of the overlay's `function` hook).
 
+## The window build's address space
+
+The window build is a 32-bit process (the game's structures keep the console's 4-byte
+pointers), so it has 4 GB of address space, and it ran out (2026-11-14): a netplay
+session's rollback mirror could not be mapped ("no memory for a 268435456-byte mirror",
+`tests/client/online_modes.py`), and a few matches in one process later the renderer could
+not make a texture (`GL_OUT_OF_MEMORY`). Measured from `/proc/PID/maps`: some 550 MB of
+shared libraries (LLVM, the GPU drivers); the game heap's reservation; the emulated ARAM
+(64 MB); in tests, llvmpipe's 63 threads' stacks; and on the first match some 1.2 GB more,
+real memory, the software renderer's textures (it does not shrink with fewer malloc
+arenas; on a real GPU textures are on the card). A match's game heap reaches some 55 MB.
+What was done: the game heap reserves 256 MB (`gameheap.c`, was 512), the rollback mirror
+of the heap is the heap so far plus 64 MB and grows by `mremap` (`rollback.c`, was always
+256 MB), and the software renderer runs 8 threads in tests (`LP_NUM_THREADS`, `window.py`).
+Boot went from 2.2 to 1.65 GB; six matches in one process from a crash at the sixth to
+2.95 GB. Look at the largest regions first (`/proc/PID/maps`, anonymous ones by size)
+before adding a big reservation.
+
 ## Finding the next difference
 
 ```sh

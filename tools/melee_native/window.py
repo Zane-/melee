@@ -112,6 +112,10 @@ class Window(Native):
                 # process, a few frames in.
                 env["MELEE_BACKEND"] = "gles"
                 env["LIBGL_ALWAYS_SOFTWARE"] = "1"
+                # its rasterizer threads, one per core by default: each
+                # thread's stack is address space the 32-bit process runs
+                # short of (63 threads; 8 leave some 350 MB more)
+                env.setdefault("LP_NUM_THREADS", "8")
         if vsync:
             env["MELEE_VSYNC"] = "1"
         if fullscreen is None and not real:

@@ -19,6 +19,7 @@
  * Linux only (soft-dirty is in the common distributions' kernels:
  * CONFIG_MEM_SOFT_DIRTY); host_rb_start says when it is not there.
  */
+#define _GNU_SOURCE /* mremap */
 #include "host.h"
 
 #include <errno.h>
@@ -39,11 +40,16 @@ void host_game_heap_stats(uint32_t* used, uint32_t* top, uint32_t* peak);
 #define DEPTH 24      /* frames that can be gone back */
 #define HEAP_TRACK (256u << 20)
 #define HEAP_SLACK (16u << 20) /* tracked past the heap's peak */
+/* the heap's mirror: room past what is followed, grown (remapped) when the
+   heap passes it; not HEAP_TRACK at once, which the 32-bit window build
+   once had no room for ("no memory for a 268435456-byte mirror") */
+#define HEAP_ROOM (64u << 20)
 
 typedef struct Region {
     uint8_t* start;
     size_t length;  ///< followed now (the heap's grows)
     uint8_t* mirror;
+    size_t cap;     ///< the mirror's size (the heap's grows with it)
 } Region;
 
 enum { LOW, ARENA, STATICS, HEAP, NREGIONS };
@@ -113,6 +119,14 @@ static size_t heap_length(void)
     return (want + PAGE - 1) & ~(size_t) (PAGE - 1);
 }
 
+/// The heap's mirror for `length` followed: HEAP_ROOM more, at most
+/// HEAP_TRACK.
+static size_t heap_room(size_t length)
+{
+    size_t cap = (length + HEAP_ROOM + PAGE - 1) & ~(size_t) (PAGE - 1);
+    return cap < HEAP_TRACK ? cap : HEAP_TRACK;
+}
+
 static void follow_heap(void)
 {
     Region* r = &regions[HEAP];
@@ -121,6 +135,17 @@ static void follow_heap(void)
         if (want > HEAP_TRACK) {
             host_fatal("rollback: the game heap passed %u MB",
                        HEAP_TRACK >> 20);
+        }
+        if (want > r->cap) {
+            /* the mirror grows; everything finds it through r->mirror */
+            size_t cap = heap_room(want);
+            void* m = mremap(r->mirror, r->cap, cap, MREMAP_MAYMOVE);
+            if (m == MAP_FAILED) {
+                host_fatal("rollback: no memory to grow the heap's mirror "
+                           "to %zu bytes", cap);
+            }
+            r->mirror = m;
+            r->cap = cap;
         }
         /* the new pages as they are now: their old contents for the
            frame that reached them */
@@ -163,9 +188,11 @@ const char* host_rb_start(void)
     regions[HEAP].start = heap;
     regions[HEAP].length = 0;
     for (int i = 0; i < NREGIONS; i++) {
-        size_t cap = i == HEAP ? HEAP_TRACK : regions[i].length;
+        size_t cap = i == HEAP ? heap_room(heap_length())
+                               : regions[i].length;
         if (regions[i].mirror == NULL) {
             regions[i].mirror = mirror_of(cap);
+            regions[i].cap = cap;
         }
         if (i != HEAP) {
             memcpy(regions[i].mirror, regions[i].start, regions[i].length);
