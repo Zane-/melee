@@ -621,14 +621,10 @@ def stage_tile(i, s, focus):
                 esc(s["name"].upper())))
 
 
-def _num(v):
-    return "%g" % round(v, 1)
-
-
 def stage_card(s, go):
     """The card about the stage in focus: the stage whole, the game's name
-    logo, its width and platforms, its blast zones (as the game reads
-    them, once drawn), a line about it."""
+    logo, and what A does (the owner, 2026-11-14: its line, its numbers
+    and blast zones were "too verbose")."""
     import stages
     out = '<div class="sgclip">'
     prev = stages.preview(s["id"])
@@ -640,28 +636,10 @@ def stage_card(s, go):
         out += '<img class="sgname" src="%s"/>' % picture(name)
     else:
         out += '<div class="sgname2">%s</div>' % esc(s["name"])
-    f = stages.facts().get(s["id"])
-    stats = []
-    if f and f.get("ledge"):
-        stats.append((_num(2 * f["ledge"]), "ledge to ledge"))
-    if s["platforms"] is not None:      # (None: they move, or too many)
-        stats.append((str(s["platforms"]) if s["platforms"] else "None",
-                      "platforms"))
-    stats = "".join('<div class="stat"><div class="n">%s</div><div class="l">'
-                    '%s</div></div>' % (esc(n), what) for n, what in stats)
-    blast = ""
-    if f:
-        blast = ('<div class="sgblast"><div class="fl">Blast zones</div>'
-                 '<div class="sgbz">%s</div></div>' % "".join(
-                     '<div class="sgb"><div class="sgbn">%s</div><div '
-                     'class="sgbl">%s</div></div>' % (_num(v), side)
-                     for v, side in zip(f["blast"], ("left", "right", "top",
-                                                     "bottom"))))
     return out + (
-        '<div class="sgbody"><div class="sgstats">%s</div>%s<div '
-        'class="sgabout">%s</div><div class="grow"/><div class="go"><div '
+        '<div class="sgbody"><div class="grow"/><div class="go"><div '
         'class="un">%s<div>%s</div></div></div></div>' % (
-            stats, blast, esc(s["about"]), key("A", dark=True), esc(go)))
+            key("A", dark=True), esc(go)))
 
 
 def stage_select(stage_list, focus, me, opp, go, every=False):

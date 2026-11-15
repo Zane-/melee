@@ -358,7 +358,9 @@ some 25 stage loads in one process (GL_OUT_OF_MEMORY), which a very long session
 stage often could also meet. On the select, Y shows every stage (smaller panels, six to a
 row) or the six legal ones again; the client keeps the choice, and the stage in focus when
 the other list has it. A slippi-ai model on a stage it does not know is told none
-(libmelee names only the six). `tests/client/stage_select.py`.
+(libmelee names only the six). The card is the stage's picture, its name logo and A, nothing
+more (the owner: its line, numbers and blast zones were "too verbose"; the blast zones and
+camera limits are still read into `facts.json`). `tests/client/stage_select.py`.
 
 **Versus's game modes, and Tug of War (2026-11-14).** The owner: "We need to add support
 for different game modes instead of just the unlimited score game. Let's make our first

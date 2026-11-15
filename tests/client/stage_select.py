@@ -149,8 +149,9 @@ def main():
         check("the card: the stage whole and the game's name logo",
               "stage/battlefield-preview.png" in page and
               "stage/battlefield-name.png" in page)
-        check("Battlefield's width and blast zones, as the game reads them",
-              "136.8" in page and "108.8" in page and ">224<" in page)
+        check("no line about it, no numbers, no blast zones (the owner: "
+              "\"too verbose\")", "Blast zones" not in page and
+              "ledge to ledge" not in page and "platforms" not in page)
         w.shot(pic)
         shot("stages")
         boxes = [(60 + 256 * (i % 3) + 80, 120 + 256 * (i // 3) + 60, 80,
@@ -165,8 +166,8 @@ def main():
         card = text("part-card.rml")
         check("the arrows move three to a row and the card follows",
               client.STAGE_ORDER[c.stage_at] == "fountain-of-dreams" and
-              "stage/fountain-of-dreams-preview.png" in card and
-              "126.7" in card, client.STAGE_ORDER[c.stage_at])
+              "stage/fountain-of-dreams-preview.png" in card,
+              client.STAGE_ORDER[c.stage_at])
         shot("stages-fountain")
 
         # ---- every stage: Y ------------------------------------------------------
@@ -189,11 +190,10 @@ def main():
         to_stage("peachs-castle")
         card = text("part-card.rml")
         check("the arrows move six to a row; Peach's Castle first, its "
-              "card: its picture, its name logo, its blast zones",
+              "card: its picture and its name logo",
               c.stage_id() == "peachs-castle" and
               "stage/peachs-castle-preview.png" in card and
-              "stage/peachs-castle-name.png" in card and
-              "Blast zones" in card, c.stage_id())
+              "stage/peachs-castle-name.png" in card, c.stage_id())
         shot("stages-peach")
         tap("Right")
         tap("Down")

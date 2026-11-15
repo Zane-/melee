@@ -912,14 +912,6 @@ img { display: inline-block; }
 .sgname { position: absolute; left: 16dp; top: 214dp; width: 224dp; height: 56dp; }
 .sgname2 { position: absolute; left: 26dp; top: 224dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; }
 .sgbody { position: absolute; left: 26dp; top: 278dp; width: 336dp; height: 198dp; display: flex; flex-direction: column; }
-.sgstats { display: flex; flex-direction: row; }
-.sgstats .stat .n { font-size: 32dp; }
-.sgblast { margin-top: 8dp; padding-top: 6dp; border-top: 1dp #4A5361; }
-.sgbz { display: flex; flex-direction: row; margin-top: 2dp; }
-.sgb { flex: 1; }
-.sgbn { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 15dp; }
-.sgbl { font-size: 11dp; color: #A9B4C2; }
-.sgabout { margin-top: 8dp; font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }
 /* Versus's game modes (screens.mode_select): panels as the stages', each
    its icon large on its colour; the card says how the mode is scored */
 .mgrid { position: absolute; left: 60dp; top: 120dp; width: 754dp; height: 496dp; display: flex; flex-direction: column; }
