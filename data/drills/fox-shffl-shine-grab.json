@@ -352,6 +352,11 @@
         "to": "squat"
       },
       {
+        "enters": "jump_squat",
+        "after": "lands",
+        "not_from": "shine"
+      },
+      {
         "is": "airborne",
         "after": "lands"
       },
@@ -711,6 +716,11 @@
         "judge": [
           {
             "enters": "shine_ground"
+          },
+          {
+            "enters": "jump_squat",
+            "after": "lands",
+            "not_from": "shine"
           },
           {
             "is": "airborne",

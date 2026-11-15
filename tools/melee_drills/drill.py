@@ -110,7 +110,9 @@ def holds(e, f, fd):
     if "enters" in e:
         return _in(f["state"], e["enters"], cid) and \
             not _in(p["state"], e["enters"], cid) and \
-            ("from" not in e or _in(p["state"], e["from"], cid))
+            ("from" not in e or _in(p["state"], e["from"], cid)) and \
+            ("not_from" not in e or not _in(p["state"], e["not_from"],
+                                            cid))
     if "leaves" in e:
         return not _in(f["state"], e["leaves"], cid) and \
             _in(p["state"], e["leaves"], cid) and \
@@ -381,7 +383,8 @@ class JsonDrill(Drill):
                     items=len(c.n.state().get("items") or []),
                     lx=log.get("lx", 0), ly=log.get("ly", 0),
                     cx=log.get("cx", 0), cy=log.get("cy", 0),
-                    p=self.v.get("last"), i=-1, nums=self.v.get("nums"))
+                    p=self.v.get("last"), i=-1, nums=self.v.get("nums"),
+                    gf=c.n.state().get("frame"))
 
     def _opponent(self, c):
         """The opponent's inputs this frame (its "inputs", frame 1 the
@@ -428,7 +431,17 @@ class JsonDrill(Drill):
         v = self.v
         v["nums"] = v.get("nums") or self.nums(c)
         self._opponent(c)
-        f = self._frame(c)
+        last = v.get("last")
+        if last is not None and last.get("gf") is not None and \
+                last["gf"] == c.n.state().get("frame"):
+            # the same frame again: a drill that does not reset (flow)
+            # starts the next try on the frame the last was judged on, read
+            # against the frame before it, so what happened on it (a jump
+            # squat entered) can start the try (a SHFFL right after a "No
+            # shine" was not judged)
+            f = last
+        else:
+            f = self._frame(c)
         if c.phase == WAIT and f["p"] is not None:
             f["p"]["p"] = None      # (no chain of every frame since)
         v["last"] = f

@@ -117,7 +117,10 @@ EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
 # attempt (left the ground after a shine, not in the first short hop)
 # "not_to": left a state for anything but this one (a pivot: the turn left
 # for anything but a dash)
-EVENT_MODS = ("in_air", "on_ground", "from", "to", "not_to", "after")
+# "not_from": entered from anything but this state (a SHFFL's next jump
+# that is not the jump out of the shine)
+EVENT_MODS = ("in_air", "on_ground", "from", "to", "not_to", "not_from",
+              "after")
 DIRECTIONS = ("up", "down", "forward", "back", "neutral")
 EVENTS = SIMPLE_EVENTS + EVENT_KINDS
 MEASURES = ("jump_kind", "held", "frames", "frame_of", "happened", "count",
@@ -375,7 +378,7 @@ def _problems(spec):
                  ", ".join(SIMPLE_EVENTS))
         else:
             num(v, where + ".frame")
-        for m in ("from", "to", "not_to"):
+        for m in ("from", "to", "not_to", "not_from"):
             if m in e:
                 state(e[m], where + "." + m)
         if "after" in e:

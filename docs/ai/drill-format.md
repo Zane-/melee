@@ -134,7 +134,10 @@ its proof, never written into one drill's file.
   opponent's attack whiffed because the player jumped behind it; the owner: "If the hit
   doesn't connect, the scenario should be reset"). A part may change any of them
   (`attempt`). Events take `"not_to": S` beside `to` (left a state for anything but S: a
-  pivot, the turn left for anything but a dash).
+  pivot, the turn left for anything but a dash), and `"not_from": S` beside `from`
+  (entered from anything but S: a SHFFL's next jump, not the jump out of the shine). In a
+  drill that does not reset (`flow`) the next try starts on the frame the last was judged
+  on, read against the frame before it: an event on it can start the try.
 - **Scenarios**: `stage` (`final-destination battlefield yoshis-story dream-land
   fountain-of-dreams pokemon-stadium`; one stage for a drill, its first scenario's: the
   player's `x` may be an expression, `"84-SHD"`;
