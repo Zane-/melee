@@ -234,6 +234,7 @@ class JsonDrill(Drill):
         else:
             self.op_refs = []
         self.camera(c.n, c.s.person)
+        self.trace(c.n, c.s.person)
         self.v = dict(rec=[], last=None)
 
     filming = False     # the client recording the tutorial's examples
@@ -254,6 +255,16 @@ class JsonDrill(Drill):
                          cam.get("height", 10))
             else:
                 n.camera(cam)
+        except NativeError:
+            pass
+
+    def trace(self, n, person):
+        """The scenario's trace for the player ("di": TM-CE's DI display,
+        src/host/didraw.c), or none (the client turns it off when the drill
+        is left). A game built before the didraw command draws nothing."""
+        from native import NativeError
+        try:
+            n.didraw(person, self.scenario().get("trace") == "di")
         except NativeError:
             pass
 

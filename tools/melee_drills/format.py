@@ -137,6 +137,9 @@ CUE_KINDS = ("go", "late", "info")
 CHARACTER_NUMBERS = {"jump_squat": ("J", ("attributes", "jump_startup_time"),
                                     "Jump squat")}
 CAMERAS = ("normal", "stage")
+# what a scenario may draw in the world for the player (src/host/didraw.c):
+# "di", TM-CE's DI display, the launch predicted for the stick held
+TRACES = ("di",)
 
 TOP = {
     "id": str, "name": str, "part": str, "goal": str, "why": str,
@@ -531,6 +534,9 @@ def _problems(spec):
         if "lead" in sc:
             need(isinstance(sc["lead"], int) and sc["lead"] >= 0, w,
                  "lead: frames from 0")
+        if "trace" in sc:
+            need(sc["trace"] in TRACES, w, "trace: one of %s" %
+                 ", ".join(TRACES))
         # one stage for the drill: a part's scenario is played on the
         # stage the drill's match loaded (scenarios[0]'s)
         need(sc.get("stage", "final-destination") == spec["scenarios"][0].get(

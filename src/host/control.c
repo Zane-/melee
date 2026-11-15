@@ -83,6 +83,7 @@
 #include <melee/gm/gmscene.h>
 #include <melee/ft/types.h>
 #include <melee/it/types.h>
+#include <melee/if/if_2F6E.h>
 #include <melee/if/ifstock.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
@@ -272,6 +273,15 @@ void host_quit(void)
 /// The match each player's HUD stock row was asked for in ("stocks"), so
 /// that it is kept through respawns (stock_rows); 0: never.
 static unsigned stock_row[4];
+
+/* "gameend": whether GAME! has played out (its graphic's callback) */
+static int game_end_done;
+
+static void game_end_played(int index)
+{
+    (void) index;
+    game_end_done = 1;
+}
 
 void host_fighter_json(int slot, char* out, size_t size)
 {
@@ -1020,6 +1030,38 @@ static void command(char* line)
                 printf("@ ok %.2f %.2f\n", out.x, out.y);
             }
         }
+    } else if (strcmp(cmd, "gameend") == 0) {
+        /* "gameend 1": the match ends as a stock match does on the frame
+           its last stock is lost (gmvs.c, where the outcome is found):
+           GAME! and the announcer's call (ifStatus_802F6EA4's GAME!, 5,
+           which plays its own voice), the music let go
+           (lbAudioAx_80024D50), rumble stopped, and everything but the
+           interface standing still (the game's own end freeze, pause bit
+           4). The match stays there instead of leaving for the game's
+           results: a Versus mode's end, the client's results after it.
+           "gameend 0": the freeze off and the graphic gone (before the
+           next match). "gameend": 1 once GAME! has played out. */
+        int on = -1;
+        sscanf(line, "%d", &on);
+        if (on == 1) {
+            int i;
+            game_end_done = 0;
+            HSD_PadRumbleRemoveAll();
+            for (i = 0; i < 4; i++) {
+                HSD_PadRumbleOn(i);
+            }
+            ifStatus_802F6EA4(5, -1, -1, 0, game_end_played, NULL);
+            lbAudioAx_80024D50();
+            gm_SetDbPauseFlag(4);
+            printf("@ ok\n");
+        } else if (on == 0) {
+            gm_ClearDbPauseFlag(4);
+            ifStatus_802F7220();
+            game_end_done = 0;
+            printf("@ ok\n");
+        } else {
+            printf("@ ok %d\n", game_end_done);
+        }
     } else if (strcmp(cmd, "freeze") == 0) {
         /* "freeze 1": the match stands still and goes on being drawn (the
            game's developers' pause, without its menu); "freeze 0" */
@@ -1043,6 +1085,9 @@ static void command(char* line)
         /* "inputs MASK": TM-CE's input display for these ports
            (inputs.c) */
         printf("@ %s\n", host_inputs_command(line));
+    } else if (strcmp(cmd, "didraw") == 0) {
+        /* "didraw P on|off": TM-CE's DI display for port P (didraw.c) */
+        printf("@ %s\n", host_didraw_command(line));
     } else if (strcmp(cmd, "script") == 0) {
 #ifdef HOST_WINDOW
         /* "script P 1": live port P is read, but the game takes the
@@ -1253,6 +1298,7 @@ void host_control_frame(void)
     stock_rows();
 
     host_inputs_frame(); /* the input display, made once a match is on */
+    host_didraw_frame(); /* the DI display, the same */
     if (!host_control_enabled) {
         return;
     }

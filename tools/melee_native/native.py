@@ -308,6 +308,24 @@ class Native:
                                                            height))
         return self._cmd("camera " + how)
 
+    def didraw(self, port, on=True):
+        """TM-CE's DI display for player `port` (src/host/didraw.c): while
+        the fighter is in hitstun, a blue line in the world, its launch
+        predicted frame by frame for the stick held (ASDI, DI, gravity, the
+        stage), made again every frame of hitlag and then kept for the
+        flight; and its SDI moves in yellow and orange. Off: gone."""
+        return self._cmd("didraw %d %s" % (port, "on" if on else "off"))
+
+    def didraw_line(self, port):
+        """What the DI display draws now for `port`: (the DI line's
+        vertices, the SDI path's), each a list of (x, y)."""
+        words = self._cmd("didraw %d line" % port).split()
+        k = words.index("sdi")
+        nums = [float(w) for w in words[2:k]]
+        sdi = [float(w) for w in words[k + 2:]]
+        return (list(zip(nums[0::2], nums[1::2])),
+                list(zip(sdi[0::2], sdi[1::2])))
+
     def quiet(self, on=True):
         """Frames nobody sees or hears until quiet(False): no draw pass, no
         sound, and (the window build) no pacing and the last picture kept.

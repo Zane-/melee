@@ -134,8 +134,23 @@ its proof, never written into one drill's file.
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
   what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
-  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`. A part names
-  its scenario by index (`"scenario"`).
+  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`, `trace`. A
+  part names its scenario by index (`"scenario"`).
+
+  `"trace": "di"` draws TM-CE's DI display for the player, in the game's world (and so in
+  the client's pictures, the tutorial's and the coach's): its Lab's "DI Display",
+  `DIDraw_Init`, `DIDraw_Update`, `DIDraw_Reset` and `DIDraw_GX` in TM-CE's `src/lab.c`,
+  rewritten against the decomp in `src/host/didraw.c` (`didraw P on|off|line`,
+  `Native.didraw`). On every frame of hitlag a blue line is made again: the launch
+  simulated frame by frame for the stick held then (ASDI, DI as `ftCo_8008E5A4` turns it,
+  gravity, the knockback's decay, the stage's floors, walls and ceilings through the
+  game's own collision). When hitlag ends the line is kept as the last frozen frame made
+  it, so the flight can be seen against it, until hitstun ends or the next hit; TM-CE
+  remakes it from the fighter's position all through the flight. The SDI moves through
+  hitlag are drawn too, in yellow and orange. Measured headless, the kept line's x is the
+  flight's to the hundredth on every frame (y is drawn at the middle of the body).
+  `JsonDrill.setup` turns it on or off for each scenario; the client turns it off when the
+  drill is left. `universal-di` uses it.
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
   from another drill sleeps: out of play, out of the picture). Or `{"character", "x",
   "facing": "player"|"away", "percent", "inputs", "every"}`: a CPU that plays `inputs` from

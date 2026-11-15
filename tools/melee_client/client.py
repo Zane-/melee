@@ -2257,6 +2257,7 @@ class Client:
             self.results = results
             try:
                 self.w.camera("normal")     # (a drill may have set its own)
+                self.w.didraw(self.port, False)  # (and its DI trace)
             except Exception:       # the game is gone
                 pass
             try:
@@ -2301,7 +2302,18 @@ class Client:
                     if self.here.get(d["id"]) != courses.COURSE or \
                             not course_registry.has(d["id"]):
                         continue
-                    drill = course_registry.get(d["id"])
+                    try:
+                        drill = course_registry.get(d["id"])
+                    except Exception as e:
+                        # a drill file that does not load (written for a
+                        # newer drill format than this client's) is not
+                        # this drill's business: the owner, 2026-11-14,
+                        # "clicking the fast fall course immediately
+                        # crashes the game" (the ledgedash did not load)
+                        print("[client] drill %s does not load: %s" % (
+                            d["id"], str(e).splitlines()[0]),
+                            file=sys.stderr)
+                        continue
                     for c in ({e.cpu for e in drill.deck} if drill.deck
                               else {drill.cpu}):
                         if c is not None:
@@ -2316,7 +2328,15 @@ class Client:
         play this one (`reuse`), and a new opponent is swapped in, so most
         drills start at once; a match that must be loaded is loaded
         quietly (on_load)."""
-        drill = course_registry.get(d["id"])
+        try:
+            drill = course_registry.get(d["id"])
+        except Exception as e:
+            # its file does not load: said, and back to the list
+            print("[client] drill %s does not load: %s" % (d["id"], e),
+                  file=sys.stderr)
+            self.say("This drill does not load. Restart the client to load "
+                     "the newest drill format.")
+            raise Leave()
         # the timing it holds the player to (Settings: lenient or strict)
         drill.strict = self.settings.get("timing") == "strict"
         session = course_engine.Session(

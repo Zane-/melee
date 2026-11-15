@@ -138,7 +138,8 @@
         ],
         "every": 120
       },
-      "camera": "normal"
+      "camera": "normal",
+      "trace": "di"
     }
   ],
   "attempt": {

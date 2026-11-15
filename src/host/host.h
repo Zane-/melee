@@ -228,6 +228,11 @@ const char* host_studio_command(const char* line);
 void host_inputs_frame(void);
 const char* host_inputs_command(const char* line);
 void host_inputs_ui(void);
+/// TM-CE's DI display (didraw.c): "didraw P on|off", the predicted launch
+/// of port P drawn in the world; made at each frame boundary once a match
+/// is on.
+void host_didraw_frame(void);
+const char* host_didraw_command(const char* line);
 /// The game's past pictures, kept for the coach (frames.c): at each frame
 /// boundary in the window build, and asked for.
 void host_frames_capture(void);
