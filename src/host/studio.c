@@ -141,15 +141,21 @@ const char* host_studio_command(const char* line)
         return reply;
     }
     if (strcmp(what, "stage") == 0) {
-        float x, y;
-        if (host_left_ledge(&x, &y) < 0) {
-            return "error no ledge found";
-        }
-        snprintf(reply, sizeof reply, "ok %.9g %.9g %.9g %.9g %.9g %.9g",
+        /* the blast zones, the left ledge (0 0 on a stage without one),
+           and the camera's limits: the stage as the match camera frames
+           it (the client's stage pictures are framed from them) */
+        float x = 0.0F, y = 0.0F;
+        int ledge = host_left_ledge(&x, &y) >= 0;
+        snprintf(reply, sizeof reply,
+                 "ok %.9g %.9g %.9g %.9g %.9g %.9g %.9g %.9g %.9g %.9g %d",
                  Stage_GetBlastZoneLeftOffset(),
                  Stage_GetBlastZoneRightOffset(),
                  Stage_GetBlastZoneTopOffset(),
-                 Stage_GetBlastZoneBottomOffset(), x, y);
+                 Stage_GetBlastZoneBottomOffset(), x, y,
+                 Stage_GetCamBoundsLeftOffset(),
+                 Stage_GetCamBoundsRightOffset(),
+                 Stage_GetCamBoundsTopOffset(),
+                 Stage_GetCamBoundsBottomOffset(), ledge);
         return reply;
     }
     return "error studio cam|bg|solo|list|stage";

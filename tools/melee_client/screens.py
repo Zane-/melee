@@ -597,7 +597,9 @@ def opponent_card(c, who, what, count, go, costume=0):
 
 # ---- the stage select (the canvas's "A · Stage select: grid and card") -------
 
-STAGE_COLUMNS = 3
+STAGE_COLUMNS = 3          # the six legal stages
+STAGE_COLUMNS_ALL = 6      # every stage (the owner: "a toggle between all
+                           # and legal")
 
 
 def stage_tile(i, s, focus):
@@ -640,10 +642,11 @@ def stage_card(s, go):
         out += '<div class="sgname2">%s</div>' % esc(s["name"])
     f = stages.facts().get(s["id"])
     stats = []
-    if f:
+    if f and f.get("ledge"):
         stats.append((_num(2 * f["ledge"]), "ledge to ledge"))
-    stats.append((str(s["platforms"]) if s["platforms"] else "None",
-                  "platforms"))
+    if s["platforms"] is not None:      # (None: they move, or too many)
+        stats.append((str(s["platforms"]) if s["platforms"] else "None",
+                      "platforms"))
     stats = "".join('<div class="stat"><div class="n">%s</div><div class="l">'
                     '%s</div></div>' % (esc(n), what) for n, what in stats)
     blast = ""
@@ -661,23 +664,29 @@ def stage_card(s, go):
             stats, blast, esc(s["about"]), key("A", dark=True), esc(go)))
 
 
-def stage_select(stage_list, focus, me, opp, go):
+def stage_select(stage_list, focus, me, opp, go, every=False):
     """After the characters: where they play. `me`, `opp`: the two
-    characters; `go`: what A does ("Fight", or "Start" in the Lab)."""
+    characters; `go`: what A does ("Fight", or "Start" in the Lab);
+    `every`: all the game's stages (smaller panels, six to a row), not
+    only the six legal ones (Y changes it)."""
+    cols = STAGE_COLUMNS_ALL if every else STAGE_COLUMNS
     tiles = [stage_tile(i, s, i == focus) for i, s in enumerate(stage_list)]
     rows = "".join('<div class="sgrow">%s</div>' % "".join(
-        tiles[i:i + STAGE_COLUMNS])
-        for i in range(0, len(tiles), STAGE_COLUMNS))
+        tiles[i:i + cols]) for i in range(0, len(tiles), cols))
     body = (
-        header(["Choose a stage"], tag=[(me["name"], me["color"], me["fg"]),
-                                        (opp["name"], opp["color"],
-                                         opp["fg"])]) +
-        '<div class="sgrid">' + rows + '</div>' +
+        header(["Choose a stage", "All stages" if every else
+                "Legal stages"],
+               tag=[(me["name"], me["color"], me["fg"]),
+                    (opp["name"], opp["color"], opp["fg"])]) +
+        '<div class="sgrid%s">' % (" all" if every else "") + rows +
+        '</div>' +
         '<div id="card" class="card">' + stage_card(stage_list[focus], go) +
         '</div>' +
         footer("Where %s and %s play. The stage loads with the match." % (
             me["name"], opp["name"]),
-            [("A", go), ("X", "Random"), ("B", "Back")]))
+            [("A", go), ("X", "Random"),
+             ("Y", "Legal stages" if every else "All stages"),
+             ("B", "Back")]))
     return page("Stage select", body)
 
 

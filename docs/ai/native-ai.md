@@ -343,6 +343,23 @@ player keeps; drills and the Lab keep it as it was. `tests/client/stage_select.p
 checks); `menu.py`, `versus.py`, `course.py`, `sound.py`, `portraits.py`, `fullscreen.py`,
 `settings_menu.py` and `online.py` follow the new layout.
 
+**Every stage, and a toggle (2026-11-14).** The owner: "add support for all stages in
+melee in the same way we supported the legal stages? Then in stage select have a toggle
+between all and legal!". All 29 stages of the game's VS select are in `stages.STAGES`, in
+its own order (that of its name logos, which carry each stage's series line); the six legal
+ones are `stages.LEGAL`. Each plays in the native build (all 23 others were run ten
+seconds each with a fighter moving: no crash), has its name logo off the disc, and is drawn
+by the native build as the six are: the panel and the card's picture framed from the
+stage's camera limits as the game reads them (`studio stage` now reports them too, and
+answers on a stage without a ledge), the legal six's hand-set framings giving the
+proportions (`stages._auto`; `zoom`, `wait` for the few that need it). The pictures are
+drawn four stages to a window: the 32-bit window build's graphics memory runs out after
+some 25 stage loads in one process (GL_OUT_OF_MEMORY), which a very long session changing
+stage often could also meet. On the select, Y shows every stage (smaller panels, six to a
+row) or the six legal ones again; the client keeps the choice, and the stage in focus when
+the other list has it. A slippi-ai model on a stage it does not know is told none
+(libmelee names only the six). `tests/client/stage_select.py`.
+
 **Versus's game modes, and Tug of War (2026-11-14).** The owner: "We need to add support
 for different game modes instead of just the unlimited score game. Let's make our first
 mode Tennis. Here, scoring works like tug of war. A kill pulls it in your favor, and you

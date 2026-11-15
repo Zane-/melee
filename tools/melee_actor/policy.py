@@ -63,7 +63,9 @@ class PolicyPlayer:
                  name=None):
         from slippi_ai import eval_lib, saving
         self.sim, self.port, self.opponent = sim, port, opponent
-        self.stage = STAGES[stage]
+        # a stage libmelee does not name (all but the six legal ones: the
+        # models learned on those) is told as none at all (NO_STAGE)
+        self.stage = STAGES.get(stage, 0)
         state = saving.load_state_from_disk(model)
         self.agent = eval_lib.build_delayed_agent(
             state, console_delay=0, batch_size=1, name=name)

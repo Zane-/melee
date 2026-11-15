@@ -70,7 +70,7 @@ L, R = 0x40, 0x20
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = screens.COLUMNS
-STAGE_ORDER = tuple(s["id"] for s in stages.STAGES)
+STAGE_ORDER = tuple(s["id"] for s in stages.LEGAL)   # the select at first
 # every stage on the select is one the native build loads (it knows more:
 # a mode's own, Shine Battle's Jungle Japes)
 assert set(STAGE_ORDER) <= set(STAGES)
@@ -1413,11 +1413,28 @@ class Client:
         self.screen = "stages"
         self.w.capture(True)
         self.load("stages", screens.stage_select(
-            stages.STAGES, self.stage_at, self.me,
-            self.roster[self.opp_at], self.go_word()))
+            self.stage_list(), self.stage_at, self.me,
+            self.roster[self.opp_at], self.go_word(),
+            every=self.every_stage()))
+
+    def every_stage(self):
+        """Whether the stage select shows every stage, not only the six
+        legal ones (Y changes it; kept)."""
+        return self.progress.data.get("stages_shown") == "all"
+
+    def stage_list(self):
+        return stages.STAGES if self.every_stage() else stages.LEGAL
+
+    def stage_id(self):
+        """The stage in focus on the select."""
+        lst = self.stage_list()
+        return lst[min(self.stage_at, len(lst) - 1)]["id"]
 
     def on_stages(self, pressed, moves):
-        at, n, cols = self.stage_at, len(STAGE_ORDER), screens.STAGE_COLUMNS
+        lst = self.stage_list()
+        at, n = self.stage_at, len(lst)
+        cols = screens.STAGE_COLUMNS_ALL if self.every_stage() else \
+            screens.STAGE_COLUMNS
         if moves & LEFT and at % cols > 0:
             at -= 1
         if moves & RIGHT and at % cols < cols - 1 and at + 1 < n:
@@ -1430,14 +1447,23 @@ class Client:
             self.w.ui("class s%d focus 0" % self.stage_at)
             self.stage_at = at
             self.w.ui("class s%d focus 1" % at)
-            self.put("card", screens.stage_card(stages.STAGES[at],
-                                                self.go_word()))
+            self.put("card", screens.stage_card(lst[at], self.go_word()))
         if pressed & B:
             self.show_opponent()
         elif pressed & X:
             # as the game's own Random: one of them, and the match starts
             self.stage_at = random.randrange(n)
             self.fight()
+        elif pressed & Y:
+            # every stage or the six legal ones, the stage in focus kept
+            # when the other list has it
+            sid = lst[at]["id"]
+            self.progress.data["stages_shown"] = \
+                "legal" if self.every_stage() else "all"
+            self.progress.save()
+            ids = [s["id"] for s in self.stage_list()]
+            self.stage_at = ids.index(sid) if sid in ids else 0
+            self.show_stages()
         elif pressed & A:
             self.fight()
 
@@ -1447,7 +1473,7 @@ class Client:
         key, name, what = self.players()[self.who]
         cls = self.mode_class()
         stage = cls.stage if cls is not None and cls.stage else \
-            STAGE_ORDER[self.stage_at]
+            self.stage_id()
         self.stage_now = stage
         # the game mode (modes.py): its score from the KOs seen, in the
         # HUD's stocks (shown once the fighters are in: show_score), and
@@ -1785,7 +1811,7 @@ class Client:
                 code, dict(nick=self.nickname(), char=self.me["id"],
                            color=0, mode=dict(ident=m.ident,
                                               settings=dict(m.settings))),
-                stage=m.stage or STAGE_ORDER[self.stage_at],
+                stage=m.stage or self.stage_id(),
                 delay=self.settings["delay"], tick=tick)
         except online.ModeMismatch as e:
             theirs = modes.BY_ID.get(e.mode.get("ident"))

@@ -43,9 +43,19 @@ CHARACTERS = {
     "sheik": 0x13, "falco": 0x14, "young-link": 0x15, "dr-mario": 0x16,
     "roy": 0x17, "pichu": 0x18, "ganondorf": 0x19,
 }
+# StKind (src/melee/gr/forward.h): every stage of the game's VS select
 STAGES = {"fountain-of-dreams": 0x02, "pokemon-stadium": 0x03,
-          "yoshis-story": 0x08, "jungle-japes": 0x0C, "dream-land": 0x1C,
-          "battlefield": 0x1F, "final-destination": 0x20}
+          "peachs-castle": 0x04, "kongo-jungle": 0x05, "brinstar": 0x06,
+          "corneria": 0x07, "yoshis-story": 0x08, "onett": 0x09,
+          "mute-city": 0x0A, "rainbow-cruise": 0x0B, "jungle-japes": 0x0C,
+          "great-bay": 0x0D, "hyrule-temple": 0x0E,
+          "brinstar-depths": 0x0F, "yoshis-island": 0x10,
+          "green-greens": 0x11, "fourside": 0x12, "mushroom-kingdom": 0x13,
+          "mushroom-kingdom-ii": 0x14, "venom": 0x16, "poke-floats": 0x17,
+          "big-blue": 0x18, "icicle-mountain": 0x19, "flat-zone": 0x1B,
+          "dream-land": 0x1C, "yoshis-island-64": 0x1D,
+          "kongo-jungle-64": 0x1E, "battlefield": 0x1F,
+          "final-destination": 0x20}
 
 
 def _json(text):

@@ -73,6 +73,21 @@ def main():
         w.key(key, False)
         frames(after)
 
+    def to_stage(sid):
+        """The stage select's focus moved to `sid` by rows and columns."""
+        ids = [x["id"] for x in c.stage_list()]
+        cols = 6 if c.every_stage() else 3
+        want = ids.index(sid)
+        for _ in range(20):
+            at = c.stage_at
+            if at == want:
+                return
+            if at // cols != want // cols:
+                tap("Down" if want // cols > at // cols else "Up", after=2)
+            else:
+                tap("Right" if want > at else "Left", after=2)
+        raise RuntimeError("the stage select never reached %s" % sid)
+
     def hold_start():
         w.key("Return")
         frames(HOLD)
@@ -126,9 +141,11 @@ def main():
         check("after the characters, the stage select",
               c.screen == "stages" and c.mode == "versus")
         page = text("stages.rml")
-        check("its six panels are the native build's pictures of the stages",
+        check("its six panels are the native build's pictures of the legal "
+              "stages", c.stage_list() is stages.LEGAL and
               all("stage/%s-tile.png" % s["id"] in page
-                  for s in stages.STAGES))
+                  for s in stages.LEGAL) and
+              "stage/peachs-castle-tile.png" not in page)
         check("the card: the stage whole and the game's name logo",
               "stage/battlefield-preview.png" in page and
               "stage/battlefield-name.png" in page)
@@ -151,6 +168,56 @@ def main():
               "stage/fountain-of-dreams-preview.png" in card and
               "126.7" in card, client.STAGE_ORDER[c.stage_at])
         shot("stages-fountain")
+
+        # ---- every stage: Y ------------------------------------------------------
+        tap("c", after=10)
+        page = text("stages.rml")
+        ids = [s["id"] for s in stages.STAGES]
+        check("Y: every stage of the game, 29, in its own order, each the "
+              "native build's picture, the stage in focus kept",
+              c.every_stage() and len(c.stage_list()) == 29 and
+              all("stage/%s-tile.png" % i in page for i in ids) and
+              c.stage_id() == "fountain-of-dreams" and "All stages" in page,
+              c.stage_id())
+        w.shot(pic)
+        shot("stages-all")
+        least = min(spread(pic, [(60 + 116 * (i % 6) + 30,
+                                  120 + 97 * (i // 6) + 20, 50, 40)
+                                 for i in range(29)]))
+        check("and they are drawn: no panel is one colour", least > 8,
+              "least %.1f" % least)
+        to_stage("peachs-castle")
+        card = text("part-card.rml")
+        check("the arrows move six to a row; Peach's Castle first, its "
+              "card: its picture, its name logo, its blast zones",
+              c.stage_id() == "peachs-castle" and
+              "stage/peachs-castle-preview.png" in card and
+              "stage/peachs-castle-name.png" in card and
+              "Blast zones" in card, c.stage_id())
+        shot("stages-peach")
+        tap("Right")
+        tap("Down")
+        check("Down six on: Brinstar Depths, a row below Rainbow Cruise",
+              c.stage_id() == "brinstar-depths", c.stage_id())
+        tap("z")
+        tap("x", after=10)
+        check("kept: back on the stage select, every stage still",
+              c.screen == "stages" and c.every_stage())
+        tap("c", after=10)
+        check("Y again: the six legal stages", not c.every_stage() and
+              c.stage_list() is stages.LEGAL and c.stage_id() in
+              client.STAGE_ORDER, c.stage_id())
+        tap("c", after=10)
+        to_stage("rainbow-cruise")
+        tap("x", after=40)
+        frames(60)
+        check("A on a stage not legal: the match is played there",
+              c.screen == "versus" and
+              w.match_info["stage"] == "rainbow-cruise" and
+              w.state()["p"][0] is not None, str(w.match_info.get("stage")))
+        shot("rainbow-cruise")
+        pausekeys.leave(c, w, "stages", frames)
+        tap("c", after=10)                  # the legal six again
         tap("v", after=40)
         check("X: a stage at random, and the match starts",
               c.screen == "versus" and

@@ -896,6 +896,15 @@ img { display: inline-block; }
 .sglogo { position: absolute; left: 33dp; top: 76dp; width: 224dp; height: 56dp; }
 .sgstrip { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 30dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; justify-content: center; }
 .sgstrip .un { font-family: "Barlow Condensed"; font-weight: 700; font-size: 18dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+/* Every stage (Y on the stage select): 29 smaller panels, six to a row. */
+.sgrid.all .sgrow { height: 90dp; margin-bottom: 7dp; }
+.sgrid.all .sg { width: 104dp; height: 88dp; margin-right: 12dp; }
+.sgrid.all .sg .ring { left: -5dp; top: -5dp; right: -5dp; bottom: -5dp; border-width: 3dp; }
+.sgrid.all .sgpin { left: -12dp; right: -12dp; }
+.sgrid.all .sgimg { width: 128dp; height: 92dp; }
+.sgrid.all .sglogo { left: 14dp; top: 22dp; width: 100dp; height: 25dp; }
+.sgrid.all .sgstrip { height: 18dp; }
+.sgrid.all .sgstrip .un { font-size: 11dp; letter-spacing: 0dp; }
 /* The card: the stage whole, cut by the ink wedge (.wclip) as the
    character card's portrait is; the game's name logo; the numbers. */
 .sgclip { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 218dp; overflow: hidden; clip: always; }
