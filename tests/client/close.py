@@ -50,7 +50,7 @@ def main():
         w.pace(False)
         for _ in range(6):
             c.frame()
-        for key in ("x", "x", "x"):            # Fox, his hub, Tech
+        for key in ("x", "x", "x", "x"):   # Fox, his hub, Tech, Movement
             w.key(key)
             c.frame()
             c.frame()

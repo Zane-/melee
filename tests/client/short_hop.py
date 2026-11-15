@@ -280,6 +280,7 @@ def main():
         tap("x")
         tap("x")
         tap("x")
+        tap("x")                      # Tech skill's first category
         first = c.drills()[c.row[c.part]]
         check("Tech opens on Short hop, and it plays here",
               c.screen == "list" and courses.PARTS[c.part] == "Tech" and

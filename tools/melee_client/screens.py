@@ -1061,12 +1061,117 @@ def hub(c, course, here, progress, left):
 ROWS = 8
 
 
-def rows_for(course, part):
+def rows_for(course, part, cat=None):
     """The drill rows a part's list shows at once: one fewer when it has
-    subcourses, for their headings (two at most in view, each half a
-    row)."""
+    subcourses shown together, for their headings (two at most in view,
+    each half a row); a category's own list has none."""
+    if cat:
+        return ROWS
     return ROWS - 1 if any(d.get("sub") for d in course["parts"][part]) \
         else ROWS
+
+
+# a category of a part (Tech skill's subcourses), as its list says it
+CATEGORY_ABOUT = {
+    "Movement": "Moving on the ground, in the air and at the ledge.",
+    "Fundamentals": "L-cancels, jump-cancels, DI, SDI and the shield "
+                    "drop.",
+    "Character": "%s's own techniques.",
+}
+
+
+def categories(course, part):
+    """A part's categories, in order (courses.SUBCOURSES), or []."""
+    from courses import SUBCOURSES
+    return [s for s in SUBCOURSES.get(part, ())
+            if any(d.get("sub") == s for d in course["parts"][part])]
+
+
+def in_category(course, part, cat):
+    """A part's drills, those of category `cat` only if it is given."""
+    return [d for d in course["parts"][part]
+            if not cat or d.get("sub") == cat]
+
+
+def category_about(c, cat):
+    words = CATEGORY_ABOUT.get(cat, "")
+    return words % c["name"] if "%s" in words else words
+
+
+def category_rows(c, course, part, progress, at):
+    """The categories' rows: name and what it trains, drills, done."""
+    out = []
+    for i, cat in enumerate(categories(course, part)):
+        ds = in_category(course, part, cat)
+        done = sum(1 for d in ds if progress.done(d["id"]))
+        out.append(
+            '<div class="r rcat%s"><div class="c-n"><div class="cap" style='
+            '"background-color: %s"/></div><div class="c-name"><div '
+            'class="nm">%s</div><div class="gl">%s</div></div><div '
+            'class="c-t">%d</div><div class="c-t">%d</div><div class="c-b"/>'
+            '<div class="c-d"/></div>' % (
+                " on" if i == at else "",
+                PART_COLOR[part] if i == at else "#00000000", esc(cat),
+                esc(category_about(c, cat)), len(ds), done))
+    return "".join(out)
+
+
+def category_detail(c, course, part, cat, progress, at):
+    """The card beside the categories: the one in focus, its drills."""
+    from courses import title
+    ds = in_category(course, part, cat)
+    done = sum(1 for d in ds if progress.done(d["id"]))
+    fg = "#FFFFFF" if part == "Tech" else "#12161C"
+    names = [d["name"] for d in ds]
+    shown = ", ".join(names[:6]) + (", and %d more" % (len(names) - 6)
+                                    if len(names) > 6 else "")
+    facts = "".join(
+        '<div class="fact"><div class="fl">%s</div><div class="fv">%s</div>'
+        '</div>' % (label, esc(words))
+        for label, words in (("Drills", shown),
+                             ("Done", "%d of %d" % (done, len(ds)))))
+    return (
+        '<div class="top" style="background-color: %s"/><div class="slant" '
+        'style="background-color: %s"/><div class="head" style="color: %s">'
+        '<div class="tags">%s · %d OF %d</div><div class="dname" '
+        'style="font-size: %ddp">%s</div></div><div class="body"><div '
+        'class="goal">%s</div>%s<div class="grow"/><div class="go"><div '
+        'class="un">%s<div>Open</div></div></div></div>' % (
+            PART_COLOR[part], PART_COLOR[part], fg,
+            esc(title(part).upper()), at + 1,
+            len(categories(course, part)), 52 if len(cat) <= 12 else 38,
+            esc(cat), esc(category_about(c, cat)), facts,
+            key("A", dark=True)))
+
+
+def category_list(c, course, part, progress, at):
+    """A part with categories (Tech skill: Movement, Fundamentals,
+    Character) opens on them; A opens one's drills (the owner,
+    2026-11-14: "in tech skill I want the first view to be categories
+    then selecting that puts you into the list view for all the drills in
+    that category")."""
+    from courses import PARTS, title
+    cats = categories(course, part)
+    tabs = "".join(
+        '<div class="ptab %s%s"><div class="un">%s · %d</div></div>' % (
+            PART_CLASS[p], " on" if p == part else "", title(p),
+            len(course["parts"][p])) for p in PARTS)
+    body = (
+        header(["Train", c["name"], title(part)],
+               tag=(c["name"], c["color"], c["fg"])) +
+        '<div class="tabs">' + key("L", dark=True, wide=True) + tabs +
+        key("R", dark=True, wide=True) + '</div>'
+        '<div class="listhead"><div class="c-n"><div class="cap"/></div>'
+        '<div class="c-name">CATEGORY</div><div class="c-t">DRILLS</div>'
+        '<div class="c-t">DONE</div><div class="c-b"/><div class="c-d"/>'
+        '</div>'
+        '<div id="rows" class="rows">' +
+        category_rows(c, course, part, progress, at) + '</div>'
+        '<div id="detail" class="card detail">' +
+        category_detail(c, course, part, cats[at], progress, at) + '</div>' +
+        footer(category_about(c, cats[at]), [("A", "Open"), ("B", "Back")],
+               tab=PART_COLOR[part]))
+    return page("Drills", body)
 
 
 def place_of(course, d):
@@ -1086,14 +1191,14 @@ def _percent(d):
         else "-"
 
 
-def list_rows(course, part, here, progress, at, top):
+def list_rows(course, part, here, progress, at, top, cat=None):
     """The rows in view: `at` is the drill in focus, `top` the first row
-    shown."""
+    shown (of category `cat`'s drills, when given)."""
     out = []
     sub = None
-    for i, d in enumerate(course["parts"][part][top:top + rows_for(
-            course, part)], top):
-        if d.get("sub") and d["sub"] != sub:
+    for i, d in enumerate(in_category(course, part, cat)[top:top + rows_for(
+            course, part, cat)], top):
+        if d.get("sub") and d["sub"] != sub and not cat:
             # the subcourse's heading: over its first row in view
             sub = d["sub"]
             out.append('<div class="rsub"><div>%s</div></div>' % esc(sub))
@@ -1148,15 +1253,17 @@ def list_detail(course, d, here, progress):
            "yet"))
 
 
-def drill_list(c, course, part, here, progress, at, top):
+def drill_list(c, course, part, here, progress, at, top, cat=None):
     from courses import PARTS, title
-    drills = course["parts"][part]
+    drills = in_category(course, part, cat)
     tabs = "".join(
         '<div class="ptab %s%s"><div class="un">%s · %d</div></div>' % (
             PART_CLASS[p], " on" if p == part else "", title(p),
             len(course["parts"][p])) for p in PARTS)
     body = (
-        header(["Train", c["name"], title(part)],
+        # (in a category, the first crumb gives way: four do not fit)
+        header(([] if cat else ["Train"]) + [c["name"], title(part)] +
+               ([cat] if cat else []),
                tag=(c["name"], c["color"], c["fg"])) +
         '<div class="tabs">' + key("L", dark=True, wide=True) + tabs +
         key("R", dark=True, wide=True) + '</div>'
@@ -1166,7 +1273,7 @@ def drill_list(c, course, part, here, progress, at, top):
         '<div class="c-d"><div>DONE</div></div>'
         '</div>'
         '<div id="rows" class="rows">' +
-        list_rows(course, part, here, progress, at, top) + '</div>'
+        list_rows(course, part, here, progress, at, top, cat) + '</div>'
         '<div id="detail" class="card detail">' +
         list_detail(course, drills[at], here, progress) + '</div>' +
         footer(drills[at]["goal"], [("A", "Start"), ("Y", "Done"),

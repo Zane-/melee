@@ -161,8 +161,9 @@ def main():
         if c.screen == "main":
             tap("x")
             tap("x")
-        if c.screen == "list":
-            tap("z")                             # back to the course hub
+        for _ in range(2):        # back to the course hub (from a
+            if c.screen in ("list", "cats"):     # category's drills: 2)
+                tap("z")
         part = next(i for i, p in enumerate(courses.PARTS)
                     if ident in [d["id"] for d in c.course["parts"][p]])
         if not c.hub_at.startswith("p"):
@@ -173,6 +174,15 @@ def main():
                 break
             tap("Right" if at < part else "Left")
         tap("x")
+        if c.screen == "cats":           # Tech skill's categories
+            want = next(d["sub"] for d in c.course["parts"][
+                courses.PARTS[c.part]] if d["id"] == ident)
+            for _ in range(4):
+                if c.cats()[c.cat_at] == want:
+                    break
+                tap("Down" if c.cats().index(want) > c.cat_at
+                    else "Up")
+            tap("x")
         for _ in range(40):
             if c.drills()[c.row[c.part]]["id"] == ident:
                 break

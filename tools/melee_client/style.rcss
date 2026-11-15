@@ -321,6 +321,11 @@ img { display: inline-block; }
 .c-name { flex: 1; overflow: hidden; }
 .nm { font-size: 17dp; font-weight: 700; line-height: 1.15em; white-space: nowrap; }
 .gl { font-size: 13dp; line-height: 1.2em; color: #4A5361; white-space: nowrap; }
+/* a part's categories (Tech skill's): fewer rows, each taller */
+.r.rcat { height: 76dp; margin-bottom: 6dp; }
+.r.rcat .nm { font-size: 24dp; }
+.r.rcat .gl { font-size: 15dp; margin-top: 2dp; }
+.r.rcat .c-t { font-size: 18dp; }
 .r.on .gl { color: #D5DCE5; }
 .c-t { width: 74dp; box-sizing: border-box; text-align: right; font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
 .c-b { width: 56dp; box-sizing: border-box; text-align: right; font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }

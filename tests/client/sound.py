@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
+import courses  # noqa: E402
 import window  # noqa: E402
 import pausekeys  # noqa: E402
 from pausekeys import Chooser  # noqa: E402
@@ -47,6 +48,11 @@ def main():
     tmp = tempfile.mkdtemp(prefix="melee-sound-")
     raw = os.path.join(tmp, "mix.raw")
     save = os.path.join(tmp, "client.json")
+    # (the short hop's tutorial, which a fresh save opens and which START
+    # closes, is not this test's: tests/client/short_hop.py)
+    seen_save = courses.Progress(save)
+    seen_save.drill("universal-short-hop").update(tutorial=True, part=2)
+    seen_save.save()
     w = c = None
     played = []
 
@@ -129,11 +135,15 @@ def main():
         if c.roster[c.at]["id"] != "fox":
             raise RuntimeError("Fox not found: at %s" % c.roster[c.at]["id"])
         tap("x")                      # Fox's course hub
-        tap("x")                      # the first part's drills
+        tap("x")                      # the first part's categories
+        tap("x")                      # the first one's drills
         seen = dict(n=0)
 
         def person(game, frame):
             seen["n"] += 1
+            if seen["n"] > 900:
+                raise RuntimeError("the drill did not go back to its list "
+                                   "in 900 frames")
             if seen["n"] == 1:
                 game.key("x", False)
             if seen["n"] == 60:

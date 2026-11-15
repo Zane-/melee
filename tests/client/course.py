@@ -90,15 +90,44 @@ def main():
         tap("Left")
         tap("Left")
         tap("x")
-        names = [d["name"] for d in c.drills()]
-        subs = [d["sub"] for d in c.drills()]
-        check("A opens Tech skill's drills, as the course file lists them, "
-              "in its three subcourses",
-              c.screen == "list" and courses.PARTS[c.part] == "Tech" and
+        # Tech skill opens on its categories (the owner, 2026-11-14: "the
+        # first view to be categories then selecting that puts you into
+        # the list view for all the drills in that category")
+        check("A opens Tech skill on its three categories",
+              c.screen == "cats" and courses.PARTS[c.part] == "Tech" and
               courses.title("Tech") == "Tech skill" and
+              c.cats() == ["Movement", "Fundamentals", "Character"] and
+              c.cat_at == 0, "%s %s" % (c.screen, c.cats()))
+        shot("categories")
+        tap("Down")
+        tap("Down")
+        tap("Down")
+        check("the focus moves down the categories and stops at the last",
+              c.screen == "cats" and c.cat_at == 2, str(c.cat_at))
+        tap("x")
+        fox = [d["name"] for d in c.drills()]
+        check("A opens Character: Fox's own drills only",
+              c.screen == "list" and c.cat == "Character" and
+              fox[:2] == ["Waveshine", "Shine grab"] and
+              all(d["sub"] == "Character" for d in c.drills()),
+              "%s: %s" % (c.cat, ", ".join(fox)))
+        shot("category")
+        tap("z")
+        check("B goes back to the categories, Character still in focus",
+              c.screen == "cats" and c.cat is None and c.cat_at == 2,
+              "%s %s" % (c.screen, c.cat_at))
+        tap("Up")
+        tap("Up")
+        tap("x")
+        names = [d["name"] for d in c.drills()]
+        every_sub = [d["sub"] for part in [c.course["parts"]["Tech"]]
+                     for d in part]
+        check("Movement's drills, as the course file lists them; Tech skill "
+              "has 27 in its three",
+              c.screen == "list" and c.cat == "Movement" and
               names[:3] == ["Short hop", "Fast fall", "Dash dance"] and
-              len(names) == 27 and subs[0] == "Movement" and
-              subs[-1] == "Character" and "Fundamentals" in subs,
+              len(names) == 7 and len(every_sub) == 27 and
+              every_sub.count("Fundamentals") == 10,
               "%d drills" % len(names))
         every = [d["id"] for part in c.course["parts"].values()
                  for d in part]
@@ -175,6 +204,7 @@ def main():
         check("Y marks the drill done, and that is kept too",
               courses.Progress(save).done(DRILL))
         tap("z")
+        tap("z")
         left = c.left_off()
         check("the hub knows where you left off",
               c.screen == "hub" and left is not None and
@@ -186,9 +216,12 @@ def main():
               c.screen == "list" and
               c.drills()[c.row[c.part]]["id"] == DRILL)
         tap("s")
+        turned = c.screen
         tap("a")
-        check("R and L turn to the next part and back",
-              c.screen == "list" and courses.PARTS[c.part] == "Tech")
+        check("R and L turn to the next part and back to Tech skill's "
+              "categories",
+              turned == "list" and c.screen == "cats" and
+              courses.PARTS[c.part] == "Tech", turned + " " + c.screen)
         tap("z")
         tap("Down")
         tap("x")

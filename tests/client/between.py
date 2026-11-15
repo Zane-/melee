@@ -140,6 +140,15 @@ def main():
                     break
                 tap("Right")
             tap("x")
+            if c.screen == "cats":           # Tech skill's categories
+                want = next(d["sub"] for d in c.course["parts"][
+                    courses.PARTS[c.part]] if d["id"] == ident)
+                for _ in range(4):
+                    if c.cats()[c.cat_at] == want:
+                        break
+                    tap("Down" if c.cats().index(want) > c.cat_at
+                        else "Up")
+                tap("x")
             for _ in range(40):
                 if c.drills()[c.row[c.part]]["id"] == ident:
                     break

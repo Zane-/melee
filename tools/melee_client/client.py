@@ -280,6 +280,9 @@ class Client:
         self.hub_at = "p0"            # the hub panel in focus
         self.part = 0                 # the part whose drills are listed
         self.row = [0, 0, 0, 0]       # the drill in focus, per part
+        # a part's category open (Tech skill: Movement...), None for its
+        # list of categories; the one in focus there; each one's place
+        self.cat, self.cat_at, self.cat_rows = None, 0, {}
         self.top = [0, 0, 0, 0]       # the first row shown, per part
         self.person = None            # tests: called before every frame
         self.results = None           # the attempts of the drill last left
@@ -475,7 +478,8 @@ class Client:
                 tuple(self.row), getattr(self, "part", None),
                 getattr(self, "sfocus", None), getattr(self, "ctl_at", None),
                 getattr(self, "rport", None), getattr(self, "sub", None),
-                getattr(self, "sub_at", None), getattr(self, "fr_at", None))
+                getattr(self, "sub_at", None), getattr(self, "fr_at", None),
+                getattr(self, "cat", None), getattr(self, "cat_at", None))
 
     def show_main(self):
         self.menu_music()
@@ -2010,6 +2014,7 @@ class Client:
             self.c, self.course = c, courses.load(c["id"])
             self.hub_at, self.part = "p0", 0
             self.row, self.top = [0, 0, 0, 0], [0, 0, 0, 0]
+            self.cat, self.cat_at, self.cat_rows = None, 0, {}
         self.last = c
         self.load("hub", screens.hub(c, self.course, self.here,
                                      self.progress, self.left_off()))
@@ -2047,42 +2052,100 @@ class Client:
             self.lab(self.c, "hub")
         elif pressed & A:
             self.part = int(self.hub_at[1])
+            self.open_cat(None)
             self.show_list()
         elif pressed & X and left:
             self.part = courses.PARTS.index(left["part"])
-            self.focus_row(self.course["parts"][left["part"]].index(left))
+            self.open_cat(left.get("sub") or None)
+            self.focus_row(self.drills().index(left))
             self.show_list()
 
     # ---- a part's drills ------------------------------------------------------------
 
     def drills(self):
-        return self.course["parts"][courses.PARTS[self.part]]
+        """The part's drills: the category's, when one is open."""
+        return screens.in_category(self.course, courses.PARTS[self.part],
+                                   self.cat)
+
+    def cats(self):
+        """The part's categories (Tech skill's), or []."""
+        return screens.categories(self.course, courses.PARTS[self.part])
+
+    def open_cat(self, cat):
+        """Open a category of the part (None: its list of categories),
+        each keeping the row it was left on."""
+        if self.cat is not None:
+            self.cat_rows[(self.part, self.cat)] = (self.row[self.part],
+                                                    self.top[self.part])
+        self.cat = cat if cat in self.cats() else None
+        if self.cat is not None:
+            self.cat_at = self.cats().index(self.cat)
+        self.row[self.part], self.top[self.part] = self.cat_rows.get(
+            (self.part, self.cat), (0, 0))
 
     def focus_row(self, at):
         """Put the focus on a row, scrolling so it is in view."""
         top = self.top[self.part]
         if at < top:
             top = at
-        shown = screens.rows_for(self.course, courses.PARTS[self.part])
+        shown = screens.rows_for(self.course, courses.PARTS[self.part],
+                                 self.cat)
         if at >= top + shown:
             top = at - shown + 1
         self.row[self.part], self.top[self.part] = at, top
 
     def show_list(self):
         self.menu_music()
-        self.screen = "list"
         self.w.capture(True)
         part = courses.PARTS[self.part]
+        cats = self.cats()
+        if cats and self.cat is None:
+            # its categories first (Tech skill: Movement, Fundamentals,
+            # Character)
+            self.screen = "cats"
+            self.cat_at = min(self.cat_at, len(cats) - 1)
+            self.load("drills", screens.category_list(
+                self.c, self.course, part, self.progress, self.cat_at))
+            self.say(screens.category_about(self.c, cats[self.cat_at]))
+            return
+        self.screen = "list"
         self.load("drills", screens.drill_list(
             self.c, self.course, part, self.here, self.progress,
-            self.row[self.part], self.top[self.part]))
+            self.row[self.part], self.top[self.part], self.cat))
+
+    def on_cats(self, pressed, moves):
+        """The part's categories: up and down, A opens one, B back to the
+        hub, L and R another part."""
+        cats = self.cats()
+        at = self.cat_at
+        if moves & UP and at > 0:
+            at -= 1
+        if moves & DOWN and at < len(cats) - 1:
+            at += 1
+        turn = 0
+        if (pressed & L or moves & LEFT) and self.part > 0:
+            turn = -1
+        if (pressed & R or moves & RIGHT) and self.part < 3:
+            turn = 1
+        if turn:
+            self.part += turn
+            self.open_cat(None)
+            self.show_list()
+        elif at != self.cat_at:
+            self.cat_at = at
+            self.show_list()
+        elif pressed & B:
+            self.show_hub()
+        elif pressed & A:
+            self.open_cat(cats[self.cat_at])
+            self.show_list()
 
     def refresh_list(self):
         part = courses.PARTS[self.part]
         d = self.drills()[self.row[self.part]]
         self.put("rows", screens.list_rows(
             self.course, part, self.here, self.progress,
-            self.row[self.part], self.top[self.part]))
+            self.row[self.part], self.top[self.part], self.cat))
         self.put("detail", screens.list_detail(self.course, d, self.here,
                                                self.progress))
         self.say(d["goal"])
@@ -2101,6 +2164,7 @@ class Client:
         d = self.drills()[self.row[self.part]]
         if turn:
             self.part += turn
+            self.open_cat(None)
             self.show_list()
         elif at != self.row[self.part]:
             self.focus_row(at)
@@ -2109,7 +2173,11 @@ class Client:
             self.progress.toggle(d["id"])
             self.refresh_list()
         elif pressed & B:
-            self.show_hub()
+            if self.cat is not None:        # back to the categories
+                self.open_cat(None)
+                self.show_list()
+            else:
+                self.show_hub()
         elif pressed & A:
             if d["id"] in self.here:
                 self.drill(d)
