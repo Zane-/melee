@@ -1,0 +1,430 @@
+{
+  "id": "universal-di",
+  "name": "Directional Influence (DI)",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Change your launch angle with the control stick",
+  "why": "DI sets the direction a hit launches you. Against a strong sideways hit, holding the control stick up and toward the stage raises the launch angle by up to 18 degrees, so {char} reaches the side blast zone later and survives to a higher percent. With no DI the same hit kills earlier.",
+  "tutorial": {
+    "what": "DI is the control stick's direction on the last frame of hitlag. The game turns the launch angle toward it by up to 18 degrees.",
+    "expect": "Each hit is judged on the first frame of the launch: whether the control stick was held on the last frame of hitlag, and the angle {char} moved at. Gravity makes that angle a few degrees lower than the hit's own 44.",
+    "example": [
+      {
+        "stick": [
+          0.7071,
+          0.7071
+        ],
+        "frame": 13,
+        "hold": 12
+      }
+    ],
+    "marks": {
+      "12": "Frame 12: the forward smash hits. Hitlag begins",
+      "13": "Frame 13: the control stick is held up and toward the opponent",
+      "19": "Frame 19: the last frame of hitlag. The game reads the stick",
+      "20": "Frame 20: launched about 18 degrees higher"
+    },
+    "lessons": [
+      {
+        "title": "Hitlag",
+        "text": [
+          "When a hit connects, both fighters freeze: hitlag. Its length comes from the hit's damage: a third of the damage plus 3 frames, rounded down. The opponent's forward smash deals 15, so hitlag lasts 8 frames.",
+          "{char} cannot move during hitlag, but the game still reads the control stick. Knockback starts on the frame after hitlag."
+        ],
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  0
+                ],
+                "frame": 1,
+                "hold": 1
+              }
+            ],
+            "frame": 15,
+            "cue": {
+              "words": "Hitlag: 8 frames",
+              "kind": "info"
+            }
+          }
+        }
+      },
+      {
+        "title": "How DI works",
+        "text": [
+          "The game reads the control stick on the last frame of hitlag and turns the launch angle toward it as the launch begins. The turn is 18 degrees times the square of the stick's component perpendicular to the launch. A stick perpendicular to the launch gives all 18 degrees; a stick along the launch line gives none.",
+          "The opponent's forward smash launches {char} away at 44 degrees. Up and toward the opponent is perpendicular to that, and turns the launch to about 62 degrees. Straight up is 46 degrees off the launch line and turns it about 9."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0.7071,
+                  0.7071
+                ],
+                "frame": 13,
+                "hold": 12
+              }
+            ],
+            "marks": {
+              "12": "Frame 12: the forward smash hits. Hitlag begins",
+              "13": "Frame {f}: hitlag. The stick is held up and toward the opponent",
+              "19": "Frame 19: the last frame of hitlag. The game reads the stick",
+              "20": "Frame 20: launched about 18 degrees higher than with no DI"
+            },
+            "cues": [
+              {
+                "frames": [
+                  12,
+                  18
+                ],
+                "words": "Hitlag: hold the stick up and toward the opponent",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  19,
+                  19
+                ],
+                "words": "Last frame of hitlag: the stick is read now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  20,
+                  21
+                ],
+                "words": "Launched: too late to DI",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  22,
+                  45
+                ],
+                "words": "Launched",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Fox's forward smash at 80%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 80
+      },
+      "opponent": {
+        "character": "fox",
+        "x": -8,
+        "facing": "player",
+        "inputs": [
+          {
+            "cstick": [
+              1,
+              0
+            ],
+            "frame": 14,
+            "hold": 2
+          }
+        ],
+        "every": 120
+      },
+      "camera": "normal"
+    }
+  ],
+  "attempt": {
+    "start": "hit",
+    "judge": {
+      "frame": 28
+    }
+  },
+  "measures": {
+    "launch": {
+      "angle": "velocity",
+      "at": "hitlag_end",
+      "from_horizontal": true
+    },
+    "stick": {
+      "angle": "stick",
+      "at": "hitlag_last"
+    },
+    "hitlag": {
+      "frames_while": "hitlag",
+      "from": "start"
+    }
+  },
+  "verdict": {
+    "success": "Launched at {launch} degrees."
+  },
+  "checks": {
+    "stick held": {
+      "measure": "stick",
+      "at_least": -180,
+      "expect": "Control stick held on the last frame of hitlag",
+      "words": "the control stick was in neutral on the last frame of hitlag",
+      "headline": "No DI",
+      "fix": "Tilt the control stick during hitlag and keep it there until {char} is launched. The game reads it only on the last frame of hitlag; a stick let go before then is no DI."
+    },
+    "raised": {
+      "measure": "launch",
+      "expect": "Launched at 47 degrees or higher",
+      "words": "launched at {launch} degrees",
+      "headline": "Launch lowered",
+      "fix": "Hold the control stick up and toward the opponent. A stick held down or away from the opponent turns the launch lower, toward the side blast zone.",
+      "at_least": 47
+    },
+    "full DI": {
+      "measure": "launch",
+      "expect": "Launched at 56 degrees or higher",
+      "words": "launched at {launch} degrees",
+      "headline": "Not perpendicular",
+      "fix": "Hold the control stick up and toward the opponent, perpendicular to the launch. Straight up is 46 degrees off the launch line and gives about 9 of the 18 degrees.",
+      "at_least": 56
+    }
+  },
+  "parts": [
+    {
+      "name": "Hitlag",
+      "teach": "Stand still and take the opponent's forward smash. {char} freezes for 8 frames of hitlag, then flies away at 44 degrees.",
+      "example": [
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "12": "Frame 12: the forward smash hits. Hitlag: 8 frames",
+        "19": "Frame 19: the last frame of hitlag",
+        "20": "Frame 20: launched at 44 degrees"
+      },
+      "cues": [
+        {
+          "frames": [
+            12,
+            19
+          ],
+          "words": "Hitlag",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            20,
+            45
+          ],
+          "words": "Launched",
+          "kind": "info"
+        }
+      ],
+      "checks": [],
+      "success": "Hit: {hitlag_frames} of hitlag, then launched at {launch} degrees.",
+      "streak": 1
+    },
+    {
+      "name": "Hold the stick until hitlag ends",
+      "teach": "Once {char} freezes, tilt the control stick and keep it there until {char} flies. The game reads the stick only on the last frame of hitlag, and the launch angle changes.",
+      "example": [
+        {
+          "stick": [
+            0.7071,
+            0.7071
+          ],
+          "frame": 13,
+          "hold": 12
+        }
+      ],
+      "marks": {
+        "12": "Frame 12: the forward smash hits. Hitlag begins",
+        "13": "Frame 13: the control stick is tilted and held",
+        "19": "Frame 19: the last frame of hitlag. The stick is read",
+        "20": "Frame 20: launched at a new angle"
+      },
+      "cues": [
+        {
+          "frames": [
+            12,
+            18
+          ],
+          "words": "Hitlag: tilt the stick and hold it",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            19,
+            19
+          ],
+          "words": "Last frame of hitlag: the stick is read now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            20,
+            21
+          ],
+          "words": "Launched: too late to DI",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            22,
+            45
+          ],
+          "words": "Launched",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "stick held"
+      ],
+      "success": "DI held: launched at {launch} degrees.",
+      "streak": 3
+    },
+    {
+      "name": "Perpendicular to the launch",
+      "teach": "Hold the control stick up and toward the opponent, perpendicular to the launch. The launch turns the full 18 degrees, from 44 to about 62.",
+      "example": [
+        {
+          "stick": [
+            0.7071,
+            0.7071
+          ],
+          "frame": 13,
+          "hold": 12
+        }
+      ],
+      "marks": {
+        "12": "Frame 12: the forward smash hits. Hitlag begins",
+        "13": "Frame 13: the control stick is held up and toward the opponent",
+        "19": "Frame 19: the last frame of hitlag. The stick is read",
+        "20": "Frame 20: launched about 18 degrees higher"
+      },
+      "cues": [
+        {
+          "frames": [
+            12,
+            18
+          ],
+          "words": "Hitlag: hold the stick up and toward the opponent",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            19,
+            19
+          ],
+          "words": "Last frame of hitlag: the stick is read now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            20,
+            21
+          ],
+          "words": "Launched: too late to DI",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            22,
+            45
+          ],
+          "words": "Launched",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "stick held",
+        "raised",
+        "full DI"
+      ],
+      "success": "Survival DI: launched at {launch} degrees.",
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no DI",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "fails": "stick held"
+    },
+    {
+      "name": "let go before the last frame of hitlag",
+      "inputs": [
+        {
+          "stick": [
+            0.7071,
+            0.7071
+          ],
+          "frame": 13,
+          "hold": 5
+        }
+      ],
+      "fails": "stick held"
+    },
+    {
+      "name": "DI away from the opponent",
+      "inputs": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 13,
+          "hold": 12
+        }
+      ],
+      "fails": "raised"
+    },
+    {
+      "name": "straight up",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 13,
+          "hold": 12
+        }
+      ],
+      "fails": "full DI"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Stick up",
+        "stick": "up",
+        "perfect": [
+          2
+        ],
+        "window": [
+          1,
+          8
+        ]
+      }
+    ],
+    "note": "Frame 1 is the hit. Hitlag lasts 8 frames; the stick is read on frame 8, the last of them."
+  }
+}

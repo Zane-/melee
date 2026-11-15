@@ -1,0 +1,755 @@
+{
+  "id": "universal-sdi",
+  "name": "Smash DI (SDI)",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Move out of a multi-hit attack during hitlag",
+  "why": "A multi-hit attack holds you in place for its last, strongest hit. Each new smash of the control stick during hitlag moves {char} 6 units while still frozen, and one on every hit takes {char} out of the attack before that hit comes. A stick held still moves {char} once.",
+  "tutorial": {
+    "what": "SDI moves {char} 6 units toward the control stick for every new smash of the stick during hitlag.",
+    "expect": "Each attack is judged after its last hit could have landed: how far SDI moved {char} in the first hit's hitlag and over the whole attack, how many of the 7 hits landed, and whether the 7th launched {char}.",
+    "example": [
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 8,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 11,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 13,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 16,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 18,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 21,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 23,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 26,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 28,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 31,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 33,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 36,
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "7": "Frame 7: the first hit. Hitlag: 4 frames",
+      "8": "Frame 8: the stick smashed up. {char} moves 6 units",
+      "9": "Frame 9: the stick back to the center",
+      "11": "Frame 11: smashed up again, for the next hit"
+    },
+    "lessons": [
+      {
+        "title": "SDI",
+        "text": [
+          "On every frame of hitlag after the hit's own, the game moves {char} 6 units toward the control stick if the stick is past 70% of its reach and came out of the center within the last 4 frames. Each input moves {char} once: a stick held still does nothing more until it goes back to the center and out again. A stick already held when the hit lands does not count.",
+          "Pikachu's down smash freezes {char} for 4 frames per hit: a third of its 2 damage plus 3 is 3 frames, and electric hits freeze the victim half as long again. The frozen frames after the hit's own, 3 of them, take SDI inputs."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 8,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "7": "Frame 7: the first hit. Hitlag: 4 frames",
+              "8": "Frame 8: the stick smashed up. {char} moves 6 units, still frozen",
+              "10": "Frame 10: the last frame of hitlag",
+              "11": "Frame 11: hitlag ends"
+            },
+            "cues": [
+              {
+                "frames": [
+                  7,
+                  7
+                ],
+                "words": "The hit: SDI is not read on this frame",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  8,
+                  10
+                ],
+                "words": "Hitlag: smash the stick now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  11,
+                  12
+                ],
+                "words": "Hitlag over: too late for this hit",
+                "kind": "late"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Out of a multi-hit",
+        "text": "Pikachu's down smash hits up to 7 times: 6 hits of 2 damage keep {char} beside Pikachu, then the 7th launches. Each hit has its own hitlag and takes new SDI inputs. Smash the stick on every hit, back to the center between smashes, and {char} leaves the hitboxes before the 7th. Against this attack up works for every character: smashed every 2 or 3 frames, it is out within 4 hits and clear of the last. One smash, or a stick held, moves {char} 6 units and no more.",
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 8,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 11,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 13,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 16,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 18,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 21,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 23,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 26,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 28,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 31,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 33,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 36,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "7": "Frame 7: the first hit",
+              "8": "Frame 8: smashed up: 6 units",
+              "9": "Frame 9: the stick back to the center",
+              "11": "Frame 11: hitlag ends. Smashed up again, for the next hit"
+            },
+            "cues": [
+              {
+                "frames": [
+                  7,
+                  7
+                ],
+                "words": "The hit: SDI is not read on this frame",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  8,
+                  10
+                ],
+                "words": "Hitlag: smash the stick now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  11,
+                  12
+                ],
+                "words": "Hitlag over: too late for this hit",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  11,
+                  40
+                ],
+                "words": "Smash again on every hit, back to the center between",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Pikachu's down smash at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "pikachu",
+        "x": -10,
+        "facing": "player",
+        "inputs": [
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": 14,
+            "hold": 2
+          }
+        ],
+        "every": 120
+      },
+      "camera": "normal"
+    }
+  ],
+  "attempt": {
+    "start": "hit",
+    "judge": {
+      "frame": 40
+    }
+  },
+  "measures": {
+    "shift": {
+      "distance": [
+        "start",
+        {
+          "frame": 4
+        }
+      ],
+      "axis": "xy"
+    },
+    "sdi": {
+      "moved_while": "hitlag"
+    },
+    "hits": {
+      "count": "hit"
+    },
+    "launched": {
+      "happened": {
+        "enters": "tumble"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Out after {hits} of 7 hits; SDI moved {char} {sdi} units."
+  },
+  "checks": {
+    "moved": {
+      "measure": "shift",
+      "at_least": 5,
+      "expect": "Moved by SDI in the first hit's hitlag",
+      "words": "moved {measure} units in the first hit's hitlag",
+      "headline": "No SDI",
+      "fix": "Smash the control stick from the center to the rim during hitlag, after the hit lands. A stick already held when the hit lands, or tilted part way, does not move {char}."
+    },
+    "smashes": {
+      "measure": "sdi",
+      "at_least": 10,
+      "expect": "SDI moved {char} 10 units or more over the attack",
+      "words": "SDI moved {char} {sdi} units over the attack",
+      "headline": "Too few SDI inputs",
+      "fix": "Smash the stick again on every hit, back to the center between smashes. A stick held still moves {char} once: 6 units."
+    },
+    "out": {
+      "measure": "hits",
+      "at_most": 4,
+      "expect": "Out of the attack within 4 of its 7 hits",
+      "words": "hit {measure} times of 7",
+      "headline": "Caught in the attack",
+      "fix": "SDI in a direction that leaves the hitboxes. Against this attack up does; away from Pikachu or toward it keeps {char} inside for more hits."
+    },
+    "not launched": {
+      "measure": "launched",
+      "equals": false,
+      "expect": "Clear of the 7th hit",
+      "words": "launched by the 7th hit",
+      "headline": "Launched",
+      "fix": "Keep smashing until {char} is clear of the attack. Up and away often drifts back beside Pikachu and into the 7th hit; up keeps clear."
+    }
+  },
+  "parts": [
+    {
+      "name": "One smash, six units",
+      "teach": "When the down smash hits, smash the control stick once, from the center to the rim, during hitlag. {char} moves 6 units that way while still frozen.",
+      "example": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 8,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "7": "Frame 7: the first hit. Hitlag: 4 frames",
+        "8": "Frame 8: the stick smashed up. {char} moves 6 units",
+        "11": "Frame 11: hitlag ends"
+      },
+      "cues": [
+        {
+          "frames": [
+            7,
+            7
+          ],
+          "words": "The hit: SDI is not read on this frame",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            8,
+            10
+          ],
+          "words": "Hitlag: smash the stick now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            11,
+            12
+          ],
+          "words": "Hitlag over: too late for this hit",
+          "kind": "late"
+        }
+      ],
+      "checks": [
+        "moved"
+      ],
+      "success": "SDI: moved {shift} units in the first hit's hitlag.",
+      "streak": 3
+    },
+    {
+      "name": "A smash on every hit",
+      "teach": "Smash the stick again on every hit, back to the center between smashes, until {char} is out of the attack. Any direction counts if it gets {char} out before the 7th hit; against this attack, up does for every character.",
+      "example": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 8,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 11,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 13,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 16,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 18,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 21,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 23,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 26,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 28,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 31,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 33,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 36,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "7": "Frame 7: the first hit",
+        "8": "Frame 8: smashed up",
+        "9": "Frame 9: the stick back to the center",
+        "11": "Frame 11: smashed up again, for the next hit"
+      },
+      "cues": [
+        {
+          "frames": [
+            7,
+            7
+          ],
+          "words": "The hit: SDI is not read on this frame",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            8,
+            10
+          ],
+          "words": "Hitlag: smash the stick now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            11,
+            12
+          ],
+          "words": "Hitlag over: too late for this hit",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            11,
+            40
+          ],
+          "words": "Smash again on every hit, back to the center between",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "smashes",
+        "out",
+        "not launched"
+      ],
+      "streak": 3
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no SDI",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "fails": "moved"
+    },
+    {
+      "name": "one smash only",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 8,
+          "hold": 1
+        }
+      ],
+      "fails": "smashes"
+    },
+    {
+      "name": "one smash up, then held",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 8,
+          "hold": 30
+        }
+      ],
+      "fails": "smashes"
+    },
+    {
+      "name": "smashed toward Pikachu on every third frame",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 8,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 11,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 14,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 17,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 20,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 23,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 26,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 29,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 32,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 35,
+          "hold": 1
+        }
+      ],
+      "fails": "out"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Stick up",
+        "stick": "up",
+        "perfect": [
+          2
+        ],
+        "window": [
+          2,
+          4
+        ]
+      }
+    ],
+    "note": "Frame 1 is the first hit. Its SDI frames are 2 to 4, the frozen frames after it; every later hit has its own."
+  }
+}
