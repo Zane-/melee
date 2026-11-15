@@ -1,0 +1,721 @@
+{
+  "id": "universal-shffl",
+  "name": "SHFFL",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Short hop, aerial, fast fall and L-cancel in one motion",
+  "why": "A SHFFL puts an aerial on an opponent at the ground's level and gets {char} back to acting in the fewest frames: the short hop keeps the aerial low, the fast fall brings {char} down at once, and the L-cancel halves the landing lag. It is the base of most approaches and of pressure on shield.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 120,
+      "height": 10
+    },
+    "what": "A SHFFL is a short hop, an aerial, a fast fall at the top, and an L-cancel on landing.",
+    "expect": "Each jump is judged when the landing lag ends: short hop or full hop, whether {char} fast fell, whether {char} landed during the aerial, and how many frames before the landing L, R or Z was pressed.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "A",
+        "frame": "SA-4"
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": "SA",
+        "hold": 3
+      },
+      {
+        "press": "R",
+        "frame": "NFL-2"
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released: short hop",
+      "SA-4": "Frame {SA-4}: the aerial",
+      "SA": "Frame {SA}: the top. Stick tapped down: fast fall",
+      "NFL-2": "Frame {NFL-2}: R pressed, 2 frames before the landing",
+      "NFL": "Frame {NFL}: landed during the aerial. Landing lag, halved"
+    },
+    "lessons": [
+      {
+        "title": "Four inputs",
+        "text": [
+          "A SHFFL is four inputs in order. Release the jump button within {J-1} frames: a short hop. Press A or the C-stick: the aerial. Tap the control stick down from the top of the jump, frame {SA}: the fast fall. Press L, R or Z on the landing frame or up to 6 frames before it: the L-cancel.",
+          "The aerial must still be going when {char} lands, or there is no landing lag to halve. Start it a few frames before the top, so it is still going when the fast fall brings {char} down."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "A",
+                "frame": "SA-4"
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "SA",
+                "hold": 3
+              },
+              {
+                "press": "R",
+                "frame": "NFL-2"
+              }
+            ],
+            "inputs_for": {
+              "mr-game-and-watch": [
+                {
+                  "press": "jump",
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "cstick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA-4"
+                },
+                {
+                  "stick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA",
+                  "hold": 3
+                },
+                {
+                  "press": "R",
+                  "frame": "NFL-2"
+                }
+              ]
+            },
+            "marks": {
+              "1": "Frame 1: jump pressed and released: short hop",
+              "SA-4": "Frame {SA-4}: the aerial",
+              "SA": "Frame {SA}: the top. Stick tapped down: fast fall",
+              "NFL-2": "Frame {NFL-2}: R pressed, 2 frames before the landing",
+              "NFL": "Frame {NFL}: landed during the aerial. Landing lag, halved"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J-1"
+                ],
+                "words": "Release jump: short hop",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "SA-4",
+                  "SA-4"
+                ],
+                "words": "The aerial",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "SA-2",
+                  "SA+1"
+                ],
+                "words": "Tap down: fast fall",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "NFL-6",
+                  "NFL"
+                ],
+                "words": "Press L, R or Z: L-cancel",
+                "kind": "go"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "example_for": {
+      "mr-game-and-watch": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "cstick": [
+            0,
+            -1
+          ],
+          "frame": "SA-4"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "R",
+          "frame": "NFL-2"
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "leaves": "aerial_landing"
+      },
+      {
+        "enters": "landing"
+      },
+      {
+        "enters": "landing_special"
+      },
+      {
+        "enters": "wait"
+      }
+    ]
+  },
+  "measures": {
+    "kind": "jump_kind",
+    "fast_fell": {
+      "happened": "fast_fall"
+    },
+    "landing_lag": {
+      "happened": {
+        "enters": "aerial_landing"
+      }
+    },
+    "before": {
+      "frames": [
+        {
+          "pressed": "lcancel"
+        },
+        "lands"
+      ],
+      "last": true
+    },
+    "lag": {
+      "frames_while": {
+        "in": "aerial_landing"
+      },
+      "from": "lands"
+    }
+  },
+  "verdict": {
+    "success": "SHFFL: {lag_frames} of landing lag, L-cancel pressed {before_frames} before landing."
+  },
+  "checks": {
+    "short hop": {
+      "measure": "kind",
+      "equals": "short",
+      "expect": "A short hop",
+      "words": "a {measure} hop",
+      "headline": "Full hop",
+      "fix": "Release the jump button within {J-1} frames, during jump squat."
+    },
+    "fast fell": {
+      "measure": "fast_fell",
+      "equals": true,
+      "expect": "A fast fall",
+      "words": "landed without one",
+      "headline": "No fast fall",
+      "fix": "Tap the control stick down once {char} starts to fall, from frame {SA}. A stick that reached down more than 3 frames before the fall began does not count."
+    },
+    "with landing lag": {
+      "measure": "landing_lag",
+      "equals": true,
+      "expect": "Land during the aerial",
+      "words": "landed with no aerial landing lag",
+      "headline": "No landing lag to cancel",
+      "fix": "Land while the aerial is still going. An aerial that has ended, or that lands in its first or last few frames, has no landing lag."
+    },
+    "pressed": {
+      "measure": "before",
+      "at_least": 0,
+      "expect": "L, R or Z pressed before landing",
+      "words": "no press of L, R or Z up to the landing",
+      "headline": "No L-cancel",
+      "fix": "Press L, R or Z as {char} comes down: on the landing frame or up to 6 frames before it. A press after the landing does nothing."
+    },
+    "in time": {
+      "measure": "before",
+      "at_most": 6,
+      "expect": "L, R or Z within 6 frames before landing",
+      "words": "pressed {frames} before landing",
+      "headline": "L-cancel too early",
+      "fix": "Press later. The press counts for the frame it is made and the 6 after it; this one was {frames} before the landing."
+    }
+  },
+  "parts": [
+    {
+      "name": "Short hop aerial",
+      "teach": "Short hop and press A or the C-stick for an aerial, then land while it is still going.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed and released: short hop",
+        "SA": "Frame {SA}: the aerial, at the top",
+        "NL": "Frame {NL}: landed during the aerial: landing lag"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "J-1"
+          ],
+          "words": "Release jump: short hop",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "SA",
+            "SA"
+          ],
+          "words": "The aerial",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "short hop",
+        "with landing lag"
+      ],
+      "success": "Short hop aerial: {lag_frames} of landing lag.",
+      "streak": 2,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": true,
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "J-1"
+            ]
+          },
+          {
+            "label": "Aerial",
+            "state": "aerial",
+            "perfect": [
+              "SA"
+            ]
+          },
+          {
+            "label": "Landing lag",
+            "state": "aerial_landing",
+            "held": true,
+            "perfect": []
+          }
+        ],
+        "note": "Jump squat is {J} frames: release X or Y within {J-1} frames."
+      },
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add the fast fall",
+      "teach": "Short hop, aerial, then tap the control stick down at the top, frame {SA}. {char} falls at full speed and lands sooner.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA-4"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed and released: short hop",
+        "SA-4": "Frame {SA-4}: the aerial",
+        "SA": "Frame {SA}: the top. Stick tapped down: fast fall",
+        "NFL": "Frame {NFL}: landed during the aerial: landing lag"
+      },
+      "cues": [
+        {
+          "frames": [
+            "SA-4",
+            "SA-4"
+          ],
+          "words": "The aerial",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "SA-2",
+            "SA+1"
+          ],
+          "words": "Tap down: fast fall",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "short hop",
+        "fast fell",
+        "with landing lag"
+      ],
+      "success": "Short hop, aerial and fast fall: {lag_frames} of landing lag.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": true,
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "J-1"
+            ]
+          },
+          {
+            "label": "Aerial",
+            "state": "aerial",
+            "perfect": [
+              "SA-4"
+            ]
+          },
+          {
+            "label": "Down",
+            "stick": "down",
+            "perfect": [
+              "SA"
+            ],
+            "window": [
+              "SA-2",
+              "SA+1"
+            ]
+          },
+          {
+            "label": "Landing lag",
+            "state": "aerial_landing",
+            "held": true,
+            "perfect": []
+          }
+        ],
+        "note": "{char} reaches the top of a short hop on frame {SA}."
+      },
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA-4"
+          },
+          {
+            "stick": [
+              0,
+              -1
+            ],
+            "frame": "SA",
+            "hold": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add the L-cancel",
+      "teach": "Short hop, aerial, fast fall, and press L, R or Z as {char} comes down, on the landing frame or up to 6 frames before it.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA-4"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "R",
+          "frame": "NFL-2"
+        }
+      ],
+      "marks": {
+        "SA-4": "Frame {SA-4}: the aerial",
+        "SA": "Frame {SA}: the top. Stick tapped down: fast fall",
+        "NFL-2": "Frame {NFL-2}: R pressed, 2 frames before the landing",
+        "NFL": "Frame {NFL}: landed during the aerial. Landing lag, halved"
+      },
+      "cues": [
+        {
+          "frames": [
+            "SA-2",
+            "SA+1"
+          ],
+          "words": "Tap down: fast fall",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "NFL-6",
+            "NFL"
+          ],
+          "words": "Press L, R or Z: L-cancel",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "short hop",
+        "fast fell",
+        "with landing lag",
+        "pressed",
+        "in time"
+      ],
+      "streak": 5,
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA-4"
+          },
+          {
+            "stick": [
+              0,
+              -1
+            ],
+            "frame": "SA",
+            "hold": 3
+          },
+          {
+            "press": "R",
+            "frame": "NFL-2"
+          }
+        ]
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "full hop",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        }
+      ],
+      "fails": "short hop"
+    },
+    {
+      "name": "no fast fall",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA-4"
+        },
+        {
+          "press": "R",
+          "frame": "NL-2"
+        }
+      ],
+      "fails": "fast fell"
+    },
+    {
+      "name": "no L-cancel",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA-4"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        }
+      ],
+      "inputs_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA-4"
+          },
+          {
+            "stick": [
+              0,
+              -1
+            ],
+            "frame": "SA",
+            "hold": 3
+          }
+        ]
+      },
+      "fails": "pressed"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": true,
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          "J-1"
+        ]
+      },
+      {
+        "label": "Aerial",
+        "state": "aerial",
+        "perfect": [
+          "SA-4"
+        ]
+      },
+      {
+        "label": "Down",
+        "stick": "down",
+        "perfect": [
+          "SA"
+        ],
+        "window": [
+          "SA-2",
+          "SA+1"
+        ]
+      },
+      {
+        "label": "L, R or Z",
+        "button": "lcancel",
+        "held": false,
+        "perfect": [
+          "NFL-2"
+        ],
+        "window": [
+          "NFL-6",
+          "NFL"
+        ]
+      },
+      {
+        "label": "Landing lag",
+        "state": "aerial_landing",
+        "held": true,
+        "perfect": [
+          "NFL"
+        ]
+      }
+    ],
+    "note": "In the example {char} fast falls from frame {SA} and lands on frame {NFL}: a press on frames {NFL-6} to {NFL} halves the landing lag."
+  }
+}

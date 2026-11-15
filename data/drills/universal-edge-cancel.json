@@ -1,0 +1,670 @@
+{
+  "id": "universal-edge-cancel",
+  "name": "Edge cancel",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Slide off the edge during an aerial's landing lag",
+  "why": "An aerial landed near the edge with speed toward it slides {char} off the stage before the landing lag ends. The rest of the landing lag is gone and {char} is in the air, free to act, where the opponent expects {char} to be stuck in lag.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 120,
+      "height": 10
+    },
+    "what": "An edge cancel is an aerial's landing that slides {char} off the edge of the stage before the landing lag ends.",
+    "expect": "Each jump is judged when the landing lag ends or is cut short: whether {char} landed during the aerial, reached the edge, stopped there or slid off.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 1,
+        "hold": "SA-1"
+      },
+      {
+        "press": "A",
+        "frame": "SA"
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": "SA+1",
+        "hold": 60
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released, stick held toward the edge: drift",
+      "SA": "Frame {SA}: the aerial",
+      "NL": "Frame {NL}: landed during the aerial, sliding toward the edge"
+    },
+    "lessons": [
+      {
+        "title": "Landing lag slides",
+        "text": [
+          "{char} keeps the speed it had in the air when it lands, and slides with it through the landing lag. Landing lag stops {char} from acting, not from moving: friction slows the slide a little each frame.",
+          "Drift toward the edge through the jump and land close to it: the slide then reaches the edge before the landing lag is over."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1,
+                "hold": "SA-1"
+              },
+              {
+                "press": "A",
+                "frame": "SA"
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": "SA+1",
+                "hold": 60
+              }
+            ],
+            "inputs_for": {
+              "mr-game-and-watch": [
+                {
+                  "press": "jump",
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "stick": [
+                    1,
+                    0
+                  ],
+                  "frame": 1,
+                  "hold": 100
+                },
+                {
+                  "cstick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA"
+                }
+              ]
+            },
+            "marks": {
+              "1": "Frame 1: jump pressed and released, stick held toward the edge: drift",
+              "SA": "Frame {SA}: the aerial",
+              "NL": "Frame {NL}: landed during the aerial, sliding toward the edge"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "NL-1"
+                ],
+                "words": "Drift toward the edge",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "NL",
+                  "NL+2"
+                ],
+                "words": "Landing lag: sliding",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "At the edge",
+        "text": [
+          "When the slide reaches the edge, the game reads which way {char} faces and the control stick. Facing the edge, with the stick short of 0.75 toward it, {char} stops at the edge and teeters. Facing away from the edge, or with the stick past 0.75 toward it, {char} slides off and falls.",
+          "Either way the landing lag ends there. Keep the stick held toward the edge through the landing, and {char} slides off."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1,
+                "hold": "SA-1"
+              },
+              {
+                "press": "A",
+                "frame": "SA"
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": "SA+1",
+                "hold": 60
+              }
+            ],
+            "inputs_for": {
+              "mr-game-and-watch": [
+                {
+                  "press": "jump",
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "stick": [
+                    1,
+                    0
+                  ],
+                  "frame": 1,
+                  "hold": 100
+                },
+                {
+                  "cstick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA"
+                }
+              ]
+            },
+            "marks": {
+              "SA": "Frame {SA}: the aerial",
+              "NL": "Frame {NL}: landed, stick still held toward the edge"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "NL",
+                  "NL+3"
+                ],
+                "words": "Hold toward the edge",
+                "kind": "go"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "example_for": {
+      "mr-game-and-watch": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 100
+        },
+        {
+          "cstick": [
+            0,
+            -1
+          ],
+          "frame": "SA"
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "name": "Near the edge, facing it",
+      "stage": "final-destination",
+      "player": {
+        "x": "83.5-SHD-(NL-SL)",
+        "facing": "right"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "leaves": "aerial_landing"
+      },
+      {
+        "enters": "landing"
+      },
+      {
+        "enters": "landing_special"
+      },
+      {
+        "enters": "wait"
+      }
+    ],
+    "cancel": [
+      {
+        "enters": "grab"
+      },
+      {
+        "enters": "up_smash"
+      }
+    ],
+    "limit": 120,
+    "timeout": "judge"
+  },
+  "measures": {
+    "landing_lag": {
+      "happened": {
+        "enters": "aerial_landing"
+      }
+    },
+    "reached": {
+      "happened": [
+        {
+          "leaves": "aerial_landing",
+          "to": "teeter"
+        },
+        {
+          "leaves": "aerial_landing",
+          "to": "fall"
+        }
+      ]
+    },
+    "teetered": {
+      "happened": {
+        "enters": "teeter"
+      }
+    },
+    "slid_off": {
+      "happened": {
+        "leaves": "aerial_landing",
+        "to": "fall"
+      }
+    },
+    "on_stage": {
+      "frames_while": {
+        "in": "aerial_landing"
+      },
+      "from": {
+        "enters": "aerial_landing"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Edge cancel: off the edge after {on_stage_frames} of landing lag."
+  },
+  "checks": {
+    "with landing lag": {
+      "measure": "landing_lag",
+      "equals": true,
+      "expect": "Land during an aerial",
+      "words": "landed with no aerial landing lag",
+      "headline": "No landing lag",
+      "fix": "Land while the aerial is still going. An aerial that has ended, or that lands in its first or last few frames, has no landing lag."
+    },
+    "reached the edge": {
+      "measure": "reached",
+      "equals": true,
+      "expect": "Slide to the edge in the landing lag",
+      "words": "the slide did not reach the edge",
+      "headline": "Short of the edge",
+      "fix": "Drift toward the edge as {char} comes down, and land closer to it."
+    },
+    "not stopped": {
+      "measure": "teetered",
+      "equals": false,
+      "expect": "Stick held toward the edge",
+      "words": "teetered, the stick short of 0.75 toward the edge",
+      "headline": "Stopped at the edge",
+      "fix": "Keep the control stick toward the edge, past 0.75, through the landing. Facing the edge with the stick short of 0.75, {char} stops at the edge."
+    },
+    "slid off": {
+      "measure": "slid_off",
+      "equals": true,
+      "expect": "Slide off in the landing lag",
+      "words": "the landing lag ended on the stage",
+      "headline": "Still on the stage",
+      "fix": "Land closer to the edge, drifting toward it, with the stick held toward it."
+    }
+  },
+  "parts": [
+    {
+      "name": "Slide to the edge",
+      "teach": "Short hop with the control stick held toward the edge, press A for an aerial, and land close to the edge. {char} slides to it in the aerial's landing lag.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": "SA-1"
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "SA+1",
+          "hold": 60
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed and released, stick held toward the edge: drift",
+        "SA": "Frame {SA}: the aerial",
+        "NL": "Frame {NL}: landed during the aerial, sliding toward the edge"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "NL-1"
+          ],
+          "words": "Drift toward the edge",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "with landing lag",
+        "reached the edge"
+      ],
+      "success": "Reached the edge after {on_stage_frames} of landing lag.",
+      "streak": 2,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": false,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "Aerial",
+            "state": "aerial",
+            "perfect": []
+          },
+          {
+            "label": "Landing lag",
+            "state": "aerial_landing",
+            "held": true,
+            "perfect": []
+          }
+        ],
+        "note": "Land close to the edge, drifting toward it."
+      },
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 1,
+            "hold": 100
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Off the edge",
+      "teach": "The same, with the control stick held toward the edge through the landing. {char} slides off before the landing lag ends.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": "SA-1"
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "SA+1",
+          "hold": 60
+        }
+      ],
+      "marks": {
+        "SA": "Frame {SA}: the aerial",
+        "NL": "Frame {NL}: landed, stick still held toward the edge"
+      },
+      "cues": [
+        {
+          "frames": [
+            "NL",
+            "NL+3"
+          ],
+          "words": "Hold toward the edge",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "with landing lag",
+        "not stopped",
+        "slid off"
+      ],
+      "streak": 3,
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 1,
+            "hold": 100
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no aerial",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 100
+        }
+      ],
+      "fails": "with landing lag"
+    },
+    {
+      "name": "no drift",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        }
+      ],
+      "inputs_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      },
+      "fails": "reached the edge"
+    },
+    {
+      "name": "stick let go on landing",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": "SA-1"
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "SA+1",
+          "hold": "NL-SA"
+        }
+      ],
+      "inputs_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 1,
+            "hold": "NL-1"
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      },
+      "fails": "not stopped"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": false,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "Aerial",
+        "state": "aerial",
+        "perfect": []
+      },
+      {
+        "label": "Landing lag",
+        "state": "aerial_landing",
+        "held": true,
+        "perfect": []
+      },
+      {
+        "label": "Falling",
+        "state": "fall",
+        "held": true,
+        "perfect": []
+      }
+    ],
+    "note": "Hold the stick toward the edge, past 0.75, through the landing."
+  }
+}

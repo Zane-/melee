@@ -1,0 +1,508 @@
+{
+  "id": "universal-slide-off",
+  "name": "Slide off",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Slide off a platform during landing lag",
+  "why": "Landing lag stops {char} from acting but not from sliding. A slide that carries {char} off a platform ends the landing lag at once, so {char} is in the air and can act while an opponent expects {char} to be stuck on the platform.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 120,
+      "height": 10
+    },
+    "what": "A slide off is a landing that slides {char} over the edge of a platform before the landing lag ends. The rest of the landing lag is gone.",
+    "expect": "Each jump is judged when the landing lag ends or is cut short: whether {char} landed with an air dodge, stopped at the edge, or slid off, and after how many frames on the platform.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "R",
+        "frame": "J+1"
+      },
+      {
+        "stick": [
+          0.8,
+          -0.6
+        ],
+        "frame": "J+1",
+        "hold": 1
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": "J+2",
+        "hold": 15
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released",
+      "J+1": "Frame {J+1}: R and the stick down and toward the edge: air dodge into the platform",
+      "J+2": "Frame {J+2}: landing lag. Stick held toward the edge",
+      "J+5": "Frame {J+5}: off the edge: the landing lag is over"
+    },
+    "lessons": [
+      {
+        "title": "Landing lag slides",
+        "text": [
+          "An air dodge into the ground lands {char} in 10 frames of landing lag, the same for every character. The air dodge's speed carries into the landing, so {char} slides along the ground during them.",
+          "Landing lag stops {char} from acting, not from moving. Air dodge on the first frame in the air, down and toward the edge, and {char} lands at once and slides toward it."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "J+1"
+              },
+              {
+                "stick": [
+                  0.8,
+                  -0.6
+                ],
+                "frame": "J+1",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: jump pressed and released",
+              "J+1": "Frame {J+1}: R and the stick down and toward the edge: air dodge into the platform",
+              "J+2": "Frame {J+2}: landing lag, sliding"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J"
+                ],
+                "words": "Jump squat",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+1"
+                ],
+                "words": "Air dodge down and forward",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+2",
+                  "J+3"
+                ],
+                "words": "Landing lag: sliding",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "At the edge",
+        "text": [
+          "When the slide reaches the edge, the game reads which way {char} faces and the control stick. Facing the edge, with the stick short of 0.75 toward it, {char} stops at the edge and teeters. Facing away from the edge, or with the stick past 0.75 toward it, {char} slides off and falls.",
+          "Either way the landing lag ends there. Sliding off puts {char} in the air below the platform; teetering keeps {char} on it."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "J+1"
+              },
+              {
+                "stick": [
+                  0.8,
+                  -0.6
+                ],
+                "frame": "J+1",
+                "hold": 1
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": "J+2",
+                "hold": 15
+              }
+            ],
+            "marks": {
+              "J+1": "Frame {J+1}: air dodge into the platform",
+              "J+2": "Frame {J+2}: stick held toward the edge",
+              "J+5": "Frame {J+5}: off the edge: the landing lag is over"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "J+2",
+                  "J+4"
+                ],
+                "words": "Hold toward the edge",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+5",
+                  "J+12"
+                ],
+                "words": "Off the edge: in the air",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On a platform, facing its edge",
+      "stage": "battlefield",
+      "player": {
+        "x": -28,
+        "above": 40,
+        "facing": "right"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "leaves": "landing_special"
+      },
+      {
+        "leaves": "aerial_landing"
+      },
+      {
+        "leaves": "landing"
+      }
+    ],
+    "cancel": [
+      {
+        "enters": "grab"
+      },
+      {
+        "enters": "up_smash"
+      }
+    ]
+  },
+  "measures": {
+    "air_dodge_landing": {
+      "happened": {
+        "enters": "landing_special"
+      }
+    },
+    "teetered": {
+      "happened": {
+        "enters": "teeter"
+      }
+    },
+    "slid_off": {
+      "happened": [
+        {
+          "leaves": "landing_special",
+          "to": "fall"
+        },
+        {
+          "leaves": "aerial_landing",
+          "to": "fall"
+        },
+        {
+          "leaves": "landing",
+          "to": "fall"
+        }
+      ]
+    },
+    "on_platform": {
+      "frames_while": "grounded",
+      "from": [
+        {
+          "enters": "landing_special"
+        },
+        {
+          "enters": "aerial_landing"
+        },
+        {
+          "enters": "landing"
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "success": "Slid off after {on_platform_frames} of landing lag."
+  },
+  "checks": {
+    "air dodge landing": {
+      "measure": "air_dodge_landing",
+      "equals": true,
+      "expect": "Land with an air dodge",
+      "words": "landed without an air dodge",
+      "headline": "No air dodge landing",
+      "fix": "Press R or L with the stick down and toward the edge on the first frame in the air, frame {J+1}, so {char} air dodges into the platform at once."
+    },
+    "not stopped": {
+      "measure": "teetered",
+      "equals": false,
+      "expect": "Stick held toward the edge",
+      "words": "teetered, the stick short of 0.75 toward the edge",
+      "headline": "Stopped at the edge",
+      "fix": "Hold the control stick toward the edge, past 0.75, while {char} slides. Facing the edge with the stick short of 0.75, {char} stops at the edge."
+    },
+    "slid off": {
+      "measure": "slid_off",
+      "equals": true,
+      "expect": "Slide off before the landing lag ends",
+      "words": "the slide did not reach the edge",
+      "headline": "Landing lag ended on the platform",
+      "fix": "Air dodge toward the edge, not straight down, so the slide reaches the edge within the 10 frames of landing lag."
+    }
+  },
+  "parts": [
+    {
+      "name": "Air dodge landing",
+      "teach": "Jump, and on frame {J+1} press R or L with the stick down and toward the edge. {char} air dodges into the platform and slides in 10 frames of landing lag.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "J+1"
+        },
+        {
+          "stick": [
+            0.8,
+            -0.6
+          ],
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "J+1": "Frame {J+1}: air dodge into the platform",
+        "J+2": "Frame {J+2}: landing lag, sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Air dodge down and forward",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "air dodge landing"
+      ],
+      "success": "Air dodge landing: {on_platform_frames} on the platform.",
+      "streak": 2,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": false,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "Air dodge",
+            "button": "shield",
+            "held": false,
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+1"
+            ]
+          },
+          {
+            "label": "Landing lag",
+            "state": "landing_special",
+            "held": true,
+            "perfect": []
+          }
+        ],
+        "note": "Air dodge on frame {J+1}, the first frame in the air."
+      }
+    },
+    {
+      "name": "Off the edge",
+      "teach": "Air dodge into the platform toward the edge as before, and hold the control stick toward the edge while {char} slides. {char} slides off before the landing lag ends.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "J+1"
+        },
+        {
+          "stick": [
+            0.8,
+            -0.6
+          ],
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "J+2",
+          "hold": 15
+        }
+      ],
+      "marks": {
+        "J+1": "Frame {J+1}: air dodge into the platform",
+        "J+2": "Frame {J+2}: stick held toward the edge",
+        "J+5": "Frame {J+5}: off the edge: the landing lag is over"
+      },
+      "cues": [
+        {
+          "frames": [
+            "J+2",
+            "J+4"
+          ],
+          "words": "Hold toward the edge",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "not stopped",
+        "slid off"
+      ],
+      "streak": 3
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no air dodge",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "fails": "air dodge landing"
+    },
+    {
+      "name": "stick let go",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "J+1"
+        },
+        {
+          "stick": [
+            0.8,
+            -0.6
+          ],
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "fails": "not stopped"
+    },
+    {
+      "name": "air dodge straight down",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "J+1"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "fails": "slid off"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": false,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "Air dodge",
+        "button": "shield",
+        "held": false,
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "J+1"
+        ]
+      },
+      {
+        "label": "Landing lag",
+        "state": "landing_special",
+        "held": true,
+        "perfect": []
+      },
+      {
+        "label": "Falling",
+        "state": "fall",
+        "held": true,
+        "perfect": []
+      }
+    ],
+    "note": "Hold the stick toward the edge, past 0.75, while {char} slides."
+  }
+}

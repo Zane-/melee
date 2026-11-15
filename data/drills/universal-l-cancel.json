@@ -1,0 +1,565 @@
+{
+  "id": "universal-l-cancel",
+  "name": "L-cancel",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Halve an aerial's landing lag",
+  "why": "Landing during an aerial puts {char} into that aerial's landing lag, frames in which {char} cannot act. An L-cancel halves it, so after an aerial on shield the opponent has less time to punish, and after a hit {char} can follow up sooner.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 120,
+      "height": 10
+    },
+    "what": "An L-cancel is a press of L, R or Z just before landing during an aerial. It halves the aerial's landing lag.",
+    "expect": "Each jump is judged when the landing lag ends: whether {char} landed during the aerial, and how many frames before the landing L, R or Z was pressed. After misses, the coach shows your press and the landing frame by frame.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "A",
+        "frame": "SA"
+      },
+      {
+        "press": "R",
+        "frame": "NL-2"
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released: short hop",
+      "SA": "Frame {SA}: the aerial",
+      "NL-2": "Frame {NL-2}: R pressed, 2 frames before the landing",
+      "NL": "Frame {NL}: landed during the aerial. Landing lag, halved"
+    },
+    "lessons": [
+      {
+        "title": "Landing lag",
+        "text": [
+          "When {char} lands while an aerial is still going, {char} enters that aerial's landing lag: a fixed number of frames in which {char} cannot act. Each aerial of each character has its own landing lag.",
+          "An aerial that has already ended, or that lands in its first or last few frames, has no landing lag: {char} lands with the normal landing lag of {LAND} frames. This is an auto-cancel, and there is nothing to L-cancel."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "A",
+                "frame": "SA"
+              }
+            ],
+            "inputs_for": {
+              "mr-game-and-watch": [
+                {
+                  "press": "jump",
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "cstick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA"
+                }
+              ]
+            },
+            "marks": {
+              "1": "Frame 1: jump pressed and released: short hop",
+              "SA": "Frame {SA}: the aerial",
+              "NL": "Frame {NL}: landed during the aerial: landing lag"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "SA",
+                  "NL-1"
+                ],
+                "words": "Aerial",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "NL",
+                  "NL+11"
+                ],
+                "words": "Landing lag: {char} cannot act",
+                "kind": "late"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "How to L-cancel",
+        "text": [
+          "The game counts the frames since L, R or Z was last pressed. If {char} lands during an aerial on the frame of the press or within the 6 frames after it, the aerial's landing lag is halved, rounded down. A light press of L or R counts.",
+          "A press 7 or more frames before the landing does nothing, and so does a press after the landing. The 7 frames that count end on the landing frame."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "A",
+                "frame": "SA"
+              },
+              {
+                "press": "R",
+                "frame": "NL-2"
+              }
+            ],
+            "inputs_for": {
+              "mr-game-and-watch": [
+                {
+                  "press": "jump",
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "cstick": [
+                    0,
+                    -1
+                  ],
+                  "frame": "SA"
+                },
+                {
+                  "press": "R",
+                  "frame": "NL-3"
+                }
+              ]
+            },
+            "marks": {
+              "SA": "Frame {SA}: the aerial",
+              "NL-2": "Frame {NL-2}: R pressed, 2 frames before the landing",
+              "NL": "Frame {NL}: landed during the aerial. Landing lag, halved"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "NL-9",
+                  "NL-7"
+                ],
+                "words": "Pressed here: too early",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "NL-6",
+                  "NL"
+                ],
+                "words": "Press now: L-cancel",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "NL+1",
+                  "NL+5"
+                ],
+                "words": "Landing lag, halved",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "example_for": {
+      "mr-game-and-watch": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "cstick": [
+            0,
+            -1
+          ],
+          "frame": "SA"
+        },
+        {
+          "press": "R",
+          "frame": "NL-3"
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "leaves": "aerial_landing"
+      },
+      {
+        "enters": "landing"
+      },
+      {
+        "enters": "landing_special"
+      },
+      {
+        "enters": "wait"
+      }
+    ]
+  },
+  "measures": {
+    "landing_lag": {
+      "happened": {
+        "enters": "aerial_landing"
+      }
+    },
+    "before": {
+      "frames": [
+        {
+          "pressed": "lcancel"
+        },
+        "lands"
+      ],
+      "last": true
+    },
+    "lag": {
+      "frames_while": {
+        "in": "aerial_landing"
+      },
+      "from": "lands"
+    }
+  },
+  "verdict": {
+    "success": "L-cancel: {lag_frames} of landing lag, pressed {before_frames} before landing."
+  },
+  "checks": {
+    "with landing lag": {
+      "measure": "landing_lag",
+      "equals": true,
+      "expect": "Land during an aerial",
+      "words": "landed with no aerial landing lag",
+      "headline": "No landing lag to cancel",
+      "fix": "Land while the aerial is still going. An aerial that has ended, or that lands in its first or last few frames, has no landing lag."
+    },
+    "pressed": {
+      "measure": "before",
+      "at_least": 0,
+      "expect": "L, R or Z pressed before landing",
+      "words": "no press of L, R or Z up to the landing",
+      "headline": "No press before landing",
+      "fix": "Press L, R or Z as {char} comes down: on the landing frame or up to 6 frames before it. A press after the landing does nothing."
+    },
+    "in time": {
+      "measure": "before",
+      "at_most": 6,
+      "expect": "L, R or Z within 6 frames before landing",
+      "words": "pressed {frames} before landing",
+      "headline": "Pressed too early",
+      "fix": "Press later. The press counts for the frame it is made and the 6 after it; this one was {frames} before the landing."
+    }
+  },
+  "parts": [
+    {
+      "name": "Landing lag",
+      "teach": "Short hop or full hop, press A or the C-stick for an aerial, and land before it ends. {char} lands in the aerial's landing lag.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed and released: short hop",
+        "SA": "Frame {SA}: the aerial",
+        "NL": "Frame {NL}: landed during the aerial: landing lag"
+      },
+      "checks": [
+        "with landing lag"
+      ],
+      "success": "Landed during the aerial: {lag_frames} of landing lag.",
+      "streak": 2,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": true,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "Aerial",
+            "state": "aerial",
+            "perfect": [
+              "SA"
+            ]
+          },
+          {
+            "label": "Landing lag",
+            "state": "aerial_landing",
+            "held": true,
+            "perfect": []
+          }
+        ],
+        "note": "In the example the aerial starts at the top, frame {SA}, and is still going at the landing."
+      },
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          }
+        ]
+      },
+      "cues": [
+        {
+          "frames": [
+            "NL",
+            "NL+11"
+          ],
+          "words": "Landing lag",
+          "kind": "info"
+        }
+      ]
+    },
+    {
+      "name": "The press",
+      "teach": "Jump, aerial, and press L, R or Z as {char} comes down, on the landing frame or up to 6 frames before it. The landing lag is halved.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "press": "R",
+          "frame": "NL-2"
+        }
+      ],
+      "marks": {
+        "SA": "Frame {SA}: the aerial",
+        "NL-2": "Frame {NL-2}: R pressed, 2 frames before the landing",
+        "NL": "Frame {NL}: landed during the aerial. Landing lag, halved"
+      },
+      "cues": [
+        {
+          "frames": [
+            "NL-6",
+            "NL"
+          ],
+          "words": "Press now: L-cancel",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "NL+1",
+            "NL+5"
+          ],
+          "words": "Landing lag, halved",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "with landing lag",
+        "pressed",
+        "in time"
+      ],
+      "streak": 3,
+      "example_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          },
+          {
+            "press": "R",
+            "frame": "NL-3"
+          }
+        ]
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no aerial",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "NL-2"
+        }
+      ],
+      "fails": "with landing lag"
+    },
+    {
+      "name": "pressed after landing",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "press": "R",
+          "frame": "NL+2"
+        }
+      ],
+      "inputs_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          },
+          {
+            "press": "R",
+            "frame": "NL+2"
+          }
+        ]
+      },
+      "fails": "pressed"
+    },
+    {
+      "name": "pressed too early",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "SA"
+        },
+        {
+          "press": "R",
+          "frame": "NL-9"
+        }
+      ],
+      "inputs_for": {
+        "mr-game-and-watch": [
+          {
+            "press": "jump",
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": "SA"
+          },
+          {
+            "press": "R",
+            "frame": "NL-9"
+          }
+        ]
+      },
+      "fails": "in time"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": true,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "Aerial",
+        "state": "aerial",
+        "perfect": [
+          "SA"
+        ]
+      },
+      {
+        "label": "L, R or Z",
+        "button": "lcancel",
+        "held": false,
+        "perfect": [
+          "NL-2"
+        ],
+        "window": [
+          "NL-6",
+          "NL"
+        ]
+      },
+      {
+        "label": "Landing lag",
+        "state": "aerial_landing",
+        "held": true,
+        "perfect": [
+          "NL"
+        ]
+      }
+    ],
+    "note": "In the example {char} lands on frame {NL}: a press on frames {NL-6} to {NL} halves the landing lag. Your own landing frame is in the Landing lag row."
+  }
+}
