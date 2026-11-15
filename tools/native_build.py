@@ -641,6 +641,10 @@ def main():
                          "decompiled code reads some it never assigns; if "
                          "the two builds play differently, one of those "
                          "matters (tests/native/uninit.py)")
+    ap.add_argument("--out",
+                    help="build into this directory instead (build/native,"
+                         " or build/native-window with --window): an "
+                         "optimised build to compare beside the shared one")
     ap.add_argument("--no-cmake", action="store_true",
                     help="reuse libmelee.a as it is")
     ap.add_argument("--window", action="store_true",
@@ -664,6 +668,9 @@ def main():
         OUT = ROOT / "build" / "native-asan"
         OBJ = OUT / "host"
         flags += ["-fsanitize=address", "-fsanitize-recover=address"]
+    if args.out:
+        OUT = Path(args.out).resolve()
+        OBJ = OUT / "host"
     if args.opt == "1":
         # The pass that fuses multiply-adds is otherwise an -O2 pass.
         flags.append("-fexpensive-optimizations")

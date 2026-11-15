@@ -28,7 +28,10 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-EXE = ROOT / "build/native/melee_headless"
+# (MELEE_HEADLESS: another build for every driver, tests and check.py: an
+# optimised one, native_build.py --opt 2 --out DIR)
+EXE = Path(os.environ.get("MELEE_HEADLESS") or
+           ROOT / "build/native/melee_headless")
 
 BUTTONS = {"LEFT": 0x0001, "RIGHT": 0x0002, "DOWN": 0x0004, "UP": 0x0008,
            "Z": 0x0010, "R": 0x0020, "L": 0x0040, "A": 0x0100, "B": 0x0200,
