@@ -11,76 +11,51 @@
       "distance": 120,
       "height": 10
     },
-    "what": "A shield drop is a drop through a platform straight out of shield, with the control stick pushed down part way.",
-    "expect": "Each shield is judged when {char} leaves it: a drop through the platform, or something else. After misses, the coach shows your shield and the stick frame by frame.",
+    "what": "A shield drop is a drop through a platform straight out of shield. With UCF, as in this build and on Slippi, it is done by holding the control stick to the side and rolling it down into the down-diagonal notch.",
+    "expect": "Each shield is judged when {char} leaves it: a drop through the platform, a roll, a spot dodge, or a release. After misses, the coach shows your shield and the stick frame by frame.",
     "example": [
       {
         "press": "R",
         "frame": 1,
-        "hold": 20
+        "hold": 30
       },
       {
         "stick": [
-          0,
-          -0.68
+          0.5,
+          0
+        ],
+        "frame": 6,
+        "hold": 4
+      },
+      {
+        "stick": [
+          1,
+          0
         ],
         "frame": 10,
         "hold": 5
+      },
+      {
+        "stick": [
+          0.707,
+          -0.707
+        ],
+        "frame": 15,
+        "hold": 4
       }
     ],
     "marks": {
       "1": "Frame 1: R pressed: shield",
-      "10": "Frame 10: stick down part way: through the platform"
+      "6": "Frame 6: stick partway to the side, short of 0.70",
+      "10": "Frame 10: 4 frames later, the stick to the rim: no roll",
+      "15": "Frame 15: stick rolled down into the notch: through the platform"
     },
     "lessons": [
       {
-        "title": "Down through a platform",
+        "title": "To the side without a roll",
         "text": [
-          "On a platform, the control stick pushed down quickly drops {char} through it. The game takes the stick at 0.66 of its reach or further, reached within 6 frames of leaving the centre. Pushed down slowly, it only crouches.",
-          "Standing, {char} crouches first and drops through 3 frames later."
-        ],
-        "show": {
-          "example": {
-            "inputs": [
-              {
-                "stick": [
-                  0,
-                  -1
-                ],
-                "frame": 1,
-                "hold": 6
-              }
-            ],
-            "marks": {
-              "1": "Frame 1: stick down: crouch",
-              "4": "Frame 4: through the platform"
-            },
-            "cues": [
-              {
-                "frames": [
-                  1,
-                  3
-                ],
-                "words": "Crouch",
-                "kind": "info"
-              },
-              {
-                "frames": [
-                  4,
-                  12
-                ],
-                "words": "Through the platform",
-                "kind": "info"
-              }
-            ]
-          }
-        }
-      },
-      {
-        "title": "Down in shield",
-        "text": [
-          "In shield, the stick down does one of two things, and the game checks the spot dodge first. Reaching 0.70 or further within 4 frames of leaving the centre is a spot dodge. Reaching 0.66 or further within 6 frames, and short of 0.70, drops {char} through the platform: a shield drop.",
-          "The band between 0.66 and 0.70 is three of the stick's 80 steps. A stick that reaches 0.70 only on the 5th or 6th frame after leaving the centre also drops: the spot dodge's 4 frames have passed and the drop's 6 have not."
+          "In shield, the control stick pushed to the side rolls {char} if it reaches 0.70 within 4 frames of leaving the centre. Pushed partway first, past a quarter of its reach but short of 0.70, and held there for 4 frames, it can then go all the way to the rim without a roll.",
+          "Holding the stick to the side is the first half of the shield drop: it is what keeps the next move from being a spot dodge."
         ],
         "show": {
           "example": {
@@ -88,42 +63,115 @@
               {
                 "press": "R",
                 "frame": 1,
-                "hold": 20
+                "hold": 30
               },
               {
                 "stick": [
-                  0,
-                  -0.68
+                  0.5,
+                  0
+                ],
+                "frame": 6,
+                "hold": 4
+              },
+              {
+                "stick": [
+                  1,
+                  0
                 ],
                 "frame": 10,
-                "hold": 5
+                "hold": 20
               }
             ],
             "marks": {
               "1": "Frame 1: R pressed: shield",
-              "10": "Frame 10: stick down to 0.675: through the platform"
+              "6": "Frame 6: stick partway to the side, short of 0.70",
+              "10": "Frame 10: 4 frames later, the stick to the rim: no roll"
             },
             "cues": [
               {
                 "frames": [
-                  1,
+                  6,
                   9
                 ],
-                "words": "Shield",
+                "words": "Partway to the side: 4 frames",
                 "kind": "info"
               },
               {
                 "frames": [
                   10,
-                  10
+                  20
                 ],
-                "words": "Down part way: shield drop",
+                "words": "At the rim: no roll",
+                "kind": "go"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Down into the notch",
+        "text": [
+          "With the stick held to the side for 4 frames or more, UCF does not let a stick at the rim spot dodge. Roll the stick down along the rim into the down-diagonal notch, 45 degrees below level, and {char} drops through the platform.",
+          "The stick must stay at the rim and reach the notch within 6 frames of passing a quarter of its reach downward. From about 42 to 52 degrees below level, {char} drops on that frame; at 38 to 40 degrees, one frame later. Shallower, {char} stays in shield. Deeper, or with the stick held to the side for fewer than 4 frames, {char} spot dodges."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "R",
+                "frame": 1,
+                "hold": 30
+              },
+              {
+                "stick": [
+                  0.5,
+                  0
+                ],
+                "frame": 6,
+                "hold": 4
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 10,
+                "hold": 5
+              },
+              {
+                "stick": [
+                  0.707,
+                  -0.707
+                ],
+                "frame": 15,
+                "hold": 4
+              }
+            ],
+            "marks": {
+              "10": "Frame 10: the stick at the side of the rim",
+              "15": "Frame 15: stick rolled down into the notch: through the platform"
+            },
+            "cues": [
+              {
+                "frames": [
+                  10,
+                  14
+                ],
+                "words": "Stick held to the side",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  15,
+                  15
+                ],
+                "words": "Roll into the notch: shield drop",
                 "kind": "go"
               },
               {
                 "frames": [
-                  11,
-                  20
+                  16,
+                  24
                 ],
                 "words": "Through the platform",
                 "kind": "info"
@@ -161,9 +209,24 @@
     ]
   },
   "measures": {
-    "dropped": {
+    "rolled": {
       "happened": {
-        "enters": "platform_drop"
+        "enters": "roll"
+      }
+    },
+    "to_side": {
+      "happened": [
+        {
+          "stick": "forward"
+        },
+        {
+          "stick": "back"
+        }
+      ]
+    },
+    "spot_dodged": {
+      "happened": {
+        "enters": "spot_dodge"
       }
     },
     "from_shield": {
@@ -177,32 +240,35 @@
         "in": "shield"
       },
       "from": "start"
-    },
-    "spot_dodged": {
-      "happened": {
-        "enters": "spot_dodge"
-      }
     }
   },
   "verdict": {
     "success": "Shield drop after {shielded_frames} in shield."
   },
   "checks": {
-    "dropped": {
-      "measure": "dropped",
+    "no roll": {
+      "measure": "rolled",
+      "equals": false,
+      "expect": "No roll",
+      "words": "the stick reached 0.70 to the side within 4 frames of leaving the centre",
+      "headline": "Roll",
+      "fix": "Push the stick to the side in two steps: partway, short of 0.70, for 4 frames; then to the rim."
+    },
+    "to the side": {
+      "measure": "to_side",
       "equals": true,
-      "expect": "Drop through the platform",
-      "words": "stayed on the platform",
-      "headline": "No drop",
-      "fix": "Push the control stick down quickly, from the centre to 0.66 or further within 6 frames. Pushed slowly, {char} only crouches."
+      "expect": "The stick at the side of the rim",
+      "words": "the stick did not reach the side",
+      "headline": "Stick not to the side",
+      "fix": "Push the stick partway to the side for 4 frames, then all the way to the rim, and hold it there."
     },
     "no spot dodge": {
       "measure": "spot_dodged",
       "equals": false,
       "expect": "No spot dodge",
-      "words": "the stick reached 0.70 within 4 frames of leaving the centre",
+      "words": "the stick went down past the notch, or was not held to the side for 4 frames",
       "headline": "Spot dodge",
-      "fix": "Push the stick down less far, short of 0.70. A push that reaches 0.70 only on the 5th or 6th frame after leaving the centre also drops."
+      "fix": "Hold the stick to the side for 4 frames first, then stop at the down-diagonal notch, 45 degrees below level. Deeper than about 52 degrees, {char} spot dodges."
     },
     "from shield": {
       "measure": "from_shield",
@@ -210,110 +276,152 @@
       "expect": "Drop through the platform out of shield",
       "words": "left the shield without dropping through",
       "headline": "No shield drop",
-      "fix": "Push the stick down to 0.66 or further within 6 frames of leaving the centre. Short of 0.66, {char} stays in shield."
+      "fix": "Roll the stick down along the rim into the down-diagonal notch within 6 frames of it starting down. Short of about 38 degrees, or inside the rim, {char} stays in shield."
     }
   },
   "parts": [
     {
-      "name": "Drop through",
-      "teach": "On the platform, tap the control stick down. {char} crouches and drops through it.",
-      "example": [
-        {
-          "stick": [
-            0,
-            -1
-          ],
-          "frame": 1,
-          "hold": 6
-        }
-      ],
-      "marks": {
-        "1": "Frame 1: stick down: crouch",
-        "4": "Frame 4: through the platform"
-      },
-      "attempt": {
-        "start": [
-          {
-            "enters": "squat"
-          },
-          {
-            "enters": "shield"
-          }
-        ],
-        "judge": [
-          {
-            "enters": "platform_drop"
-          },
-          {
-            "leaves": "squat",
-            "on_ground": true
-          },
-          {
-            "leaves": "shield",
-            "on_ground": true
-          }
-        ]
-      },
-      "checks": [
-        "dropped"
-      ],
-      "success": "Dropped through the platform.",
-      "streak": 2,
-      "coach": {
-        "rows": [
-          {
-            "label": "Down",
-            "stick": "down",
-            "perfect": []
-          },
-          {
-            "label": "Crouch",
-            "state": "squat",
-            "held": true,
-            "perfect": []
-          },
-          {
-            "label": "Drop",
-            "state": "platform_drop",
-            "perfect": []
-          }
-        ],
-        "note": "The stick must go from the centre to 0.66 or further within 6 frames."
-      }
-    },
-    {
-      "name": "Out of shield",
-      "teach": "Hold R or L to shield, then push the control stick down part way: 0.66 or further, short of 0.70. {char} drops straight out of shield.",
+      "name": "To the side",
+      "teach": "Hold R or L to shield, push the stick partway to the side for 4 frames, then to the rim. {char} stays in shield, with no roll.",
       "example": [
         {
           "press": "R",
           "frame": 1,
-          "hold": 20
+          "hold": 30
         },
         {
           "stick": [
-            0,
-            -0.68
+            0.5,
+            0
+          ],
+          "frame": 6,
+          "hold": 4
+        },
+        {
+          "stick": [
+            1,
+            0
           ],
           "frame": 10,
-          "hold": 5
+          "hold": 20
         }
       ],
       "marks": {
         "1": "Frame 1: R pressed: shield",
-        "10": "Frame 10: stick down to 0.675: through the platform"
+        "6": "Frame 6: stick partway to the side, short of 0.70",
+        "10": "Frame 10: 4 frames later, the stick to the rim: no roll"
       },
       "cues": [
         {
           "frames": [
-            10,
-            10
+            6,
+            9
           ],
-          "words": "Down part way: shield drop",
+          "words": "Partway: 4 frames",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            10,
+            20
+          ],
+          "words": "At the rim: no roll",
+          "kind": "go"
+        }
+      ],
+      "attempt": {
+        "start": {
+          "enters": "shield"
+        },
+        "judge": [
+          {
+            "leaves": "shield"
+          },
+          {
+            "frame": 25
+          }
+        ]
+      },
+      "checks": [
+        "no roll",
+        "to the side"
+      ],
+      "success": "Stick to the side, no roll.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Shield",
+            "state": "shield",
+            "held": true,
+            "perfect": []
+          },
+          {
+            "label": "Side",
+            "stick": "side",
+            "perfect": [
+              10
+            ]
+          },
+          {
+            "label": "Roll",
+            "state": "roll",
+            "perfect": []
+          }
+        ],
+        "note": "The stick may reach 0.70 to the side only 4 frames or more after it leaves the centre."
+      }
+    },
+    {
+      "name": "Into the notch",
+      "teach": "Shield, stick to the side as before, then roll it down along the rim into the down-diagonal notch. {char} drops through the platform.",
+      "example": [
+        {
+          "press": "R",
+          "frame": 1,
+          "hold": 30
+        },
+        {
+          "stick": [
+            0.5,
+            0
+          ],
+          "frame": 6,
+          "hold": 4
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 10,
+          "hold": 5
+        },
+        {
+          "stick": [
+            0.707,
+            -0.707
+          ],
+          "frame": 15,
+          "hold": 4
+        }
+      ],
+      "marks": {
+        "10": "Frame 10: the stick at the side of the rim",
+        "15": "Frame 15: stick rolled down into the notch: through the platform"
+      },
+      "cues": [
+        {
+          "frames": [
+            15,
+            15
+          ],
+          "words": "Roll into the notch: shield drop",
           "kind": "go"
         }
       ],
       "checks": [
+        "no roll",
         "no spot dodge",
         "from shield"
       ],
@@ -322,29 +430,61 @@
   ],
   "mistakes": [
     {
-      "name": "crouched slowly",
+      "name": "stick to the side at once",
       "inputs": [
         {
-          "stick": [
-            0,
-            -0.5
-          ],
+          "press": "R",
           "frame": 1,
-          "hold": 7
+          "hold": 30
         },
         {
           "stick": [
-            0,
-            -1
+            1,
+            0
           ],
-          "frame": 8,
+          "frame": 6,
           "hold": 5
         }
       ],
-      "fails": "dropped"
+      "fails": "no roll"
     },
     {
-      "name": "pushed all the way down",
+      "name": "past the notch",
+      "inputs": [
+        {
+          "press": "R",
+          "frame": 1,
+          "hold": 30
+        },
+        {
+          "stick": [
+            0.5,
+            0
+          ],
+          "frame": 6,
+          "hold": 4
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 10,
+          "hold": 5
+        },
+        {
+          "stick": [
+            0.5,
+            -0.866
+          ],
+          "frame": 15,
+          "hold": 4
+        }
+      ],
+      "fails": "no spot dodge"
+    },
+    {
+      "name": "short of the notch",
       "inputs": [
         {
           "press": "R",
@@ -353,30 +493,27 @@
         },
         {
           "stick": [
-            0,
-            -1
+            0.5,
+            0
           ],
-          "frame": 10,
-          "hold": 5
-        }
-      ],
-      "fails": "no spot dodge"
-    },
-    {
-      "name": "not far enough",
-      "inputs": [
-        {
-          "press": "R",
-          "frame": 1,
-          "hold": 15
+          "frame": 6,
+          "hold": 4
         },
         {
           "stick": [
-            0,
-            -0.6
+            1,
+            0
           ],
           "frame": 10,
-          "hold": 3
+          "hold": 5
+        },
+        {
+          "stick": [
+            0.866,
+            -0.5
+          ],
+          "frame": 15,
+          "hold": 4
         }
       ],
       "fails": "from shield"
@@ -391,16 +528,27 @@
         "perfect": []
       },
       {
+        "label": "Side",
+        "stick": "side",
+        "perfect": [
+          10
+        ]
+      },
+      {
         "label": "Down",
         "stick": "down",
-        "perfect": []
+        "perfect": [
+          15
+        ]
       },
       {
         "label": "Drop",
         "state": "platform_drop",
-        "perfect": []
+        "perfect": [
+          15
+        ]
       }
     ],
-    "note": "Down to 0.66 or further, short of 0.70: a drop. 0.70 or further within 4 frames: a spot dodge."
+    "note": "In the example the stick reaches the side of the rim on frame 10 and rolls into the notch on frame 15."
   }
 }
