@@ -41,7 +41,11 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 ART = ROOT / "build" / "ui" / "art"
 VERSION = 2   # of what is written here: a change makes it all again
-STOCK_VERSION = 1   # the stock icons', apart (Sheik's portraits stay)
+STOCK_VERSION = 2   # the stock icons', apart (Sheik's portraits stay)
+# the stock icons are written this many times their 24 pixels, each pixel a
+# square: drawn at 24 dp on a large window, they are made smaller, not
+# blurred larger ("the mode icons are blurry!", the owner, 2026-11-14)
+STOCK_SCALE = 3
 W, H = 136, 188
 # Each portrait is written with this much transparent border: the renderer
 # wraps a picture's edges round, which drew a line of the bottom edge (a
@@ -402,8 +406,11 @@ def extract_stocks(root=ART):
     count["sheik"] = SHEIK_COSTUMES
     for (cid, n), rgba in stock_icons(Archive(disc_file("IfAll.usd")),
                                       count).items():
-        out = np.zeros((STOCK + 2 * PAD, STOCK + 2 * PAD, 4), np.uint8)
-        out[PAD:PAD + STOCK, PAD:PAD + STOCK] = rgba
+        k = STOCK_SCALE
+        big = rgba.repeat(k, 0).repeat(k, 1)
+        out = np.zeros((STOCK * k + 2 * PAD, STOCK * k + 2 * PAD, 4),
+                       np.uint8)
+        out[PAD:PAD + STOCK * k, PAD:PAD + STOCK * k] = big
         write_png(root / "stock" / ("%s-%d.png" % (cid, n)), out)
     (root / "stock" / "VERSION").write_text(str(STOCK_VERSION))
 

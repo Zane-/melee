@@ -14,8 +14,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "build" / "ui" / "icons"
-VERSION = 1
+VERSION = 2
 SIZE = 48          # pixels: drawn at 20 to 24 dp
+# drawn larger, so made larger (the owner, 2026-11-14: "the mode icons are
+# blurry!"): the game modes' icons, 112 dp on their panels, at up to 2x
+LARGE = {"infinity": 256, "tennis": 256}
 
 # name -> (path, filled): stroked lines unless filled
 ICON = {
@@ -83,7 +86,8 @@ def ensure():
             svg = OUT / (name + ".svg")
             svg.write_text(_svg(path, filled))
             try:
-                subprocess.run([tool, "-w", str(SIZE), "-h", str(SIZE), "-o",
+                size = LARGE.get(name, SIZE)
+                subprocess.run([tool, "-w", str(size), "-h", str(size), "-o",
                                 str(png), str(svg)], check=True,
                                capture_output=True, timeout=30)
             except (subprocess.SubprocessError, OSError):
