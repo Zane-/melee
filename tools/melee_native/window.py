@@ -116,6 +116,10 @@ class Window(Native):
                 # thread's stack is address space the 32-bit process runs
                 # short of (63 threads; 8 leave some 350 MB more)
                 env.setdefault("LP_NUM_THREADS", "8")
+                # and it compiles no more than 256 of the pipelines the
+                # tests' shared cache recorded (each some 0.8 MB of address
+                # space here: 2,140 of them took 1.7 GB; window.c)
+                env.setdefault("MELEE_PIPELINES_KEPT", "256")
         if vsync:
             env["MELEE_VSYNC"] = "1"
         if fullscreen is None and not real:

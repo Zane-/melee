@@ -23,6 +23,7 @@
 #include <dolphin/gx.h>
 #include <dolphin/pad.h>
 #include <SDL3/SDL.h>
+#include <sqlite3.h>
 #include <sys/stat.h>
 
 /* From the patch tools/aurora32/build.sh applies (this file is compiled
@@ -157,6 +158,48 @@ void host_window_describe(char* out, size_t size)
              fullscreen_asked);
 }
 
+/* Aurora records every pipeline it makes in its cache file
+   (pipeline_cache.db) and at start compiles every one recorded there, in
+   the background, keeping them all. The file only grows, with each new
+   material, character, stage or item any session drew; a 32-bit process
+   holds the compiled pipelines in its 4 GB (some 0.8 MB each under the
+   software renderer: the tests' shared cache, 2,140 of them, was 1.7 GB,
+   2026-11-14). So before Aurora reads the file it keeps only the
+   `kept` that Aurora would compile first (the order it reads them in: the
+   soonest used after a start). The others are compiled when first drawn,
+   from Dawn's blob cache (dawn_cache.db, left whole), and recorded again,
+   which may skip a draw for a frame: so only where it is asked for
+   (MELEE_PIPELINES_KEPT=N, which window.py sets for the software renderer
+   of the tests); a GPU keeps every pipeline warm. */
+static void bound_pipeline_cache(const char* dir, int kept)
+{
+    char path[4200];
+    char sql[256];
+    sqlite3* db = NULL;
+
+    snprintf(path, sizeof path, "%s/pipeline_cache.db", dir);
+    if (access(path, F_OK) != 0) {
+        return;
+    }
+    snprintf(sql, sizeof sql,
+             "DELETE FROM pipeline_cache WHERE rowid NOT IN (SELECT rowid "
+             "FROM pipeline_cache ORDER BY first_frame_used, rowid LIMIT %d)",
+             kept);
+    if (sqlite3_open_v2(path, &db, SQLITE_OPEN_READWRITE, NULL) ==
+        SQLITE_OK)
+    {
+        /* another test's game may have the file open */
+        sqlite3_busy_timeout(db, 2000);
+        if (sqlite3_exec(db, sql, NULL, NULL, NULL) != SQLITE_OK &&
+            host.verbose)
+        {
+            fprintf(stderr, "pipeline cache not cut: %s\n",
+                    sqlite3_errmsg(db));
+        }
+    }
+    sqlite3_close(db);
+}
+
 void host_window_init(void)
 {
     /* MELEE_WINDOW_SIZE=1280x720: the client's window. The game's picture
@@ -235,6 +278,12 @@ void host_window_init(void)
     }
     if (config.userPath != NULL) {
         snprintf(state_dir, sizeof state_dir, "%s", config.userPath);
+    }
+    {
+        const char* kept = getenv("MELEE_PIPELINES_KEPT");
+        if (config.cachePath != NULL && kept != NULL && atoi(kept) > 0) {
+            bound_pipeline_cache(config.cachePath, atoi(kept));
+        }
     }
     {
         /* MELEE_FULLSCREEN=1 or 0; not set: as it was last left (F11) */

@@ -219,6 +219,23 @@ Boot went from 2.2 to 1.65 GB; six matches in one process from a crash at the si
 2.95 GB. Look at the largest regions first (`/proc/PID/maps`, anonymous ones by size)
 before adding a big reservation.
 
+Most of that "1.2 GB on the first match" was not textures (found later the same day,
+when it became 1.7 GB and `tests/client/short_hop.py` ran out in its tutorial). Aurora
+records every pipeline it makes in `pipeline_cache.db` in its state directory and, at
+start, compiles every one recorded there on its pipeline thread, in the background, and
+keeps them. The file only grows, and the tests' windows all share one
+(`/tmp/tmp/melee-window-xdg/aurora`, or under `CLAUDE_JOB_DIR`): by then it held 2,140
+pipelines, about 0.8 MB of address space each under llvmpipe (in the 1 MB malloc heaps of
+Aurora's render and pipeline threads). The growth follows the clock, not the matches:
+one match held for 3,000 frames grew from 2.2 to 3.4 GB in some 15 s and then stayed. With an
+empty cache the same six matches end at 2.0 GB. Under the software renderer (the tests:
+`window.py` sets `MELEE_PIPELINES_KEPT=256`) `window.c` cuts the file to the 256 pipelines
+Aurora would compile first before Aurora reads it (`bound_pipeline_cache`); the rest are
+compiled when first drawn, from Dawn's blob cache (`dawn_cache.db`, kept whole), and
+recorded again, which may skip a draw for a frame. A GPU (the owner's desktop) keeps every
+pipeline warm: the variable is not set there. Six matches: 2152 MB, the tutorial of
+`short_hop.py` 2349 MB at its peak (it ran out at 3805).
+
 ## Finding the next difference
 
 ```sh
