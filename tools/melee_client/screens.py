@@ -1581,17 +1581,17 @@ def timeline(tl):
         str(i) if n <= 12 or i % 5 == 0 else "" for i in range(1, n + 1)]
     head = "".join('<div class="tlc tln">%s</div>' % label
                    for label in labels)
-    rows = ['<div class="tlrow"><div class="tll"/>%s</div>' % head]
+    rows = ['<div class="tlrow">%s</div>' % head]
     for row in tl["rows"]:
-        # yours, and under them what is allowed (input_cells)
-        rows.append('<div class="tlrow"><div class="tll">%s</div>%s</div>'
-                    % (esc(row["label"]), input_cells(row, n, "you",
-                                                      "tlc")))
-        rows.append('<div class="tlrow tlt"><div class="tll tls">allowed'
-                    '</div>%s</div>' % input_cells(row, n, "should", "tlc"))
+        # its name on a line of its own (beside the frames, "Stick to the
+        # side" ran over them: the owner, 2026-11-14, "glitched
+        # formatting"), then one row: yours outlined over the window
+        rows.append('<div class="tllab">%s</div>' % esc(row["label"]))
+        rows.append('<div class="tlrow">%s</div>' % input_cells(
+            row, n, "both", "tlc"))
     legend = ('<div class="tlleg"><div class="tlc you"/><div>you</div>'
               '<div class="tlc perf"/><div>frame-perfect</div>'
-              '<div class="tlc win"/><div>allowed</div></div>')
+              '<div class="tlc win"/><div>window</div></div>')
     return "".join(rows) + legend + '<div class="tlnote">%s</div>' % esc(
         tl.get("note", ""))
 
@@ -2048,32 +2048,34 @@ def _picture(pic, kind, width=412.0):
 
 
 def input_cells(row, n, which, cls):
-    """One row of an input timeline's cells, frames 1 to n: `which` "you"
-    (the frames it was pressed or held) or "should" (the frames allowed,
-    and the frame-perfect ones), each cell of class `cls`. The two used
-    to share a row, and a press hid what was allowed under it (the owner,
-    2026-11-14: "You always overshadows allowed. We should have two
-    rows")."""
+    """One row of an input timeline's cells, frames 1 to n, each of class
+    `cls`: `which` "both" (the frames it was pressed or held, an outline,
+    over the frame-perfect ones, solid, and the window, light), "you" (the
+    presses only) or "should" (the fills only). The owner, 2026-11-14:
+    "we don't want pressed and allowed rows as that is confusing. Let's
+    just do a black outline for pressed, solid green for frame perfect,
+    light green for window" (a press used to hide what was allowed under
+    it: two rows, then)."""
     cells = []
     for i in range(1, n + 1):
         c = cls
-        if which == "you":
-            if i in row["you"]:
-                c += " you"
-        elif i in row["perfect"]:
-            c += " perf"
-        elif row["window"] and row["window"][0] <= i <= row["window"][1]:
-            c += " win"
+        if which in ("should", "both"):
+            if i in row["perfect"]:
+                c += " perf"
+            elif row["window"] and row["window"][0] <= i <= row["window"][1]:
+                c += " win"
+        if which in ("you", "both") and i in row["you"]:
+            c += " you"
         cells.append('<div class="%s"/>' % c)
     return "".join(cells)
 
 
 def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
-    """The try's inputs frame by frame, each input in two rows: the frames
-    `you` pressed it on, and below them the frames allowed and the
-    frame-perfect ones; and a bracket from where one was due to where it
-    came (`wrong`: coach.first_wrong). The columns' heads are `cgn1`...
-    (the pictures' frame, marked as they play)."""
+    """The try's inputs frame by frame, a row each: the frames `you`
+    pressed it on outlined, over the frame-perfect ones (solid) and the
+    window (light); and a bracket from where one was due to where it came
+    (`wrong`: coach.first_wrong). The columns' heads are `cgn1`... (the
+    pictures' frame, marked as they play)."""
     if not tl:
         return ""
     n = tl["frames"]
@@ -2085,13 +2087,8 @@ def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
     for row in tl["rows"]:
         rows.append(
             '<div class="cgr"><div class="cgl"><div class="cgb">%s</div>'
-            '<div class="cgs">%s</div></div>%s</div>' % (
-                esc(row["label"]), esc(you), input_cells(row, n, "you",
-                                                         "cgc")))
-        rows.append(
-            '<div class="cgr cgt"><div class="cgl"><div class="cgb"/><div '
-            'class="cgs">allowed</div></div>%s</div>' % input_cells(
-                row, n, "should", "cgc"))
+            '</div>%s</div>' % (esc(row["label"]),
+                                input_cells(row, n, "both", "cgc")))
     bracket = ""
     if wrong is not None and wrong[1] is not None:
         cell = 690.0 / n
@@ -2106,12 +2103,12 @@ def coach_grid(tl, wrong, title="YOUR INPUTS, FRAME BY FRAME", you="you"):
                "LATE" if wrong[1] > wrong[2] else "EARLY"))
     legend = ('<div class="cleg"><div class="cgc you"/><div>%s</div>'
               '<div class="cgc perf"/><div>frame-perfect</div>'
-              '<div class="cgc win"/><div>allowed</div></div>' % esc(you))
-    # the legend beside the title; two inputs or more (four rows): closer
-    # together (the card's height is fixed)
+              '<div class="cgc win"/><div>window</div></div>' % esc(you))
+    # the legend beside the title; four inputs or more: closer together
+    # (the card's height is fixed)
     return ('<div class="cgh"><div class="csec">%s</div><div class="grow"/>'
             '%s</div><div class="cgrid%s">%s</div>%s' % (
-                esc(title), legend, " tight" if len(tl["rows"]) >= 2 else "",
+                esc(title), legend, " tight" if len(tl["rows"]) >= 4 else "",
                 "".join(rows), bracket))
 
 

@@ -71,7 +71,10 @@ its proof, never written into one drill's file.
   ledgedash's air dodge that lands on the stage: Fox 5, Peach 29), `NL` / `NFL` (the frame a
   short hop with a neutral air lands: the air on `SA`; fast-fallen, the air on `SA-4` and
   down on `SA` for 3 frames), `SHD` (how far a short hop goes with the stick held forward:
-  a player placed `SHD` from an edge lands at it).
+  a player placed `SHD` from an edge lands at it), `SPF` / `SPD` (the first frame of a
+  forward drift with which a short hop and a neutral air on `SA` fit on a Battlefield side
+  platform, 33 units at most, and how far that hop goes: 1 for most; Jigglypuff 14). Any
+  number numbers.json measures may be named; a new one needs no word in format.py.
 - **States** (`STATES`): the game's action states by name, a tuple being a group any of whose
   states counts: `wait turn dash run run_brake jump_squat jump double_jump (Kirby's and Jigglypuff's extra jumps included, `CHAR_STATES`) fall special_fall
   squat landing landing_special up_smash nair fair bair uair dair aerial aerial_landing

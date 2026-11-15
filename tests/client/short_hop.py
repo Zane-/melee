@@ -16,6 +16,7 @@ goes straight to its third part.
 """
 import argparse
 import os
+import re
 import sys
 import tempfile
 
@@ -380,10 +381,15 @@ def main():
                   co.get("you_pic") is not None))
         html = screens.coach_card(co) if co else ""
         n_rows = len((co.get("timeline") or {}).get("rows", []))
-        check("its inputs: yours in one row and what is allowed under it, "
-              "and the same frame boxes under each replay",
-              n_rows > 0 and html.count('class="cgr cgt"') == n_rows and
-              'class="cgc you"' in html and 'class="cgc perf"' in html and
+        # (one row an input: the presses outlined over the window and the
+        # frame-perfect frames, the owner, 2026-11-14: "we don't want
+        # pressed and allowed rows as that is confusing")
+        check("its inputs: a row each, the presses outlined over the "
+              "window, and the same frame boxes under each replay",
+              n_rows > 0 and html.count('class="cgr"') == n_rows + 1 and
+              'class="cgr cgt"' not in html and
+              re.search(r'class="cgc[^"]* you"', html) is not None and
+              'class="cgc perf' in html and
               'id="cyn1"' in html and 'id="ctn1"' in html and
               html.count('class="cfc you"') >= 1 and
               html.count('class="cfc perf"') >= 1,

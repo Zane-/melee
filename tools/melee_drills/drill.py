@@ -397,6 +397,18 @@ class JsonDrill(Drill):
         a.update(self.part_now.get("attempt", {}))
         return a
 
+    def _lesson_inputs_left(self, c):
+        """While the client records a lesson (its own scenario and inputs,
+        build_reference): whether the lesson's inputs have frames still to
+        play."""
+        build = vars(self).get("build_reference")
+        if self.lesson_scenario is None or build is None:
+            return False
+        js = c.fd.jump_squat
+        end = max((self.ref_lead + r.frame + r.js * js + (r.hold or 1)
+                   for r in build(c) if r.mark == 0), default=0)
+        return c.s.attempt_frame < end
+
     def think(self, c):
         a = self.attempt()
         v = self.v
@@ -408,6 +420,7 @@ class JsonDrill(Drill):
         v["last"] = f
         if c.phase == WAIT:
             f["i"] = 0
+            v.pop("judge_due", None)
             if "within" in a and c.timer > int(F.value(a["within"],
                                                        v["nums"])):
                 # it did not start in time (the opponent's attack missed:
@@ -425,7 +438,17 @@ class JsonDrill(Drill):
         rec = v["rec"]
         f["i"] = len(rec)
         rec.append(f)
-        if holds(a["judge"], f, c.fd):
+        if holds(a["judge"], f, c.fd) or v.get("judge_due"):
+            if self._lesson_inputs_left(c):
+                # a lesson shows the whole technique, whatever part the
+                # player is on: its inputs play to their end before the
+                # try is judged (the shine grab's lesson, on the part
+                # "Jump out of the shine", was judged at the jump and its
+                # Z never came: the owner, 2026-11-14, "doesn't actually
+                # show any grabbing")
+                v["judge_due"] = True
+                return
+            v.pop("judge_due", None)
             self._judge(c, rec)
             return
         cancel = a.get("cancel")

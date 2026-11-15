@@ -265,7 +265,9 @@ img { display: inline-block; }
 
 .rail { position: absolute; left: 960dp; top: 0dp; width: 320dp; height: 720dp; background-color: #12161C; color: #F3F6FA; overflow: hidden; }
 .rail .top { position: absolute; left: 0dp; top: 0dp; width: 320dp; height: 92dp; }
-.rail .slant { position: absolute; left: 0dp; top: 62dp; width: 320dp; height: 52dp; transform: skewY(-5deg); }
+/* no angled cut under the colour: it ends straight, under the title
+   (the owner, 2026-11-14) */
+.rail .slant { display: none; }
 .rail .head { position: absolute; left: 24dp; top: 18dp; width: 280dp; }
 .rail .body { position: absolute; left: 24dp; top: 140dp; width: 272dp; height: 560dp; display: flex; flex-direction: column; }
 .rail .line { font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }
@@ -378,7 +380,7 @@ img { display: inline-block; }
 
 /* ---- a drill running ------------------------------------------------------ */
 
-.rail .body { top: 128dp; height: 584dp; }
+.rail .body { top: 104dp; height: 600dp; }
 .try { margin-top: 8dp; padding: 8dp 14dp; background-color: #1D2430; }
 /* in a drill's column the try takes what the numbers above it leave */
 .rail .try { flex: 1; overflow: hidden; margin-top: 12dp; }
@@ -413,15 +415,16 @@ img { display: inline-block; }
 .msg { padding: 0dp 14dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; }
 .msg .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 16dp; text-transform: uppercase; letter-spacing: 1dp; }
 .why { font-size: 14dp; line-height: 1.25em; color: #D5DCE5; margin: 0dp 0dp 5dp 0dp; }
-.tlrow { height: 16dp; margin-top: 3dp; display: flex; flex-direction: row; align-items: center; }
-.tll { width: 52dp; font-size: 13dp; font-weight: 600; white-space: nowrap; }
+.tlrow { height: 15dp; margin-top: 2dp; display: flex; flex-direction: row; align-items: center; }
+/* an input's name, over its rows, as wide as the column */
+.tllab { margin-top: 6dp; font-size: 13dp; font-weight: 600; line-height: 1.15em; white-space: nowrap; overflow: hidden; }
 .tlc { flex: 1; height: 15dp; margin: 0dp 1dp; box-sizing: border-box; }
 .tln { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; color: #A9B4C2; text-align: center; border-bottom: 1dp #A9B4C2; }
 .tlc.win { background-color: #1D5A55; }
 .tlc.perf { background-color: #22B8A0; }
-.tlc.you { background-color: #F3F6FA; }
-.tlrow.tlt { margin-top: 1dp; margin-bottom: 4dp; }
-.tll.tls { font-family: "IBM Plex Mono"; font-style: normal; font-size: 10dp; font-weight: 500; color: #A9B4C2; }
+/* pressed: an outline (light on the dark column) over the fill */
+.tlc.you { border: 2dp #F3F6FA; }
+
 .tlleg { margin-top: 6dp; display: flex; flex-direction: row; align-items: center; font-size: 12dp; color: #D5DCE5; }
 .tlleg .tlc { flex: none; width: 12dp; height: 12dp; margin: 0dp 5dp 0dp 0dp; }
 .tlleg div { margin-right: 10dp; }
@@ -612,7 +615,8 @@ img { display: inline-block; }
 .cgn { border-width: 0dp 0dp 1dp 0dp; border-color: #A9B4C2; font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; color: #4A5361; text-align: center; }
 .cgc.win { background-color: #BCE8DF; border-color: #BCE8DF; }
 .cgc.perf { background-color: #22B8A0; border-color: #22B8A0; }
-.cgc.you { background-color: #12161C; border-color: #12161C; }
+/* pressed: an outline, over the fill that says what was due */
+.cgc.you { border-width: 2dp; border-color: #12161C; }
 /* an input's two rows: yours, then what is allowed (screens.coach_grid) */
 .cgl { display: flex; flex-direction: row; align-items: center; }
 .cgb { width: 96dp; }
@@ -626,9 +630,9 @@ img { display: inline-block; }
 .cfc { flex: 1; height: 12dp; margin: 0dp 1dp; box-sizing: border-box; border: 1dp #C9D1DB; }
 .cfn { border-width: 0dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 10dp; line-height: 12dp; color: #4A5361; text-align: center; }
 .cfn.now { background-color: #F5BE1B; color: #12161C; }
-.cfc.you { background-color: #12161C; border-color: #12161C; }
 .cfc.win { background-color: #BCE8DF; border-color: #BCE8DF; }
 .cfc.perf { background-color: #22B8A0; border-color: #22B8A0; }
+.cfc.you { border-width: 2dp; border-color: #12161C; }
 .cgn.now { background-color: #F5BE1B; color: #12161C; }
 .cbr { position: relative; height: 24dp; margin-left: 150dp; }
 .cbrl { position: absolute; top: 2dp; height: 8dp; border-width: 0dp 2dp 2dp 2dp; border-color: #F0643C; }

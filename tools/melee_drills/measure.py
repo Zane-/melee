@@ -14,6 +14,12 @@ measured in the game (headless), into data/drills/numbers.json:
   (down on SA for 3 frames): where an L-cancel or a SHFFL lands.
 - SHD: how far a short hop goes with the stick held forward from frame 1
   to the landing (a drill placed SHD from an edge lands at it).
+- SPF, SPD: a short hop with a neutral air (A on SA) that fits on a side
+  platform of Battlefield (37.6 wide): SPF the first frame of a drift
+  (the stick forward to SA-1, neutral on SA for the A, forward again from
+  SA+1) with which it goes at most SIDE_PLATFORM by its landing (NL), SPD
+  how far it goes. SPF is 1 where the whole hop's drift fits; the floaty
+  characters drift later: Samus 11, Jigglypuff 14.
 
 format.names() adds them to a character's numbers. Each is measured with
 the drills' own scenarios (data/drills/universal-*.json), as a player's
@@ -107,6 +113,25 @@ def aerial_landings(game, ch):
     return {"NL": nl, "NFL": nfl, "SHD": round(shd, 1)}
 
 
+# a short hop on a Battlefield side platform (x 20 to 57.6): landing 2.1
+# inside its outer edge, from 2.5 or more inside its inner one
+SIDE_PLATFORM = 33.0
+
+
+def side_platform_drift(game, ch):
+    from melee_course.engine import FighterData
+    sa = F.names(FighterData.of(ch))["SA"]
+    for d in range(1, sa):
+        _, dist = landing(frames(game, ch, "universal-dash-dance", [
+            {"press": "jump", "frame": 1, "hold": 1},
+            {"stick": [1, 0], "frame": d, "hold": sa - d},
+            {"press": "A", "frame": sa, "hold": 1},
+            {"stick": [1, 0], "frame": sa + 1, "hold": 100}], 120))
+        if dist <= SIDE_PLATFORM:
+            return {"SPF": d, "SPD": round(dist, 1)}
+    raise RuntimeError("%s: no drift fits a side platform" % ch)
+
+
 def ledgedash_frame(game, ch):
     for k in range(4, 40):
         inputs = [{"stick": [0, -1], "frame": 1, "hold": 1},
@@ -126,7 +151,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chars")
     ap.add_argument("--only", help="numbers to measure, comma separated "
-                    "(the others kept): DASH,SL,LD,NL,NFL,SHD")
+                    "(the others kept): DASH,SL,LD,NL,NFL,SHD,SPF,SPD")
     args = ap.parse_args()
     only = set(args.only.split(",")) if args.only else None
 
@@ -151,6 +176,9 @@ def main():
         if want("LD"):
             with Native() as game:
                 nums["LD"] = ledgedash_frame(game, ch)
+        if want("SPF", "SPD"):
+            with Native() as game:
+                nums.update(side_platform_drift(game, ch))
         have[ch] = nums
         print("%-18s %s" % (ch, nums), flush=True)
     with open(OUT, "w") as f:

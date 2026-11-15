@@ -286,6 +286,11 @@ def _problems(spec):
     test = {"J": 3, "LAND": 4, "FA": 20, "SA": 12, "DASH": 11, "SL": 26,
             "LD": 5, "NL": 22, "NFL": 18, "SHD": 12, "char": "Fox",
             "measure": "x", "frames": "2 frames", "f": 1}
+    # (and every number numbers.json measures, as names() gives them in a
+    # drill: a new one needs no word here)
+    for numbers in measured().values():
+        for k in numbers:
+            test.setdefault(k, 1)
     for m in spec.get("measures", {}) if isinstance(spec.get("measures"),
                                                      dict) else ():
         test[m] = 2

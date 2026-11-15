@@ -52,7 +52,7 @@ the drill format (`docs/ai/drill-format.md`).
 | `universal-sdi` | Smash DI (SDI) | Move out of a multi-hit attack during hitlag | - | - | drill format: `data/drills/universal-sdi.json` |
 | `universal-asdi` | Automatic SDI (ASDI) | Shift your position at the end of hitlag | - | - | drill format: `data/drills/universal-asdi.json` |
 | `universal-shield-drop` | Shield drop | Drop through a platform out of shield | [shield drop](../techniques/shield-drop.md) | legacy Shield Drop | drill format: `data/drills/universal-shield-drop.json` |
-| `universal-edge-cancel` | Edge cancel | Slide off the edge during an aerial's landing lag | - | - | drill format: `data/drills/universal-edge-cancel.json` |
+| `universal-edge-cancel` | Edge cancel | Slide off a platform during an aerial's landing lag | - | - | drill format: `data/drills/universal-edge-cancel.json` |
 | `universal-slide-off` | Slide off | Slide off a platform during landing lag | - | - | drill format: `data/drills/universal-slide-off.json` |
 
 Not in a subcourse yet (it was planned before the owner's list of 2026-11-14):

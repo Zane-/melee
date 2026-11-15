@@ -46,60 +46,6 @@
     },
     "lessons": [
       {
-        "title": "Grab before leaving the ground",
-        "text": [
-          "Z pressed after the jump but before {char} leaves the ground replaces the jump with a standing grab on that frame.",
-          "From standing, Z pressed on the same frame as the jump grabs at once. Z pressed on the frame {char} leaves the ground is a neutral air."
-        ],
-        "show": {
-          "example": {
-            "inputs": [
-              {
-                "press": "jump",
-                "frame": 1,
-                "hold": 1
-              },
-              {
-                "press": "Z",
-                "frame": 2,
-                "hold": 1
-              }
-            ],
-            "marks": {
-              "1": "Frame 1: X pressed",
-              "2": "Frame 2: Z pressed. The jump becomes a grab",
-              "3": "Frame {f}: grabbing, still on the ground"
-            },
-            "cues": [
-              {
-                "frames": [
-                  1,
-                  1
-                ],
-                "words": "Jump",
-                "kind": "info"
-              },
-              {
-                "frames": [
-                  2,
-                  "J"
-                ],
-                "words": "Press Z now: grab",
-                "kind": "go"
-              },
-              {
-                "frames": [
-                  "J+1",
-                  "J+20"
-                ],
-                "words": "Grabbing",
-                "kind": "info"
-              }
-            ]
-          }
-        }
-      },
-      {
         "title": "From the shine",
         "text": [
           "The shine accepts a jump from its fourth frame, and nothing else: Z pressed together with that jump is not seen, and Fox jumps. Z has to come on a later frame, {5} or {J+3} after a jump on frame {4}.",
