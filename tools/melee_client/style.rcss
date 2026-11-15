@@ -342,8 +342,15 @@ img { display: inline-block; }
 /* the Rules' switches (Item switch, Random stages): a tile each */
 .swgrid { position: absolute; left: 48dp; top: 120dp; width: 1184dp; height: 500dp; display: flex; flex-direction: column; }
 .swrow { display: flex; flex-direction: row; margin-bottom: 6dp; }
-.swt { width: 290dp; height: 52dp; margin-right: 8dp; box-sizing: border-box; padding: 0dp 14dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; font-size: 17dp; font-weight: 700; }
+.swt { width: 290dp; height: 52dp; margin-right: 8dp; box-sizing: border-box; padding: 0dp 12dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; font-size: 17dp; font-weight: 700; }
 .swt.off .swn { color: #8A94A3; }
+.swn { white-space: nowrap; overflow: hidden; }
+/* its picture: a stage's preview (16:9), an item's icon (square) */
+.swpic { width: 64dp; height: 36dp; margin-right: 10dp; }
+.swpic.swsq { width: 36dp; }
+/* (no picture yet: its room kept, so the names line up) */
+.swpic.none { background-color: transparent; }
+.swt.off img.swpic { opacity: 0.45; }
 .swt.focus { background-color: #12161C; color: #F3F6FA; }
 .swt.focus .box { border-color: #F3F6FA; }
 .swt.focus .box.on { background-color: #F3F6FA; }

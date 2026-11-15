@@ -1224,6 +1224,20 @@ class Client:
             " Items: %s." % modes.FREQUENCY[r.settings["items"]])
         return title, names, on, desc, hints
 
+    def switch_pics(self):
+        """Each tile's picture: a stage's preview, an item's icon (the
+        owner: "a little icon of the item to the left of the name? Same
+        with a little stage preview"), made small (screens.thumb); None
+        where there is none yet. (items.py draws the items' icons.)"""
+        if self.switch_page == "stages":
+            return [screens.thumb(stages.preview(i), 128, 72)
+                    for i in self.rule_stage_ids()]
+        try:
+            import items
+        except ImportError:
+            return [None] * len(modes.ITEMS)
+        return [screens.thumb(items.icon(k), 72, 72) for _, k in modes.ITEMS]
+
     def show_switch(self, which):
         """The Item switch or the Random stages: every item or stage, A
         switching the one in focus (the game's Item Switch and Random
@@ -1231,8 +1245,10 @@ class Client:
         self.screen = "switch"
         self.switch_page, self.switch_at = which, 0
         title, names, on, desc, hints = self.switch_now()
-        self.load("switch", screens.switch_page(title, names, on, 0, desc,
-                                                hints))
+        self.switch_shown = self.switch_pics()
+        self.load("switch", screens.switch_page(
+            title, names, on, 0, desc, hints, self.switch_shown,
+            square=which == "items"))
 
     def on_switch(self, pressed, moves):
         r = self.rules_edit
@@ -1273,7 +1289,9 @@ class Client:
             self.keep_rules(r)
         if changed:
             title, names, on, desc, hints = self.switch_now()
-            self.put("swgrid", screens.switch_grid(names, on, at))
+            self.put("swgrid", screens.switch_grid(
+                names, on, at, self.switch_shown,
+                square=self.switch_page == "items"))
             self.say(desc)
         if pressed & B:
             self.show_rules()

@@ -870,26 +870,55 @@ def rules_page(r, at, stages_on, stages_all, on_names):
     return page("Rules", body)
 
 
-def switch_grid(names, on, at):
+def thumb(path, width, height):
+    """A small copy of picture `path` (None: None), made once with
+    ImageMagick as the stage pictures are, kept under build/ui/art/thumb:
+    a page of many pictures shown small loads small textures (the window
+    build's 32-bit space is tight)."""
+    import subprocess
+    if path is None:
+        return None
+    path = Path(path)
+    out = art.ART / "thumb" / ("%s-%dx%d.png" % (path.stem, width, height))
+    try:
+        if not out.exists() or out.stat().st_mtime < path.stat().st_mtime:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["magick", str(path), "-filter", "Lanczos",
+                            "-resize", "%dx%d!" % (width, height), "-depth",
+                            "8", str(out)], check=True,
+                           capture_output=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out
+
+
+def switch_grid(names, on, at, pics=None, square=False):
     """A switch's tiles, a row of SWITCH_COLUMNS each: its box filled when
-    on; `at` in focus."""
-    tiles = ['<div class="swt%s%s"><div class="box%s"/><div class="swn">%s'
-             '</div></div>' % (" focus" if i == at else "",
-                               "" if on[i] else " off",
-                               " on" if on[i] else "", esc(name))
-             for i, name in enumerate(names)]
+    on, its picture (`pics`, None for none yet: a stage's preview, an
+    item's icon, `square`) left of its name; `at` in focus."""
+    pics = pics or [None] * len(names)
+    shape = " swsq" if square else ""
+    tiles = ['<div class="swt%s%s"><div class="box%s"/>%s<div class="swn">'
+             '%s</div></div>' % (
+                 " focus" if i == at else "", "" if on[i] else " off",
+                 " on" if on[i] else "",
+                 '<img class="swpic%s" src="%s"/>' % (shape, picture(p))
+                 if p is not None else
+                 '<div class="swpic%s none"/>' % shape, esc(name))
+             for i, (name, p) in enumerate(zip(names, pics))]
     return "".join('<div class="swrow">%s</div>' % "".join(
         tiles[i:i + SWITCH_COLUMNS])
         for i in range(0, len(tiles), SWITCH_COLUMNS))
 
 
-def switch_page(title, names, on, at, desc, hints):
+def switch_page(title, names, on, at, desc, hints, pics=None,
+                square=False):
     """Versus / Rules / a switch (Item switch, Random stages): every item
-    or stage, A switching the one in focus."""
+    or stage with its picture, A switching the one in focus."""
     body = (
         header(["Versus", "Rules", title]) +
         '<div id="swgrid" class="swgrid">%s</div>' % switch_grid(
-            names, on, at) +
+            names, on, at, pics, square) +
         footer(desc, hints))
     return page(title, body)
 
