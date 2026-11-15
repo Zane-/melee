@@ -83,6 +83,7 @@
 #include <melee/gm/gmscene.h>
 #include <melee/ft/types.h>
 #include <melee/it/types.h>
+#include <melee/if/ifstock.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
 #include <sysdolphin/baselib/random.h>
@@ -267,6 +268,10 @@ void host_quit(void)
     exit(0);
 #endif
 }
+
+/// The match each player's HUD stock row was asked for in ("stocks"), so
+/// that it is kept through respawns (stock_rows); 0: never.
+static unsigned stock_row[4];
 
 void host_fighter_json(int slot, char* out, size_t size)
 {
@@ -801,6 +806,23 @@ static void command(char* line)
             host_match.color[p] = n;
             printf("@ ok\n");
         }
+    } else if (strcmp(cmd, "stocks") == 0) {
+        /* "stocks P N": player P has N stocks now. The HUD shows them as
+           it shows stocks (ifstock.c: N icons up to 5, one breaking when
+           N falls); in the endless time match they end nothing, so a
+           mode keeps its score in them (the client's Tennis) */
+        int p = 0, n = 0;
+        sscanf(line, "%d %d", &p, &n);
+        if (p < 0 || p >= 4 || n < 0 || n > 99) {
+            printf("@ error stocks P N: P 0..3, N 0..99\n");
+        } else {
+            Player_SetStocks(p, n);
+            if (stock_row[p] != host_match.entered) {
+                ifStock_802F98E8((u8) p, 0);
+                stock_row[p] = host_match.entered;
+            }
+            printf("@ ok\n");
+        }
     } else if (strcmp(cmd, "swap") == 0) {
         /* "swap P CK": player P's fighter is now character CK, in this
            frame, if the match loaded CK ("match ... CK") */
@@ -1170,9 +1192,39 @@ void host_control_resume(void)
     }
 }
 
+/// The HUD's stock row for the players a mode keeps its score in stocks
+/// for ("stocks"). The endless match's HUD shows one icon whatever the
+/// count (ifStock_802F98E8's mode 1); the row is made again as a stock
+/// match's (mode 0, which follows the count each frame) when the mode
+/// first asks in a match, and each time the game makes the player's HUD
+/// again: on a respawn (gm_1601.c), as the fighter enters Rebirth.
+static void stock_rows(void)
+{
+    static int reborn_before[4];
+
+    for (int p = 0; p < 4; p++) {
+        HSD_GObj* g;
+        int reborn;
+        if (stock_row[p] == 0 || stock_row[p] != host_match.entered) {
+            reborn_before[p] = 0;
+            continue;
+        }
+        g = Player_GetEntity(p);
+        reborn = g != NULL && host_live_fighter(g) &&
+                 GET_FIGHTER(g) != NULL &&
+                 GET_FIGHTER(g)->motion_id == 12; /* ftCo's Rebirth */
+        if (reborn && !reborn_before[p]) {
+            ifStock_802F98E8((u8) p, 0);
+        }
+        reborn_before[p] = reborn;
+    }
+}
+
 void host_control_frame(void)
 {
     char line[2048];
+
+    stock_rows();
 
     host_inputs_frame(); /* the input display, made once a match is on */
     if (!host_control_enabled) {

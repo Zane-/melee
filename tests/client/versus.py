@@ -3,7 +3,8 @@ on the other side, checked without a person or a desktop.
 
     python tests/client/versus.py [--shots DIR]
 
-Versus: Fox, the opponent screen (who plays the opponent), the stage
+Versus: Local's game mode (Unlimited; Tennis has tests/client/
+versus_modes.py), Fox, the opponent screen (who plays the opponent), the stage
 select, a match against Falco played by the model trained for that
 pairing: it has to load, answer nearly every frame without the game
 waiting for it, and play (move about, change state). Then the same Falco
@@ -72,6 +73,9 @@ def main():
         check("Versus opens on Local or Online", c.screen == "vmenu" and
               c.vfocus == "vlocal", c.screen)
         shot("versus-menu")
+        tap("x")
+        check("Local: the game mode first (modes.py), Unlimited in focus",
+              c.screen == "modes" and c.mode_at == 0, c.screen)
         tap("x")
         tap("x")
         check("Local: your character, then the opponent screen",
@@ -213,8 +217,11 @@ def main():
         # ---- the Lab ---------------------------------------------------------
         tap("z")
         tap("z")
-        check("B from the character select goes back to Local or Online",
-              c.screen == "vmenu", c.screen)
+        check("B from the character select goes back to the modes",
+              c.screen == "modes", c.screen)
+        tap("z")
+        check("and B again to Local or Online", c.screen == "vmenu",
+              c.screen)
         tap("z")
         tap("Right")
         check("back at the main menu, on Train",

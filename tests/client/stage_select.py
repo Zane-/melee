@@ -119,7 +119,8 @@ def main():
         # ---- the stage select ---------------------------------------------
         tap("Left")
         tap("x")                      # Versus: Local or Online
-        tap("x")                      # Local: the characters
+        tap("x")                      # Local: the game mode
+        tap("x")                      # Unlimited: the characters
         tap("x")                      # Fox
         tap("x")                      # Marth, the opponent
         check("after the characters, the stage select",

@@ -859,3 +859,31 @@ img { display: inline-block; }
 .sgbn { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 15dp; }
 .sgbl { font-size: 11dp; color: #A9B4C2; }
 .sgabout { margin-top: 8dp; font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }
+/* Versus's game modes (screens.mode_select): panels as the stages', each
+   its icon large on its colour; the card says how the mode is scored */
+.mgrid { position: absolute; left: 60dp; top: 120dp; width: 754dp; height: 496dp; display: flex; flex-direction: column; }
+.mgrow { height: 240dp; margin-bottom: 16dp; display: flex; flex-direction: row; flex-wrap: nowrap; }
+.mt { position: relative; width: 238dp; height: 238dp; margin-right: 16dp; border: 1dp #12161C; transform: skewX(-12deg); }
+.mt .ring { left: -8dp; top: -8dp; right: -8dp; bottom: -8dp; border-width: 5dp; }
+.mtin { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 30dp; transform: skewX(12deg); display: flex; align-items: center; justify-content: center; }
+.mticon { width: 112dp; height: 112dp; image-color: #F3F6FA; }
+.mticon.dark, .mcicon.dark { image-color: #12161C; }
+.mtstrip { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 30dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.mtstrip .un { font-family: "Barlow Condensed"; font-weight: 700; font-size: 18dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+.mchead { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 176dp; box-sizing: border-box; padding: 22dp 26dp 0dp 26dp; }
+.mcicon { position: absolute; right: 22dp; top: 18dp; width: 88dp; height: 88dp; image-color: #F3F6FA; opacity: 0.85; }
+.mcname { margin-top: 56dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 52dp; line-height: 1em; text-transform: uppercase; }
+.mctag { margin-top: 4dp; font-size: 15dp; font-weight: 600; }
+.mcbody { position: absolute; left: 26dp; top: 190dp; width: 336dp; height: 286dp; display: flex; flex-direction: column; }
+.mrule { display: flex; flex-direction: row; margin-top: 8dp; }
+.mdot { width: 8dp; height: 8dp; margin-top: 6dp; margin-right: 10dp; transform: skewX(-12deg); }
+.mrt { flex: 1; font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }
+/* Tennis's score as a track of stock icons: them, deuce, you */
+.mktrack { display: flex; flex-direction: row; margin-top: 14dp; padding-top: 10dp; border-top: 1dp #4A5361; }
+.mkcell { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.mkicons { height: 30dp; display: flex; flex-direction: row; align-items: center; justify-content: center; }
+.mkstock { width: 24dp; height: 24dp; margin: 0dp 1dp; }
+.mkcell.mid .mkicons { border-bottom: 2dp #F3F6FA; width: 24dp; height: 16dp; margin-bottom: 14dp; }
+.mklabel { margin-top: 2dp; font-size: 11dp; color: #A9B4C2; }
+.mksides { display: flex; flex-direction: row; margin-top: 4dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 11dp; font-weight: 600; color: #6B7686; }
+.vscore { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; color: #C9E24A; }

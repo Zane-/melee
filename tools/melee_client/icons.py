@@ -48,6 +48,11 @@ ICON = {
     "person": ("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
                False),
     "leave": ("M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11", False),
+    # Versus's game modes (modes.py)
+    "infinity": ("M12 12c-2-2.6-3.6-4-6-4a4 4 0 0 0 0 8c2.4 0 4-1.4 6-4zm0 0"
+                 "c2 2.6 3.6 4 6 4a4 4 0 0 0 0-8c-2.4 0-4 1.4-6 4z", False),
+    "tennis": ("M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM5.6 5.6c3.5 3.5 3.5 "
+               "9.3 0 12.8M18.4 5.6c-3.5 3.5-3.5 9.3 0 12.8", False),
     # the arrows either side of a value
     "left": ("M16 4L7 12l9 8z", True),
     "right": ("M8 4l9 8-9 8z", True),

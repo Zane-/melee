@@ -9,6 +9,12 @@ the window build.
 Everything goes to build/ui/art (git-ignored): the art is Nintendo's, read
 from the owner's disc on their machine, and never part of the repository.
 
+Stock icons (IfAll.usd, stock_icons): the HUD's texture animation of 130
+24x24 CI4 images and palettes, a frame for each character and costume as
+the game picks it (gm_80168B34: the character's place, Sheik 25, plus 30
+for each costume), the frame's image and palette read from the
+animation's keys.
+
 Where it is on the disc (MnSlChr.usd): one texture animation of 118 frames,
 136x188 CI8 with an RGB5A3 palette each; frames 0-24 are the default
 costumes in the game's character order without Sheik, then costumes 1, 2
@@ -35,6 +41,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 ART = ROOT / "build" / "ui" / "art"
 VERSION = 2   # of what is written here: a change makes it all again
+STOCK_VERSION = 1   # the stock icons', apart (Sheik's portraits stay)
 W, H = 136, 188
 # Each portrait is written with this much transparent border: the renderer
 # wraps a picture's edges round, which drew a line of the bottom edge (a
@@ -216,6 +223,114 @@ def emblems(arc):
     return out
 
 
+def ci4(d, p, w, h, palette):
+    """8x8 blocks of 4-bit palette indices, the high half first."""
+    bx, by = (w + 7) // 8, (h + 7) // 8
+    b = np.frombuffer(d, np.uint8, bx * by * 32, p).reshape(by, bx, 8, 4)
+    px = np.stack([b >> 4, b & 15], -1).reshape(by, bx, 8, 8)
+    return palette[px.transpose(0, 2, 1, 3).reshape(by * 8, bx * 8)[:h, :w]]
+
+
+def fobj_values(arc, fobj):
+    """{frame: value} at each key of an FObj (HSD fobj.c's key stream:
+    a header of operation and count, then each key's value and wait); a
+    frame between keys holds the last key's value (the stock icons' keys
+    are constant)."""
+    d = arc.d
+    length, start = struct.unpack_from(">If", d, fobj + 4)
+    fv = d[fobj + 13]
+    p, end = arc.u32(fobj + 16), arc.u32(fobj + 16) + length
+    kind, shift = fv & 0xE0, fv & 0x1F
+
+    def value():
+        nonlocal p
+        fmt, size = {0x00: (">f", 4), 0x20: (">h", 2), 0x40: (">H", 2),
+                     0x60: (">b", 1), 0x80: (">B", 1)}[kind]
+        v = struct.unpack_from(fmt, d, p)[0]
+        p += size
+        return v if kind == 0 else v / float(1 << shift)
+
+    def wait():
+        nonlocal p
+        w, sh = 0, 0
+        while True:
+            b = d[p]
+            p += 1
+            w |= (b & 0x7F) << sh
+            sh += 7
+            if not b & 0x80:
+                return w
+
+    out, t = {}, start
+    while p < end and d[p] & 0x0F:
+        op = d[p] & 0x0F
+        n, sh = (d[p] >> 4) & 7, 3
+        while d[p] & 0x80:
+            p += 1
+            n += (d[p] & 0x7F) << sh
+            sh += 7
+        p += 1
+        for _ in range(n + 1):
+            if op in (1, 2, 3):           # constant, linear, spline 0
+                out[t] = value()
+                t += wait()
+            elif op == 4:                 # spline: value, slope, wait
+                out[t] = value()
+                value()
+                t += wait()
+            elif op == 5:                 # a slope alone
+                value()
+            elif op == 6:                 # a value alone
+                out[t] = value()
+    return out
+
+
+def held(keys, frame):
+    """The value a constant track holds at `frame`."""
+    return keys[max(k for k in keys if k <= frame)]
+
+
+STOCK = 24
+
+
+def stock_icons(arc, count):
+    """{(character, costume): rgba} of the HUD's stock icons; `count`:
+    {character: costumes}."""
+    d = arc.d
+    for r in sorted(arc.rel):
+        ta = r - 0xC                # a TexAnim: its image table's field
+        if ta < 0 or ta + 0x18 > len(d) or (ta + 0x10) not in arc.rel or \
+                (ta + 8) not in arc.rel:
+            continue
+        n, m = struct.unpack_from(">HH", d, ta + 0x14)
+        if n != 130 or m != 130:
+            continue
+        images, tluts = arc.u32(ta + 0xC), arc.u32(ta + 0x10)
+        first = arc.u32(images)
+        if arc.image(first)[1:] != (STOCK, STOCK, 8):
+            continue
+        aobj = arc.u32(ta + 8)
+        tracks, f = {}, arc.u32(aobj + 8)
+        while f:
+            tracks[d[f + 12]] = fobj_values(arc, f)
+            f = arc.u32(f) if f in arc.rel else 0
+        img_keys, tlut_keys = tracks[1], tracks[10]   # TIMG, TCLT
+        out = {}
+        for cid, costumes in count.items():
+            base = 25 if cid == "sheik" else ORDER.index(cid)
+            for c in range(costumes):
+                frame = base + 30 * c
+                o = arc.u32(images + 4 * int(held(img_keys, frame)))
+                t = arc.u32(tluts + 4 * int(held(tlut_keys, frame)))
+                p, w, h, fmt = arc.image(o)
+                lut = arc.u32(t)
+                k = struct.unpack_from(">H", d, t + 12)[0]
+                palette = rgb5a3(np.frombuffer(d, ">u2", k, lut))
+                out[(cid, c)] = ci4(d, p, w, h, palette)
+        return out
+    raise ValueError("no stock icons in this file")
+
+
 def costume_of_frame():
     where, count = {}, {c: 0 for c in ORDER}
     for k in range(100):
@@ -234,6 +349,16 @@ def portrait(cid, n=0, root=ART):
     """The picture of character `cid` in costume `n`, or None."""
     path = root / "portrait" / ("%s-%d.png" % (cid, n))
     return path if path.exists() else None
+
+
+def stock(cid, n=0, root=ART):
+    """Character `cid`'s stock icon in costume `n` (the first costume's
+    if that one has none), or None."""
+    for k in (n, 0):
+        path = root / "stock" / ("%s-%d.png" % (cid, k))
+        if path.exists():
+            return path
+    return None
 
 
 def emblem(series, root=ART):
@@ -271,14 +396,30 @@ def extract(root=ART):
     (root / "stamp.json").write_text(json.dumps({"version": VERSION}))
 
 
+def extract_stocks(root=ART):
+    """The HUD's stock icons, every character and costume, into `root`."""
+    where, count = costume_of_frame()
+    count["sheik"] = SHEIK_COSTUMES
+    for (cid, n), rgba in stock_icons(Archive(disc_file("IfAll.usd")),
+                                      count).items():
+        out = np.zeros((STOCK + 2 * PAD, STOCK + 2 * PAD, 4), np.uint8)
+        out[PAD:PAD + STOCK, PAD:PAD + STOCK] = rgba
+        write_png(root / "stock" / ("%s-%d.png" % (cid, n)), out)
+    (root / "stock" / "VERSION").write_text(str(STOCK_VERSION))
+
+
 def ensure(root=ART):
     """The disc's art extracted, if it is not yet. True if it is there."""
-    if not extracted(root):
-        try:
+    try:
+        if not extracted(root):
             extract(root)
-        except (OSError, ValueError) as e:
-            print("art: %s" % e, file=sys.stderr)
-            return False
+        stamp = root / "stock" / "VERSION"
+        if not stamp.exists() or stamp.read_text().strip() != \
+                str(STOCK_VERSION):
+            extract_stocks(root)
+    except (OSError, ValueError) as e:
+        print("art: %s" % e, file=sys.stderr)
+        return False
     return True
 
 

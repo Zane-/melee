@@ -343,6 +343,41 @@ player keeps; drills and the Lab keep it as it was. `tests/client/stage_select.p
 checks); `menu.py`, `versus.py`, `course.py`, `sound.py`, `portraits.py`, `fullscreen.py`,
 `settings_menu.py` and `online.py` follow the new layout.
 
+**Versus's game modes, and Tennis (2026-11-14).** The owner: "We need to add support for
+different game modes instead of just the unlimited score game. Let's make our first mode
+Tennis. Here, scoring works like tug of war. A kill pulls it in your favor, and you have to
+win by +2 (so it is like starting at deuce in tennis) ... Make sure we have a good game mode
+selector so we can build up more and more custom game modes. Also make sure we display the
+score. The score should be the stock icon count, so at the start nothing shows up, then as a
+player takes a stock, it either removes the opponent's stock or adds one to theirs depending
+on the count." Versus > Local opens **Choose a mode** (`screens.mode_select`: a panel per
+mode, its icon on its colour, as the stages' grid; the card says how it is scored, Tennis's
+as a track of stock icons from the other side's game through deuce to yours); B on the
+character select comes back to it. A mode is a class in `tools/melee_client/modes.py` with
+its place in `MODES` (name, line, rules, icon, colour; `ko(port)`, `stocks()`, `status()`,
+`winner`): a new mode is a class and a line. **Unlimited** is the match as it was;
+**Tennis** keeps one number, the player's lead, a KO pulling it a point toward the side
+that took it (a self-destruct gives the point away), two ahead winning. Every match is
+still the game's endless time match; the client sees a KO as a fighter entering one of the
+game's dead states (`modes.KOs`). **The score is the game's own stock row.** The host's
+`stocks P N` (`Native.stocks`) sets a player's stocks, which end nothing in a time match;
+the endless match's HUD shows one icon whatever the count (`ifStock_802F98E8`'s mode 1), so
+the first time a match asks, the player's icons are made again as a stock match's (mode 0,
+which follows the count each frame, one icon breaking with the game's own effect as it
+falls), and again each time the game makes the player's HUD anew (on a respawn, as the
+fighter enters Rebirth: `stock_rows` in `control.c`). So at deuce nothing shows; the side
+ahead has its lead in icons of its character and costume. The column says the score in
+words (Deuce, Advantage Fox). At two ahead the game stops (`freeze`) with the result on the
+banner: A plays it again from deuce, B goes back to the stages. The endless match's own
+"+1"/"−1" pop-ups still show on each KO (they agree with the tug of war). Online is
+Unlimited for now (a mode would have to be agreed and scored alike on both sides). The
+client also reads the HUD's stock icons off the disc (`art.stock_icons`: IfAll.usd's
+texture animation of 130, each frame's image and palette from the animation's keys, frame
+= the character's place + 30 x costume as `gm_80168B34`) for the mode card.
+`tests/client/versus_modes.py` (the selector, a Tennis match against a fighter nobody
+plays, KOs made by dropping a fighter below the blast zone: the score, the HUD's stocks
+through respawns, the game's end, the rematch, B); `versus.py` follows the new step.
+
 **The character card: behind a wall (2026-11-14).** The game's portraits end flat at the
 bottom and the right of their frame, and the card's ink edge cut across each one. The
 owner chose the canvas's "A · Card: behind a wall" ("but I also want a line in between the

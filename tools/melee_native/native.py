@@ -379,6 +379,12 @@ class Native:
         until changed."""
         self._cmd("costume %d %d" % (port, n))
 
+    def stocks(self, port, n):
+        """Player `port` has `n` stocks now: the HUD shows `n` icons (up to
+        five; one breaks as `n` falls). In the endless time match they end
+        nothing: a game mode's score (the client's Tennis)."""
+        self._cmd("stocks %d %d" % (port, n))
+
     def inputs(self, mask):
         """TM-CE's input display (src/host/inputs.c) for the ports in `mask`
         (bit 0 port 1; 0 none): a GameCube controller each, at the top right
