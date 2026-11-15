@@ -72,11 +72,35 @@ def holds(e, f, fd):
             return f["percent"] > p["percent"]
         if e == "hitlag_end":
             return f["hitlag"] <= 0.0 < p["hitlag"]
+        if e == "hitlag_last":
+            return 0.0 < f["hitlag"] <= 1.0
+        if e == "shot":
+            return f["items"] > p["items"]
         return False
+    if "is" in e:
+        if not holds(e["is"], f, fd):
+            return False
+        cid = fd.id
+        if "from" in e and (p is None or not _in(p["state"], e["from"],
+                                                 cid)):
+            return False
+        if "to" in e and not _in(f["state"], e["to"], cid):
+            return False
     if e.get("in_air") and not f["air"]:
         return False
+    if "after" in e:
+        # an earlier frame of the attempt had it (the frames before, back
+        # to the attempt's start)
+        q, seen = f["p"], False
+        while q is not None and not seen:
+            seen = holds(e["after"], q, fd)
+            q = q["p"]
+        if not seen:
+            return False
     if e.get("on_ground") and f["air"]:
         return False
+    if "is" in e:
+        return True             # (its modifiers held, above)
     if "frame" in e:
         return f["i"] == int(F.value(e["frame"], f["nums"])) - 1
     if p is None:
@@ -135,21 +159,33 @@ class JsonDrill(Drill):
     def nums(self, c):
         return F.names(c.fd, c.fd.id.replace("-", " ").title())
 
+    lesson_scenario = None  # a lesson's own, while the client records it
+
     def scenario(self):
         """The scenario the part now is taught in (its "scenario", else
-        the first)."""
+        the first), or the lesson's being recorded."""
+        if self.lesson_scenario is not None:
+            return self.spec["scenarios"][self.lesson_scenario]
         return self.spec["scenarios"][self.part_now.get("scenario", 0)]
 
     @property
     def ref_start(self):
-        """Frames after the reset (and the runtime's REF_LEAD) before an
-        example's frame 1: the scenario's "lead", else 1 on the ledge (the
-        hang's intangibility runs from the placement: a player can let go
-        on its second frame) and REF_START elsewhere."""
+        """Frames after the reset (and the runtime's lead, ref_lead) before
+        an example's frame 1: the scenario's "lead", else none on the
+        ledge (the hang's intangibility runs from the placement: a player
+        can let go on its second frame) and REF_START elsewhere."""
         sc = self.scenario()
         if "lead" in sc:
             return sc["lead"]
-        return 1 if sc.get("player", {}).get("ledge") else REF_START
+        return 0 if sc.get("player", {}).get("ledge") else REF_START
+
+    @property
+    def ref_lead(self):
+        """The runtime's neutral frames before an example (engine.REF_LEAD):
+        none on the ledge."""
+        from melee_course.engine import REF_LEAD
+        return 0 if self.scenario().get("player", {}).get("ledge") else \
+            REF_LEAD
 
     @property
     def parts(self):
@@ -171,24 +207,25 @@ class JsonDrill(Drill):
         nums = self.nums(c)
         pl = sc["player"]
         pct = float(F.value(pl.get("percent", 0), nums))
+        px = float(F.value(pl.get("x", 0), nums))
         facing = -1 if pl.get("facing") == "left" else 1
         if pl.get("ledge"):
             c.place_on_ledge(pct)
         elif "above" in pl:
-            c.place_on_platform(float(pl["x"]), float(F.value(
-                pl["above"], nums)), facing, pct)
+            c.place_on_platform(px, float(F.value(pl["above"], nums)),
+                                facing, pct)
         elif pl.get("air"):
             c.side, c.toward = 1.0, -1.0
-            c.place_in_air(c.s.person, float(pl["x"]),
+            c.place_in_air(c.s.person, px,
                            float(F.value(pl.get("y", 30), nums)), facing,
                            pct)
         else:
             c.side, c.toward = 1.0, -1.0
-            c.n.place(c.s.person, float(pl["x"]), 0.0, facing, False, pct)
+            c.n.place(c.s.person, px, 0.0, facing, False, pct)
         op = sc.get("opponent", "none")
         if isinstance(op, dict):
             x = float(op["x"])
-            toward = -1 if x > float(pl.get("x", 0)) else 1
+            toward = -1 if x > px else 1
             c.place_cpu(x, -toward if op.get("facing") == "away" else
                         toward, float(F.value(op.get("percent", 0), nums)))
             self.op_refs = inputs_to_refs(op.get("inputs", []), nums, 1) \
@@ -230,8 +267,8 @@ class JsonDrill(Drill):
                 F.text(self.part_now["teach"], nums)]
 
     def build_reference(self, c):
-        return inputs_to_refs(self.part_now["example"], self.nums(c),
-                              self.ref_start)
+        return inputs_to_refs(F.pick(self.part_now, "example", c.fd.id),
+                              self.nums(c), self.ref_start)
 
     def timeline(self, c):
         nums = self.nums(c)
@@ -242,6 +279,12 @@ class JsonDrill(Drill):
             if "button" in r:
                 kw = dict(buttons=F.BUTTONS[r["button"]],
                           held=r.get("held", True))
+            elif "cstick" in r:
+                d = r["cstick"]
+                kw = dict(test=lambda e, d=d: (
+                    e["cy"] <= -STICK_SMASH < e["pcy"]) if d == "down" else
+                    (e["cy"] >= STICK_SMASH > e["pcy"]) if d == "up" else
+                    abs(e["cx"]) >= STICK_SMASH)
             elif "stick" in r:
                 d = r["stick"]
                 kw = dict(test=lambda e, d=d: (
@@ -276,6 +319,7 @@ class JsonDrill(Drill):
                     facing=1 if me.facing >= 0 else -1,
                     percent=me.percent, hitlag=me.hitlag,
                     invulnerable=me.invulnerable, held=held,
+                    items=len(c.n.state().get("items") or []),
                     lx=log.get("lx", 0), ly=log.get("ly", 0),
                     cx=log.get("cx", 0), cy=log.get("cy", 0),
                     p=self.v.get("last"), i=-1, nums=self.v.get("nums"))
@@ -293,7 +337,7 @@ class JsonDrill(Drill):
         for r in self.op_refs:
             # (a Ref's sticks are a script's -127..127, as cpu_press takes
             # them; frame 1 the first after the reset: the example's frame
-            # f is the opponent's f + REF_LEAD + ref_start, 13 by default)
+            # f is the opponent's f + ref_lead + ref_start, 13 by default)
             if r.frame <= t < r.frame + (r.hold or 1):
                 c.cpu_press(r.buttons,
                             int(r.lx * self.op_toward) if r.lx else None,
@@ -355,6 +399,20 @@ class JsonDrill(Drill):
                 return k
         return None
 
+    @staticmethod
+    def _cond(cond, f, fd=None):
+        """Does frame `f` meet condition `cond` (format.CONDITIONS, or
+        {"in": STATE})?"""
+        if isinstance(cond, dict):
+            return _in(f["state"], cond["in"], fd.id if fd else None)
+        if cond == "invulnerable":
+            return f["invulnerable"]
+        if cond == "airborne":
+            return f["air"]
+        if cond == "grounded":
+            return not f["air"]
+        return f["hitlag"] > 0
+
     def _measure(self, m, c, rec):
         fd = c.fd
         rec[-1]["last"] = True
@@ -395,6 +453,21 @@ class JsonDrill(Drill):
             return self._index(m["happened"], rec, fd) is not None
         if "count" in m:
             return sum(1 for f in rec if holds(m["count"], f, fd))
+        if "max_gap" in m:
+            # the most frames between two of it in a row (a multishine's
+            # slowest shine to the next)
+            at = [k for k, f in enumerate(rec) if holds(m["max_gap"], f, fd)]
+            return max(b - a for a, b in zip(at, at[1:])) \
+                if len(at) >= 2 else None
+        if "moved_while" in m:
+            # how far the fighter moved on frames that, with the frame
+            # before, are all C: in hitlag only SDI moves a fighter
+            total = 0.0
+            for a, b in zip(rec, rec[1:]):
+                if self._cond(m["moved_while"], a) and \
+                        self._cond(m["moved_while"], b):
+                    total += math.hypot(b["x"] - a["x"], b["y"] - a["y"])
+            return round(total, 2)
         if "value" in m:
             k = self._index(m.get("at", "end"), rec, fd)
             if k is None:
@@ -423,20 +496,9 @@ class JsonDrill(Drill):
             k = self._index(m.get("from", "start"), rec, fd)
             if k is None:
                 return None
-            cond = m["frames_while"]
             n = 0
             for f in rec[k:]:
-                if isinstance(cond, dict):
-                    ok = _in(f["state"], cond["in"], fd.id)
-                elif cond == "invulnerable":
-                    ok = f["invulnerable"]
-                elif cond == "airborne":
-                    ok = f["air"]
-                elif cond == "grounded":
-                    ok = not f["air"]
-                else:
-                    ok = f["hitlag"] > 0
-                if not ok:
+                if not self._cond(m["frames_while"], f, fd):
                     break
                 n += 1
             return n
@@ -468,7 +530,10 @@ class JsonDrill(Drill):
         if got is None:
             ok = False      # it never happened: nothing to compare
         elif "equals" in ck:
-            ok = got == ck["equals"]
+            want = ck["equals"]
+            if isinstance(want, str) and not isinstance(got, str):
+                want = F.value(want, nums)      # an expression: "J"
+            ok = got == want
         elif "at_most" in ck:
             ok = got <= F.value(ck["at_most"], nums)
         elif "at_least" in ck:

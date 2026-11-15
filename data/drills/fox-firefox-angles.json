@@ -1,0 +1,985 @@
+{
+  "id": "fox-firefox-angles",
+  "name": "Firefox angles",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Recover with Firefox at the angle each position needs.",
+  "why": "Firefox goes in one straight line at the angle held when it launches, and leaves Fox helpless after it. From each position only some angles reach the ledge or the stage; the rest end below the stage or short of it, and the stock is lost.",
+  "tutorial": {
+    "what": "Firefox charges for {42} frames, then launches on frame {43} in the direction the control stick holds on that frame. The angle has to point at the ledge or the stage from where the charge ends.",
+    "expect": "Each Firefox is judged when Fox grabs the ledge or lands, or when he has missed: the angle he launched at, and whether he reached. After misses, the coach shows your inputs frame by frame against the launch frame.",
+    "example": [
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 1
+      },
+      {
+        "press": "B",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0.0,
+          1.0
+        ],
+        "frame": 30,
+        "hold": 20
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: up-B. The charge",
+      "16": "Frame {16}: Fox starts to sink",
+      "43": "Frame {43}: launched straight up",
+      "73": "Frame {73}: the travel is over. Helpless"
+    },
+    "lessons": [
+      {
+        "title": "Charge and launch",
+        "text": [
+          "Up-B charges for {42} frames. For the first {15} Fox holds still in the air; for the rest he sinks slowly, about {6} units in all.",
+          "On frame {43} the game reads the control stick: Fox faces the way it points and launches at its angle, {0} degrees toward where he faces, {90} straight up. Each axis of the stick reads as 0 up to {22} of its {80} steps from the centre, so a stick within about {16} degrees of level launches level, one within about {16} degrees of vertical launches straight up, and so does neutral.",
+          "He travels {30} frames in a straight line, {81.5} units, slowing from {3.8} units a frame, then falls helpless: only the ledge or the stage ends the fall."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.94,
+                  0.342
+                ],
+                "frame": 30,
+                "hold": 20
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: up-B. The charge",
+              "16": "Frame {f}: sinking slowly",
+              "43": "Frame {43}: the stick is read. Launch",
+              "44": "Frame {f}: travel",
+              "73": "Frame {f}: helpless"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  15
+                ],
+                "words": "Charge: Fox holds still",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  16,
+                  42
+                ],
+                "words": "Charge: hold the angle",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  43,
+                  43
+                ],
+                "words": "Launch: the stick's angle now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  44,
+                  72
+                ],
+                "words": "Travel",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  73,
+                  110
+                ],
+                "words": "Helpless",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Far out: a shallow angle",
+        "scenario": 0,
+        "text": [
+          "Fox falls until the charge starts, so up-B at once: the angle a position needs changes with every frame of the fall.",
+          "From far out and above the stage, the stage is ahead: aim between {10} degrees down and {30} up. Steeper, the travel goes up instead of across and Fox falls short."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.94,
+                  0.342
+                ],
+                "frame": 30,
+                "hold": 20
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: up-B, far out and above the stage",
+              "43": "Frame {43}: launched at {20} degrees",
+              "73": "Frame {f}: helpless, drifting onto the stage"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  15
+                ],
+                "words": "Charge: Fox holds still",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  16,
+                  42
+                ],
+                "words": "Charge: hold the angle",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  43,
+                  43
+                ],
+                "words": "Launch: the stick's angle now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  44,
+                  72
+                ],
+                "words": "Travel",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  73,
+                  110
+                ],
+                "words": "Helpless",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Below the ledge: a diagonal",
+        "scenario": 1,
+        "text": "From out and below the ledge, the ledge is up and across: aim {30} to {50} degrees. Flatter, Fox flies into the side of the stage under the ledge; steeper, he falls short.",
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.766,
+                  0.643
+                ],
+                "frame": 30,
+                "hold": 20
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: up-B, out and below the ledge",
+              "43": "Frame {43}: launched at {40} degrees",
+              "73": "Frame {f}: helpless, drifting onto the stage"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  15
+                ],
+                "words": "Charge: Fox holds still",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  16,
+                  42
+                ],
+                "words": "Charge: hold the angle",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  43,
+                  43
+                ],
+                "words": "Launch: the stick's angle now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  44,
+                  72
+                ],
+                "words": "Travel",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  73,
+                  110
+                ],
+                "words": "Helpless",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Under the ledge: a steep angle",
+        "scenario": 2,
+        "text": "From close under the ledge, the underside of the stage is in the way of anything flatter: aim {70} to {90} degrees, nearly straight up. Fox rises past the ledge and catches it as he falls back.",
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.0,
+                  1.0
+                ],
+                "frame": 30,
+                "hold": 20
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: up-B, close under the ledge",
+              "43": "Frame {43}: launched straight up",
+              "73": "Frame {f}: helpless, falling back to the ledge"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  15
+                ],
+                "words": "Charge: Fox holds still",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  16,
+                  42
+                ],
+                "words": "Charge: hold the angle",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  43,
+                  43
+                ],
+                "words": "Launch: the stick's angle now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  44,
+                  72
+                ],
+                "words": "Travel",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  73,
+                  110
+                ],
+                "words": "Helpless",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Far out, above the stage",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": -175,
+        "y": 75
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
+    },
+    {
+      "name": "Out and below the ledge",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": -150,
+        "y": 0
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
+    },
+    {
+      "name": "Close under the ledge",
+      "stage": "final-destination",
+      "player": {
+        "air": true,
+        "x": -90,
+        "y": -30
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 300,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "firefox_charge"
+    },
+    "judge": [
+      {
+        "enters": "ledge_catch"
+      },
+      "lands"
+    ],
+    "limit": 130,
+    "timeout": "judge"
+  },
+  "measures": {
+    "angle": {
+      "angle": "velocity",
+      "at": {
+        "enters": "firefox"
+      }
+    },
+    "turned": {
+      "value": "turned",
+      "at": {
+        "enters": "firefox"
+      }
+    },
+    "recovered": {
+      "happened": [
+        {
+          "enters": "ledge_catch"
+        },
+        "lands"
+      ]
+    },
+    "start_y": {
+      "value": "y",
+      "at": "start"
+    }
+  },
+  "verdict": {
+    "success": "Recovered. Firefox launched at {angle} degrees."
+  },
+  "checks": {
+    "toward the stage": {
+      "measure": "turned",
+      "equals": false,
+      "expect": "Firefox toward the stage",
+      "words": "{char} turned away from the stage",
+      "headline": "Away from the stage",
+      "fix": "Hold the stick toward the stage as the charge ends. On frame {43} Fox turns to face the way the stick points."
+    },
+    "shallow": {
+      "measure": "angle",
+      "within": [
+        -10,
+        30
+      ],
+      "expect": "An angle from {10} degrees down to {30} up",
+      "words": "launched at {measure} degrees",
+      "headline": "Wrong angle for this position",
+      "fix": "From far out and above the stage, aim almost level: between {10} degrees down and {30} up. Steeper, the {81.5} units of travel go up instead of across and Fox falls short."
+    },
+    "diagonal": {
+      "measure": "angle",
+      "within": [
+        30,
+        50
+      ],
+      "expect": "An angle from {30} to {50} degrees",
+      "words": "launched at {measure} degrees",
+      "headline": "Wrong angle for this position",
+      "fix": "From out and below the ledge, aim diagonally: {30} to {50} degrees. Flatter, Fox flies into the side of the stage under the ledge; steeper, he falls short."
+    },
+    "steep": {
+      "measure": "angle",
+      "within": [
+        70,
+        90
+      ],
+      "expect": "An angle from {70} to {90} degrees",
+      "words": "launched at {measure} degrees",
+      "headline": "Wrong angle for this position",
+      "fix": "From close under the ledge, aim nearly straight up: {70} to {90} degrees. Anything flatter runs into the underside of the stage."
+    },
+    "recovered": {
+      "measure": "recovered",
+      "equals": true,
+      "expect": "The ledge or the stage reached",
+      "words": "missed; the charge began at height {start_y}, the ledge's is 0",
+      "headline": "Did not recover",
+      "fix": "Up-B as soon as the drill starts: until the charge begins Fox falls, and the lower he is, the steeper the angle has to be."
+    }
+  },
+  "parts": [
+    {
+      "name": "Far out: a shallow angle",
+      "teach": "Far out and above the stage: up-B, and hold the stick almost level toward the stage, between {10} degrees down and {30} up, as the charge ends: the stick is read on frame {43}.",
+      "scenario": 0,
+      "example": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.94,
+            0.342
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: up-B",
+        "43": "Frame {43}: launched at {20} degrees",
+        "73": "Frame {73}: helpless, drifting onto the stage"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            15
+          ],
+          "words": "Charge: Fox holds still",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            16,
+            42
+          ],
+          "words": "Charge: hold the angle",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            43,
+            43
+          ],
+          "words": "Launch: the stick's angle now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            44,
+            72
+          ],
+          "words": "Travel",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            73,
+            110
+          ],
+          "words": "Helpless",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "toward the stage",
+        "shallow",
+        "recovered"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Up-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Launch",
+            "state": "firefox",
+            "perfect": [
+              43
+            ],
+            "window": [
+              43,
+              43
+            ]
+          }
+        ],
+        "note": "The stick's direction on frame {43} sets the angle: here {10} degrees down to {30} up."
+      }
+    },
+    {
+      "name": "Below the ledge: a diagonal",
+      "teach": "Out and below the ledge: up-B, and hold the stick up and toward the stage, {30} to {50} degrees, as the charge ends.",
+      "scenario": 1,
+      "example": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.766,
+            0.643
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: up-B",
+        "43": "Frame {43}: launched at {40} degrees"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            15
+          ],
+          "words": "Charge: Fox holds still",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            16,
+            42
+          ],
+          "words": "Charge: hold the angle",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            43,
+            43
+          ],
+          "words": "Launch: the stick's angle now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            44,
+            72
+          ],
+          "words": "Travel",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            73,
+            110
+          ],
+          "words": "Helpless",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "toward the stage",
+        "diagonal",
+        "recovered"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Up-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Launch",
+            "state": "firefox",
+            "perfect": [
+              43
+            ],
+            "window": [
+              43,
+              43
+            ]
+          }
+        ],
+        "note": "The stick's direction on frame {43} sets the angle: here {30} to {50} degrees."
+      }
+    },
+    {
+      "name": "Under the ledge: a steep angle",
+      "teach": "Close under the ledge: up-B, and hold the stick up, {70} to {90} degrees, as the charge ends. Fox rises past the ledge and catches it on the way down.",
+      "scenario": 2,
+      "example": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.0,
+            1.0
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: up-B",
+        "43": "Frame {43}: launched straight up",
+        "73": "Frame {73}: helpless, falling back to the ledge"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            15
+          ],
+          "words": "Charge: Fox holds still",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            16,
+            42
+          ],
+          "words": "Charge: hold the angle",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            43,
+            43
+          ],
+          "words": "Launch: the stick's angle now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            44,
+            72
+          ],
+          "words": "Travel",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            73,
+            110
+          ],
+          "words": "Helpless",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "toward the stage",
+        "steep",
+        "recovered"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Up-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Launch",
+            "state": "firefox",
+            "perfect": [
+              43
+            ],
+            "window": [
+              43,
+              43
+            ]
+          }
+        ],
+        "note": "The stick's direction on frame {43} sets the angle: here {70} to {90} degrees."
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "away from the stage",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -0.707,
+            0.707
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "fails": "toward the stage"
+    },
+    {
+      "name": "steep from far out",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.5,
+            0.866
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "fails": "shallow"
+    },
+    {
+      "name": "up-B late from far out",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 26
+        },
+        {
+          "press": "B",
+          "frame": 26,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.985,
+            0.174
+          ],
+          "frame": 55,
+          "hold": 20
+        }
+      ],
+      "fails": "recovered"
+    },
+    {
+      "name": "flat from below the ledge",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1.0,
+            0.0
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "fails": "diagonal"
+    },
+    {
+      "name": "diagonal from under the ledge",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.766,
+            0.643
+          ],
+          "frame": 30,
+          "hold": 20
+        }
+      ],
+      "fails": "steep"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Up-B",
+        "button": "B",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Launch",
+        "state": "firefox",
+        "perfect": [
+          43
+        ],
+        "window": [
+          43,
+          43
+        ]
+      }
+    ],
+    "note": "The stick's direction on frame {43} sets the angle."
+  }
+}

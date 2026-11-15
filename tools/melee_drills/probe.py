@@ -56,7 +56,7 @@ def main():
         drill.build_reference = lambda c: inputs_to_refs(
             inputs, drill.nums(c), drill.ref_start)
         lines = []
-        lead = engine.REF_LEAD + drill.ref_start - 1
+        lead = drill.ref_lead + drill.ref_start - 1
 
         def each(n, frame):
             if s.demo_pass != 2 or frame <= lead - 3 or \

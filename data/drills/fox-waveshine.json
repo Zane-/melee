@@ -1,0 +1,760 @@
+{
+  "id": "fox-waveshine",
+  "name": "Waveshine",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Shine, jump out of it, and wavedash.",
+  "why": "A waveshine slides Fox along the ground while the opponent is still in the shine's hitstun, into range for an up smash, a grab or another shine. Done frame-perfectly, Fox can act again {16} frames after the shine came out.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A waveshine is a shine, a jump out of it on frame {4}, and an air dodge down and forward on frame {J+4}, the frame the jump squat ends. The air dodge drives Fox into the ground on that same frame, so he slides instead of rising.",
+    "expect": "Each waveshine is judged when its landing lag ends: the frame of the jump, the frame Fox landed and how far he slid. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 1
+      },
+      {
+        "press": "B",
+        "frame": 1
+      },
+      {
+        "press": "jump",
+        "frame": 4,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0.7,
+          -0.7
+        ],
+        "frame": 7,
+        "hold": 2
+      },
+      {
+        "press": "R",
+        "frame": 7,
+        "hold": 2
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: down-B. The hitbox and the intangibility last this frame only",
+      "4": "Frame {4}: X pressed. The shine is cancelled into the jump squat",
+      "J+4": "Frame {J+4}: R and the stick down and forward. Fox lands at once",
+      "J+13": "Frame {J+13}: the last frame of landing lag",
+      "J+14": "Frame {J+14}: Fox can act"
+    },
+    "lessons": [
+      {
+        "title": "Jump out of the shine",
+        "text": [
+          "The shine comes out on the frame down-B is pressed, frame 1. Its hitbox and Fox's intangibility last that frame only, and frames {2} and {3} cannot be cancelled.",
+          "From frame {4}, pressing X or Y while the shine is out starts a jump squat. A jump pressed on frames 1 to {3} is ignored, and holding it does not carry it over to frame {4}: the press itself has to come on frame {4} or later."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1
+              },
+              {
+                "press": "jump",
+                "frame": 4,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: down-B. The shine comes out",
+              "2": "Frame {f}: the shine. A jump pressed now is ignored",
+              "4": "Frame {4}: X pressed. The jump squat begins",
+              "5": "Frame {f}: jump squat",
+              "J+4": "Frame {J+4}: airborne"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  3
+                ],
+                "words": "Too soon: a jump is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  4,
+                  4
+                ],
+                "words": "Jump now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  5,
+                  "J+3"
+                ],
+                "words": "Jump squat",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+4",
+                  "J+30"
+                ],
+                "words": "Airborne",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Air dodge into the ground",
+        "text": [
+          "The jump squat lasts {J} frames, {4} to {J+3}. On frame {J+4} Fox leaves the ground, and an air dodge pressed on that frame with the stick down and forward drives him back into the floor in the same frame. He lands with {10} frames of landing lag, frames {J+4} to {J+13}, sliding, and can act on frame {J+14}.",
+          "L or R pressed during the jump squat is ignored, and Fox jumps. Pressed a frame late, the air dodge starts from higher and Fox lands {2} frames later."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1
+              },
+              {
+                "press": "jump",
+                "frame": 4,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.7,
+                  -0.7
+                ],
+                "frame": 7,
+                "hold": 2
+              },
+              {
+                "press": "R",
+                "frame": 7,
+                "hold": 2
+              }
+            ],
+            "marks": {
+              "4": "Frame {4}: jump pressed out of the shine",
+              "5": "Frame {f}: jump squat. L or R pressed now is ignored",
+              "J+4": "Frame {J+4}: R and the stick down and forward. Fox lands",
+              "J+5": "Frame {f}: sliding in landing lag",
+              "J+14": "Frame {J+14}: free to act"
+            },
+            "cues": [
+              {
+                "frames": [
+                  4,
+                  "J+3"
+                ],
+                "words": "Jump squat: an air dodge is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+4",
+                  "J+4"
+                ],
+                "words": "Air dodge now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+5",
+                  "J+13"
+                ],
+                "words": "Landing lag: sliding",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+14",
+                  "J+30"
+                ],
+                "words": "Free to act",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "shine_ground"
+    },
+    "judge": [
+      {
+        "leaves": "landing_special"
+      },
+      {
+        "enters": "landing"
+      },
+      {
+        "enters": "aerial_landing"
+      },
+      {
+        "leaves": "shine",
+        "to": "wait"
+      }
+    ],
+    "cancel": "hit",
+    "limit": 60,
+    "timeout": "judge"
+  },
+  "measures": {
+    "jumped": {
+      "happened": {
+        "enters": "jump_squat"
+      }
+    },
+    "jump_frame": {
+      "frame_of": {
+        "enters": "jump_squat"
+      }
+    },
+    "wavedashed": {
+      "happened": {
+        "enters": "landing_special"
+      }
+    },
+    "land_frame": {
+      "frame_of": {
+        "enters": "landing_special"
+      }
+    },
+    "to_land": {
+      "frames": [
+        {
+          "enters": "jump_squat"
+        },
+        {
+          "enters": "landing_special"
+        }
+      ]
+    },
+    "slide": {
+      "distance": [
+        "start",
+        "end"
+      ],
+      "axis": "x"
+    }
+  },
+  "verdict": {
+    "success": "Waveshine. Landed on frame {land_frame}, slid {slide} units."
+  },
+  "checks": {
+    "jumped": {
+      "measure": "jumped",
+      "equals": true,
+      "expect": "A jump out of the shine",
+      "words": "{char} stayed in the shine",
+      "headline": "No jump out of the shine",
+      "fix": "Press X or Y on frame {4} of the shine or later, while the shine is still out. A jump pressed on frames 1 to {3} is ignored."
+    },
+    "jump in time": {
+      "measure": "jump_frame",
+      "at_most": 6,
+      "expect": "Jump on frame {4}, {5} or {6}",
+      "words": "jumped on frame {measure}",
+      "headline": "Late jump",
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+    },
+    "air dodged": {
+      "measure": "wavedashed",
+      "equals": true,
+      "expect": "An air dodge into the ground",
+      "words": "landed without an air dodge",
+      "headline": "No air dodge",
+      "fix": "Press L or R on frame {J+4}, the first frame Fox is off the ground, with the stick down and forward. L or R pressed during the jump squat is ignored."
+    },
+    "first airborne frame": {
+      "measure": "to_land",
+      "at_most": "J+2",
+      "expect": "Land within {J+2} frames of the jump",
+      "words": "landed {frames} after the jump; frame-perfect is {J}",
+      "headline": "Late air dodge",
+      "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump. Each frame later, Fox rises higher and lands later."
+    },
+    "slide": {
+      "measure": "slide",
+      "at_least": 10,
+      "expect": "A slide of {10} units or more",
+      "words": "slid {measure} units",
+      "headline": "No slide",
+      "fix": "Hold the stick down and forward as you air dodge, not straight down. The closer the stick is to the horizontal, the longer the slide."
+    }
+  },
+  "parts": [
+    {
+      "name": "Jump out of the shine",
+      "teach": "Shine with down-B, then press X or Y on frame {4}. The shine accepts a jump from its fourth frame; a jump pressed earlier is ignored.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: down-B. The shine comes out",
+        "4": "Frame {4}: X pressed. The jump squat begins",
+        "J+4": "Frame {J+4}: airborne"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            3
+          ],
+          "words": "Too soon: a jump is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            4,
+            4
+          ],
+          "words": "Jump now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            5,
+            "J+3"
+          ],
+          "words": "Jump squat",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "jump_squat"
+          },
+          {
+            "leaves": "shine",
+            "to": "wait"
+          }
+        ]
+      },
+      "checks": [
+        "jumped",
+        "jump in time"
+      ],
+      "success": "Jumped out of the shine on frame {jump_frame}.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              4
+            ],
+            "window": [
+              4,
+              6
+            ]
+          }
+        ],
+        "note": "The shine accepts a jump from frame {4}."
+      }
+    },
+    {
+      "name": "Air dodge on frame {J+4}",
+      "teach": "Shine, jump on frame {4}, and press R with the stick down and forward on frame {J+4}, as the jump squat ends. Fox meets the ground on that frame and slides.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 7,
+          "hold": 2
+        },
+        {
+          "press": "R",
+          "frame": 7,
+          "hold": 2
+        }
+      ],
+      "marks": {
+        "4": "Frame {4}: X pressed out of the shine",
+        "J+4": "Frame {J+4}: R and the stick down and forward. Fox lands",
+        "J+14": "Frame {J+14}: free to act"
+      },
+      "cues": [
+        {
+          "frames": [
+            4,
+            "J+3"
+          ],
+          "words": "Jump squat",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "J+4",
+            "J+4"
+          ],
+          "words": "Air dodge now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+5",
+            "J+13"
+          ],
+          "words": "Landing lag",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "jumped",
+        "jump in time",
+        "air dodged",
+        "first airborne frame"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              4
+            ],
+            "window": [
+              4,
+              6
+            ]
+          },
+          {
+            "label": "Air dodge",
+            "button": "shield",
+            "perfect": [
+              "J+4"
+            ],
+            "window": [
+              "J+4",
+              "J+5"
+            ]
+          }
+        ],
+        "note": "Jump on frame {4}; the jump squat ends after {J} frames, and the air dodge goes on frame {J+4}."
+      }
+    },
+    {
+      "name": "Waveshine",
+      "teach": "The whole waveshine, with the stick angled forward for a slide of {10} units or more. Five in a row.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 7,
+          "hold": 2
+        },
+        {
+          "press": "R",
+          "frame": 7,
+          "hold": 2
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: down-B",
+        "4": "Frame {4}: X",
+        "J+4": "Frame {J+4}: R, stick down and forward",
+        "J+14": "Frame {J+14}: free to act"
+      },
+      "checks": [
+        "jumped",
+        "jump in time",
+        "air dodged",
+        "first airborne frame",
+        "slide"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "jump pressed before frame 4",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 3,
+          "hold": 1
+        }
+      ],
+      "fails": "jumped"
+    },
+    {
+      "name": "air dodge during the jump squat",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 6,
+          "hold": 3
+        },
+        {
+          "press": "R",
+          "frame": 6,
+          "hold": 3
+        }
+      ],
+      "fails": "air dodged"
+    },
+    {
+      "name": "air dodge three frames late",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 10,
+          "hold": 2
+        },
+        {
+          "press": "R",
+          "frame": 10,
+          "hold": 2
+        }
+      ],
+      "fails": "first airborne frame"
+    },
+    {
+      "name": "air dodge straight down",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7,
+          "hold": 2
+        },
+        {
+          "press": "R",
+          "frame": 7,
+          "hold": 2
+        }
+      ],
+      "fails": "slide"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Jump",
+        "button": "jump",
+        "perfect": [
+          4
+        ],
+        "window": [
+          4,
+          6
+        ]
+      },
+      {
+        "label": "Air dodge",
+        "button": "shield",
+        "perfect": [
+          "J+4"
+        ],
+        "window": [
+          "J+4",
+          "J+5"
+        ]
+      }
+    ],
+    "note": "Jump on frame {4}; air dodge on frame {J+4}, as the jump squat ends."
+  }
+}

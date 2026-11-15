@@ -1,0 +1,754 @@
+{
+  "id": "fox-shorten",
+  "name": "Shortened Illusion",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Stop Illusion at the length you choose.",
+  "why": "A full Illusion always covers the same distance, so an opponent can time a hit on its path or on where it ends. Stopping it with B gives three shorter lengths, and the one chosen decides where Fox ends up: short of the hit, at the ledge instead of past it, or at a chosen spot on the stage.",
+  "tutorial": {
+    "what": "Illusion dashes on frames {20} to {23}. B pressed during the dash stops it on that frame, before the frame's move: each frame of dash adds {18.72} units, and the slide after the dash adds {23.1}.",
+    "expect": "Each Illusion is judged when it ends: how far Fox travelled, and on which frame the dash ended. After misses, the coach shows your inputs frame by frame against the frame for the length asked.",
+    "example": [
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 1
+      },
+      {
+        "press": "B",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "B",
+        "frame": 23,
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: side-B. Startup",
+      "20": "Frame {20}: the dash begins",
+      "21": "Frame {21}: the first move, {18.72} units",
+      "22": "Frame {22}: the second move",
+      "23": "Frame {23}: B pressed. The dash stops before its third move",
+      "24": "Frame {f}: sliding"
+    },
+    "lessons": [
+      {
+        "title": "Illusion's frames",
+        "text": [
+          "Side-B starts with {19} frames of startup, Fox standing in place. On frame {20} the dash begins, and Fox moves {18.72} units on each of frames {21}, {22} and {23}.",
+          "On frame {24} the dash is over: Fox slides another {23.1} units while slowing down, and on the ground he can act again on frame {64}. In all, {79.26} units."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: side-B. Startup",
+              "20": "Frame {20}: the dash begins",
+              "21": "Frame {f}: dash, {18.72} units this frame",
+              "24": "Frame {f}: sliding",
+              "64": "Frame {64}: Fox can act"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  19
+                ],
+                "words": "Startup",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  20,
+                  23
+                ],
+                "words": "Dash",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  24,
+                  63
+                ],
+                "words": "Slide",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Stopping the dash",
+        "text": [
+          "B pressed during the dash ends it on that frame, before the frame's move. B on frame {20} or {21}: no move, {23.1} units in all. Frame {22}: one move, {41.82} units. Frame {23}: two moves, {60.54} units. With no B, or B from frame {24}, the dash is already over: {79.26} units.",
+          "B pressed during the startup is ignored, and holding B from the side-B does nothing: the stop takes a new press during the dash."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: side-B",
+              "2": "Frame {f}: startup. B now is ignored",
+              "20": "Frame {f}: B here stops Illusion at {23} units",
+              "22": "Frame {22}: B here stops it at {42} units",
+              "23": "Frame {23}: B here stops it at {61} units",
+              "24": "Frame {f}: the dash is over. Full length, {79} units"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  19
+                ],
+                "words": "Startup: B is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  20,
+                  21
+                ],
+                "words": "B now: {23} units",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  22,
+                  22
+                ],
+                "words": "B now: {42} units",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  23,
+                  23
+                ],
+                "words": "B now: {61} units",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  24,
+                  63
+                ],
+                "words": "Full length: {79} units",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -70
+      },
+      "opponent": "none",
+      "camera": "stage"
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "illusion",
+      "on_ground": true
+    },
+    "judge": {
+      "leaves": "illusion"
+    },
+    "limit": 80,
+    "timeout": "judge"
+  },
+  "measures": {
+    "length": {
+      "value": "dx",
+      "at": "end"
+    },
+    "stop": {
+      "frame_of": {
+        "enters": "illusion_end"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Illusion: {length} units, the dash ended on frame {stop}."
+  },
+  "checks": {
+    "length 79": {
+      "measure": "length",
+      "within": [
+        74,
+        85
+      ],
+      "expect": "Full length, {79} units",
+      "words": "{measure} units; the dash ended on frame {stop}",
+      "headline": "Wrong length",
+      "fix": "Let the dash run out: no B after the side-B. Any B pressed during the dash stops it."
+    },
+    "length 23": {
+      "measure": "length",
+      "within": [
+        18,
+        28
+      ],
+      "expect": "{23} units: B on frame {20} or {21}",
+      "words": "{measure} units; the dash ended on frame {stop}",
+      "headline": "Wrong length",
+      "fix": "Press B on frame {20} or {21}, the first two frames of the dash, {19} frames after side-B. B during the startup is ignored; B on frame {22} goes {42} units."
+    },
+    "length 42": {
+      "measure": "length",
+      "within": [
+        37,
+        47
+      ],
+      "expect": "{42} units: B on frame {22}",
+      "words": "{measure} units; the dash ended on frame {stop}",
+      "headline": "Wrong length",
+      "fix": "Press B on frame {22}, the third frame of the dash. B on frame {21} goes {23} units, and B on frame {23} goes {61}."
+    },
+    "length 61": {
+      "measure": "length",
+      "within": [
+        55,
+        66
+      ],
+      "expect": "{61} units: B on frame {23}",
+      "words": "{measure} units; the dash ended on frame {stop}",
+      "headline": "Wrong length",
+      "fix": "Press B on frame {23}, the last frame of the dash. B on frame {22} goes {42} units; from frame {24} the dash is over and Illusion goes its full {79}."
+    }
+  },
+  "parts": [
+    {
+      "name": "Full length",
+      "teach": "Side-B alone: {19} frames of startup, the dash on frames {20} to {23}, then the slide. {79} units.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: side-B",
+        "20": "Frame {20}: the dash begins",
+        "24": "Frame {24}: the slide"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            19
+          ],
+          "words": "Startup",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            20,
+            23
+          ],
+          "words": "Dash",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            24,
+            63
+          ],
+          "words": "Slide",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "length 79"
+      ],
+      "streak": 2,
+      "coach": {
+        "rows": [
+          {
+            "label": "Side-B and B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Dash",
+            "state": "illusion_dash",
+            "held": true,
+            "perfect": [
+              20,
+              21,
+              22,
+              23
+            ]
+          }
+        ],
+        "note": "The dash runs on frames {20} to {23}."
+      }
+    },
+    {
+      "name": "{23} units: B on frame {20} or {21}",
+      "teach": "Side-B, then B on the first or second frame of the dash: Illusion stops before it moves, {23} units with the slide.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 20,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: side-B",
+        "20": "Frame {20}: B. The dash stops before moving",
+        "21": "Frame {f}: sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            19
+          ],
+          "words": "Startup: B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            20,
+            21
+          ],
+          "words": "B now: {23} units",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            22,
+            40
+          ],
+          "words": "Slide",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "length 23"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Side-B and B",
+            "button": "B",
+            "perfect": [
+              1,
+              20
+            ],
+            "window": [
+              20,
+              21
+            ]
+          },
+          {
+            "label": "Dash",
+            "state": "illusion_dash",
+            "held": true,
+            "perfect": [
+              20
+            ]
+          }
+        ],
+        "note": "B on frame {20} or {21}: {23} units."
+      }
+    },
+    {
+      "name": "{42} units: B on frame {22}",
+      "teach": "Side-B, then B on frame {22}: one move of {18.72} units, then the slide. {42} units.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 22,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: side-B",
+        "21": "Frame {21}: one move",
+        "22": "Frame {22}: B. The dash stops",
+        "23": "Frame {f}: sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            19
+          ],
+          "words": "Startup: B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            20,
+            21
+          ],
+          "words": "Dash",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            22,
+            22
+          ],
+          "words": "B now: {42} units",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            23,
+            40
+          ],
+          "words": "Slide",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "length 42"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Side-B and B",
+            "button": "B",
+            "perfect": [
+              1,
+              22
+            ],
+            "window": [
+              22,
+              22
+            ]
+          },
+          {
+            "label": "Dash",
+            "state": "illusion_dash",
+            "held": true,
+            "perfect": [
+              20,
+              21
+            ]
+          }
+        ],
+        "note": "B on frame {22}: {42} units."
+      }
+    },
+    {
+      "name": "{61} units: B on frame {23}",
+      "teach": "Side-B, then B on frame {23}, the last frame of the dash: two moves, then the slide. {61} units.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 23,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: side-B",
+        "22": "Frame {22}: two moves",
+        "23": "Frame {23}: B. The dash stops",
+        "24": "Frame {f}: sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            19
+          ],
+          "words": "Startup: B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            20,
+            22
+          ],
+          "words": "Dash",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            23,
+            23
+          ],
+          "words": "B now: {61} units",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            24,
+            40
+          ],
+          "words": "Slide",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "length 61"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Side-B and B",
+            "button": "B",
+            "perfect": [
+              1,
+              23
+            ],
+            "window": [
+              23,
+              23
+            ]
+          },
+          {
+            "label": "Dash",
+            "state": "illusion_dash",
+            "held": true,
+            "perfect": [
+              20,
+              21,
+              22
+            ]
+          }
+        ],
+        "note": "B on frame {23}: {61} units."
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "B pressed again for the full length",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 22,
+          "hold": 1
+        }
+      ],
+      "fails": "length 79"
+    },
+    {
+      "name": "B during the startup",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 19,
+          "hold": 1
+        }
+      ],
+      "fails": "length 23"
+    },
+    {
+      "name": "B one frame late for 42",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 23,
+          "hold": 1
+        }
+      ],
+      "fails": "length 42"
+    },
+    {
+      "name": "B one frame early for 61",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 22,
+          "hold": 1
+        }
+      ],
+      "fails": "length 61"
+    },
+    {
+      "name": "B one frame late for 61",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 24,
+          "hold": 1
+        }
+      ],
+      "fails": "length 61"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Side-B and B",
+        "button": "B",
+        "perfect": [
+          1,
+          23
+        ],
+        "window": [
+          23,
+          23
+        ]
+      },
+      {
+        "label": "Dash",
+        "state": "illusion_dash",
+        "held": true,
+        "perfect": [
+          20,
+          21,
+          22
+        ]
+      }
+    ],
+    "note": "The dash runs on frames {20} to {23}; B stops it before that frame's move."
+  }
+}

@@ -9,6 +9,11 @@ measured in the game (headless), into data/drills/numbers.json:
 - LD: the earliest frame of a ledgedash's air dodge that lands on the stage
   (let go of the ledge on frame 1, jump on frame 2, the stick toward the
   stage, the air dodge down and in at 45 degrees): Fox 5, Peach 29.
+- NL: the frame a short hop with a neutral air (A on its top, frame SA)
+  lands on; NFL: the same with the neutral air on SA-4 and a fast fall
+  (down on SA for 3 frames): where an L-cancel or a SHFFL lands.
+- SHD: how far a short hop goes with the stick held forward from frame 1
+  to the landing (a drill placed SHD from an edge lands at it).
 
 format.names() adds them to a character's numbers. Each is measured with
 the drills' own scenarios (data/drills/universal-*.json), as a player's
@@ -44,11 +49,11 @@ def frames(game, ch, drill_id, inputs, n):
                        dpad=False)
     drill.build_reference = lambda c: inputs_to_refs(inputs, drill.nums(c),
                                                      drill.ref_start)
-    lead = engine.REF_LEAD + drill.ref_start - 1
+    lead = drill.ref_lead + drill.ref_start - 1
     got = []
 
     def each(g, frame):
-        if s.demo_pass != 2 or frame <= lead:
+        if s.demo_pass != 2 or frame <= lead + 1:
             return
         f = g.fighter(s.person)
         got.append((f.state, f.airborne, f.pos[0]))
@@ -76,6 +81,32 @@ def short_hop_landing(game, ch):
     return next(i for i in range(up, len(rec)) if not rec[i][1]) + 1
 
 
+def landing(rec):
+    """The first frame on the ground after the first in the air (1 the
+    example's first), and the x moved by then."""
+    up = next(i for i, r in enumerate(rec) if r[1])
+    down = next(i for i in range(up, len(rec)) if not rec[i][1])
+    return down + 1, abs(rec[down][2] - rec[0][2])
+
+
+def aerial_landings(game, ch):
+    nums = JsonDrill(F.load("universal-fast-fall")).nums
+    from melee_course.engine import FighterData
+    sa = F.names(FighterData.of(ch))["SA"]
+    nl, _ = landing(frames(game, ch, "universal-dash-dance", [
+        {"press": "jump", "frame": 1, "hold": 1},
+        {"press": "A", "frame": sa, "hold": 1}], 120))
+    nfl, _ = landing(frames(game, ch, "universal-dash-dance", [
+        {"press": "jump", "frame": 1, "hold": 1},
+        {"press": "A", "frame": sa - 4, "hold": 1},
+        {"stick": [0, -1], "frame": sa, "hold": 3}], 120))
+    _, shd = landing(frames(game, ch, "universal-dash-dance", [
+        {"press": "jump", "frame": 1, "hold": 1},
+        {"stick": [1, 0], "frame": 1, "hold": 100}], 120))
+    del nums
+    return {"NL": nl, "NFL": nfl, "SHD": round(shd, 1)}
+
+
 def ledgedash_frame(game, ch):
     for k in range(4, 40):
         inputs = [{"stick": [0, -1], "frame": 1, "hold": 1},
@@ -94,7 +125,13 @@ def ledgedash_frame(game, ch):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chars")
+    ap.add_argument("--only", help="numbers to measure, comma separated "
+                    "(the others kept): DASH,SL,LD,NL,NFL,SHD")
     args = ap.parse_args()
+    only = set(args.only.split(",")) if args.only else None
+
+    def want(*names):
+        return only is None or any(n in only for n in names)
     chars = args.chars.split(",") if args.chars else sorted(
         f[:-5] for f in os.listdir(os.path.join(F.ROOT, "data", "framedata"))
         if f.endswith(".json"))
@@ -103,11 +140,17 @@ def main():
         with open(OUT) as f:
             have = json.load(f)
     for ch in chars:
-        with Native() as game:
-            nums = {"DASH": dash_frames(game, ch),
-                    "SL": short_hop_landing(game, ch)}
-        with Native() as game:
-            nums["LD"] = ledgedash_frame(game, ch)
+        nums = dict(have.get(ch, {}))
+        if want("DASH", "SL"):
+            with Native() as game:
+                nums.update(DASH=dash_frames(game, ch),
+                            SL=short_hop_landing(game, ch))
+        if want("NL", "NFL", "SHD"):
+            with Native() as game:
+                nums.update(aerial_landings(game, ch))
+        if want("LD"):
+            with Native() as game:
+                nums["LD"] = ledgedash_frame(game, ch)
         have[ch] = nums
         print("%-18s %s" % (ch, nums), flush=True)
     with open(OUT, "w") as f:

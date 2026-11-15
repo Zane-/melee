@@ -67,6 +67,9 @@ STATES = {
     "aerial_landing": (70, 71, 72, 73, 74),
     "shield": (178, 179, 180, 181, 182), "grab": 212, "dash_grab": 214,
     "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),
+    "roll": (233, 234), "spot_dodge": 235,
+    # hit: in hitstun (DamageHi1 to DamageFlyRoll); launched (DamageFly*)
+    "damage": tuple(range(75, 92)), "tumble": (87, 88, 89, 90, 91),
     "ledge": (252, 253), "ledge_catch": 252, "ledge_hang": 253,
     # Fox
     "laser": (341, 342, 343, 344, 345, 346),
@@ -84,6 +87,9 @@ STATES = {
 CHAR_STATES = {
     "kirby": {"double_jump": (27, 28) + tuple(range(341, 351))},
     "jigglypuff": {"double_jump": (27, 28) + tuple(range(341, 346))},
+    # Ness's up smash charges in states of its own; Yoshi's shield is his
+    "ness": {"up_smash": (63, 342, 343, 344)},
+    "yoshi": {"shield": (178, 179, 180, 181, 182) + tuple(range(341, 346))},
 }
 
 BUTTONS = {
@@ -99,15 +105,22 @@ BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
 # events: when something happened, frame by frame. A word, or a dict of one
 # kind (with "in_air" / "on_ground": true to require either, "from" / "to"
 # a state for enters / leaves), or a list of them (any)
+# hitlag_last: the last frozen frame of hitlag, whose stick DI and ASDI read
+# (Fighter_procHitlag runs before the frame's input); shot: an item more
+# than the frame before (a projectile fired: a laser)
 SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
-                 "hit", "hitlag_end")
+                 "hit", "hitlag_last", "hitlag_end", "shot")
+# "is": a simple event with modifiers ({"is": "airborne", "from": "shine"})
 EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
-               "frame")
-EVENT_MODS = ("in_air", "on_ground", "from", "to")
+               "frame", "is")
+# "after": an event that must have happened on an earlier frame of the
+# attempt (left the ground after a shine, not in the first short hop)
+EVENT_MODS = ("in_air", "on_ground", "from", "to", "after")
 DIRECTIONS = ("up", "down", "forward", "back", "neutral")
 EVENTS = SIMPLE_EVENTS + EVENT_KINDS
 MEASURES = ("jump_kind", "held", "frames", "frame_of", "happened", "count",
-            "value", "distance", "frames_while", "angle")
+            "value", "distance", "frames_while", "angle", "max_gap",
+            "moved_while")
 # what a "value" measure reads at an event: dx, dy from the attempt's first
 # frame (dx toward where the player faced then)
 FIELDS = ("x", "y", "dx", "dy", "vx", "vy", "percent", "state", "facing",
@@ -163,6 +176,14 @@ def names(fd, char_name=""):
 _MEASURED = None
 
 
+def pick(obj, key, cid):
+    """A drill's inputs `obj[key]` (an example, a mistake's inputs) for
+    character `cid`: its own from `obj[key + "_for"]` if it has some (Mr.
+    Game & Watch's neutral air cannot be L-cancelled: his example uses
+    another aerial)."""
+    return obj.get(key + "_for", {}).get(cid, obj[key])
+
+
 def measured():
     """data/drills/numbers.json: {character: {number: value}}."""
     global _MEASURED
@@ -196,24 +217,34 @@ def value(x, nums):
             raise DrillError("not allowed in %r: %s" % (x, type(node).__name__))
         if isinstance(node, ast.Name) and node.id not in nums:
             raise DrillError("unknown number %r in %r" % (node.id, x))
+        if isinstance(node, ast.Name) and isinstance(nums[node.id], str):
+            raise DrillError("not a number: %r in %r" % (node.id, x))
     return eval(compile(tree, "<drill>", "eval"), {"__builtins__": {}},
                 {k: v for k, v in nums.items() if not isinstance(v, str)})
 
 
 def text(t, nums, **more):
-    """A drill's words with their {expressions} filled in."""
+    """A drill's words with their {expressions} filled in. An expression of
+    a measure that never happened reads "none"."""
     have = dict(nums)
     have.update(more)
 
+    def show(v):
+        if isinstance(v, float):
+            return str(int(v)) if v == int(v) else str(round(v, 2))
+        return str(v)
+
     def fill(m):
         inner = m.group(1)
-        if inner in have and isinstance(have[inner], str):
-            return have[inner]
         if inner in have:
-            v = have[inner]
-            return str(int(v)) if isinstance(v, float) and v == int(v) \
-                else str(v)
-        return str(value(inner, have))
+            return show(have[inner])
+        try:
+            return show(value(inner, have))
+        except DrillError:
+            if any(isinstance(have.get(n), str) for n in
+                   re.findall(r"[A-Za-z_]\w*", inner)):
+                return "none"
+            raise
     return re.sub(r"\{([^{}]+)\}", fill, t)
 
 
@@ -232,7 +263,7 @@ def _problems(spec):
         return cond
 
     test = {"J": 3, "LAND": 4, "FA": 20, "SA": 12, "DASH": 11, "SL": 26,
-            "LD": 5, "char": "Fox",
+            "LD": 5, "NL": 22, "NFL": 18, "SHD": 12, "char": "Fox",
             "measure": "x", "frames": "2 frames", "f": 1}
     for m in spec.get("measures", {}) if isinstance(spec.get("measures"),
                                                      dict) else ():
@@ -308,13 +339,31 @@ def _problems(spec):
         elif k in ("stick", "cstick"):
             need(v in DIRECTIONS, where, "%s: one of %s" % (
                 k, ", ".join(DIRECTIONS)))
+        elif k == "is":
+            need(v in SIMPLE_EVENTS, where, "is: one of %s" %
+                 ", ".join(SIMPLE_EVENTS))
         else:
             num(v, where + ".frame")
         for m in ("from", "to"):
             if m in e:
                 state(e[m], where + "." + m)
+        if "after" in e:
+            event(e["after"], where + ".after")
         extra = set(e) - {k} - set(EVENT_MODS)
         need(not extra, where, "unknown %s" % ", ".join(sorted(extra)))
+
+    def inputs_for(obj, key, where):
+        """`key + "_for"`: {character id: inputs}, a character's own."""
+        own = obj.get(key + "_for")
+        if own is None:
+            return
+        if need(isinstance(own, dict), where, "%s_for: {character: "
+                "inputs}" % key):
+            for cid, lst in own.items():
+                need(os.path.exists(os.path.join(ROOT, "data", "framedata",
+                                                 cid + ".json")), where,
+                     "unknown character %r" % cid)
+                inputs(lst, "%s.%s_for[%s]" % (where, key, cid))
 
     def marks(m, where):
         if need(isinstance(m, dict), where, "{frame: words} expected"):
@@ -328,14 +377,16 @@ def _problems(spec):
         for i, r in enumerate(co.get("rows", [])):
             w = "%s.rows[%d]" % (where, i)
             words(r.get("label"), w + ".label")
-            kinds = [k for k in ("button", "stick", "state") if k in r]
-            if need(len(kinds) == 1, w, "one of button, stick, state"):
+            kinds = [k for k in ("button", "stick", "cstick", "state")
+                     if k in r]
+            if need(len(kinds) == 1, w,
+                    "one of button, stick, cstick, state"):
                 k = kinds[0]
                 if k == "button":
                     need(r["button"] in BUTTONS, w, "unknown button")
-                elif k == "stick":
-                    need(r["stick"] in ("down", "up", "side"), w,
-                         "stick: down, up or side")
+                elif k in ("stick", "cstick"):
+                    need(r[k] in ("down", "up", "side"), w,
+                         "%s: down, up or side" % k)
                 else:
                     state(r["state"], w + ".state")
             for x in r.get("window", []):
@@ -387,6 +438,7 @@ def _problems(spec):
     for k in ("what", "expect"):
         words(t.get(k), "tutorial.%s" % k)
     inputs(t.get("example"), "tutorial.example")
+    inputs_for(t, "example", "tutorial")
     marks(t.get("marks", {}), "tutorial.marks")
     for i, le in enumerate(t.get("lessons", [])):
         w = "tutorial.lessons[%d]" % i
@@ -398,6 +450,10 @@ def _problems(spec):
         if "characters" in le:
             need(le["characters"] in CHARACTER_NUMBERS, w,
                  "characters: one of %s" % ", ".join(CHARACTER_NUMBERS))
+        if "scenario" in le:
+            need(isinstance(le["scenario"], int) and
+                 0 <= le["scenario"] < len(spec["scenarios"]), w,
+                 "scenario: an index of the drill's scenarios")
         show = le.get("show")
         if show is None:
             continue
@@ -408,11 +464,13 @@ def _problems(spec):
         if "example" in show:
             ex = show["example"]
             inputs(ex.get("inputs"), w + ".show.example.inputs")
+            inputs_for(ex, "inputs", w + ".show.example")
             marks(ex.get("marks", {}), w + ".show.example.marks")
             cues(ex.get("cues", []), w + ".show.example.cues")
         else:
             st = show["still"]
             inputs(st.get("inputs"), w + ".show.still.inputs")
+            inputs_for(st, "inputs", w + ".show.still")
             num(st.get("frame"), w + ".show.still.frame")
             if "cue" in st:
                 words(st["cue"].get("words"), w + ".show.still.cue.words")
@@ -428,9 +486,8 @@ def _problems(spec):
                 need(pl["ledge"] in ("left", "right", True), w,
                      "player.ledge: left or right")
             else:
-                need(isinstance(pl.get("x"), (int, float)), w,
-                     'player: {"x": number}')
-            for k in ("y", "above", "percent"):
+                need("x" in pl, w, 'player: {"x": number}')
+            for k in ("x", "y", "above", "percent"):
                 if k in pl:
                     num(pl[k], "%s.player.%s" % (w, k))
             if "facing" in pl:
@@ -461,8 +518,8 @@ def _problems(spec):
             need(op in OPPONENTS, w, "opponent: none, or a character")
         camera(sc.get("camera", "normal"), w)
         if "lead" in sc:
-            need(isinstance(sc["lead"], int) and sc["lead"] >= 1, w,
-                 "lead: frames from 1")
+            need(isinstance(sc["lead"], int) and sc["lead"] >= 0, w,
+                 "lead: frames from 0")
         # one stage for the drill: a part's scenario is played on the
         # stage the drill's match loaded (scenarios[0]'s)
         need(sc.get("stage", "final-destination") == spec["scenarios"][0].get(
@@ -505,8 +562,11 @@ def _problems(spec):
             if "last" in m:
                 need(m["last"] is True and k == "frames", w,
                      'last: true (frames: from the last [0] before [1])')
-        elif k in ("frame_of", "happened", "count"):
+        elif k in ("frame_of", "happened", "count", "max_gap"):
             event(m[k], w)
+        elif k == "moved_while":
+            need(m[k] in CONDITIONS, w, "moved_while: one of %s" %
+                 ", ".join(CONDITIONS))
         elif k == "value":
             need(m["value"] in FIELDS, w, "value: one of %s" %
                  ", ".join(FIELDS))
@@ -554,6 +614,7 @@ def _problems(spec):
         if "success" in p:
             words(p["success"], w + ".success")
         inputs(p.get("example"), w + ".example")
+        inputs_for(p, "example", w)
         marks(p.get("marks", {}), w + ".marks")
         cues(p.get("cues", []), w + ".cues")
         for c in p.get("checks", []):
@@ -579,6 +640,7 @@ def _problems(spec):
         w = "mistakes[%d]" % i
         words(m.get("name"), w + ".name")
         inputs(m.get("inputs"), w + ".inputs")
+        inputs_for(m, "inputs", w)
         need(m.get("fails") in spec["checks"], w, "fails: a check's name")
 
     coach_block(spec["coach"], "coach")

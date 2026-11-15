@@ -1,0 +1,553 @@
+{
+  "id": "fox-double-laser",
+  "name": "Double laser",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Two lasers in one short hop.",
+  "why": "Lasers do damage from a distance without hitstun, and from a short hop Fox is back on the ground soon after firing. Two lasers in one short hop double the damage of each hop, and an opponent who keeps losing damage to them has to approach.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A short hop double laser is B on the first frame in the air and B again {3} to {13} frames later. The blaster loops once more, and its second laser fires on the frame Fox lands.",
+    "expect": "Each short hop is judged when Fox lands: the hop, the frame of the first B, and how many lasers fired before landing. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "B",
+        "frame": "J+1",
+        "hold": 1
+      },
+      {
+        "press": "B",
+        "frame": "J+4",
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: X tapped. Short hop",
+      "J+1": "Frame {J+1}: B. The blaster comes out",
+      "J+4": "Frame {J+4}: B again. The blaster will loop",
+      "13": "Frame {13}: the first laser",
+      "23": "Frame {23}: landing. The second laser"
+    },
+    "lessons": [
+      {
+        "title": "The blaster in the air",
+        "text": [
+          "B in the air starts the blaster: {4} frames of startup, then a {10}-frame loop that fires the laser on its sixth frame, {9} frames after B.",
+          "B pressed again from the blaster's frame {4} to its frame {14} makes the loop run once more, and a second laser fires {10} frames after the first. B pressed sooner is not seen; from frame {15} the blaster is being put away and B does nothing."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "B",
+                "frame": "J+1",
+                "hold": 1
+              },
+              {
+                "press": "B",
+                "frame": "J+4",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: X tapped",
+              "J+1": "Frame {J+1}: B. Blaster frame 1",
+              "J+2": "Frame {f}: startup. B now is not seen",
+              "J+4": "Frame {J+4}: B again, blaster frame {4}",
+              "13": "Frame {13}: the first laser",
+              "18": "Frame {f}: the second loop",
+              "23": "Frame {23}: the second laser"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J"
+                ],
+                "words": "Jump squat: B is not seen",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+1"
+                ],
+                "words": "B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+2",
+                  "J+3"
+                ],
+                "words": "Startup: B is not seen",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+4",
+                  17
+                ],
+                "words": "Press B again now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  18,
+                  22
+                ],
+                "words": "Second loop",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  23,
+                  30
+                ],
+                "words": "Second laser, landing",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Two in one short hop",
+        "text": [
+          "The second laser fires on the blaster's frame {20}, {19} frames after the first B. A laser due on the landing frame still fires; one due later does not, because landing puts the blaster away.",
+          "With the blaster out, a short hop lands on frame {23} when the first B comes on frame {4}, and on frame {25} when it comes on frame {5} or {6}. So the first B has to come within the first {3} frames in the air, and a fast fall lands Fox before the second laser."
+        ],
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "B",
+                "frame": "J+1",
+                "hold": 1
+              },
+              {
+                "press": "B",
+                "frame": "J+4",
+                "hold": 1
+              }
+            ],
+            "frame": 23,
+            "cue": {
+              "words": "Frame {23}: landing. The second laser fires",
+              "kind": "info"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -60
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": "lands",
+    "limit": 60,
+    "timeout": "judge"
+  },
+  "measures": {
+    "kind": "jump_kind",
+    "lasered": {
+      "happened": {
+        "enters": "laser"
+      }
+    },
+    "laser_frame": {
+      "frame_of": {
+        "enters": "laser"
+      }
+    },
+    "shots": {
+      "count": {
+        "is": "shot",
+        "from": "laser"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Two lasers. First B on frame {laser_frame}."
+  },
+  "checks": {
+    "short hop": {
+      "measure": "kind",
+      "equals": "short",
+      "expect": "A short hop",
+      "words": "a {measure} hop",
+      "headline": "Full hop",
+      "fix": "Tap X or Y: release it within {J-1} frames."
+    },
+    "laser": {
+      "measure": "lasered",
+      "equals": true,
+      "expect": "A laser in the air",
+      "words": "{char} landed without a laser",
+      "headline": "No laser",
+      "fix": "Press B once {char} is off the ground, on frame {J+1}. B pressed during the jump squat is not seen."
+    },
+    "early laser": {
+      "measure": "laser_frame",
+      "at_most": "J+3",
+      "expect": "The first B on frame {J+1}, {J+2} or {J+3}",
+      "words": "first B on frame {measure}",
+      "headline": "Late first laser",
+      "fix": "Press B on frame {J+1}, the first frame in the air. From frame {J+4} on, the short hop lands before the second laser can fire."
+    },
+    "two lasers": {
+      "measure": "shots",
+      "at_least": 2,
+      "expect": "Two lasers before landing",
+      "words": "{measure} laser fired before landing",
+      "headline": "One laser",
+      "fix": "Press B again {3} to {13} frames after the first, and do not fast fall. The blaster loops once more and fires the second laser {19} frames after the first B, and Fox must not land before that frame."
+    }
+  },
+  "parts": [
+    {
+      "name": "The first laser",
+      "teach": "Short hop and press B on frame {J+1}, the first frame in the air. Within the first {3} frames in the air there is time for a second laser.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X tapped",
+        "J+1": "Frame {J+1}: B. The blaster",
+        "13": "Frame {13}: the laser"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "J"
+          ],
+          "words": "Jump squat: B is not seen",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+3"
+          ],
+          "words": "B now",
+          "kind": "go"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "laser"
+          },
+          "lands"
+        ]
+      },
+      "checks": [
+        "short hop",
+        "laser",
+        "early laser"
+      ],
+      "success": "Laser out on frame {laser_frame}.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "J-1"
+            ]
+          },
+          {
+            "label": "B",
+            "button": "B",
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+3"
+            ]
+          }
+        ],
+        "note": "B on frame {J+1}, the first frame in the air."
+      }
+    },
+    {
+      "name": "The second laser",
+      "teach": "Short hop, B on frame {J+1}, and B again {3} to {13} frames later. Do not fast fall: the second laser fires as Fox lands. Five in a row.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+4",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "J+1": "Frame {J+1}: B",
+        "J+4": "Frame {J+4}: B again",
+        "13": "Frame {13}: the first laser",
+        "23": "Frame {23}: landing, the second laser"
+      },
+      "cues": [
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "B now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+4",
+            17
+          ],
+          "words": "Press B again now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            18,
+            22
+          ],
+          "words": "Second loop",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "short hop",
+        "laser",
+        "early laser",
+        "two lasers"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "full hop",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J+2"
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+4",
+          "hold": 1
+        }
+      ],
+      "fails": "short hop"
+    },
+    {
+      "name": "first B late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+4",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+7",
+          "hold": 1
+        }
+      ],
+      "fails": "early laser"
+    },
+    {
+      "name": "one B only",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "fails": "two lasers"
+    },
+    {
+      "name": "second B too soon",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+3",
+          "hold": 1
+        }
+      ],
+      "fails": "two lasers"
+    },
+    {
+      "name": "second B too late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": 18,
+          "hold": 1
+        }
+      ],
+      "fails": "two lasers"
+    },
+    {
+      "name": "fast fall",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "B",
+          "frame": "J+4",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 13,
+          "hold": 3
+        }
+      ],
+      "fails": "two lasers"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          "J-1"
+        ]
+      },
+      {
+        "label": "B",
+        "button": "B",
+        "perfect": [
+          "J+1",
+          "J+4"
+        ],
+        "window": [
+          "J+1",
+          17
+        ]
+      },
+      {
+        "label": "Laser",
+        "state": "laser",
+        "perfect": [
+          "J+1"
+        ]
+      }
+    ],
+    "note": "First B on frame {J+1}; the second {3} to {13} frames later."
+  }
+}

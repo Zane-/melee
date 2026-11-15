@@ -1,0 +1,631 @@
+{
+  "id": "fox-shine-grab",
+  "name": "Shine grab",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Shine, jump out of it, and grab during jump squat.",
+  "why": "An opponent who holds shield through the shine is safe from it but not from a grab. Fox cancels the shine with a jump and the jump squat with a grab, so the grab comes out {4} frames after the shine without Fox leaving the ground.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A shine grab is a shine, a jump out of it on frame {4}, and Z on the second or third frame of the jump squat. The grab replaces the jump, so Fox never leaves the ground.",
+    "expect": "Each shine grab is judged when the grab comes out, or when Fox leaves the ground without one: the frame of the jump and whether the jump squat became a grab. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 1
+      },
+      {
+        "press": "B",
+        "frame": 1
+      },
+      {
+        "press": "jump",
+        "frame": 4,
+        "hold": 1
+      },
+      {
+        "press": "Z",
+        "frame": 5,
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: down-B. The shine comes out",
+      "4": "Frame {4}: X pressed. The jump squat begins",
+      "5": "Frame {5}: Z pressed. The jump squat becomes a grab",
+      "J+4": "Frame {J+4}: grabbing, still on the ground"
+    },
+    "lessons": [
+      {
+        "title": "Grab out of the jump squat",
+        "text": [
+          "Before {char} leaves the ground, the jump squat accepts three actions: a grab, an up smash and up-B. Z pressed on any frame of the jump squat replaces the jump with a standing grab on that frame.",
+          "From standing, Z pressed on the same frame as the jump grabs at once. Z pressed on the frame {char} leaves the ground is a neutral air."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "Z",
+                "frame": 2,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: X pressed. The jump squat begins",
+              "2": "Frame 2: Z pressed. The jump squat becomes a grab",
+              "3": "Frame {f}: grabbing, still on the ground"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  1
+                ],
+                "words": "Jump squat",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  2,
+                  "J"
+                ],
+                "words": "Press Z now: grab",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+20"
+                ],
+                "words": "Grabbing",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "From the shine",
+        "text": [
+          "The shine accepts a jump from its fourth frame, and nothing else: Z pressed together with that jump is not seen, and Fox jumps. Z has to come on a later frame of the jump squat, frame {5} or {J+3} after a jump on frame {4}.",
+          "One frame later, on frame {J+4}, Fox is in the air and Z is a neutral air."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1
+              },
+              {
+                "press": "jump",
+                "frame": 4,
+                "hold": 1
+              },
+              {
+                "press": "Z",
+                "frame": 5,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: down-B",
+              "4": "Frame {4}: X pressed out of the shine. Z now is not seen",
+              "5": "Frame {5}: Z pressed. The jump squat becomes a grab",
+              "J+4": "Frame {J+4}: grabbing"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  3
+                ],
+                "words": "Too soon: a jump is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  4,
+                  4
+                ],
+                "words": "Jump now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  5,
+                  "J+3"
+                ],
+                "words": "Press Z now: grab",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+4",
+                  "J+24"
+                ],
+                "words": "Grabbing",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "shine_ground"
+    },
+    "judge": [
+      {
+        "enters": "grab"
+      },
+      "airborne",
+      {
+        "leaves": "shine",
+        "to": "wait"
+      }
+    ],
+    "cancel": "hit",
+    "limit": 60,
+    "timeout": "judge"
+  },
+  "measures": {
+    "jumped": {
+      "happened": {
+        "enters": "jump_squat"
+      }
+    },
+    "jump_frame": {
+      "frame_of": {
+        "enters": "jump_squat"
+      }
+    },
+    "grabbed": {
+      "happened": {
+        "enters": "grab"
+      }
+    },
+    "grab_frame": {
+      "frame_of": {
+        "enters": "grab"
+      }
+    },
+    "grab_after": {
+      "frames": [
+        {
+          "enters": "jump_squat"
+        },
+        {
+          "enters": "grab"
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "success": "Shine grab. The grab came out on frame {grab_frame}."
+  },
+  "checks": {
+    "jumped": {
+      "measure": "jumped",
+      "equals": true,
+      "expect": "A jump out of the shine",
+      "words": "{char} stayed in the shine",
+      "headline": "No jump out of the shine",
+      "fix": "Press X or Y on frame {4} of the shine or later, while the shine is still out. A jump pressed on frames 1 to {3} is ignored."
+    },
+    "jump in time": {
+      "measure": "jump_frame",
+      "at_most": 6,
+      "expect": "Jump on frame {4}, {5} or {6}",
+      "words": "jumped on frame {measure}",
+      "headline": "Late jump",
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+    },
+    "grabbed": {
+      "measure": "grabbed",
+      "equals": true,
+      "expect": "A grab out of the jump squat",
+      "words": "{char} left the ground without a grab",
+      "headline": "No grab",
+      "fix": "Press Z {1} or {2} frames after the jump, while {char} is still in the jump squat. Z pressed together with the jump out of the shine is not seen; Z pressed once {char} is in the air is a neutral air."
+    }
+  },
+  "parts": [
+    {
+      "name": "Grab out of the jump squat",
+      "teach": "Standing, press X, then Z on the next frame. The jump squat becomes a standing grab and {char} stays on the ground.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": 2,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X pressed. The jump squat begins",
+        "2": "Frame 2: Z pressed. A grab",
+        "J+1": "Frame {J+1}: grabbing, still on the ground"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "Jump squat",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            2,
+            "J"
+          ],
+          "words": "Press Z now: grab",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+20"
+          ],
+          "words": "Grabbing",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "start": {
+          "enters": "jump_squat"
+        },
+        "judge": [
+          {
+            "enters": "grab"
+          },
+          "airborne"
+        ]
+      },
+      "checks": [
+        "grabbed"
+      ],
+      "success": "Grab out of the jump squat, {grab_after_frames} after the jump.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Grab",
+            "button": "Z",
+            "perfect": [
+              2
+            ],
+            "window": [
+              2,
+              "J"
+            ]
+          }
+        ],
+        "note": "The jump squat is {J} frames: Z on frame {2} or {J} grabs."
+      }
+    },
+    {
+      "name": "Jump out of the shine",
+      "teach": "Shine with down-B, then press X or Y on frame {4}. The shine accepts a jump from its fourth frame; a jump pressed earlier is ignored.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: down-B. The shine comes out",
+        "4": "Frame {4}: X pressed. The jump squat begins",
+        "J+4": "Frame {J+4}: airborne"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            3
+          ],
+          "words": "Too soon: a jump is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            4,
+            4
+          ],
+          "words": "Jump now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            5,
+            "J+3"
+          ],
+          "words": "Jump squat",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "jump_squat"
+          },
+          {
+            "leaves": "shine",
+            "to": "wait"
+          }
+        ]
+      },
+      "checks": [
+        "jumped",
+        "jump in time"
+      ],
+      "success": "Jumped out of the shine on frame {jump_frame}.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              4
+            ],
+            "window": [
+              4,
+              6
+            ]
+          }
+        ],
+        "note": "The shine accepts a jump from frame {4}."
+      }
+    },
+    {
+      "name": "Shine grab",
+      "teach": "Shine, jump on frame {4}, and press Z on frame {5}. Five in a row.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": 5,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: down-B",
+        "4": "Frame {4}: X",
+        "5": "Frame {5}: Z. A grab",
+        "J+4": "Frame {J+4}: grabbing"
+      },
+      "cues": [
+        {
+          "frames": [
+            4,
+            4
+          ],
+          "words": "Jump now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            5,
+            "J+3"
+          ],
+          "words": "Press Z now: grab",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+4",
+            "J+24"
+          ],
+          "words": "Grabbing",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "jumped",
+        "jump in time",
+        "grabbed"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "Z after the jump squat",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "fails": "grabbed"
+    },
+    {
+      "name": "Z together with the jump out of the shine",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": 4,
+          "hold": 1
+        }
+      ],
+      "fails": "grabbed"
+    },
+    {
+      "name": "jump pressed before frame 4",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 3,
+          "hold": 1
+        }
+      ],
+      "fails": "jumped"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Jump",
+        "button": "jump",
+        "perfect": [
+          4
+        ],
+        "window": [
+          4,
+          6
+        ]
+      },
+      {
+        "label": "Grab",
+        "button": "Z",
+        "perfect": [
+          5
+        ],
+        "window": [
+          5,
+          "J+3"
+        ]
+      }
+    ],
+    "note": "Jump on frame {4}; Z on frame {5} or {J+3}, before the jump squat ends."
+  }
+}

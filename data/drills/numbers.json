@@ -1,132 +1,210 @@
 {
  "bowser": {
   "DASH": 13,
-  "SL": 37,
-  "LD": 13
+  "SL": 36,
+  "LD": 13,
+  "NL": 38,
+  "NFL": 30,
+  "SHD": 24.5
  },
  "captain-falcon": {
   "DASH": 15,
-  "SL": 37,
-  "LD": 12
+  "SL": 36,
+  "LD": 12,
+  "NL": 37,
+  "NFL": 26,
+  "SHD": 35.5
  },
  "donkey-kong": {
   "DASH": 15,
-  "SL": 39,
-  "LD": 13
+  "SL": 38,
+  "LD": 13,
+  "NL": 38,
+  "NFL": 27,
+  "SHD": 33
  },
  "dr-mario": {
   "DASH": 10,
-  "SL": 38,
-  "LD": 7
+  "SL": 37,
+  "LD": 7,
+  "NL": 37,
+  "NFL": 27,
+  "SHD": 30.1
  },
  "falco": {
   "DASH": 11,
-  "SL": 32,
-  "LD": 6
+  "SL": 31,
+  "LD": 6,
+  "NL": 31,
+  "NFL": 23,
+  "SHD": 21.4
  },
  "fox": {
   "DASH": 11,
-  "SL": 26,
-  "LD": 5
+  "SL": 25,
+  "LD": 5,
+  "NL": 24,
+  "NFL": 19,
+  "SHD": 18.1
  },
  "ganondorf": {
   "DASH": 15,
-  "SL": 41,
-  "LD": 16
+  "SL": 40,
+  "LD": 16,
+  "NL": 41,
+  "NFL": 32,
+  "SHD": 26.9
  },
  "ice-climbers": {
   "DASH": 13,
-  "SL": 35,
-  "LD": 7
+  "SL": 34,
+  "LD": 7,
+  "NL": 34,
+  "NFL": 24,
+  "SHD": 21.5
  },
  "jigglypuff": {
   "DASH": 12,
-  "SL": 40,
-  "LD": 11
+  "SL": 39,
+  "LD": 11,
+  "NL": 39,
+  "NFL": 29,
+  "SHD": 44.8
  },
  "kirby": {
   "DASH": 12,
-  "SL": 43,
-  "LD": 9
+  "SL": 42,
+  "LD": 9,
+  "NL": 42,
+  "NFL": 31,
+  "SHD": 30.8
  },
  "link": {
   "DASH": 12,
-  "SL": 40,
-  "LD": 11
+  "SL": 39,
+  "LD": 11,
+  "NL": 38,
+  "NFL": 27,
+  "SHD": 33
  },
  "luigi": {
   "DASH": 10,
-  "SL": 50,
-  "LD": 7
+  "SL": 49,
+  "LD": 7,
+  "NL": 49,
+  "NFL": 36,
+  "SHD": 30.9
  },
  "mario": {
   "DASH": 10,
-  "SL": 38,
-  "LD": 7
+  "SL": 37,
+  "LD": 7,
+  "NL": 37,
+  "NFL": 27,
+  "SHD": 29.1
  },
  "marth": {
   "DASH": 15,
-  "SL": 44,
-  "LD": 16
+  "SL": 43,
+  "LD": 16,
+  "NL": 43,
+  "NFL": 31,
+  "SHD": 36.1
  },
  "mewtwo": {
   "DASH": 18,
-  "SL": 42,
-  "LD": 19
+  "SL": 41,
+  "LD": 19,
+  "NL": 41,
+  "NFL": 30,
+  "SHD": 42.2
  },
  "mr-game-and-watch": {
   "DASH": 8,
-  "SL": 36,
-  "LD": 11
+  "SL": 35,
+  "LD": 11,
+  "NL": 37,
+  "NFL": 26,
+  "SHD": 31
  },
  "ness": {
   "DASH": 13,
-  "SL": 40,
-  "LD": 17
+  "SL": 39,
+  "LD": 17,
+  "NL": 39,
+  "NFL": 29,
+  "SHD": 32.7
  },
  "peach": {
   "DASH": 15,
-  "SL": 49,
-  "LD": 29
+  "SL": 48,
+  "LD": 29,
+  "NL": 47,
+  "NFL": 36,
+  "SHD": 46.0
  },
  "pichu": {
   "DASH": 13,
-  "SL": 38,
-  "LD": 5
+  "SL": 37,
+  "LD": 5,
+  "NL": 36,
+  "NFL": 27,
+  "SHD": 28.9
  },
  "pikachu": {
   "DASH": 13,
-  "SL": 39,
-  "LD": 6
+  "SL": 38,
+  "LD": 6,
+  "NL": 38,
+  "NFL": 27,
+  "SHD": 29.7
  },
  "roy": {
   "DASH": 15,
-  "SL": 36,
-  "LD": 15
+  "SL": 35,
+  "LD": 15,
+  "NL": 35,
+  "NFL": 25,
+  "SHD": 28.1
  },
  "samus": {
   "DASH": 8,
-  "SL": 60,
-  "LD": 16
+  "SL": 59,
+  "LD": 16,
+  "NL": 60,
+  "NFL": 42,
+  "SHD": 50.5
  },
  "sheik": {
   "DASH": 7,
-  "SL": 43,
-  "LD": 9
+  "SL": 42,
+  "LD": 9,
+  "NL": 42,
+  "NFL": 31,
+  "SHD": 31.2
  },
  "yoshi": {
   "DASH": 13,
-  "SL": 47,
-  "LD": 18
+  "SL": 46,
+  "LD": 18,
+  "NL": 46,
+  "NFL": 33,
+  "SHD": 48.3
  },
  "young-link": {
   "DASH": 12,
-  "SL": 37,
-  "LD": 8
+  "SL": 36,
+  "LD": 8,
+  "NL": 36,
+  "NFL": 27,
+  "SHD": 32
  },
  "zelda": {
   "DASH": 15,
-  "SL": 55,
-  "LD": 17
+  "SL": 54,
+  "LD": 17,
+  "NL": 54,
+  "NFL": 40,
+  "SHD": 44.8
  }
 }

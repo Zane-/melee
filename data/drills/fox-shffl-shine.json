@@ -1,0 +1,859 @@
+{
+  "id": "fox-shffl-shine",
+  "name": "SHFFL shine",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "SHFFL an aerial, then shine as you land.",
+  "why": "An aerial on a shield or a crouching opponent leaves Fox in landing lag next to them. A shine on the first frame the L-cancelled lag allows leaves them the shortest gap Fox can give there, its hitbox is out on its first frame, and the jump out of it starts the next action.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A SHFFL shine is a short hop, an aerial, a fast fall and an L-cancel, then down-B on the first frame the landing lag allows.",
+    "expect": "Each attempt is judged when the shine comes out: the short hop, the aerial, the fast fall, the landing lag, and how many frames after the lag the shine came. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "A",
+        "frame": "J+1",
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": "SA",
+        "hold": 3
+      },
+      {
+        "press": "L",
+        "frame": "SA+2",
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 24
+      },
+      {
+        "press": "B",
+        "frame": 24
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: X tapped. Short hop",
+      "J+1": "Frame {J+1}: A. Neutral air",
+      "SA": "Frame {SA}: stick down. Fast fall",
+      "SA+2": "Frame {SA+2}: L",
+      "SA+3": "Frame {SA+3}: landed. {7} frames of landing lag",
+      "SA+10": "Frame {SA+10}: down-B. Shine"
+    },
+    "lessons": [
+      {
+        "title": "The SHFFL",
+        "text": [
+          "A SHFFL is a short hop, an aerial, a fast fall and an L-cancel. The aerial is pressed on frame {J+1}, the first frame in the air, and the fast fall at the top of the short hop, frame {SA}, so Fox lands with the aerial still out.",
+          "Landing during an aerial gives its landing lag: {15} frames for neutral air, {18} for down air. L, R or Z pressed on the landing frame or on any of the {6} frames before it halves it: {7} and {9} frames."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "A",
+                "frame": "J+1",
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "SA",
+                "hold": 3
+              },
+              {
+                "press": "L",
+                "frame": "SA+2",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: X tapped. Short hop",
+              "J+1": "Frame {J+1}: A. Neutral air",
+              "SA": "Frame {SA}: the top. Stick tapped down: fast fall",
+              "SA+2": "Frame {SA+2}: L pressed",
+              "SA+3": "Frame {SA+3}: landed. Landing lag {7} frames",
+              "SA+10": "Frame {SA+10}: free to act"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J"
+                ],
+                "words": "Jump squat",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "SA-4"
+                ],
+                "words": "Neutral air",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "SA-3",
+                  "SA+3"
+                ],
+                "words": "Press L now: L-cancel",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "SA+4",
+                  "SA+9"
+                ],
+                "words": "Landing lag",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "SA+10",
+                  "SA+20"
+                ],
+                "words": "Free to act",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Shine as the landing lag ends",
+        "text": [
+          "Landing lag cannot be cancelled: down-B pressed during it is ignored, and holding it does not carry the press over. The shine comes out when down-B is pressed on the first frame after the lag, frame {SA+10} here.",
+          "The lag depends on the aerial: an L-cancelled neutral air ends {7} frames after landing, a down air {9}, a back air {10}, a forward air {11}."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "A",
+                "frame": "J+1",
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "SA",
+                "hold": 3
+              },
+              {
+                "press": "L",
+                "frame": "SA+2",
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 24
+              },
+              {
+                "press": "B",
+                "frame": 24
+              }
+            ],
+            "marks": {
+              "SA+3": "Frame {SA+3}: landed, L-cancelled",
+              "SA+4": "Frame {f}: landing lag. Down-B now is ignored",
+              "SA+10": "Frame {SA+10}: down-B. The shine comes out",
+              "SA+11": "Frame {f}: shine"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "SA+3",
+                  "SA+9"
+                ],
+                "words": "Landing lag: a shine is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "SA+10",
+                  "SA+10"
+                ],
+                "words": "Shine now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "SA+11",
+                  "SA+24"
+                ],
+                "words": "Shine",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": {
+      "enters": "shine_ground"
+    },
+    "limit": 60,
+    "timeout": "judge"
+  },
+  "measures": {
+    "kind": "jump_kind",
+    "aerial": {
+      "happened": {
+        "enters": "aerial"
+      }
+    },
+    "fast_fell": {
+      "happened": "fast_fall"
+    },
+    "land_frame": {
+      "frame_of": "lands"
+    },
+    "lag": {
+      "frames_while": {
+        "in": "aerial_landing"
+      },
+      "from": "lands"
+    },
+    "shined": {
+      "happened": {
+        "enters": "shine_ground"
+      }
+    },
+    "shine_frame": {
+      "frame_of": {
+        "enters": "shine_ground"
+      }
+    },
+    "shine_gap": {
+      "frames": [
+        {
+          "leaves": "aerial_landing"
+        },
+        {
+          "enters": "shine_ground"
+        }
+      ]
+    }
+  },
+  "verdict": {
+    "success": "SHFFL shine. Landing lag {lag_frames}, shine on frame {shine_frame}."
+  },
+  "checks": {
+    "short hop": {
+      "measure": "kind",
+      "equals": "short",
+      "expect": "A short hop",
+      "words": "a {measure} hop",
+      "headline": "Full hop",
+      "fix": "Tap X or Y: release it within {J-1} frames."
+    },
+    "aerial": {
+      "measure": "aerial",
+      "equals": true,
+      "expect": "An aerial",
+      "words": "no aerial before landing",
+      "headline": "No aerial",
+      "fix": "Press A, or tilt the C-stick, once {char} is off the ground, from frame {J+1}. A pressed during the jump squat is not an aerial."
+    },
+    "fast fall": {
+      "measure": "fast_fell",
+      "equals": true,
+      "expect": "A fast fall",
+      "words": "landed without a fast fall",
+      "headline": "No fast fall",
+      "fix": "Tap the control stick down once {char} starts to fall, from frame {SA} of the short hop. The aerial does not stop a fast fall."
+    },
+    "l-cancel": {
+      "measure": "lag",
+      "at_most": 11,
+      "expect": "Landing lag halved by an L-cancel",
+      "words": "landing lag {frames}",
+      "headline": "No L-cancel",
+      "fix": "Press L, R or Z on the frame {char} lands or on one of the {6} frames before it. Earlier, or after landing, the full landing lag applies."
+    },
+    "shined": {
+      "measure": "shined",
+      "equals": true,
+      "expect": "A shine after landing",
+      "words": "no shine after landing",
+      "headline": "No shine",
+      "fix": "Press down-B on the first frame after the landing lag. Down-B pressed during the landing lag is ignored."
+    },
+    "shine in time": {
+      "measure": "shine_gap",
+      "at_most": 1,
+      "expect": "Shine within {1} frame of the landing lag's end",
+      "words": "shine {frames} after the landing lag",
+      "headline": "Late shine",
+      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+    }
+  },
+  "parts": [
+    {
+      "name": "SHFFL",
+      "teach": "Short hop, any aerial at once, fast fall at the top and press L just before landing. Graded on the landing lag: an L-cancel halves it.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X tapped",
+        "J+1": "Frame {J+1}: A. Neutral air",
+        "SA": "Frame {SA}: stick down. Fast fall",
+        "SA+2": "Frame {SA+2}: L",
+        "SA+3": "Frame {SA+3}: landed"
+      },
+      "cues": [
+        {
+          "frames": [
+            "SA-3",
+            "SA+3"
+          ],
+          "words": "Press L now: L-cancel",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "SA+4",
+            "SA+9"
+          ],
+          "words": "Landing lag",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "leaves": "aerial_landing"
+          },
+          {
+            "enters": "landing"
+          }
+        ]
+      },
+      "checks": [
+        "short hop",
+        "aerial",
+        "fast fall",
+        "l-cancel"
+      ],
+      "success": "SHFFL. Landed on frame {land_frame} with {lag_frames} of landing lag.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Short hop",
+            "button": "jump",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "J-1"
+            ]
+          },
+          {
+            "label": "Aerial",
+            "button": "A",
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "SA"
+            ]
+          },
+          {
+            "label": "Down",
+            "stick": "down",
+            "perfect": [
+              "SA"
+            ],
+            "window": [
+              "SA-2",
+              "SA+1"
+            ]
+          },
+          {
+            "label": "L-cancel",
+            "button": "lcancel",
+            "perfect": [
+              "SA+2"
+            ],
+            "window": [
+              "SA-3",
+              "SA+3"
+            ]
+          }
+        ],
+        "note": "The short hop's top is frame {SA}. L, R or Z on the landing frame or the {6} before it halves the lag."
+      }
+    },
+    {
+      "name": "Shine as the lag ends",
+      "teach": "After the landing, press down-B on the first frame the landing lag allows: frame {SA+10} after an L-cancelled neutral air that lands on frame {SA+3}.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 24
+        },
+        {
+          "press": "B",
+          "frame": 24
+        }
+      ],
+      "marks": {
+        "SA+3": "Frame {SA+3}: landed",
+        "SA+10": "Frame {SA+10}: down-B. Shine"
+      },
+      "cues": [
+        {
+          "frames": [
+            "SA+3",
+            "SA+9"
+          ],
+          "words": "Landing lag: a shine is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "SA+10",
+            "SA+10"
+          ],
+          "words": "Shine now",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "shined",
+        "shine in time"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              24
+            ],
+            "window": [
+              24,
+              25
+            ]
+          }
+        ],
+        "note": "An L-cancelled neutral air has {7} frames of landing lag; the shine goes on the frame after it."
+      }
+    },
+    {
+      "name": "SHFFL shine",
+      "teach": "The whole SHFFL shine, with any aerial. Five in a row.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 24
+        },
+        {
+          "press": "B",
+          "frame": 24
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X",
+        "J+1": "Frame {J+1}: A",
+        "SA": "Frame {SA}: down",
+        "SA+2": "Frame {SA+2}: L",
+        "SA+10": "Frame {SA+10}: down-B"
+      },
+      "checks": [
+        "short hop",
+        "aerial",
+        "fast fall",
+        "l-cancel",
+        "shined",
+        "shine in time"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no L-cancel",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 32
+        },
+        {
+          "press": "B",
+          "frame": 32
+        }
+      ],
+      "fails": "l-cancel"
+    },
+    {
+      "name": "L pressed too early",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA-4",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 32
+        },
+        {
+          "press": "B",
+          "frame": 32
+        }
+      ],
+      "fails": "l-cancel"
+    },
+    {
+      "name": "no fast fall",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "press": "L",
+          "frame": 22,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 32
+        },
+        {
+          "press": "B",
+          "frame": 32
+        }
+      ],
+      "fails": "fast fall"
+    },
+    {
+      "name": "down-B during the landing lag",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 23
+        },
+        {
+          "press": "B",
+          "frame": 23
+        }
+      ],
+      "fails": "shined"
+    },
+    {
+      "name": "shine three frames late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 27
+        },
+        {
+          "press": "B",
+          "frame": 27
+        }
+      ],
+      "fails": "shine in time"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Short hop",
+        "button": "jump",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          "J-1"
+        ]
+      },
+      {
+        "label": "Aerial",
+        "button": "A",
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "SA"
+        ]
+      },
+      {
+        "label": "Down",
+        "stick": "down",
+        "perfect": [
+          "SA"
+        ],
+        "window": [
+          "SA-2",
+          "SA+1"
+        ]
+      },
+      {
+        "label": "L-cancel",
+        "button": "lcancel",
+        "perfect": [
+          "SA+2"
+        ],
+        "window": [
+          "SA-3",
+          "SA+3"
+        ]
+      },
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          24
+        ],
+        "window": [
+          24,
+          25
+        ]
+      }
+    ],
+    "note": "Short hop top on frame {SA}; an L-cancelled neutral air lands with {7} frames of lag, and the shine goes on the frame after."
+  }
+}

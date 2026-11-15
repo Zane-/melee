@@ -66,12 +66,14 @@ def main():
             s = engine.Session(drill, game, character=ch, live=False,
                                seed=1, dpad=False)
             nums = drill.nums(s.c)
-            cases = [("tutorial example", spec["tutorial"]["example"],
+            cases = [("tutorial example", F.pick(spec["tutorial"], "example",
+                                                 ch),
                       len(spec["parts"]) - 1, None)]
-            cases += [("part %d example" % (i + 1), p["example"], i, None)
+            cases += [("part %d example" % (i + 1), F.pick(p, "example", ch),
+                       i, None)
                       for i, p in enumerate(spec["parts"])]
             # a mistake is judged as the first part that counts its check
-            cases += [("mistake: " + m["name"], m["inputs"],
+            cases += [("mistake: " + m["name"], F.pick(m, "inputs", ch),
                        next(i for i, p in enumerate(spec["parts"])
                             if m["fails"] in p.get("checks", [])),
                        m["fails"])

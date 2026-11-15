@@ -69,8 +69,8 @@ plan table, numbered from 1. Drills are written in the drill format (`data/drill
 | 2 | `fox-shine-grab` | Shine grab | Shine, jump out of it, and grab during jump squat | none | - | - | implemented on a shielding Marth: `drills/fox_pressure.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
 | 3 | `fox-shffl-shine` | SHFFL shine | SHFFL an aerial, then shine as you land | none | - | - | - | planned |
 | 4 | `fox-shffl-shine-grab` | SHFFL shine grab | SHFFL an aerial, shine as you land, then grab | none | - | - | - | planned |
-| 5 | `fox-jc-shine` | Jump-cancel shine | Shine during jump squat out of a dash | none | - | - | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
-| 6 | `fox-multishine` | Multishine | Shine, jump, and shine again during jump squat, repeated | none | - | - | implemented without a shield: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). On-shield variant not built | planned |
+| 5 | `fox-jc-shine` | Jump-cancel shine | Jump out of a dash and shine as you leave the ground | none | - | - | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
+| 6 | `fox-multishine` | Multishine | Jump out of each shine and shine again as you leave the ground | none | - | - | implemented without a shield: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). On-shield variant not built | planned |
 | 7 | `fox-shorten` | Shortened Illusion | Stop Illusion at the length you choose | none | - | - | - | planned |
 | 8 | `fox-firefox-angles` | Firefox angles | Recover with Firefox at the angle each position needs | none | - | - | - | planned |
 | 9 | `fox-ledge-stall` | Firefox ledge stall | Drop from the ledge and grab it again with Firefox | none | - | - | implemented: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |

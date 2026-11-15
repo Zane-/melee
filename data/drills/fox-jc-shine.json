@@ -1,0 +1,469 @@
+{
+  "id": "fox-jc-shine",
+  "name": "Jump-cancel shine",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Jump out of a dash and shine as you leave the ground.",
+  "why": "A dash accepts no down-B, so a dashing Fox cannot shine directly. A jump can start out of the dash, and down-B pressed as that jump leaves the ground gives a shine at ground level that keeps part of the dash's momentum: the running shine that catches an opponent's dash or landing.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A jump-cancelled shine is a jump out of a dash and down-B on frame {J+1}, the frame the jump squat ends. The shine stops Fox's rise on that frame, so it comes out at ground level and he lands in it {4} frames later.",
+    "expect": "Each attempt is judged when the shine comes out, or when Fox lands without one: whether the jump came out of a dash and on which frame the shine came. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": -5,
+        "hold": 6
+      },
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": "J+1"
+      },
+      {
+        "press": "B",
+        "frame": "J+1"
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: X pressed during the dash. The jump squat begins",
+      "J": "Frame {J}: the last frame of the jump squat. Down-B now is ignored",
+      "J+1": "Frame {J+1}: down-B as Fox leaves the ground. The shine at ground level",
+      "J+5": "Frame {J+5}: Fox lands in the shine"
+    },
+    "lessons": [
+      {
+        "title": "No shine from a dash",
+        "text": [
+          "A dash accepts side-B but not down-B: down-B pressed while dashing does nothing. A run accepts it, but every run starts with a dash, and a jump can start out of the dash.",
+          "The jump squat accepts only a grab, an up smash and up-B: down-B pressed during the jump squat is ignored. On frame {J+1} Fox leaves the ground, and down-B on that frame is an aerial shine. It stops his rise before he has moved up, so the shine is at ground level and he lands in it {4} frames later, still shining."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "J+1"
+              },
+              {
+                "press": "B",
+                "frame": "J+1"
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: X pressed. The jump squat begins",
+              "2": "Frame {f}: jump squat. Down-B now is ignored",
+              "J+1": "Frame {J+1}: down-B. The shine at ground level",
+              "J+5": "Frame {J+5}: landed in the shine"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J"
+                ],
+                "words": "Jump squat: down-B is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+1"
+                ],
+                "words": "Down-B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+2",
+                  "J+4"
+                ],
+                "words": "Shine at ground level",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+5",
+                  "J+20"
+                ],
+                "words": "Landed in the shine",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "One frame",
+        "text": "Down-B has one frame, the first frame in the air. A frame later Fox has already risen {2} units, and the shine holds him there: he floats down in it for more than {20} frames instead of landing at once.",
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "J+1"
+              },
+              {
+                "press": "B",
+                "frame": "J+1"
+              }
+            ],
+            "frame": "J+1",
+            "cue": {
+              "words": "Frame {J+1}: the shine at ground level",
+              "kind": "info"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -40
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "enters": "shine"
+      },
+      "lands"
+    ],
+    "limit": 60,
+    "timeout": "judge"
+  },
+  "measures": {
+    "dashed": {
+      "happened": {
+        "enters": "jump_squat",
+        "from": "dash"
+      }
+    },
+    "shined": {
+      "happened": {
+        "enters": "shine"
+      }
+    },
+    "shine_after": {
+      "frames": [
+        "start",
+        {
+          "enters": "shine"
+        }
+      ]
+    },
+    "shine_frame": {
+      "frame_of": {
+        "enters": "shine"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Jump-cancelled shine on frame {shine_frame}, at ground level."
+  },
+  "checks": {
+    "out of a dash": {
+      "measure": "dashed",
+      "equals": true,
+      "expect": "A jump out of a dash",
+      "words": "the jump did not start from a dash",
+      "headline": "No dash",
+      "fix": "Dash first: tap the control stick fully to the side, then press X or Y while Fox is still dashing."
+    },
+    "shined": {
+      "measure": "shined",
+      "equals": true,
+      "expect": "A shine out of the jump",
+      "words": "{char} landed without a shine",
+      "headline": "No shine",
+      "fix": "Press down-B on frame {J+1}, the frame {char} leaves the ground. Down-B pressed during the jump squat is ignored."
+    },
+    "first airborne frame": {
+      "measure": "shine_after",
+      "equals": "J",
+      "expect": "Shine on frame {J+1}, the first frame in the air",
+      "words": "shine on frame {shine_frame}",
+      "headline": "Late shine",
+      "fix": "Press down-B {J} frames after the jump, as the jump squat ends. One frame later {char} has risen, and the shine stays in the air."
+    }
+  },
+  "parts": [
+    {
+      "name": "Shine as you leave the ground",
+      "teach": "Standing, press X, then down-B on frame {J+1}, the frame the jump squat ends. The shine comes out at ground level.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1"
+        },
+        {
+          "press": "B",
+          "frame": "J+1"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X pressed",
+        "J+1": "Frame {J+1}: down-B. Shine at ground level",
+        "J+5": "Frame {J+5}: landed in the shine"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "J"
+          ],
+          "words": "Jump squat: down-B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "shined",
+        "first airborne frame"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+1"
+            ]
+          }
+        ],
+        "note": "The jump squat is {J} frames: down-B on frame {J+1}."
+      }
+    },
+    {
+      "name": "Out of a dash",
+      "teach": "Dash, press X during the dash, and down-B on frame {J+1}. Five in a row.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": -5,
+          "hold": 6
+        },
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1"
+        },
+        {
+          "press": "B",
+          "frame": "J+1"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X pressed during the dash",
+        "J+1": "Frame {J+1}: down-B. Shine at ground level",
+        "J+5": "Frame {J+5}: landed in the shine, sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "J"
+          ],
+          "words": "Jump squat: down-B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "out of a dash",
+        "shined",
+        "first airborne frame"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "down-B during the jump squat",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 2
+        },
+        {
+          "press": "B",
+          "frame": 2
+        }
+      ],
+      "fails": "shined"
+    },
+    {
+      "name": "down-B one frame late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+2"
+        },
+        {
+          "press": "B",
+          "frame": "J+2"
+        }
+      ],
+      "fails": "first airborne frame"
+    },
+    {
+      "name": "jump from standing",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1"
+        },
+        {
+          "press": "B",
+          "frame": "J+1"
+        }
+      ],
+      "fails": "out of a dash"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "J+1"
+        ]
+      }
+    ],
+    "note": "The jump squat is {J} frames: down-B on frame {J+1}."
+  }
+}

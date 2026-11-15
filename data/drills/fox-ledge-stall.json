@@ -1,0 +1,564 @@
+{
+  "id": "fox-ledge-stall",
+  "name": "Firefox ledge stall",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Drop from the ledge and grab it again with Firefox.",
+  "why": "Each new catch of the ledge gives Fox {37} frames of intangibility. Dropping and catching it again with Firefox's charge keeps him intangible on the ledge for most of the cycle, so he can wait out an opponent who stands over the ledge.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 120,
+      "height": 0
+    },
+    "what": "A Firefox ledge stall is a drop from the ledge and up-B within {3} frames. The charge holds Fox at the ledge's height, and he catches the ledge again on frame {30}, the first frame the game allows it after letting go.",
+    "expect": "Each stall is judged when Fox catches the ledge, or when the Firefox launches or lands instead: whether he fast fell, how soon after the drop he pressed up-B, and whether he caught the ledge. After misses, the coach shows your inputs frame by frame against these frames.",
+    "example": [
+      {
+        "stick": [
+          -1,
+          0
+        ],
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          1
+        ],
+        "frame": 2
+      },
+      {
+        "press": "B",
+        "frame": 2,
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: the stick away from the stage. Fox lets go",
+      "2": "Frame {2}: up-B. The charge holds him in place",
+      "17": "Frame {17}: the charge starts to sink",
+      "30": "Frame {30}: the ledge is caught again",
+      "31": "Frame {f}: intangible from the new catch"
+    },
+    "lessons": [
+      {
+        "title": "Letting go of the ledge",
+        "text": [
+          "From the ledge, the control stick away from the stage or down lets go, and Fox falls on that frame. Held down into the next frame, the stick also fast falls him: he drops {3.4} units a frame at once and is too far below the ledge to catch it again.",
+          "Let go with the stick away from the stage, or tap it down for a single frame."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  -1,
+                  0
+                ],
+                "frame": 1,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: the stick away from the stage. Fox lets go",
+              "2": "Frame {f}: falling, no fast fall"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  1
+                ],
+                "words": "Let go",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  2,
+                  12
+                ],
+                "words": "Falling",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "The charge catches the ledge",
+        "text": [
+          "Up-B stops Fox's fall: the charge holds him still for {15} frames and then lets him sink slowly for the rest of its {42}. The game lets Fox catch the ledge again {29} frames after letting go, on frame {30}, and the charge is still holding him at the ledge's height then, so he catches it on that frame.",
+          "Up-B has to come within {3} frames of letting go. Later, Fox has fallen too far before the charge stops him, and on frame {30} he is below the ledge: the charge runs out and Firefox launches.",
+          "The new catch makes Fox intangible for {37} frames, frames {30} to {66}."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  -1,
+                  0
+                ],
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  1
+                ],
+                "frame": 2
+              },
+              {
+                "press": "B",
+                "frame": 2,
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: let go",
+              "2": "Frame {2}: up-B. The charge",
+              "17": "Frame {f}: the charge sinks slowly",
+              "30": "Frame {30}: the ledge is caught again",
+              "31": "Frame {f}: intangible"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  1
+                ],
+                "words": "Let go",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  2,
+                  4
+                ],
+                "words": "Up-B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  5,
+                  29
+                ],
+                "words": "Charge: the ledge cannot be caught yet",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  30,
+                  30
+                ],
+                "words": "Ledge caught",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  31,
+                  66
+                ],
+                "words": "Intangible",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the ledge",
+      "stage": "final-destination",
+      "player": {
+        "ledge": "left"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "leaves": "ledge"
+    },
+    "judge": [
+      {
+        "enters": "ledge_catch"
+      },
+      {
+        "enters": "firefox"
+      },
+      "lands"
+    ],
+    "limit": 90,
+    "timeout": "judge"
+  },
+  "measures": {
+    "fast_fell": {
+      "happened": "fast_fall"
+    },
+    "charged": {
+      "happened": {
+        "enters": "firefox_charge"
+      }
+    },
+    "upb_after": {
+      "frames": [
+        "start",
+        {
+          "enters": "firefox_charge"
+        }
+      ]
+    },
+    "regrabbed": {
+      "happened": {
+        "enters": "ledge_catch"
+      }
+    },
+    "regrab_frame": {
+      "frame_of": {
+        "enters": "ledge_catch"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Ledge stall. Up-B {upb_after_frames} after letting go, the ledge caught on frame {regrab_frame}."
+  },
+  "checks": {
+    "no fast fall": {
+      "measure": "fast_fell",
+      "equals": false,
+      "expect": "Let go without a fast fall",
+      "words": "{char} fast fell after letting go",
+      "headline": "Fast fall",
+      "fix": "Let go with the stick away from the stage, or tap it down for one frame only. Held down into the next frame, it fast falls Fox below the ledge."
+    },
+    "firefox": {
+      "measure": "charged",
+      "equals": true,
+      "expect": "Up-B after letting go",
+      "words": "{char} fell without an up-B",
+      "headline": "No Firefox",
+      "fix": "Press up and B within {3} frames of letting go of the ledge."
+    },
+    "up-B in time": {
+      "measure": "upb_after",
+      "at_most": 3,
+      "expect": "Up-B within {3} frames of letting go",
+      "words": "up-B {frames} after letting go",
+      "headline": "Late up-B",
+      "fix": "Press up and B on the frame after letting go, {3} frames after it at most. Later, Fox is below the ledge when it can be caught again on frame {30}."
+    },
+    "regrabbed": {
+      "measure": "regrabbed",
+      "equals": true,
+      "expect": "The ledge caught again",
+      "words": "the ledge was not caught",
+      "headline": "No ledge",
+      "fix": "Hold the stick in neutral during the charge: the ledge is caught on frame {30}, while the charge still holds Fox at its height."
+    }
+  },
+  "parts": [
+    {
+      "name": "Let go",
+      "teach": "Let go of the ledge with the stick away from the stage, without fast falling. Judged {5} frames after letting go.",
+      "example": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: the stick away from the stage",
+        "2": "Frame {f}: falling"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "Let go",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            2,
+            5
+          ],
+          "words": "Falling",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "judge": {
+          "frame": 5
+        }
+      },
+      "checks": [
+        "no fast fall"
+      ],
+      "success": "Let go without a fast fall.",
+      "streak": 3,
+      "coach": {
+        "rows": [],
+        "note": "Let go with the stick away from the stage, or down for one frame: down held into a second frame fast falls Fox."
+      }
+    },
+    {
+      "name": "Up-B at once",
+      "teach": "Let go, then up-B within {3} frames: the charge stops the fall at the ledge's height.",
+      "example": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 2
+        },
+        {
+          "press": "B",
+          "frame": 2,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: let go",
+        "2": "Frame {2}: up-B. The charge holds Fox still"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "Let go",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            2,
+            4
+          ],
+          "words": "Up-B now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            5,
+            16
+          ],
+          "words": "Charge",
+          "kind": "info"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "firefox_charge"
+          },
+          {
+            "frame": 10
+          }
+        ]
+      },
+      "checks": [
+        "no fast fall",
+        "firefox",
+        "up-B in time"
+      ],
+      "success": "Up-B {upb_after_frames} after letting go.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Up-B",
+            "button": "B",
+            "perfect": [
+              2
+            ],
+            "window": [
+              2,
+              4
+            ]
+          }
+        ],
+        "note": "Up-B within {3} frames of letting go."
+      }
+    },
+    {
+      "name": "Catch the ledge",
+      "teach": "The whole stall: let go, up-B at once, and wait in the charge until Fox catches the ledge on frame {30}. Five in a row.",
+      "example": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 2
+        },
+        {
+          "press": "B",
+          "frame": 2,
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: let go",
+        "2": "Frame {2}: up-B",
+        "30": "Frame {30}: the ledge caught again"
+      },
+      "cues": [
+        {
+          "frames": [
+            2,
+            4
+          ],
+          "words": "Up-B now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            30,
+            30
+          ],
+          "words": "Ledge caught",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "no fast fall",
+        "firefox",
+        "up-B in time",
+        "regrabbed"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "the stick held down",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 3
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 4
+        },
+        {
+          "press": "B",
+          "frame": 4,
+          "hold": 1
+        }
+      ],
+      "fails": "no fast fall"
+    },
+    {
+      "name": "no up-B",
+      "inputs": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "fails": "firefox"
+    },
+    {
+      "name": "up-B five frames after letting go",
+      "inputs": [
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            1
+          ],
+          "frame": 6
+        },
+        {
+          "press": "B",
+          "frame": 6,
+          "hold": 1
+        }
+      ],
+      "fails": "up-B in time"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Up-B",
+        "button": "B",
+        "perfect": [
+          2
+        ],
+        "window": [
+          2,
+          4
+        ]
+      },
+      {
+        "label": "Ledge",
+        "state": "ledge_catch",
+        "perfect": [
+          30
+        ],
+        "window": [
+          30,
+          30
+        ]
+      }
+    ],
+    "note": "Up-B within {3} frames of letting go; the ledge is caught on frame {30}."
+  }
+}

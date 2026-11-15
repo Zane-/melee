@@ -598,6 +598,8 @@ class Client:
             self.show_stages()
         elif to == "hub":
             self.show_hub()
+        elif to == "chars":
+            self.show_characters()
         else:
             self.show_opponent()
 
@@ -661,7 +663,8 @@ class Client:
                 self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("gpads", "bannerwrap", "pause", "rays", "coach"):
+        for ident in ("gpads", "gstocks", "bannerwrap", "pause", "rays",
+                      "coach"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
 
@@ -1389,6 +1392,9 @@ class Client:
         self.kos = modes.KOs()
         self.score_shown = False
         self.ends_in = None
+        self.stocks_shown = (0, 0)
+        self.grey_in = [0, 0]
+        self.match_stats = modes.MatchStats()
         if self.mode == "versus":
             self.last_match = "%s against %s · %s" % (
                 self.me["name"], opp["name"], stages.BY_ID[stage]["name"])
@@ -1404,7 +1410,8 @@ class Client:
             mode=(self.game_mode.name, self.game_mode.status(self.sides()),
                   self.game_mode.summary())
             if self.game_mode is not None and self.game_mode.scores()
-            else None), START | (DPAD if self.mode == "lab" else 0))
+            else None, grey=self.grey_stocks()),
+            START | (DPAD if self.mode == "lab" else 0))
         self.w.capture(False)
 
     def sides(self):
@@ -1418,29 +1425,94 @@ class Client:
         names[self.port], names[1 - self.port] = me, opp
         return names
 
+    def grey_stocks(self):
+        """Each port's stock icon without its colour (a mode that scores
+        in stocks: its side with none), or None."""
+        if self.game_mode is None or not self.game_mode.scores():
+            return None
+        opp = self.roster[self.opp_at]
+        grey = [None, None]
+        grey[self.port] = art.stock(self.me["id"], self.dressed(self.me),
+                                    grey=True)
+        grey[1 - self.port] = art.stock(opp["id"], self.opp_dressed(opp),
+                                        grey=True)
+        return grey
+
+    # frames a side's colourless stock waits after its last one breaks
+    GREY_AFTER = 40
+
     def show_score(self):
-        """The mode's score: the HUD's stocks, and in words in the
+        """The mode's score: the HUD's stocks, a side with none its stock
+        without colour (after its last breaks), and in words in the
         column."""
-        a, b = self.game_mode.stocks()
-        self.w.stocks(0, a)
-        self.w.stocks(1, b)
+        shown = self.game_mode.stocks()
+        before = getattr(self, "stocks_shown", (0, 0))
+        self.grey_in = list(getattr(self, "grey_in", [0, 0]))
+        for port, n in enumerate(shown):
+            self.w.stocks(port, n)
+            if n == 0 and before[port] > 0:
+                self.grey_in[port] = self.GREY_AFTER
+            elif n == 0 and self.grey_in[port] == 0:
+                self.w.ui("class gs%d on 1" % port)
+            if n > 0:
+                self.grey_in[port] = 0
+                self.w.ui("class gs%d on 0" % port)
+        self.stocks_shown = tuple(shown)
         self.w.ui("text vscore " + screens.esc(
             self.game_mode.status(self.sides())))
+
+    def grey_wait(self):
+        """Each frame: a side's colourless stock after its last broke."""
+        for port in (0, 1):
+            if getattr(self, "grey_in", [0, 0])[port] > 0:
+                self.grey_in[port] -= 1
+                if self.grey_in[port] == 0 and \
+                        self.stocks_shown[port] == 0:
+                    self.w.ui("class gs%d on 1" % port)
 
     # frames from the winning KO to the result: the stock in the HUD first
     GAME_SHOWN = 40
 
+    # frames the result shows over the stopped game before the results
+    RESULTS_AFTER = 90
+
     def game_over(self):
         """The mode says the match is won: the game stopped where it is,
-        the result over it; A plays it again, B goes back to the stages."""
+        GAME and the winner over it, then the results screen."""
         self.w.freeze(True)
         winner = self.game_mode.winner
         self.w.ui("text bword Game")
         self.w.ui("text bmsg " + screens.esc(
-            "%s wins. A: rematch. B: change stage." % self.sides()[winner]))
+            "%s wins" % self.sides()[winner]))
         self.game_colour(winner == self.port)
         self.w.ui("class banner on 1")
-        self.screen = "vover"
+        self.results_in = self.RESULTS_AFTER
+        self.screen = "vgame"
+
+    def on_vgame(self, pressed, moves):
+        self.results_in -= 1
+        if self.results_in <= 0 or pressed & (A | B):
+            self.show_results()
+
+    def show_results(self):
+        """The results (screens.results_page): the winner, each side's
+        numbers, the mode's own first; A plays it again, X the characters,
+        B the stages."""
+        m = self.game_mode
+        opp = self.roster[self.opp_at]
+        sides = [None, None]
+        sides[self.port] = dict(c=self.me, costume=self.dressed(self.me),
+                                name=self.sides()[self.port], who="You")
+        sides[1 - self.port] = dict(
+            c=opp, costume=self.opp_dressed(opp),
+            name=self.sides()[1 - self.port],
+            who=self.players()[self.who][1])
+        rows = [(m.name, m.stats()), ("The match", self.match_stats.rows())]
+        stage = stages.BY_ID[STAGE_ORDER[self.stage_at]]["name"]
+        self.screen = "results"
+        self.load("results", screens.results_page(
+            m, sides, m.winner, rows, modes.clock(self.match_stats.frames),
+            stage))
 
     def game_colour(self, won):
         """The result's banner green if the player won, red if not (None:
@@ -1449,16 +1521,14 @@ class Client:
             self.w.ui("class %s good %d" % (ident, 1 if won is True else 0))
             self.w.ui("class %s bad %d" % (ident, 1 if won is False else 0))
 
-    def on_vover(self, pressed, moves):
-        if pressed & (A | B):
-            self.w.ui("class banner on 0")
-            self.game_colour(None)
+    def on_results(self, pressed, moves):
+        if pressed & (A | B | X):
             self.w.freeze(False)
         if pressed & A:
             self.fight()
-        elif pressed & B:
+        elif pressed & (B | X):
             self.screen = "versus"
-            self.leave_match("stages")
+            self.leave_match("stages" if pressed & B else "chars")
 
     # ---- a friend, online (online.py; the session: src/host/net.c) --------
 
@@ -1730,6 +1800,9 @@ class Client:
                 self.show_score()           # (the HUD is there now)
                 self.score_shown = True
             kos = self.kos.see(fighters)
+            self.grey_wait()
+            self.match_stats.see(fighters, kos)
+            mode.tick()
             for port in kos:
                 mode.ko(port)
             if kos:
@@ -2357,17 +2430,21 @@ class Client:
                 k + 1, len(lessons)), text=[T(t) for t in (
                     text if isinstance(text, list) else [text])])
             seq, ex, still = [], show.get("example"), show.get("still")
+            cid = session.c.fd.id
+            # (a lesson is played in its own scenario: the drill's first,
+            # whichever part the player is on)
+            drill.lesson_scenario = le.get("scenario", 0)
             if ex is not None:
-                result, seq = self.tutorial_seq(drill, session, ex["inputs"],
-                                                ex.get("marks", {}),
-                                                ex.get("cues", []))
+                result, seq = self.tutorial_seq(
+                    drill, session, fmt.pick(ex, "inputs", cid),
+                    ex.get("marks", {}), ex.get("cues", []))
                 view["timeline"] = (result or {}).get("timeline")
             elif still is not None:
                 # one picture of the example: the frame the lesson is about
                 at = int(fmt.value(still["frame"], nums))
                 cue = still.get("cue")
                 _, seq = self.tutorial_seq(
-                    drill, session, still["inputs"], {},
+                    drill, session, fmt.pick(still, "inputs", cid), {},
                     [dict(cue, frames=[at, at])] if cue else [])
                 seq = [e for e in seq if e["label"] == "F%d" % at][:1]
                 for e in seq:
@@ -2399,17 +2476,23 @@ class Client:
             elif what == "back":
                 k -= 1
             elif what == "full":
-                self.tutorial_example(drill, session, ex["inputs"],
+                drill.lesson_scenario = le.get("scenario", 0)
+                self.tutorial_example(drill, session,
+                                      fmt.pick(ex, "inputs", cid),
                                       ex.get("marks", {}), T(le["title"]))
             elif what == "skip":
                 # (the owner: START "should just exit the tutorial", not
                 # open the part's card, which looked like another lesson)
                 skipped = True
                 break
+        drill.lesson_scenario = None    # (the drill plays the part's own)
         while not skipped:
             part = drill.part_now
             n, i = len(drill.parts), drill.part_index
-            result, seq = self.tutorial_seq(drill, session, part["example"],
+            drill.lesson_scenario = None    # (the part's own scenario)
+            result, seq = self.tutorial_seq(drill, session,
+                                            fmt.pick(part, "example",
+                                                     session.c.fd.id),
                                             part.get("marks", {}),
                                             part.get("cues", []))
             pic = dict(view=1, crop=coach.crop([], (520, 300))) if seq \
@@ -2432,7 +2515,9 @@ class Client:
                 a="go", b="go", start="go", y="full" if seq else None,
                 l=-1 if n > 1 else None, r=1 if n > 1 else None))
             if what == "full":
-                self.tutorial_example(drill, session, part["example"],
+                self.tutorial_example(drill, session,
+                                      fmt.pick(part, "example",
+                                               session.c.fd.id),
                                       part.get("marks", {}),
                                       T(part["name"]))
                 continue
@@ -2468,7 +2553,7 @@ class Client:
         for e in seq:
             f = e["i"] - start + 1 if start is not None else None
             if f is None or f < 1:
-                e["caption"] = "Before frame 1: standing"
+                e["caption"] = "Before frame 1"
                 e["label"] = ""
                 e["cue"] = None
                 continue
@@ -2592,7 +2677,7 @@ class Client:
         last = max(list(at) + list(pressed_on) + [nums["J"] + 1])
         n = last + 6                        # a few frames after the last mark
         # frame 0 of it
-        lead = course_engine.REF_LEAD + drill.ref_start - 1
+        lead = drill.ref_lead + drill.ref_start - 1
         d = self.drill_now or {"part": "Tech", "number": 1, "name": name}
         label, number, total = screens.place_of(self.course, d) \
             if self.course and self.drill_now else ("TECH SKILL", 1, 1)

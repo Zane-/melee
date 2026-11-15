@@ -1,0 +1,1103 @@
+{
+  "id": "fox-multishine",
+  "name": "Multishine",
+  "part": "tech",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Jump out of each shine and shine again as you leave the ground.",
+  "why": "Each shine hits on its first frame, and each jump out of a shine can lead into another shine at ground level. On a shield the chain leaves gaps of {8} frames, too short to react to, and it ends in whatever follows a jump: a grab, a wavedash or an aerial.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 90,
+      "height": 8
+    },
+    "what": "A multishine is a shine, a jump out of it on frame {4}, and the next shine on frame {J+4}, the frame the jump squat ends. That shine comes out at ground level and lands {4} frames later, and the next jump goes on the frame after the landing.",
+    "expect": "Each chain is judged when it ends, or {60} frames after the first shine: how many shines came out, and the most frames from one shine to the next. After misses, the coach shows your inputs frame by frame against the frame-perfect chain.",
+    "example": [
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 1
+      },
+      {
+        "press": "B",
+        "frame": 1
+      },
+      {
+        "press": "jump",
+        "frame": 4,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 7
+      },
+      {
+        "press": "B",
+        "frame": 7
+      },
+      {
+        "press": "jump",
+        "frame": 12,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 15
+      },
+      {
+        "press": "B",
+        "frame": 15
+      },
+      {
+        "press": "jump",
+        "frame": 20,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 23
+      },
+      {
+        "press": "B",
+        "frame": 23
+      },
+      {
+        "press": "jump",
+        "frame": 28,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 31
+      },
+      {
+        "press": "B",
+        "frame": 31
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: down-B. The first shine",
+      "4": "Frame {4}: X. Jump squat",
+      "J+4": "Frame {J+4}: down-B as Fox leaves the ground. Shine at ground level",
+      "J+8": "Frame {J+8}: landed in the shine",
+      "J+9": "Frame {J+9}: X. Jump squat",
+      "15": "Frame {15}: down-B. The third shine",
+      "23": "Frame {23}: the fourth shine",
+      "31": "Frame {31}: the fifth shine"
+    },
+    "lessons": [
+      {
+        "title": "The second shine",
+        "text": [
+          "The shine accepts a jump from its fourth frame. The jump squat that follows ignores down-B, and on frame {J+4} Fox leaves the ground: down-B on that frame is an aerial shine. It stops his rise before he has moved up, so it is at ground level, and he lands in it {4} frames later, on frame {J+8}.",
+          "Down-B pressed a frame later comes out {2} units up, and Fox floats down in it instead of landing at once."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1
+              },
+              {
+                "press": "jump",
+                "frame": 4,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 7
+              },
+              {
+                "press": "B",
+                "frame": 7
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: down-B",
+              "4": "Frame {4}: X. Jump squat",
+              "5": "Frame {f}: jump squat. Down-B now is ignored",
+              "J+4": "Frame {J+4}: down-B. The second shine, at ground level",
+              "J+8": "Frame {J+8}: landed in the shine"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  3
+                ],
+                "words": "Shine",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  4,
+                  4
+                ],
+                "words": "Jump now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  5,
+                  "J+3"
+                ],
+                "words": "Jump squat: down-B is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+4",
+                  "J+4"
+                ],
+                "words": "Down-B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+5",
+                  "J+7"
+                ],
+                "words": "Shine at ground level",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+8",
+                  23
+                ],
+                "words": "Landed in the shine",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "The next jump",
+        "text": [
+          "Until the shine lands, Fox is in the air, and a jump is his double jump: he rises and the chain ends. The shine lands on its fifth frame, and a jump on the frame after, {5} frames after down-B, is a jump squat again.",
+          "From there the cycle repeats: jump {5} frames after each shine, down-B {J} frames after each jump. Frame-perfect, a shine comes out every {8} frames: frames 1, {J+4}, {15}, {23}, {31}."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1
+              },
+              {
+                "press": "B",
+                "frame": 1
+              },
+              {
+                "press": "jump",
+                "frame": 4,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 7
+              },
+              {
+                "press": "B",
+                "frame": 7
+              },
+              {
+                "press": "jump",
+                "frame": 12,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 15
+              },
+              {
+                "press": "B",
+                "frame": 15
+              }
+            ],
+            "marks": {
+              "J+4": "Frame {J+4}: the second shine",
+              "J+5": "Frame {f}: in the air. A jump now is the double jump",
+              "J+8": "Frame {J+8}: landed in the shine",
+              "J+9": "Frame {J+9}: X. Jump squat",
+              "15": "Frame {15}: down-B. The third shine"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "J+4",
+                  "J+7"
+                ],
+                "words": "In the air: a jump is the double jump",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "J+8",
+                  "J+8"
+                ],
+                "words": "Landing",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+9",
+                  "J+9"
+                ],
+                "words": "Jump now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  13,
+                  14
+                ],
+                "words": "Jump squat: down-B is ignored",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  15,
+                  15
+                ],
+                "words": "Down-B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  16,
+                  23
+                ],
+                "words": "Shine",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "shine",
+      "on_ground": true
+    },
+    "judge": [
+      {
+        "enters": "double_jump"
+      },
+      {
+        "enters": "jump"
+      },
+      {
+        "leaves": "shine",
+        "to": "wait"
+      },
+      {
+        "frame": 60
+      }
+    ],
+    "cancel": "hit",
+    "limit": 70,
+    "timeout": "judge"
+  },
+  "measures": {
+    "jumped": {
+      "happened": {
+        "enters": "jump_squat"
+      }
+    },
+    "jump_frame": {
+      "frame_of": {
+        "enters": "jump_squat"
+      }
+    },
+    "rose": {
+      "happened": {
+        "enters": "jump"
+      }
+    },
+    "double_jumped": {
+      "happened": {
+        "enters": "double_jump"
+      }
+    },
+    "shines": {
+      "count": {
+        "enters": "shine"
+      }
+    },
+    "first_gap": {
+      "frames": [
+        {
+          "enters": "shine"
+        },
+        {
+          "enters": "shine"
+        }
+      ]
+    },
+    "slowest": {
+      "max_gap": {
+        "enters": "shine"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Multishine: {shines} shines, the slowest {slowest_frames} after the one before."
+  },
+  "checks": {
+    "jumped": {
+      "measure": "jumped",
+      "equals": true,
+      "expect": "A jump out of the shine",
+      "words": "{char} stayed in the shine",
+      "headline": "No jump out of the shine",
+      "fix": "Press X or Y on frame {4} of the shine or later, while the shine is still out. A jump pressed on frames 1 to {3} is ignored."
+    },
+    "jump in time": {
+      "measure": "jump_frame",
+      "at_most": 6,
+      "expect": "Jump on frame {4}, {5} or {6}",
+      "words": "jumped on frame {measure}",
+      "headline": "Late jump",
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+    },
+    "no rise": {
+      "measure": "rose",
+      "equals": false,
+      "expect": "Every shine on the first frame in the air",
+      "words": "{char} rose out of a jump squat without a shine",
+      "headline": "Shine missed",
+      "fix": "Press down-B {J} frames after each jump, on the frame the jump squat ends. Down-B during the jump squat is ignored; a frame late, Fox has left the ground."
+    },
+    "no double jump": {
+      "measure": "double_jumped",
+      "equals": false,
+      "expect": "No double jump",
+      "words": "a jump came while {char} was still in the air",
+      "headline": "Double jump",
+      "fix": "Wait for the shine to land: jump {5} frames after down-B. Pressed sooner, while the shine is still in the air, the jump is the double jump."
+    },
+    "three shines": {
+      "measure": "shines",
+      "at_least": 3,
+      "expect": "{3} shines in a row",
+      "words": "{measure} shines",
+      "headline": "Too few shines",
+      "fix": "Down-B {J} frames after each jump, as the jump squat ends, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
+    },
+    "five shines": {
+      "measure": "shines",
+      "at_least": 5,
+      "expect": "{5} shines in a row",
+      "words": "{measure} shines",
+      "headline": "Too few shines",
+      "fix": "Down-B {J} frames after each jump, as the jump squat ends, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
+    },
+    "steady": {
+      "measure": "slowest",
+      "at_most": 10,
+      "expect": "No shine more than {10} frames after the one before",
+      "words": "the slowest shine came {frames} after the one before",
+      "headline": "Slow shine",
+      "fix": "Jump on the frame after each shine lands, {5} frames after its down-B, and down-B {J} frames after the jump. Frame-perfect, a shine comes {8} frames after the one before."
+    }
+  },
+  "parts": [
+    {
+      "name": "The second shine",
+      "teach": "Shine, jump on frame {4}, and down-B on frame {J+4} as the jump squat ends. The second shine comes out at ground level.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: down-B",
+        "4": "Frame {4}: X",
+        "J+4": "Frame {J+4}: down-B. Shine at ground level"
+      },
+      "cues": [
+        {
+          "frames": [
+            4,
+            4
+          ],
+          "words": "Jump now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            5,
+            "J+3"
+          ],
+          "words": "Jump squat: down-B is ignored",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "J+4",
+            "J+4"
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "double_jump"
+          },
+          {
+            "enters": "jump"
+          },
+          {
+            "leaves": "shine",
+            "to": "wait"
+          },
+          {
+            "enters": "shine",
+            "in_air": true
+          }
+        ]
+      },
+      "checks": [
+        "jumped",
+        "jump in time",
+        "no rise"
+      ],
+      "success": "Second shine at ground level, {first_gap_frames} after the first.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              1,
+              "J+4"
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              4
+            ],
+            "window": [
+              4,
+              6
+            ]
+          },
+          {
+            "label": "Shine",
+            "state": "shine",
+            "perfect": [
+              1,
+              "J+4"
+            ]
+          }
+        ],
+        "note": "Jump on frame {4}; the jump squat lasts {J} frames, and the second down-B goes on frame {J+4}."
+      }
+    },
+    {
+      "name": "Jump as it lands",
+      "teach": "After the second shine lands, jump on the next frame, {5} frames after its down-B, and shine again {J} frames later. Three shines, none more than {10} frames after the one before.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        },
+        {
+          "press": "jump",
+          "frame": 12,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 15
+        },
+        {
+          "press": "B",
+          "frame": 15
+        }
+      ],
+      "marks": {
+        "J+4": "Frame {J+4}: the second shine",
+        "J+8": "Frame {J+8}: landed",
+        "J+9": "Frame {J+9}: X",
+        "15": "Frame {15}: down-B. The third shine"
+      },
+      "cues": [
+        {
+          "frames": [
+            "J+4",
+            "J+7"
+          ],
+          "words": "In the air: a jump is the double jump",
+          "kind": "late"
+        },
+        {
+          "frames": [
+            "J+9",
+            "J+9"
+          ],
+          "words": "Jump now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            15,
+            15
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        }
+      ],
+      "attempt": {
+        "judge": [
+          {
+            "enters": "double_jump"
+          },
+          {
+            "enters": "jump"
+          },
+          {
+            "leaves": "shine",
+            "to": "wait"
+          },
+          {
+            "frame": 40
+          }
+        ]
+      },
+      "checks": [
+        "jumped",
+        "no double jump",
+        "three shines",
+        "steady"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              1,
+              "J+4",
+              15
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "perfect": [
+              4,
+              "J+9"
+            ]
+          },
+          {
+            "label": "Shine",
+            "state": "shine",
+            "perfect": [
+              1,
+              "J+4",
+              15
+            ]
+          }
+        ],
+        "note": "The second shine lands on frame {J+8}; jump on frame {J+9}."
+      }
+    },
+    {
+      "name": "Five shines",
+      "teach": "Keep the cycle going: five shines or more, none more than {10} frames after the one before. Frame-perfect, the first gap is {6} frames and every later one {8}.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        },
+        {
+          "press": "jump",
+          "frame": 12,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 15
+        },
+        {
+          "press": "B",
+          "frame": 15
+        },
+        {
+          "press": "jump",
+          "frame": 20,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 23
+        },
+        {
+          "press": "B",
+          "frame": 23
+        },
+        {
+          "press": "jump",
+          "frame": 28,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 31
+        },
+        {
+          "press": "B",
+          "frame": 31
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: shine",
+        "J+4": "Frame {J+4}: shine",
+        "15": "Frame {15}: shine",
+        "23": "Frame {23}: shine",
+        "31": "Frame {31}: shine"
+      },
+      "checks": [
+        "jumped",
+        "no double jump",
+        "five shines",
+        "steady"
+      ],
+      "streak": 3
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "second down-B one frame late",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+5"
+        },
+        {
+          "press": "B",
+          "frame": "J+5"
+        }
+      ],
+      "fails": "no rise"
+    },
+    {
+      "name": "second down-B during the jump squat",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+3"
+        },
+        {
+          "press": "B",
+          "frame": "J+3"
+        }
+      ],
+      "fails": "no rise"
+    },
+    {
+      "name": "jump before the shine lands",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        },
+        {
+          "press": "jump",
+          "frame": "J+7",
+          "hold": 1
+        }
+      ],
+      "fails": "no double jump"
+    },
+    {
+      "name": "jumps three frames late",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        },
+        {
+          "press": "jump",
+          "frame": 15,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 18
+        },
+        {
+          "press": "B",
+          "frame": 18
+        },
+        {
+          "press": "jump",
+          "frame": 26,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 29
+        },
+        {
+          "press": "B",
+          "frame": 29
+        },
+        {
+          "press": "jump",
+          "frame": 37,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 40
+        },
+        {
+          "press": "B",
+          "frame": 40
+        }
+      ],
+      "fails": "steady"
+    },
+    {
+      "name": "chain broken after three shines",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 7
+        },
+        {
+          "press": "B",
+          "frame": 7
+        },
+        {
+          "press": "jump",
+          "frame": 12,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 15
+        },
+        {
+          "press": "B",
+          "frame": 15
+        },
+        {
+          "press": "jump",
+          "frame": 20,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 24
+        },
+        {
+          "press": "B",
+          "frame": 24
+        }
+      ],
+      "fails": "five shines"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          1,
+          "J+4",
+          15,
+          23,
+          31
+        ]
+      },
+      {
+        "label": "Jump",
+        "button": "jump",
+        "perfect": [
+          4,
+          "J+9",
+          20,
+          28
+        ]
+      },
+      {
+        "label": "Shine",
+        "state": "shine",
+        "perfect": [
+          1,
+          "J+4",
+          15,
+          23,
+          31
+        ]
+      }
+    ],
+    "note": "Jump {5} frames after each shine, down-B {J} frames after each jump: a shine every {8} frames."
+  }
+}

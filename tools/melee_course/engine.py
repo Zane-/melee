@@ -895,14 +895,17 @@ class Session:
         (PlayReference)."""
         c = self.c
         lx = ly = cx = cy = buttons = trigger = 0
-        if self.attempt_frame < REF_LEAD:
+        # (a drill may have its own: none on the ledge, where the hang's
+        # intangibility runs from the placement)
+        ref_lead = getattr(self.d, "ref_lead", REF_LEAD)
+        if self.attempt_frame < ref_lead:
             self.set_player_pad()
             return
         js = self.fd.jump_squat
         for i in ref:
             hold = i.hold or 1
             if i.mark == 0:
-                base = REF_LEAD
+                base = ref_lead
             elif self.d.live_marks:
                 if self.marks[i.mark] < 0:
                     continue
