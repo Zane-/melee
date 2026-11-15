@@ -162,6 +162,10 @@ const char* host_rebirth(int slot, float x, float y);
 const char* host_anchor(int slot, int on);
 void host_anchor_frame(void);
 const char* host_set_shield(int slot, float health);
+/// Player `slot`'s shield kept at `health` at every frame boundary (`on`),
+/// searched and played-ahead frames too, or no longer (and set to it once);
+/// slot -1: none kept.
+const char* host_keep_shield(int slot, float health, int on);
 /// What TM-CE does round loading a savestate (savestate_v1.c), for a new
 /// attempt: the fighters' sounds and the crowd's stopped, the particles and
 /// the fighters' free items gone, colour overlays off, moves fresh.

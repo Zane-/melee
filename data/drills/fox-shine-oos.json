@@ -1962,8 +1962,8 @@
         ],
         "limit": 40,
         "timeout": "judge",
-        "within": 300,
-        "missed": "Not counted: the attack missed your shield. Hold L or R and let it hit."
+        "within": 480,
+        "missed": "Not counted: no attack reached your shield in time. Hold L or R and let it come."
       }
     }
   ],

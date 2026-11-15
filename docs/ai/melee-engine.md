@@ -327,6 +327,64 @@ the window build off screen (software rendering, loaded): 2 of 4 landed, 4 of 4 
 The window build's forks search about 1.8 times slower than headless; on the owner's
 desktop the GPU draws and the cores are free, which none of these runs had.
 
+**How it feels live: `tools/melee_engine/feel.py` (2026-11-15).** The owner, playing
+fox-shine-oos in the client: "the sheik is just missing ... and missing still". `feel.py`
+plays a drill's scenarios as the client does (the course runtime, the drill's script,
+decisions in forks of the window build at 60 frames a second; or headless, decided in the
+game itself; `--load K` beside K busy cores) against stand-ins (the shield held, digitally,
+by an analog press, or noisily as a controller holds it; a person waiting in shield who
+walks a little now and then; one who lets go as the opponent commits; the frame-4 shine
+out of shield), and records every commitment: the frame its decision was asked on and was
+for, the frame it began, the line, the contact it foresaw and when, what really happened
+and when, whether the player's pad left what the decision assumed, and (`--trace`) the
+first frame the live game differs from the one the fork foresaw. The causes, each fixed:
+
+| Cause | Evidence | Fix |
+|-|-|-|
+| A second decision, asked while the first one's line waited for its frame, came back after the line had begun and replaced it: `plan[i]` with `i` negative played the end of the new plan | live, 8 of 14 Sheik commitments replaced part-way, every miss among them; headless (decided at once) never | one commitment: once a decision has found a line, no other is asked, and a commitment that comes back while one is in play is dropped (`EngineOpponent`) |
+| The drill's infinite shield was set by the driver between frames: live the shield was full, in a search it shrank as it was held | headless, 22 of 220 contacts 1 or 2 frames before the frame foreseen; against the frame-4 shine out of shield, 4 of 220 tries out of reach (Marth's nair, Samus's aerials: a first hit met the live shield up to 5 frames early) | the game keeps it (`shield P H 1`, `src/host/setup.c`): set again at every frame boundary, the frames searches, lookaheads and forks play included; the drill keeps it from its setup, the client lets it go when the drill is left |
+| A committed line's held stick ran past the initial dash and, the fighter past the player, turned round in the run (the stick is toward the target each frame); once Falco ran to the ledge and turned (found by the movement helper) | headless, 86 of 220 lines ran, 507 TurnRun frames in them | the timing scan's `norun=1` (`engine.c`): a hold on the ground ends where its fighter would run, has passed the target or is 10 units from the ledge; `Commit` asks for it: 5 TurnRun frames left in 219 lines, every one landing |
+| A body that plans again on its own (the new footwork's resync, an `ahead` padded with neutral pads) would have a line begin from where its decision never saw it | (a guard: with the old body the pads were always kept) | the pads the body plays while a decision is out, or its line waits, are compared with the pre-roll; one it does not keep to drops the decision |
+
+Not causes: the draw pass (the window build's live frames draw and draw random numbers,
+search frames do not; headless with the draw pass on gave the very same 220 results),
+frame pacing (a frame over 18.5 ms in 1 of 1,000 unloaded), late decisions (a decision back
+after its frame is dropped and asked again: lost time, never a miss), the player's shield
+input (digital, analog, a noisy controller: every contact on its frame). A person's real
+change of input is the one remaining cause of a miss, and the opponent now reacts to it: a
+decision keeps the pad it assumed (`Contract.assumes`: Commit's, a shield held), and the
+player leaving it is seen after the opponent's reaction time, as their commitments are:
+a line not begun is dropped; one begun is checked again in a fork, kept if it still lands,
+replaced by another answered one, or given up before its decisive press (`react`, the
+`bait` stand-in: Fox gave up 14 lines against a player who let go as it committed).
+
+Landed on a shielding player (the drill's part 3, every character of its deck, 20 attempts
+each unless noted):
+
+| | Fox | Marth | Puff | Falco | Sheik | Falcon | Peach | ICs | Pika | Yoshi | Samus | All |
+|-|-|-|-|-|-|-|-|-|-|-|-|-|
+| live, before | 91% | 78% | 95% | 79% | 95% | 91% | 100% | 95% | 95% | 82% | 91% | 212 of 236, 90% |
+| live, one decision and the kept shield | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 218 of 218 |
+| live, all of it (15 attempts) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 154 of 154, one line cut short by the drill's reset |
+| live under load, before | 72% | 94% | 78% | 81% | 100% | 69% | 94% | 83% | 81% | 76% | 88% | 148 of 179, 83% |
+| live under load, after (before `norun`) | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 158 of 158 |
+| headless, before and after | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 100% | 220 of 220 |
+
+Under load: 20 busy cores, before and after played side by side, a load average of 26 to
+42 on 28 cores; 15 attempts each; the window game below 60 frames a second (most frames
+over 18.5 ms). Every line began on the frame it was decided for, before and after; what
+went wrong before was the line itself. Decisions take 80 to 140 ms (the 90th percentile
+180 to 320 ms) in the unloaded window build's forks; 15 to 20% of them come back after
+their frame and are asked again (lost time: the body moves on, never a miss).
+
+The frame-4 shine out of shield answered every attack headless after (220 of 220, every
+contact on its frame; 216 of 220 before the kept shield). Against the shuffling stand-in,
+live, 168 of 179 landed: 10 misses a change of the player's pad 1 to 18 frames before the
+contact (the attack already pressed), one line cut short by the drill's reset; headless
+251 of 258, the same kinds. A line cut short is one that had not landed when the drill's
+part 3 reset (`within`: 300 frames from the reset); the slowest approaches commit some
+220 frames into it (typically 40), before and after.
+
 Not yet: the other drills on the engine (E5: wavedash back, shine out of shield, then the
 rest, each with its contract); the slippi-ai body and model of the player in the drills;
 several futures of the player (a jump-in that lands whether they stop or go on); faster

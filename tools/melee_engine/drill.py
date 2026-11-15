@@ -175,8 +175,20 @@ class EngineOpponent:
         self.landed = None
         self.answer = None
         self.line = None
-        self.pending = None       # dict(tag, kind, asked, at)
+        self.pending = None       # dict(tag, kind, asked, at, their)
         self.tag = 0
+        # what the decision in play assumed: (frame asked, the player's pad
+        # then, frames it was asked ahead); the frame the player's pad first
+        # left what it assumed (None: not yet); the frame a line given up
+        # hands back to the body
+        self.assumed = None
+        self.deviated = None
+        self.abort_at = None
+        self.dropped = self.aborts = 0
+        # the waiting plan's decision: (frame asked, the body's pads it was
+        # made with until its frame); decisions the body did not keep to
+        self.promise = None
+        self.broken = 0
         self.player_committed = -999
         self._was_neutral = True
         self._their = None
@@ -198,10 +210,11 @@ class EngineOpponent:
 
     # -- asking ------------------------------------------------------------------
 
-    def _ask(self, kind, fn, lead):
+    def _ask(self, kind, fn, lead, pre=None):
         self.tag = next(_tags)
         self.pending = dict(tag=self.tag, kind=kind, asked=self.frame,
-                            at=self.frame + lead)
+                            at=self.frame + lead, their=self._their_pad(),
+                            pre=pre)
         self.asked += 1
         self.think.submit(self.tag, fn, kind)
 
@@ -221,10 +234,11 @@ class EngineOpponent:
         c = self.contract
         rng = random.Random(self.rng.random())
         port, target, temperature = self.port, self.target, self.temperature
+        reaction = self.reaction
 
         def job(n):
             return c.retrack(n, port, target, remaining, my_pad, lead, rng,
-                             temperature=temperature)
+                             temperature=temperature, reaction=reaction)
         return job
 
     # -- what comes back -----------------------------------------------------------
@@ -253,7 +267,23 @@ class EngineOpponent:
             return
         if p["kind"] == "replan":
             self._count("replan " + got.get("outcome", "?"))
+            if got.get("outcome") in ("lands", "new"):
+                # checked against the pad they hold now: assumed from then
+                self.assumed = (p["asked"], p["their"], p["at"] - p["asked"])
+                self.deviated = None
+            elif self.contract.reacts and self.deviated is not None and \
+                    self.press is not None and p["at"] < self.press:
+                # nothing lands any more, and the line's decisive press is
+                # still to come: given up where the check was for
+                self.abort_at = p["at"]
         if p["kind"] == "commit":
+            if self.plan_at is not None:
+                self._count("commit unused")
+                return
+            if p.get("broken"):
+                # the body did not play the pads it was thought out with
+                self._count("commit body moved otherwise")
+                return
             if not got["ok"]:
                 self.refused += got["why"] == "no answer"
                 self.log.append((p["at"], got["why"]))
@@ -262,6 +292,9 @@ class EngineOpponent:
             self.line = got["line"]
             self.plan = got["pads"]
             self.plan_at = p["at"]
+            self.assumed = (p["asked"], p["their"], p["at"] - p["asked"])
+            self.deviated = None
+            self.promise = (p["asked"], p.get("pre") or [])
             self.press = p["at"] + got["press"]
             self.answer = (p["asked"], got["answer"]) \
                 if got.get("answer") is not None else None
@@ -273,6 +306,41 @@ class EngineOpponent:
             self.press = p["asked"] + got["press"]
             self.replans += 1
             self.log.append((p["at"], "replan"))
+
+    def _keep_to(self, raw):
+        """The body's pad this frame against what the decisions out (or
+        the plan waiting) were made with: one it did not keep to is
+        dropped."""
+        p = self.pending
+        if p is not None and p.get("pre") is not None and \
+                not p.get("broken"):
+            k = self.frame - p["asked"]
+            if k < len(p["pre"]) and tuple(raw) != tuple(p["pre"][k]):
+                p["broken"] = True
+        if self.plan_at is not None and self.promise is not None:
+            asked, pre = self.promise
+            k = self.frame - asked
+            if k < len(pre) and tuple(raw) != tuple(pre[k]):
+                self._drop(body=False)
+                self.broken += 1
+                self._count("plan body moved otherwise")
+
+    def _drop(self, body):
+        """The plan let go: the body goes on (`body`: a line given up part
+        way, what the body had planned before it is stale: planned again
+        from where the fighter is)."""
+        self.plan, self.plan_at, self.press = [], None, None
+        self.line = self.answer = self.committed = None
+        self.assumed = self.deviated = self.abort_at = None
+        self.promise = None
+        b = self.body
+        if body and hasattr(b, "forget"):
+            b.forget()
+        elif body and hasattr(b, "queue"):
+            b.queue = []
+            for k, v in (("expect", []), ("end", None), ("want", None)):
+                if hasattr(b, k):
+                    setattr(b, k, v)
 
     def _their_pad(self):
         if self._their is not None:
@@ -299,14 +367,32 @@ class EngineOpponent:
         fresh = self.frame - self.player_committed < self.cpu_reaction
         lead = self.think.lead_for(
             "commit" if self.mode == "neutral" else "replan")
+        if c.reacts and self.assumed is not None and \
+                self.deviated is None and self.plan_at is not None:
+            asked, pad0, ahead = self.assumed
+            want = c.assumes(pad0, self.frame - asked, ahead)
+            if want is not None and tuple(want) != self._their_pad():
+                self.deviated = self.frame
+        # (seen as the opponent sees what the player commits to: its
+        # reaction time after)
+        seen = self.deviated is not None and \
+            self.frame - self.deviated >= self.cpu_reaction
+        if seen and self.mode == "neutral" and self.plan_at is not None:
+            self._drop(body=False)
+            self.dropped += 1
+            self._count("dropped")
         if self.pending is None and me is not None and them is not None:
-            if self.mode == "neutral" and self.frame >= self.earliest and \
+            # (one commitment: once a decision has found one, it waits for
+            # its frame; a second asked meanwhile came back after the line
+            # had begun and replaced it part-way)
+            if self.mode == "neutral" and self.plan_at is None and \
+                    self.frame >= self.earliest and \
                     self.frame % self.every == 0 and \
                     (not fresh or c.sees_commitments) and \
                     c.ready(st, self.port, self.target):
                 pre = self.body.ahead(st, lead)
                 self._ask("commit", self._commit_job(pre, self._their_pad()),
-                          lead)
+                          lead, pre=list(pre))
             elif self.mode == "committed" and self.track and not fresh and \
                     c.tracks and self.press is not None and \
                     self.frame + lead < self.press and \
@@ -315,7 +401,20 @@ class EngineOpponent:
                 self._ask("replan", self._track_job(self.plan[i:],
                                                     self._their_pad(), lead),
                           lead)
+            elif self.mode == "committed" and self.track and seen and \
+                    c.reacts and self.abort_at is None and \
+                    self.press is not None and self.frame + lead < self.press:
+                i = self.frame - self.plan_at
+                self._ask("replan", self._track_job(self.plan[i:],
+                                                    self._their_pad(), lead),
+                          lead)
         self._collect()
+        if self.mode == "committed" and self.abort_at is not None and \
+                self.frame >= self.abort_at:
+            self._drop(body=True)
+            self.mode = "neutral"
+            self.aborts += 1
+            self._count("given up")
         if self.mode == "neutral" and self.plan_at is not None and \
                 self.frame >= self.plan_at:
             self.mode = "committed"
@@ -326,6 +425,7 @@ class EngineOpponent:
                 mid = (c.reach[0] + c.reach[1]) / 2.0
                 self.body.band = (mid - 6.0, mid + 6.0)
             raw = self.body.next(st)
+            self._keep_to(raw)
         elif self.mode == "committed":
             i = self.frame - self.plan_at
             raw = self.plan[i] if i < len(self.plan) else c.after

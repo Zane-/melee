@@ -172,7 +172,11 @@ no sooner than `react` frames after the commitment and before the option lands. 
 answer is searched with the opponent letting go after its line, as it plays it. Up to four
 of the best lines are looked at each time; the first answered is committed to, and the
 player's answer is kept with it (`Approach.answer`: the frame asked at, its pads), as the
-check and the demonstration play it. That is what makes a drill
+check and the demonstration play it. The line is kept while the player does what the
+decision assumed (a shield held: the game it foresaw is then the game played); when they
+do something else, seen after the opponent's reaction time, it reacts: a line not begun is
+dropped, one begun is checked again and kept, replaced by another answered line, or given
+up before its decisive press (`melee-engine.md`, "How it feels live"). That is what makes a drill
 fair: the situation happens if the player does nothing, an answer exists, wrong answers
 lose.
 
@@ -181,6 +185,14 @@ a drill's examples and mistakes against the same opponent, and the coach's demon
 plays what the check found.
 
 ## Status
+
+- 2026-11-15: an approach's committed attacks land on a shielding player live: 218 of 218
+  across the deck (90% before), headless 220 of 220, every contact on the frame foreseen
+  (`tools/melee_engine/feel.py`; the causes and the numbers in `melee-engine.md`, "How it
+  feels live"): one commitment at a time, the infinite shield kept by the game in searches
+  too, the body held to the pads a decision was made with, a reaction to the player
+  leaving what a decision assumed, and a held dash that never runs, turns round past the
+  player or reaches the ledge (the scan's `norun=1`).
 
 - 2026-11-15: this scope written. Built before it: the layer-1 moves listed as built,
   `Footsies`, `Hold`, `EngineOpponent` and the `JumpIn` contract (`melee-engine.md`).

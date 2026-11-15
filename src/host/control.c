@@ -39,7 +39,9 @@
  *                                 client's coach (frames.c)
  *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
- *   shield P HEALTH               a fighter's shield health
+ *   shield P HEALTH [KEEP]        a fighter's shield health; KEEP 1: kept
+ *                                 at it every frame (searches too), 0: no
+ *                                 longer; "shield -1 H 0": none kept
  *   ui ...                        the client's interface (ui.cpp)
  *   window [fullscreen 0|1|toggle | size W H]
  *                                 the window: its size, the frame the
@@ -779,11 +781,12 @@ static void command(char* line)
             printf("@ ok\n");
         }
     } else if (strcmp(cmd, "shield") == 0) {
-        int p = 0;
+        int p = 0, keep = -1;
         float health = 60.0F;
         const char* why;
-        sscanf(line, "%d %f", &p, &health);
-        why = host_set_shield(p, health);
+        sscanf(line, "%d %f %d", &p, &health, &keep);
+        why = keep >= 0 ? host_keep_shield(p, health, keep)
+                        : host_set_shield(p, health);
         if (why != NULL) {
             printf("@ error %s\n", why);
         } else {

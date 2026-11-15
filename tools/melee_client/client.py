@@ -3063,6 +3063,7 @@ class Client:
             try:
                 self.w.camera("normal")     # (a drill may have set its own)
                 self.w.didraw(self.port, False)  # (and its DI trace)
+                self.w.shield(self.port, 60.0, keep=False)  # (its shield)
             except Exception:       # the game is gone
                 pass
             try:

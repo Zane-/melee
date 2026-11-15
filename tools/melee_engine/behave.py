@@ -365,20 +365,35 @@ class Commit(Contract):
                                  near=45, trial=20, window=400)
         self.within = within
         self.near, self.trial = near, trial
-        # a line found answerable stays that line: no tracking
+        # a line found answerable stays that line while the player does
+        # what it assumed (the game it foresaw is then the game played);
+        # when they do something else, it reacts (EngineOpponent: a line
+        # checked again, kept, replaced by another answered one, or given
+        # up before its press)
         self.tracks = answer is None
+        self.reacts = answer is not None
 
     def _their(self, my_pad, frames):
         if shielding(my_pad):
             return [(240, tuple(my_pad))]
         return expect(my_pad, min(frames, 3))
 
+    def assumes(self, my_pad, k, ahead):
+        """What `_their` assumed (`ahead`: the frames the decision was
+        asked ahead, its pre-roll): a shield held; else the pad for a few
+        frames, then let go."""
+        if shielding(my_pad) or k < min(ahead, 3):
+            return tuple(my_pad)
+        return NONE
+
     def search(self, n, port, target, pre, their, holds, enough=6):
         if pre:
             preroll(n, pre)
+        # (norun: a held dash stays a dash, never a run turned round past
+        # the player or to the ledge: engine.c)
         r = searched(n, port, target, their, len(pre) + 50, then=self.moves,
                      scan=2, hold=holds, contact=40, trial=self.trial,
-                     near=self.near, enough=enough)
+                     near=self.near, enough=enough, norun=1)
         return [l for l in r.lines if l.contact in self.kinds and
                 l.taken == 0], r
 
@@ -461,18 +476,32 @@ class Commit(Contract):
         return Contract.over(self, me)
 
     def retrack(self, n, port, target, remaining, my_pad, lead, rng,
-                temperature=6.0):
+                temperature=6.0, reaction=15):
         their = self._their(my_pad, lead + 6)
         if lands(n, port, target, remaining, their) in self.kinds:
             return dict(outcome="lands")
         pre = remaining[:lead]
         found, r = self.search(n, port, target, pre, their,
                                "none,in,walk_in,out", enough=3)
+        ms = r.ms
+        if self.answer is not None:
+            # only a line the player can answer (as when it committed)
+            left, line = list(found[:12]), None
+            for _ in range(min(self.TRIES, len(left))):
+                c = pick(left, temperature, rng)
+                left.remove(c)
+                got, ams = self._answered(n, port, target, pre, my_pad, c,
+                                          reaction)
+                ms += ams
+                if got is not None:
+                    line = c
+                    break
+            found = [line] if line is not None else []
         if not found:
-            return dict(outcome="nothing better", ms=r.ms)
+            return dict(outcome="nothing better", ms=ms)
         line = pick(found[:12], temperature, rng)
         return dict(outcome="new", pads=list(pre) + line.raw(),
-                    press=len(pre) + press_at(line), ms=r.ms)
+                    press=len(pre) + press_at(line), ms=ms)
 
 
 class Approach(Behaviour):

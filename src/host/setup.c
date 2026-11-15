@@ -420,8 +420,66 @@ const char* host_anchor(int slot, int on)
     return NULL;
 }
 
+/* --- shields kept full ---------------------------------------------------- */
+
+/// A fighter whose shield a drill keeps at a health (a drill's "shield":
+/// "infinite": the owner, 2026-11-15). It is set again at every frame
+/// boundary, as the anchors are: the frames played for real and those a
+/// search or a lookahead plays (engine.c, ahead.c, forked games), so what
+/// they foresee is what happens. Set only by the driver between frames, the
+/// live shield was full and a searched one shrank: a light shield's worth
+/// bigger, an attack met it frames sooner than the search said (Marth's
+/// nair's first hit, its second foreseen), and the answer the search had
+/// found no longer reached (tools/melee_engine/feel.py). Until "shield P H
+/// 0", "shield -1" or another fighter in the slot.
+static struct {
+    HSD_GObj* gobj;
+    float health;
+} kept[6];
+
+const char* host_keep_shield(int slot, float health, int on)
+{
+    HSD_GObj* gobj;
+
+    if (slot < 0) {
+        memset(kept, 0, sizeof kept);
+        return NULL;
+    }
+    if (slot >= 6) {
+        return "no such fighter";
+    }
+    gobj = Player_GetEntity(slot);
+    if (!on) {
+        kept[slot].gobj = NULL;
+        return host_set_shield(slot, health);
+    }
+    if (gobj == NULL || !host_live_fighter(gobj)) {
+        return "no such fighter";
+    }
+    kept[slot].gobj = gobj;
+    kept[slot].health = health;
+    return host_set_shield(slot, health);
+}
+
+static void keep_shields(void)
+{
+    for (int i = 0; i < 6; i++) {
+        HSD_GObj* gobj = kept[i].gobj;
+
+        if (gobj == NULL) {
+            continue;
+        }
+        if (Player_GetEntity(i) != gobj || !host_live_fighter(gobj)) {
+            kept[i].gobj = NULL; /* a new match, another fighter */
+            continue;
+        }
+        GET_FIGHTER(gobj)->shield_health = kept[i].health;
+    }
+}
+
 void host_anchor_frame(void)
 {
+    keep_shields();
     for (int i = 0; i < 6; i++) {
         HSD_GObj* gobj = anchors[i].gobj;
         Fighter* fp;

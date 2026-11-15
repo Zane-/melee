@@ -62,7 +62,10 @@
  * misses. Its lines are named "FIRST+hold_KIND:K+LAST"; stop=1 ends each
  * at its first contact, trial=N N frames after LAST is pressed, near=D
  * presses only with the fighters within D of each other, from=K only after
- * K frames of the hold, enough=N stops
+ * K frames of the hold, norun=1 ends a hold on the ground where its
+ * fighter would be running (Run, TurnRun, RunDirect, RunBrake), has passed
+ * the target or is near the ledge (a held dash stays a dash: no run turned
+ * round past the player), enough=N stops
  * the scan once N lines connect (an answer exists: enough=1), counting only
  * contacts made in one of PORT's action states want=S,S... if given. eval=1 scores
  * the pre-roll ("engine preroll") alone as one line, "plan": what a plan
@@ -354,6 +357,9 @@ static struct {
     int trial;       /* frames a pressed move is followed (0: to the end) */
     int trial_end;   /* the frame the current one stops at (0: none) */
     int enough;      /* stop once this many lines connect (0: never) */
+    /* norun=1: a hold on the ground ends where it would run, past the
+       target or near the ledge */
+    int norun;
     int connected;
     /* want=S,S...: only a contact with PORT in one of these action states
        counts toward enough (what a drill counts as its answer) */
@@ -1805,6 +1811,27 @@ static int near_enough(void)
     return dx * dx + dy * dy <= eng.near * eng.near;
 }
 
+/* A ledge this close (units) ends a hold (norun). */
+#define HOLD_EDGE 10.0F
+
+/// Whether a hold played this far has gone where a drill's approach should
+/// not (norun=1): on the ground, its fighter running (a dash held past the
+/// initial dash: TurnRun 19, Run, RunDirect, RunBrake), past the target
+/// (`side` the way it was at the hold's start: the stick, toward the target
+/// each frame, would now turn it round) or near the ledge.
+static int hold_strayed(float side)
+{
+    Fighter* a = fighter_of(eng.port);
+    int m;
+    if (!eng.norun || a == NULL || airborne(a)) {
+        return 0;
+    }
+    m = (int) a->motion_id;
+    return m == MS_TURN + 1 || (m >= MS_RUN && m <= MS_RUN_BRAKE) ||
+           toward() != side ||
+           fabsf(a->cur_pos.x) > stage_half() - HOLD_EDGE;
+}
+
 static void scan(void)
 {
     int firsts[M_COUNT], nf = 0, root = eng.marks, t_root = eng.t;
@@ -1839,13 +1866,18 @@ static void scan(void)
         t_f = eng.t;
         for (int h = 0; h < H_COUNT && !out_of_budget(); h++) {
             int at_k = 0, ff = 0, flew = 0;
+            float side;
             if (!(eng.hold_allowed & (1u << h))) {
                 continue;
             }
             back_to(at_f, t_f);
+            side = toward();
             for (int k = 0; eng.t < eng.horizon && !out_of_budget(); k++) {
                 Fighter* a = fighter_of(eng.port);
                 if (a == NULL) {
+                    break;
+                }
+                if (k > 0 && hold_strayed(side)) {
                     break;
                 }
                 if (airborne(a)) {
@@ -2133,6 +2165,7 @@ const char* host_engine_begin(const char* line)
     eng.from = (int) parse_weight(line, "from", 0.0F);
     eng.trial = (int) parse_weight(line, "trial", 0.0F);
     eng.enough = (int) parse_weight(line, "enough", 0.0F);
+    eng.norun = (int) parse_weight(line, "norun", 0.0F);
     eng.nwant = 0;
     {
         const char* w = strstr(line, " want=");

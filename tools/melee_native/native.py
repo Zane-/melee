@@ -657,9 +657,15 @@ class Native:
         while)."""
         self._cmd("rebirth %d %.9g %.9g" % (port, x, y))
 
-    def shield(self, port, health=60.0):
-        """Set a fighter's shield health (60 is full)."""
-        self._cmd("shield %d %.9g" % (port, health))
+    def shield(self, port, health=60.0, keep=None):
+        """Set a fighter's shield health (60 is full). `keep` True: the game
+        keeps it there at every frame boundary, the frames searches and
+        lookaheads play too, until keep=False (port -1: every fighter's) or
+        another fighter in the port; a game built before ignores it."""
+        if keep is None:
+            self._cmd("shield %d %.9g" % (port, health))
+        else:
+            self._cmd("shield %d %.9g %d" % (port, health, 1 if keep else 0))
 
     def place(self, port, x, y=0.0, facing=1, air=False, percent=0.0):
         """Put a fighter standing on the floor at or below (x, y), or (air)

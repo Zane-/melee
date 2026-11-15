@@ -63,7 +63,7 @@ class Player:
     ends), "away" (a jump away as the opponent commits)."""
 
     BUDGET = 20000              # calls before the test is called stuck
-    TRY_BUDGET = 1500           # frames a try may take (a reset: 300)
+    TRY_BUDGET = 1500           # frames a try may take (a reset: 480)
 
     def __init__(self, c, tries, shots=None):
         self.c, self.tries, self.shots = c, list(tries), shots
@@ -361,7 +361,7 @@ def main():
               "%r / %r" % (co.get("headline"), co.get("fix", "")[:60]))
         check("a jump away as the opponent commits: the attack misses the "
               "shield, the try not counted", len(p.skipped) >= 1 and
-              p.skipped[0].startswith("Not counted: the attack missed") and
+              p.skipped[0].startswith("Not counted:") and
               len(told) == 4, "%s; %d counted" % (p.skipped[:1], len(told)))
         bad = [line.strip()[:160] for line in w.log
                if "aurora" in line and ("warn" in line or "error" in line)]

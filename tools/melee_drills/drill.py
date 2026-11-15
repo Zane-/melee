@@ -314,6 +314,15 @@ class JsonDrill(Drill):
             self._script(c, None)
         self.camera(c.n, c.s.person)
         self.trace(c.n, c.s.person)
+        if self.spec.get("shield") == "infinite":
+            # kept by the game at every frame boundary: what the opponent's
+            # searches foresee is the shield the player has (the client
+            # lets it go when the drill is left)
+            from native import NativeError
+            try:
+                c.n.shield(c.s.person, 60.0, keep=True)
+            except NativeError:
+                pass
         self.v = dict(rec=[], last=None)
         # a demonstration's inputs timed from an event: the events (mark k
         # the k-th), looked for frame by frame (_look_ahead)
@@ -606,7 +615,8 @@ class JsonDrill(Drill):
         v["nums"] = v.get("nums") or self.nums(c)
         if self.spec.get("shield") == "infinite":
             # the shield kept full: a hit's stun and push come from its
-            # damage, not the shield's health, so nothing else changes
+            # damage, not the shield's health, so nothing else changes (the
+            # game keeps it too, from setup; this for a game built before)
             c.n.shield(c.s.person, 60.0)
         self._opponent(c)
         last = v.get("last")

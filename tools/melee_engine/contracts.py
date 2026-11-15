@@ -78,6 +78,9 @@ class Contract:
 
     reach = None              # (near, far): distances it looks from
     tracks = True             # corrects its line as the player moves
+    # reacts to the player leaving what its decision assumed (assumes()),
+    # once its reaction time has passed: a contract that does not track
+    reacts = False
     sees_commitments = False  # looks while the player's commitment is new
     after = NONE              # its pad once the line is over
 
@@ -93,8 +96,14 @@ class Contract:
         from melee_engine.opponent import NEUTRAL
         return not me["air"] and me["state"] in NEUTRAL
 
+    def assumes(self, my_pad, k, ahead):
+        """The pad its decision assumed the player presses `k` frames after
+        it was asked (`my_pad` theirs then, `ahead` the frames it was asked
+        ahead), or None: not known."""
+        return None
+
     def retrack(self, n, port, target, remaining, my_pad, lead, rng,
-                temperature=6.0):
+                temperature=6.0, reaction=15):
         return dict(outcome="kept")
 
 
@@ -170,7 +179,7 @@ class JumpIn(Contract):
         return out
 
     def retrack(self, n, port, target, remaining, my_pad, lead, rng,
-                temperature=6.0):
+                temperature=6.0, reaction=15):
         # in the air: they go on as they are a little, then stand
         their = expect(my_pad, lead + self.track_hold)
         if lands(n, port, target, remaining, their) in self.kinds:
