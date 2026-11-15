@@ -45,9 +45,17 @@ MELEE_DAT = ROOT / "build/nix/melee-dat/bin/melee-dat"
 # across statements; -mfma with -ffp-contract=fast is gcc's nearest
 # equivalent, and only acts when optimising. The two compilers do not always
 # choose the same places.
+# Optimising, gcc emits a file's globals in an order of its own and drops
+# the static ones nothing names; unoptimised it keeps both as in the source,
+# and so (in a file's own data) as on the console. Code that reaches a
+# global through its neighbour (kind 5 in docs/ai/native-port.md: all of
+# Venom's tables, through grVe_803E5348) then reads something else, or
+# calls it: Venom crashed at -O2 as it loaded. -fno-toplevel-reorder keeps
+# the unoptimised layout at every level.
 BASE_FLAGS = [
     "-m32", "-std=gnu2x", "-g", "-fno-pie", "-fno-strict-aliasing",
     "-fwrapv", "-fno-delete-null-pointer-checks", "-fno-omit-frame-pointer",
+    "-fno-toplevel-reorder",
     "-msse2", "-mfpmath=sse", "-mfma", "-w",
 ]
 DEFINES = ["-DTARGET_PC", "-Dbool=int"]
@@ -418,6 +426,43 @@ PATCHES = {
          "info->x8.u = host_script_target(info->x8.u);"),
         ("info->x8.u = info->x8.u->Command_07.ptr;",
          "info->x8.u = host_script_target(info->x8.u);"),
+        # Execute Loop reads the loop's start as x8.ptr[loop_count], in an
+        # array declared with one element (what makes the function match),
+        # and the count as event_return[loop_count - 1]. An index past a
+        # declared bound is undefined behaviour: gcc, optimising (-O1 and
+        # up), takes the index for 0 and drops the jump back as a no-op, so
+        # every loop in a fighter's, an item's or a colour animation's
+        # script ran its body once. The same words through the plain
+        # pointer the function already uses: the console's addresses.
+        ("    if ((s32) info->event_return[info->loop_count - 1]) {\n"
+         "        info->x8.ptr[0] = &info->x8.ptr[info->loop_count][0];\n",
+         "    if ((s32) ptr[info->loop_count + 3]) {\n"
+         "        info->x8.u = (union CmdUnion*) ptr[info->loop_count + 2];\n"),
+        # The return stack of loops and subroutines is declared with three
+        # entries and uses up to five (the two words after it, as on the
+        # console): the same words, through a pointer with no bound.
+        ("info->event_return[",
+         "((union CmdUnion**) ((u32*) info + 4))[", 4),
+    ],
+    # Brinstar's bubbles, which raise the floor's middle columns: the code
+    # reads these three globals as one struct (grZe_BubbleState: four
+    # positions, then the bubbles), as they lie on the console, 0x30 bytes
+    # apart. Natively the third is aligned to 32 bytes and began 4 bytes
+    # later, so every bubble was read 4 bytes off: none active, the middle
+    # columns at x 0 (or NaN, optimised), and a fighter could fall through
+    # the floor. One struct, laid out as on the console.
+    "melee/gr/grzebes.c": [
+        ("/* 8049F140 */ static Vec3 grZe_8049F140[2];\n"
+         "/* 8049F158 */ static Vec3 grZe_8049F158[2];\n"
+         "/* 8049F170 */ static grZe_BubbleEntry grZe_8049F170[20];\n",
+         "/* 8049F140 */ static struct {\n"
+         "    Vec3 x0[2];\n"
+         "    Vec3 x18[2];\n"
+         "    grZe_BubbleEntry x30[20];\n"
+         "} host_grZe_8049F140;\n"
+         "#define grZe_8049F140 (host_grZe_8049F140.x0)\n"
+         "#define grZe_8049F158 (host_grZe_8049F140.x18)\n"
+         "#define grZe_8049F170 (host_grZe_8049F140.x30)\n"),
     ],
     # The nth animation joint of a stage model: the next n in the file.
     "melee/gr/granime.c": [
@@ -623,11 +668,19 @@ def write_stubs(names, path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--opt", default="0",
-                    help="optimisation level (default 0)")
-    ap.add_argument("--contract", default="fast",
+    # -O2 with multiply-add fusing off (2026-11-15): the same game as -O0
+    # bit for bit on all 80 of uninit.py's matches, 17 of 19 of survey.py's
+    # against the console's code as -O0, every native test and drill check
+    # the same; about twice as fast (the engine's search 25,000 frames a
+    # second, 14,300 at -O0). Fusing on drifts from -O0 in the last bit on
+    # moving stages and is no nearer the console. The live game and the
+    # engine's copies (forks, shadows), and both sides of a netplay
+    # session, must be built alike.
+    ap.add_argument("--opt", default="2",
+                    help="optimisation level (default 2)")
+    ap.add_argument("--contract", default="off",
                     choices=["fast", "on", "off"],
-                    help="fusing of multiply-add (default fast; it only "
+                    help="fusing of multiply-add (default off; it only "
                          "happens when optimising)")
     ap.add_argument("--asan", action="store_true",
                     help="build build/native-asan/melee_headless with "

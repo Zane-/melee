@@ -76,8 +76,8 @@ runs `./configure.py` and installs pre-commit hooks.
 match rules), `--frames N`, `--trace N`, `--control` (commands on stdin, see
 `control.c`), `--draw` (run the draw pass into the no-op graphics), `-v` (the game's own
 reports), `--stubs` (which stubbed SDK functions were called), `--disc DIR`.
-`native_build.py --opt 1` builds optimised (50 s). `--opt 2` crashed while a match loaded
-when last tried, before one cause of such crashes was fixed; not retried.
+`native_build.py --opt 1` or `--opt 2` builds optimised (about 70 s; `--out DIR` beside
+the shared build). Since 2026-11-15 both play the same game as `-O0` (kind 8 below).
 
 ## How a match starts
 
@@ -124,12 +124,13 @@ Known differences, none investigated to the end:
 | Sheik, Zelda | Transform: the fighter is in a different state while the other loads (how long a disc read takes is the host's choice) |
 | Ice Climbers | **The most regular difference left.** The side special is the solo one on the console where the native build does the pair's, or the reverse (states 343/344, 345/346): `ftNn_Init_80123954` asks whether the partner is close and free, so the partner was already somewhere else, and the partner is not compared (`compare.py` reads the two ports' first fighters only). Measured 2026-11-13, random inputs, 1,500 frames: against Marth 4 of 5 runs identical (run 2 differs at frame 183, as before); Ice Climbers against Ice Climbers **0 of 5** (frames 183 to 1,113). Her inputs come from the CPU code, where the console's behaviour depends on register contents in places (kind 7 below). Next: compare the partner too (`fighter 4` here; the simulator needs the same) to find her first differing frame |
 | Big Blue, Venom | Three flag unions there are read through pointers and were left as they were |
+| Brinstar | 3 of `uninit.py`'s 80 random matches stop on an assert, "attack power over 500" (`ftColl_80076640` from `ftCo_800C08A0`: damage from the stage), at the same frame in every build and optimisation level (2026-11-15). Not investigated |
 | CPU players | Not compared: both players are driven by pads in every run |
 | Menus, other modes | Only the memory card prompt and the debug VS match have run |
 | `--draw` | Asserts in the first frame (a position out of range) |
 | Audio | Plays in the window build (`src/host/audio.c`: AX in C, `native-ai.md`, "Sound"); the main menu's music decodes to the file's samples exactly. No reverb or chorus (the aux buses) |
 
-## What made it work: seven kinds of dependence on the console
+## What made it work: eight kinds of dependence on the console
 
 The source matches the retail binary on the console's compiler. On another machine it
 depends on things that compiler and machine provided. Each kind met so far, and the tool
@@ -166,7 +167,9 @@ for it:
    models: `host_dat_element` finds the neighbour through the archive.
 5. **The DOL's memory layout.** Globals addressed through their neighbours (a table as
    "what follows this other table", a struct laid over three globals): in fighter data,
-   particles, the camera, trophies, the sound bank table. Each is named instead. The
+   particles, the camera, trophies, the sound bank table, Brinstar's bubbles (they
+   raise the floor's middle columns; read 4 bytes off, none was active and a fighter
+   could fall through, 2026-11-15). Each is named instead. The
    same goes for the stack: square roots stored to a slot outside the function's
    variables, a rotation read as four floats into a variable of three. The
    AddressSanitizer build finds the ones that run.
@@ -193,6 +196,56 @@ for it:
    for what those matches did, and only for locals, not for memory the game allocates.
    The compiler's own list (`tools/native_uninit_warnings.py`: 201 places in 72 files)
    is mostly false alarms and **missed both places that changed play**.
+8. **What the console's compiler left alone and gcc's optimiser does not** (found
+   2026-11-15). Two things made `-O1` and `-O2` play another game than `-O0`:
+   - **An index past a declared bound.** The matching C indexes past an array's
+     declared size where that is what matches the retail code; gcc, optimising, may
+     assume every index is in bounds. In `Command_04` (`lbcommand.c`, the scripts'
+     "execute loop") the loop's start is read as `x8.ptr[loop_count]` in a one-element
+     array: from `-O1` on gcc took the index for 0 and dropped the jump back, so every
+     loop in a fighter's, item's or colour animation's script ran its body once. First
+     seen in Samus against Pikachu at frame 141: a graphic effect inside a script's
+     loop, which draws three random numbers, ran at `-O0` and not at `-O1`. It made 11
+     of the survey's 19 matchups differ at every optimisation level, with or without
+     multiply-add fusing. Patched (`PATCHES`) to read the same words through the plain
+     pointer the function already uses; the return stack (three entries declared, five
+     used) likewise.
+   - **The order of a file's globals.** Unoptimised, gcc emits a file's globals in
+     source order and keeps the static ones nothing names; optimising, it reorders them
+     and drops those. Kind 5's neighbour reads then land elsewhere: all of Venom's
+     tables are read through `grVe_803E5348`, and Venom crashed at `-O2` as it loaded
+     (a callback read from the wrong place). `-fno-toplevel-reorder` (in `BASE_FLAGS`)
+     keeps the unoptimised layout at every level. Venom's reads are still not the
+     console's: `-O0` reads its tables at other offsets too (the callbacks 4 bytes
+     off), which is how it ran without crashing.
+
+   After both: the survey 17 of 19 at `-O2` as at `-O0` (the same two), `-O0` against
+   `-O2` natively 38 of 38 of its runs; with fusing off (`--contract off`) `-O2` is
+   bit-identical to `-O0` in 80 of 80 random matches on every stage (`uninit.py`'s),
+   and with it on (the default) it drifts in the last bits as the console's code and
+   `-O0` do (kind 6): within 1e-4 for 3,000 frames in 61 of 80; three are Brinstar's
+   assert (the same frame in every build, the table above), 16 drift apart after 60
+   to 2,950 frames, on moving stages mostly (Kongo Jungle, Jungle Japes, Corneria,
+   Mute City). Against the console's code exactly, fusing neither helps nor hurts:
+   the first last-bit difference comes at the same frame in 12 of the 19 matchups,
+   later in 5, earlier in 2. Speed in active play: about 22,000 frames a second at
+   `-O2` (21,000 with fusing off), 11,000 at `-O0`.
+
+   How it was found: the same match in two builds side by side, the first frame whose
+   random seed differs, the draws' callers (`rng`), then gdb in both on that frame
+   (the game run under `gdb -batch` as the driver's executable). Where to look for
+   more: a build with `-fsanitize=bounds,shift,float-cast-overflow` reports what runs
+   (in the survey's matches, besides these: a read past a bound in a player's stats,
+   an address formed past one before the check that returns, and float conversions
+   out of range in the CPU code, the HUD and the audio driver, all playing the same
+   at every level); `-O2 -Warray-bounds -Waggressive-loop-optimizations` lists what
+   gcc sees statically (about 500 places, most of them kind 5's neighbours and the
+   menus'; one loop, `gm_80166CCC`'s six teams in an array of five, is one gcc could
+   cut short, and at present does not). `uninit.py` covers every stage: an object, and
+   then a function, whose locals zeroed make the plain build play as the zeroed one
+   is found by linking hybrids and halving (`#pragma GCC optimize
+   ("-ftrivial-auto-var-init=zero")` works per function); that is how Brinstar's
+   bubbles were found.
 
 **Vanilla functions are not edited for any of this** (the rule in `CLAUDE.md`). Type
 markers and annotations go in headers and expand to nothing in the matching build. Where
