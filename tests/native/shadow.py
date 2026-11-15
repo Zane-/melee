@@ -64,7 +64,7 @@ def main():
                 game.pad(p)
             game.step()
             mind = LiveMind(shadow, 1, 0, goal=dict(contact=40),
-                            moves="sh_,fh_,dash_,walk_,wait,wavedash_,hop_",
+                            moves="sh_,fh_,dash_in,dash_out,dash_attack,walk_,wait,wavedash_,hop_",
                             budget=1200, rng=random.Random(1))
             other = standin(kind)
             pct, hits = live.fighter(0).percent, 0

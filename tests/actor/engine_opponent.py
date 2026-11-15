@@ -20,7 +20,7 @@ from react import WAIT, match, standin  # noqa: E402
 KINDS = ["stand", "shield", "dash_in", "dash_out", "walk_in", "walk_out",
          "run_in_late", "dash_dance"]
 CASES = [("captain-falcon", 30.0), ("falco", 20.0), ("marth", 26.0)]
-APPROACH = "sh_,fh_,dash_,walk_,wait,wavedash_,hop_"
+APPROACH = "sh_,fh_,dash_in,dash_out,dash_attack,walk_,wait,wavedash_,hop_"
 SEEDS = 3
 checks = []
 

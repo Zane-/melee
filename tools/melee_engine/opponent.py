@@ -9,7 +9,7 @@ that move left it. So it moves, varies and adapts as the player does, and
 what it commits to is what the game said would work.
 
     mind = Mind(n, port=1, target=0, goal=dict(contact=40),
-                moves="sh_,fh_,dash_,walk_,wait,wavedash_", temperature=4)
+                moves="sh_,fh_,dash_in,dash_out,dash_attack,walk_,wait,wavedash_", temperature=4)
     for raw in mind.pads():     # one raw pad a frame, forever
         ...
 
