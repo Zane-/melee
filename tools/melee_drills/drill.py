@@ -23,9 +23,10 @@ LIMIT = 150               # frames an attempt may last before it is dropped
 REF_START = 10            # the demonstration's frame 1, after its lead
 
 
-def _in(state, s):
-    """Is action state `state` the named state `s` (or one of its group)?"""
-    want = F.STATES[s]
+def _in(state, s, cid=None):
+    """Is action state `state` the named state `s` (or one of its group),
+    for character `cid` (CHAR_STATES)?"""
+    want = F.CHAR_STATES.get(cid, {}).get(s, F.STATES[s])
     return state in want if isinstance(want, tuple) else state == want
 
 
@@ -80,14 +81,15 @@ def holds(e, f, fd):
         return f["i"] == int(F.value(e["frame"], f["nums"])) - 1
     if p is None:
         return False
+    cid = fd.id
     if "enters" in e:
-        return _in(f["state"], e["enters"]) and \
-            not _in(p["state"], e["enters"]) and \
-            ("from" not in e or _in(p["state"], e["from"]))
+        return _in(f["state"], e["enters"], cid) and \
+            not _in(p["state"], e["enters"], cid) and \
+            ("from" not in e or _in(p["state"], e["from"], cid))
     if "leaves" in e:
-        return not _in(f["state"], e["leaves"]) and \
-            _in(p["state"], e["leaves"]) and \
-            ("to" not in e or _in(f["state"], e["to"]))
+        return not _in(f["state"], e["leaves"], cid) and \
+            _in(p["state"], e["leaves"], cid) and \
+            ("to" not in e or _in(f["state"], e["to"], cid))
     if "pressed" in e:
         bits = F.BUTTONS[e["pressed"]]
         return bool(f["held"] & bits) and not p["held"] & bits
@@ -137,6 +139,17 @@ class JsonDrill(Drill):
         """The scenario the part now is taught in (its "scenario", else
         the first)."""
         return self.spec["scenarios"][self.part_now.get("scenario", 0)]
+
+    @property
+    def ref_start(self):
+        """Frames after the reset (and the runtime's REF_LEAD) before an
+        example's frame 1: the scenario's "lead", else 1 on the ledge (the
+        hang's intangibility runs from the placement: a player can let go
+        on its second frame) and REF_START elsewhere."""
+        sc = self.scenario()
+        if "lead" in sc:
+            return sc["lead"]
+        return 1 if sc.get("player", {}).get("ledge") else REF_START
 
     @property
     def parts(self):
@@ -217,7 +230,8 @@ class JsonDrill(Drill):
                 F.text(self.part_now["teach"], nums)]
 
     def build_reference(self, c):
-        return inputs_to_refs(self.part_now["example"], self.nums(c))
+        return inputs_to_refs(self.part_now["example"], self.nums(c),
+                              self.ref_start)
 
     def timeline(self, c):
         nums = self.nums(c)
@@ -232,10 +246,13 @@ class JsonDrill(Drill):
                 d = r["stick"]
                 kw = dict(test=lambda e, d=d: (
                     e["ly"] <= -STICK_SMASH < e["ply"]) if d == "down" else
-                    (e["ly"] >= STICK_SMASH > e["ply"]))
+                    (e["ly"] >= STICK_SMASH > e["ply"]) if d == "up" else
+                    # side: either way, past a smash, newly
+                    abs(e["lx"]) >= STICK_SMASH > abs(e.get("plx", 0)))
             else:
                 st = r["state"]
-                kw = dict(state=lambda s, st=st: _in(s, st),
+                cid = c.fd.id
+                kw = dict(state=lambda s, st=st: _in(s, st, cid),
                           entered=not r.get("held", False))
             rows.append(Row(
                 F.text(r["label"], nums),
@@ -276,7 +293,7 @@ class JsonDrill(Drill):
         for r in self.op_refs:
             # (a Ref's sticks are a script's -127..127, as cpu_press takes
             # them; frame 1 the first after the reset: the example's frame
-            # f is the opponent's f + 13, REF_LEAD and REF_START)
+            # f is the opponent's f + REF_LEAD + ref_start, 13 by default)
             if r.frame <= t < r.frame + (r.hold or 1):
                 c.cpu_press(r.buttons,
                             int(r.lx * self.op_toward) if r.lx else None,
@@ -410,7 +427,7 @@ class JsonDrill(Drill):
             n = 0
             for f in rec[k:]:
                 if isinstance(cond, dict):
-                    ok = _in(f["state"], cond["in"])
+                    ok = _in(f["state"], cond["in"], fd.id)
                 elif cond == "invulnerable":
                     ok = f["invulnerable"]
                 elif cond == "airborne":
@@ -430,6 +447,8 @@ class JsonDrill(Drill):
             f = rec[k]
             if m["angle"] == "stick":
                 x, y = f["lx"] * f["facing"], f["ly"]
+                if m.get("from_horizontal"):
+                    x = abs(x)      # either way: the angle from level
                 if abs(x) < 8 and abs(y) < 8:
                     return None
             else:
@@ -438,6 +457,8 @@ class JsonDrill(Drill):
                     return None
                 x = (rec[k + 1]["x"] - f["x"]) * f["facing"]
                 y = rec[k + 1]["y"] - f["y"]
+                if m.get("from_horizontal"):
+                    x = abs(x)
             return round(math.degrees(math.atan2(y, x)))
         raise F.DrillError("unknown measure %r" % (m,))
 

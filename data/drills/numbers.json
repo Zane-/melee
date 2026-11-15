@@ -1,0 +1,132 @@
+{
+ "bowser": {
+  "DASH": 13,
+  "SL": 37,
+  "LD": 13
+ },
+ "captain-falcon": {
+  "DASH": 15,
+  "SL": 37,
+  "LD": 12
+ },
+ "donkey-kong": {
+  "DASH": 15,
+  "SL": 39,
+  "LD": 13
+ },
+ "dr-mario": {
+  "DASH": 10,
+  "SL": 38,
+  "LD": 7
+ },
+ "falco": {
+  "DASH": 11,
+  "SL": 32,
+  "LD": 6
+ },
+ "fox": {
+  "DASH": 11,
+  "SL": 26,
+  "LD": 5
+ },
+ "ganondorf": {
+  "DASH": 15,
+  "SL": 41,
+  "LD": 16
+ },
+ "ice-climbers": {
+  "DASH": 13,
+  "SL": 35,
+  "LD": 7
+ },
+ "jigglypuff": {
+  "DASH": 12,
+  "SL": 40,
+  "LD": 11
+ },
+ "kirby": {
+  "DASH": 12,
+  "SL": 43,
+  "LD": 9
+ },
+ "link": {
+  "DASH": 12,
+  "SL": 40,
+  "LD": 11
+ },
+ "luigi": {
+  "DASH": 10,
+  "SL": 50,
+  "LD": 7
+ },
+ "mario": {
+  "DASH": 10,
+  "SL": 38,
+  "LD": 7
+ },
+ "marth": {
+  "DASH": 15,
+  "SL": 44,
+  "LD": 16
+ },
+ "mewtwo": {
+  "DASH": 18,
+  "SL": 42,
+  "LD": 19
+ },
+ "mr-game-and-watch": {
+  "DASH": 8,
+  "SL": 36,
+  "LD": 11
+ },
+ "ness": {
+  "DASH": 13,
+  "SL": 40,
+  "LD": 17
+ },
+ "peach": {
+  "DASH": 15,
+  "SL": 49,
+  "LD": 29
+ },
+ "pichu": {
+  "DASH": 13,
+  "SL": 38,
+  "LD": 5
+ },
+ "pikachu": {
+  "DASH": 13,
+  "SL": 39,
+  "LD": 6
+ },
+ "roy": {
+  "DASH": 15,
+  "SL": 36,
+  "LD": 15
+ },
+ "samus": {
+  "DASH": 8,
+  "SL": 60,
+  "LD": 16
+ },
+ "sheik": {
+  "DASH": 7,
+  "SL": 43,
+  "LD": 9
+ },
+ "yoshi": {
+  "DASH": 13,
+  "SL": 47,
+  "LD": 18
+ },
+ "young-link": {
+  "DASH": 12,
+  "SL": 37,
+  "LD": 8
+ },
+ "zelda": {
+  "DASH": 15,
+  "SL": 55,
+  "LD": 17
+ }
+}

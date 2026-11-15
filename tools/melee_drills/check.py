@@ -33,7 +33,7 @@ def play(session, drill, inputs, part):
     """`inputs` played as the demonstration, judged as part `part`."""
     drill.set_part(part)
     drill.build_reference = lambda c, i=inputs: inputs_to_refs(
-        i, drill.nums(c))
+        i, drill.nums(c), drill.ref_start)
     try:
         return session.run(demo=True)
     finally:

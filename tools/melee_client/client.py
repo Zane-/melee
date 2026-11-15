@@ -2276,8 +2276,8 @@ class Client:
         self.w.scripted(self.port, True)
         session.live = False
         self.w.quiet(True)
-        drill.build_reference = lambda c: inputs_to_refs(inputs,
-                                                         drill.nums(c))
+        drill.build_reference = lambda c: inputs_to_refs(
+            inputs, drill.nums(c), drill.ref_start)
         drill.filming = True        # the tutorial's camera, if it has one
         try:
             out = session.run(each_frame=each, demo=True)
@@ -2352,7 +2352,6 @@ class Client:
         half speed, stopping on each one that has a caption; the D-pad steps
         a frame either way, A plays or pauses, B goes on."""
         from melee_drills import format as fmt
-        from melee_drills.drill import REF_START
         nums = drill.nums(session.c)
         at = {}
         for f, words in marks.items():
@@ -2366,7 +2365,8 @@ class Client:
                                   .replace("jump", "X")[:5])
         last = max(list(at) + list(pressed_on) + [nums["J"] + 1])
         n = last + 6                        # a few frames after the last mark
-        lead = course_engine.REF_LEAD + REF_START - 1   # frame 0 of it
+        # frame 0 of it
+        lead = course_engine.REF_LEAD + drill.ref_start - 1
         d = self.drill_now or {"part": "Tech", "number": 1, "name": name}
         label, number, total = screens.place_of(self.course, d) \
             if self.course and self.drill_now else ("TECH SKILL", 1, 1)

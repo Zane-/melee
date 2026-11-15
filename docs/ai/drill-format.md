@@ -60,9 +60,13 @@ its proof, never written into one drill's file.
 
 - **Numbers** a drill may name (in any number or `{expression}` in words): `J` (jump squat),
   `LAND` (normal landing lag), `FA` / `SA` (the frame, counting the jump's press as 1, on
-  which a full jump / a short hop reaches its top: the first frame falling), `{char}`.
+  which a full jump / a short hop reaches its top: the first frame falling), `{char}`; and
+  measured in the game (`python tools/melee_drills/measure.py` → `data/drills/numbers.json`,
+  for what frame data cannot give): `DASH` (a dash's frames before a held stick runs: Sheik
+  7, Fox 11, Mewtwo 18), `SL` (the frame a short hop lands), `LD` (the earliest frame of a
+  ledgedash's air dodge that lands on the stage: Fox 5, Peach 29).
 - **States** (`STATES`): the game's action states by name, a tuple being a group any of whose
-  states counts: `wait turn dash run run_brake jump_squat jump double_jump fall special_fall
+  states counts: `wait turn dash run run_brake jump_squat jump double_jump (Kirby's and Jigglypuff's extra jumps included, `CHAR_STATES`) fall special_fall
   squat landing landing_special up_smash nair fair bair uair dair aerial aerial_landing
   shield grab dash_grab air_dodge platform_drop teeter ledge ledge_catch ledge_hang`, and
   Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
@@ -82,8 +86,9 @@ its proof, never written into one drill's file.
   `{"distance": [E1, E2], "axis": "x"|"y"|"xy"}`, `{"frames_while": C, "from": E}` (C:
   `invulnerable airborne grounded hitlag` or `{"in": S}`: consecutive frames from E),
   `{"angle": "stick"|"velocity", "at": E}` (degrees, 0 forward, 90 up; velocity: how the
-  fighter moved on the next frame, knockback included). A measure of something that never
-  happened is none, and fails any check.
+  fighter moved on the next frame, knockback included; `"from_horizontal": true`: from level
+  either way, 0 to 90). A measure of something that never happened is none, and fails any
+  check.
 - **Buttons**: A B X Y Z L R, `jump` (X or Y), `shield` (L or R), `lcancel` (L, R or Z; a
   light trigger press counts).
 - **Expectations**: `equals` (a number, word or true/false), `at_most`, `at_least`,
@@ -97,7 +102,9 @@ its proof, never written into one drill's file.
   default, leaving the start's state on the ground), `limit` (frames, default 150),
   `timeout` (`judge` or `drop` at the limit). A part may change any of them (`attempt`).
 - **Scenarios**: `stage` (`final-destination battlefield yoshis-story dream-land
-  fountain-of-dreams pokemon-stadium`), `player` (`{"x"}` on the ground, `"above": Y` on
+  fountain-of-dreams pokemon-stadium`; one stage for a drill, its first scenario's: the
+  match is loaded once), `lead` (frames from the reset to an example's frame 1: 10, and 1
+  on the ledge, whose intangibility runs from the placement), `player` (`{"x"}` on the ground, `"above": Y` on
   what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
   `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`. A part names
   its scenario by index (`"scenario"`).
@@ -115,7 +122,8 @@ its proof, never written into one drill's file.
   colour and words over the example's picture on those frames ("Release now: short hop" in
   green, "Held here: full hop" in red); `{f}` in the words is the frame shown.
 - **Coach rows** (the drill's `coach`, or a part's own `coach`): `{"label", "button": B,
-  "held"}`, `{"label", "stick": "down"|"up"}` (a tap) or `{"label", "state": S}` (entered),
+  "held"}`, `{"label", "stick": "down"|"up"|"side"}` (a tap; side: either way) or `{"label", "state": S}`
+  (entered),
   each with `perfect` and `window` frames.
 - **Cameras**: `"normal"` (the match camera), `"stage"` (the whole stage, still),
   `{"follow": "player", "distance": D, "height": H}`: the game's own free camera (the pause

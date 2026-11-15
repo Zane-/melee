@@ -78,6 +78,14 @@ STATES = {
     "shine_ground": (360, 361, 362, 363, 364),
 }
 
+# a state's numbers that differ by character (a character's own states are
+# numbered from 341, each its own: Kirby's and Jigglypuff's extra jumps are
+# 341 on, where Fox has his laser)
+CHAR_STATES = {
+    "kirby": {"double_jump": (27, 28) + tuple(range(341, 351))},
+    "jigglypuff": {"double_jump": (27, 28) + tuple(range(341, 346))},
+}
+
 BUTTONS = {
     "A": 0x100, "B": 0x200, "X": 0x400, "Y": 0x800, "Z": 0x10,
     "R": 0x20, "L": 0x40, "jump": 0x400 | 0x800, "shield": 0x20 | 0x40,
@@ -141,10 +149,30 @@ def names(fd, char_name=""):
     which a full jump and a short hop reach their top: the first frame
     falling (the rise lasts its speed over gravity, after the squat)."""
     import math
-    return {"J": fd.jump_squat, "LAND": fd.landing_lag,
-            "FA": fd.jump_squat + math.ceil(fd.jump_v / fd.gravity) + 1,
-            "SA": fd.jump_squat + math.ceil(fd.hop_v / fd.gravity) + 1,
-            "char": char_name or fd.id}
+    out = {"J": fd.jump_squat, "LAND": fd.landing_lag,
+           "FA": fd.jump_squat + math.ceil(fd.jump_v / fd.gravity) + 1,
+           "SA": fd.jump_squat + math.ceil(fd.hop_v / fd.gravity) + 1,
+           "char": char_name or fd.id}
+    # measured in the game (measure.py): DASH (a dash's frames before a
+    # held stick runs), SL (the frame a short hop lands), LD (the earliest
+    # ledgedash air dodge that lands)
+    out.update(measured().get(fd.id, {}))
+    return out
+
+
+_MEASURED = None
+
+
+def measured():
+    """data/drills/numbers.json: {character: {number: value}}."""
+    global _MEASURED
+    if _MEASURED is None:
+        path = os.path.join(DIR, "numbers.json")
+        _MEASURED = {}
+        if os.path.exists(path):
+            with open(path) as f:
+                _MEASURED = json.load(f)
+    return _MEASURED
 
 
 _OPS = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Add, ast.Sub, ast.Mult,
@@ -203,7 +231,8 @@ def _problems(spec):
             out.append("%s: %s" % (where, what))
         return cond
 
-    test = {"J": 3, "LAND": 4, "FA": 20, "SA": 12, "char": "Fox",
+    test = {"J": 3, "LAND": 4, "FA": 20, "SA": 12, "DASH": 11, "SL": 26,
+            "LD": 5, "char": "Fox",
             "measure": "x", "frames": "2 frames", "f": 1}
     for m in spec.get("measures", {}) if isinstance(spec.get("measures"),
                                                      dict) else ():
@@ -305,8 +334,8 @@ def _problems(spec):
                 if k == "button":
                     need(r["button"] in BUTTONS, w, "unknown button")
                 elif k == "stick":
-                    need(r["stick"] in ("down", "up"), w,
-                         "stick: down or up")
+                    need(r["stick"] in ("down", "up", "side"), w,
+                         "stick: down, up or side")
                 else:
                     state(r["state"], w + ".state")
             for x in r.get("window", []):
@@ -431,6 +460,14 @@ def _problems(spec):
         else:
             need(op in OPPONENTS, w, "opponent: none, or a character")
         camera(sc.get("camera", "normal"), w)
+        if "lead" in sc:
+            need(isinstance(sc["lead"], int) and sc["lead"] >= 1, w,
+                 "lead: frames from 1")
+        # one stage for the drill: a part's scenario is played on the
+        # stage the drill's match loaded (scenarios[0]'s)
+        need(sc.get("stage", "final-destination") == spec["scenarios"][0].get(
+            "stage", "final-destination"), w,
+             "stage: every scenario on the first one's stage")
 
     a = spec["attempt"]
     event(a.get("start"), "attempt.start")
@@ -486,6 +523,9 @@ def _problems(spec):
         elif k == "angle":
             need(m["angle"] in ("stick", "velocity"), w,
                  "angle: stick or velocity")
+            if "from_horizontal" in m:
+                need(m["from_horizontal"] is True, w,
+                     "from_horizontal: true (either direction)")
             event(m.get("at", "end"), w + ".at")
     words(spec["verdict"].get("success"), "verdict.success")
 

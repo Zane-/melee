@@ -1098,6 +1098,7 @@ class Session:
                 lx=pad.get("lx", 0), ly=pad.get("ly", 0),
                 cx=pad.get("cx", 0), cy=pad.get("cy", 0),
                 ply=last["ly"] if last else 0,
+                plx=last["lx"] if last else 0,
                 pcy=last["cy"] if last else 0))
             trig_before = trig
             c.hmn_hit = c.me.percent > hmn_percent

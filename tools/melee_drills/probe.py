@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "melee_native"))
 from native import Native  # noqa: E402
 from melee_course import engine  # noqa: E402
 from melee_drills import format as F  # noqa: E402
-from melee_drills.drill import JsonDrill, REF_START, inputs_to_refs  # noqa
+from melee_drills.drill import JsonDrill, inputs_to_refs  # noqa
 
 
 def state_name(s):
@@ -53,10 +53,10 @@ def main():
     with Native() as game:
         s = engine.Session(drill, game, character=args.char, live=False,
                            seed=1, dpad=False)
-        drill.build_reference = lambda c: inputs_to_refs(inputs,
-                                                         drill.nums(c))
+        drill.build_reference = lambda c: inputs_to_refs(
+            inputs, drill.nums(c), drill.ref_start)
         lines = []
-        lead = engine.REF_LEAD + REF_START - 1
+        lead = engine.REF_LEAD + drill.ref_start - 1
 
         def each(n, frame):
             if s.demo_pass != 2 or frame <= lead - 3 or \
