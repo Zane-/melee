@@ -145,6 +145,8 @@
 #define MS_FALL_LAST 34
 #define MS_SQUAT_FIRST 39
 #define MS_SQUAT_LAST 41
+#define MS_LANDING 42 /* a normal landing, and LandingFallSpecial: */
+#define MS_LANDING_FALL_SPECIAL 43 /* (ftCo_Landing_IASA, both) */
 #define MS_ATTACK_FIRST 44    /* Attack11 */
 #define MS_ATTACK100_FIRST 47 /* the rapid jab: Attack100Start to End */
 #define MS_ATTACK100_LAST 49
@@ -344,6 +346,11 @@ static struct {
     unsigned hold_allowed;
     float near;      /* press only with the fighters this close (0: any) */
     int from;        /* press only from this many frames of hold on */
+    /* a move followed by another (node's lines it goes deeper from, the
+       scan's first move): its settle ends on the frame before its fighter
+       can act, not after it (settle_xy) */
+    int exact;
+    int mark_t; /* eng.t at the last mark (mark, back_to) */
     int trial;       /* frames a pressed move is followed (0: to the end) */
     int trial_end;   /* the frame the current one stops at (0: none) */
     int enough;      /* stop once this many lines connect (0: never) */
@@ -536,11 +543,36 @@ static int can_act(Fighter* fp)
     if (fp->allow_interrupt && eng.ia_own[eng.t]) {
         return 1;
     }
+    if ((m == MS_LANDING || m == MS_LANDING_FALL_SPECIAL) &&
+        fp->mv.co.landing.allow_interrupt &&
+        fp->cur_anim_frame >= fp->co_attrs.normal_landing_lag)
+    {
+        /* a landing's lag is over (ftCo_Landing_IASA): its animation goes
+           on (Fox's 30 frames after a short hop), the fighter acts out of
+           it once the animation's frame reaches the normal landing lag (4
+           for Fox); a landing that does not allow it (an air dodge's)
+           ends with its animation */
+        return 1;
+    }
     return m == MS_WAIT || (m >= MS_WALK_FIRST && m <= MS_WALK_LAST) ||
            m == MS_TURN || m == MS_DASH || m == MS_RUN ||
            (m >= MS_JUMP_FIRST && m <= MS_FALL_LAST) ||
            (m >= MS_SQUAT_FIRST && m <= MS_SQUAT_LAST) || m == MS_GUARD ||
            m == MS_CATCH_WAIT || m == MS_PASS;
+}
+
+/// Does PORT's jump squat end on the coming frame? Fighter_procAnim runs
+/// before Fighter_procInput: on the frame KneeBend's animation reaches the
+/// jump squat's length (ftCo_KneeBend_Anim) the fighter enters the jump,
+/// and that frame's input is read in the air. An aerial, an air dodge or
+/// down-B pressed then comes out on the first airborne frame (frame J + 1
+/// of the jump); pressed once the fighter is seen in the air, a frame
+/// later.
+static int squat_ends(Fighter* fp)
+{
+    return (int) fp->motion_id == MS_KNEEBEND &&
+           fp->cur_anim_frame + 1.0F >=
+               (float) fp->co_attrs.jump_startup_time;
 }
 
 /// How far the floor below the fighter's feet (its ECB's bottom) is, or
@@ -729,9 +761,38 @@ static HostPad neutral(void)
     return pad_of(0, 0, 0, 0, 0, 0);
 }
 
+static void mark(void);
+static void back_to(int at, int t);
+
+/// Undo the frame just played: back to the last mark and the frames from
+/// it played again (the path's own pads), none counted against the budget.
+static void unplay(void)
+{
+    int target = eng.t - 1, t0 = eng.mark_t;
+    long spent = eng.spent;
+    back_to(eng.marks, t0);
+    for (int k = t0; k < target; k++) {
+        if (!play(eng.path[k])) {
+            break;
+        }
+    }
+    eng.spent = spent - 1;
+}
+
 /// Follow the fighter until it can act again, the stick held at (`lx`,
 /// `ly`), L pulsed during an aerial if L-cancelling. 0 if the line must
 /// stop.
+///
+/// With `eng.exact` (another move follows this one), until the frame
+/// before it can act. A state that ends with its animation (landing lag,
+/// shield stun, a jump squat, an attack, a grab's or throw's end) ends in
+/// Fighter_procAnim, before Fighter_procInput reads the frame's input in
+/// the state it ended into, and an attack's interrupt flag is set there
+/// too, by its script: the first frame the fighter can act on is the frame
+/// after which it is first seen able to, and that frame is undone so that
+/// the next move's first input goes on it (seen able to act and pressed on
+/// the frame after, a move began a frame late). A line that ends with this
+/// move needs no undoing: what follows is waiting.
 static int settle_xy(int lx, int ly)
 {
     for (int i = 0; i < SETTLE_MAX; i++) {
@@ -754,6 +815,13 @@ static int settle_xy(int lx, int ly)
         }
         if (!play(p)) {
             return 0;
+        }
+        if (eng.exact && i > 0) {
+            a = fighter_of(eng.port);
+            if (a != NULL && can_act(a)) {
+                unplay(); /* this frame was the first it could act on */
+                return 1;
+            }
         }
     }
     return 1;
@@ -808,7 +876,8 @@ static int hold(HostPad p, int frames)
 }
 
 /// A hop (`full`: held through the squat), drifting `d` (-1 out, 0, 1 in),
-/// the aerial `a` (-1: none) on the first airborne frame or at the top.
+/// the aerial `a` (-1: none) on the first airborne frame (the frame the
+/// squat ends: squat_ends) or at the top.
 static int hop(int a, int d, int full)
 {
     float t = toward();
@@ -821,8 +890,9 @@ static int hop(int a, int d, int full)
         if (fp == NULL) {
             return 0;
         }
-        if (!pressed && airborne(fp) &&
-            (!full || fp->self_vel.y <= 0.0F))
+        if (!pressed &&
+            (full ? airborne(fp) && fp->self_vel.y <= 0.0F
+                  : airborne(fp) || squat_ends(fp)))
         {
             HostPad q = aerial_pad(a, f, lx);
             q.buttons |= p.buttons;
@@ -836,8 +906,11 @@ static int hop(int a, int d, int full)
         if (fp == NULL) {
             return 0;
         }
-        if (a < 0 && airborne(fp)) {
-            return 1; /* a hop with no aerial: on to the air's moves */
+        if (a < 0 && (airborne(fp) || (!full && squat_ends(fp)))) {
+            /* a hop with no aerial: on to the air's moves, from the first
+               airborne frame (a full jump's own, once in the air: its X
+               is held on) */
+            return 1;
         }
         if (pressed && a >= 0 && i > 2) {
             return settle(lx);
@@ -856,7 +929,8 @@ static int wavedash(int d)
         if (fp == NULL) {
             return 0;
         }
-        if (airborne(fp)) {
+        if (airborne(fp) || (i > 0 && squat_ends(fp))) {
+            /* the air dodge on the first airborne frame */
             p = pad_of(B_R, (int) (d * 100 * t), -80, 0, 0, 255);
             if (!play(p)) {
                 return 0;
@@ -1227,8 +1301,10 @@ static int run_macro(int m)
     case M_HOP:
         return hop(-1, 0, 0);
     case M_OOS_DOWN_B: {
-        /* the jump, then down-B as its squat ends (Fox and Falco's shine
-           out of shield, on frame 4) */
+        /* the jump, then down-B on the frame its squat ends (squat_ends:
+           Fox and Falco's shine out of shield, on frame 4 of the jump;
+           waiting until the fighter was seen in the air, it came on
+           frame 5) */
         Fighter* fp;
         if (!play(pad_of(B_X | B_R, 0, 0, 0, 0, 255))) {
             return 0;
@@ -1238,7 +1314,7 @@ static int run_macro(int m)
             if (fp == NULL) {
                 return 0;
             }
-            if ((int) fp->motion_id != MS_KNEEBEND) {
+            if ((int) fp->motion_id != MS_KNEEBEND || squat_ends(fp)) {
                 break;
             }
             if (!play(neutral())) {
@@ -1299,7 +1375,7 @@ static int run_macro(int m)
 }
 
 /// The macros the fighter's state allows now.
-static int moves_for(int* out)
+static int moves_here(int* out)
 {
     Fighter* a = fighter_of(eng.port);
     int n = 0, m;
@@ -1405,6 +1481,59 @@ static int moves_for(int* out)
     return n;
 }
 
+/// Would moves_here offer only waiting (and techs): the fighter cannot
+/// act, and is not in a state with moves of its own (holding a grab, the
+/// shield, the ledge, lying down)?
+static int stuck(Fighter* a)
+{
+    int m = (int) a->motion_id;
+    return !(m == MS_CATCH_WAIT || m == MS_GUARD || m == MS_GUARD_ON ||
+             m == MS_GUARD_REFLECT || m == MS_CLIFF_WAIT ||
+             (m >= MS_DOWN_FIRST && m <= MS_DOWN_LAST)) &&
+           !can_act(a);
+}
+
+/// The macros PORT may begin at this branch point, the game exactly as it
+/// was marked (`at`, `t` frames from the root): a move begun here plays
+/// its first input on the coming frame. A fighter that cannot act now but
+/// whose state ends on the coming frame into one that can (its animation
+/// ending in Fighter_procAnim, its hitlag in Fighter_procHitlag, both
+/// before Fighter_procInput reads the frame's input: shield stun into the
+/// shield, landing lag, a jump squat, an attack, a grab, a throw or a
+/// getup into standing or the air) is offered the moves of the state it
+/// ends into. Found by playing the coming frame ahead with the pad held on
+/// the one before (the shield still held in shield stun: let go, it would
+/// end into the shield's drop) and going back; not counted against the
+/// budget, as dash_ends' look is not.
+static int moves_for(int* out, int at, int t)
+{
+    Fighter* a = fighter_of(eng.port);
+    long spent = eng.spent;
+    int n = 0;
+    if (a == NULL) {
+        return 0;
+    }
+    if (!stuck(a)) {
+        return moves_here(out);
+    }
+    if (eng.t < eng.horizon && !eng.scene_end) {
+        HostPad held = eng.last;
+        int played;
+        play(held);
+        played = eng.t > t;
+        a = fighter_of(eng.port);
+        if (played && a != NULL && !stuck(a)) {
+            n = moves_here(out);
+        }
+        if (played) {
+            back_to(at, t);
+            eng.last = held; /* (at the root: the pad the game held) */
+        }
+        eng.spent = spent;
+    }
+    return n > 0 ? n : moves_here(out);
+}
+
 /* ---- the search ------------------------------------------------------------- */
 
 /// Past the search's time limit: what has been found is the answer.
@@ -1428,6 +1557,7 @@ static void mark(void)
 {
     host_rb_mark();
     eng.marks++;
+    eng.mark_t = eng.t;
 }
 
 /// Back to the branch point marked as `at` (marks counted from the root's,
@@ -1444,6 +1574,7 @@ static void back_to(int at, int t)
     eng.scene_end = 0;
     eng.last = t > 0 ? eng.path[t - 1] : neutral();
     eng.from_root = at == 1;
+    eng.mark_t = t;
     eng.spent += MARK_COST;
 }
 
@@ -1511,7 +1642,8 @@ static void keep(Line* l)
 /// the best score found below.
 static float node(int at, int depth, long budget)
 {
-    int moves[M_COUNT], n = moves_for(moves), t0 = eng.t, order[M_COUNT];
+    int moves[M_COUNT], t0 = eng.t, n = moves_for(moves, at, t0),
+                        order[M_COUNT];
     float val[M_COUNT], best = -1e9F;
     long start = eng.spent, left;
 
@@ -1598,10 +1730,13 @@ static float node(int at, int depth, long budget)
         back_to(at, t0);
         eng.names[depth] = moves[i];
         eng.nnames = depth + 1;
+        eng.exact = 1; /* (deeper from it: its settle exact) */
         if (!run_macro(moves[i]) || eng.t >= eng.horizon) {
+            eng.exact = 0;
             left -= share;
             continue;
         }
+        eng.exact = 0;
         if (depth == 0) {
             eng.first_len = eng.t - eng.base;
         }
@@ -1674,7 +1809,7 @@ static void scan(void)
 {
     int firsts[M_COUNT], nf = 0, root = eng.marks, t_root = eng.t;
     if (eng.scan_first) {
-        int moves[M_COUNT], n = moves_for(moves);
+        int moves[M_COUNT], n = moves_for(moves, root, t_root);
         for (int i = 0; i < n; i++) {
             if (eng.root_allowed[moves[i]]) {
                 firsts[nf++] = moves[i];
@@ -1691,9 +1826,12 @@ static void scan(void)
         if (f >= 0) {
             eng.names[0] = f;
             eng.nnames = 1;
+            eng.exact = 1; /* (the hold and a move follow it) */
             if (!run_macro(f)) {
+                eng.exact = 0;
                 continue;
             }
+            eng.exact = 0;
         }
         eng.first_len = eng.t - eng.base;
         mark();
@@ -1718,7 +1856,7 @@ static void scan(void)
                 if (k >= eng.from && k % eng.scan_step == 0 &&
                     near_enough())
                 {
-                    int moves[M_COUNT], n = moves_for(moves), t_k, tried = 0;
+                    int moves[M_COUNT], n, t_k, tried = 0;
                     /* the branch point, here: one record from at_f */
                     mark();
                     if (at_k == 0) {
@@ -1728,6 +1866,7 @@ static void scan(void)
                         eng.marks--;
                     }
                     t_k = eng.t;
+                    n = moves_for(moves, at_k, t_k);
                     for (int i = 0; i < n && !out_of_budget(); i++) {
                         int m = moves[i], key[DEPTH_MAX];
                         char name[NAMES_MAX];

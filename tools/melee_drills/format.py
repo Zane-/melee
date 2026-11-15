@@ -19,7 +19,10 @@ The words:
 - expectations: "equals", "at_most", "at_least", "within" [lo, hi]
 - inputs: {"press": BUTTON, "frame": F, "hold": H}, {"stick": [x, y], ...},
   {"cstick": [x, y], ...}, {"trigger": "L"|"R", "amount": 0..1, ...};
-  stick x positive is forward (toward the opponent, if there is one); -1..1
+  stick x positive is forward (toward the opponent, if there is one); -1..1;
+  "from": EVENT times one from that event, its frame 1 the frame the event
+  happens on ("start": the attempt's first frame; a demonstration finds the
+  frame by playing each coming frame ahead)
 - opponents: "none" (no CPU in the drill: none is spawned, and one a
   match already has is asleep: out of play, out of the picture); a CPU
   with frame inputs ({"character", "x", "inputs", "every", ...}); or a
@@ -72,6 +75,10 @@ STATES = {
     "shield": (178, 179, 180, 181, 182), "grab": 212, "dash_grab": 214,
     "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),
     "roll": (233, 234), "spot_dodge": 235,
+    # the shield's own (in "shield" too): stun after a hit on it,
+    # GuardSetOff, every input ignored; let go, GuardOff (15 frames, X or Y
+    # jumps, down is a spot dodge)
+    "shield_stun": 181, "shield_release": 180,
     # hit: in hitstun (DamageHi1 to DamageFlyRoll); launched (DamageFly*)
     "damage": tuple(range(75, 92)), "tumble": (87, 88, 89, 90, 91),
     "ledge": (252, 253), "ledge_catch": 252, "ledge_hang": 253,
@@ -112,8 +119,9 @@ BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
 # hitlag_last: the last frozen frame of hitlag, whose stick DI and ASDI read
 # (Fighter_procHitlag runs before the frame's input); shot: an item more
 # than the frame before (a projectile fired: a laser)
+# connects: the opponent took damage (the player's attack landed)
 SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
-                 "hit", "hitlag_last", "hitlag_end", "shot")
+                 "hit", "hitlag_last", "hitlag_end", "shot", "connects")
 # "is": a simple event with modifiers ({"is": "airborne", "from": "shine"})
 EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
                "frame", "is")
@@ -168,6 +176,7 @@ OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
 # scenario is reset uncounted ("missed": the words then: the opponent's
 # attack whiffed, the player jumped behind it)
 LESSON_MAX = 500          # a lesson's characters, the longest name filled
+FROM_MAX = 7              # events one list of inputs is timed from (marks)
 ATTEMPT_KEYS = ("start", "judge", "cancel", "limit", "timeout", "within",
                 "missed")
 
@@ -308,6 +317,14 @@ def _problems(spec):
                                                      dict) else ():
         test[m] = 2
         test[m + "_frames"] = "2 frames"
+    # a scenario's own numbers and words (its "numbers": the hit's frame,
+    # its hitlag, the DI that survives it), as the first scenario has them
+    own = set(test)
+    for sc in spec.get("scenarios", []) if isinstance(
+            spec.get("scenarios"), list) else ():
+        nb = sc.get("numbers") if isinstance(sc, dict) else None
+        for k, v in nb.items() if isinstance(nb, dict) else ():
+            test.setdefault(k, v)
 
     def num(x, where):
         try:
@@ -337,9 +354,15 @@ def _problems(spec):
                      % inp["press"])
             elif k in ("stick", "cstick"):
                 v = inp[k]
+                # (either may be an expression of the scenario's
+                # numbers: its DI, "DX")
                 need(isinstance(v, list) and len(v) == 2 and
-                     all(isinstance(a, (int, float)) and -1 <= a <= 1
-                         for a in v), w, "[x, y] from -1 to 1")
+                     all(isinstance(a, str) or isinstance(a, (int, float))
+                         and -1 <= a <= 1 for a in v), w,
+                     "[x, y] from -1 to 1")
+                for a in v if isinstance(v, list) else ():
+                    if isinstance(a, str):
+                        num(a, "%s.%s" % (w, k))
             else:
                 need(inp["trigger"] in ("L", "R"), w, "trigger L or R")
             need("frame" in inp, w, "no frame")
@@ -347,8 +370,24 @@ def _problems(spec):
                 num(inp["frame"], w + ".frame")
             if "hold" in inp:
                 num(inp["hold"], w + ".hold")
-            extra = set(inp) - {k, "frame", "hold", "amount"}
+            if "from" in inp:
+                # timed from an event: frame 1 the frame it happens on
+                # (nothing before it: the event is found as it comes)
+                event(inp["from"], w + ".from")
+                try:
+                    need(value(inp.get("frame", 1), test) >= 1, w,
+                         'frame: from 1, timed "from" an event')
+                except DrillError:
+                    pass
+            extra = set(inp) - {k, "frame", "hold", "amount", "from"}
             need(not extra, w, "unknown %s" % ", ".join(sorted(extra)))
+        froms = []
+        for inp in lst:
+            if isinstance(inp, dict) and "from" in inp and \
+                    inp["from"] not in froms:
+                froms.append(inp["from"])
+        need(len(froms) <= FROM_MAX, where, "inputs timed from at most %d "
+             "events" % FROM_MAX)
 
     def state(v, where):
         need(v in STATES, where, "unknown state %r" % (v,))
@@ -424,8 +463,11 @@ def _problems(spec):
                 if k == "button":
                     need(r["button"] in BUTTONS, w, "unknown button")
                 elif k in ("stick", "cstick"):
-                    need(r[k] in ("down", "up", "side"), w,
-                         "%s: down, up or side" % k)
+                    # any: a smash whichever way (an SDI's, whose way
+                    # depends on the attack)
+                    need(r[k] in ("down", "up", "side") or
+                         k == "stick" and r[k] == "any", w,
+                         "%s: down, up, side (or any, the stick)" % k)
                 else:
                     state(r["state"], w + ".state")
             for x in r.get("window", []) + r.get("strict_window", []):
@@ -532,6 +574,21 @@ def _problems(spec):
     for i, sc in enumerate(spec["scenarios"]):
         w = "scenarios[%d]" % i
         need(isinstance(sc.get("name"), str), w, "no name")
+        # its own numbers and words, named in the drill's expressions and
+        # words while it is played: every scenario names the same ones
+        nb = sc.get("numbers", {})
+        if need(isinstance(nb, dict), w, "numbers: {NAME: number or "
+                "words}"):
+            for k, v in nb.items():
+                need(re.match(r"^[A-Za-z_]\w*$", k) is not None and
+                     k not in own, w, "numbers: %r is not a name of its "
+                     "own (a character's number, a measure's?)" % k)
+                need(isinstance(v, (int, float, str)) and
+                     not isinstance(v, bool), w,
+                     "numbers.%s: a number or words" % k)
+            first = spec["scenarios"][0].get("numbers", {})
+            need(isinstance(first, dict) and set(nb) == set(first), w,
+                 "numbers: the same names as the first scenario's")
         pl = sc.get("player", {})
         if need(isinstance(pl, dict), w, "player: {...}"):
             if pl.get("ledge"):
@@ -560,6 +617,10 @@ def _problems(spec):
                 num(op["percent"], w + ".opponent.percent")
             if "inputs" in op:
                 inputs(op["inputs"], w + ".opponent.inputs")
+                need(not any(isinstance(i, dict) and "from" in i
+                             for i in op["inputs"]), w,
+                     'opponent.inputs: no "from" (a CPU\'s inputs are '
+                     'timed from the reset)')
             if "every" in op:
                 need(isinstance(op["every"], int) and op["every"] > 0, w,
                      "opponent.every: frames")

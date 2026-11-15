@@ -326,7 +326,10 @@ def stun_over(n, port, target, raws, most=40):
     """Where `port` plays `raws` against a shielding `target` (holding its
     pad), the first frame (counted from now, 1 the first) the target can
     act out of the shield after the first hit on it; None if none hits
-    it."""
+    it. On that frame shield stun's animation ends into the shield and the
+    frame's input is read there (Fighter_procAnim runs before
+    Fighter_procInput): an answer holds the shield the frames before it
+    and is pressed on it."""
     from melee_actor.ahead import compress, look
     plan = compress([raw_pad(r) for r in raws]) + [(most, raw_pad(NONE))]
     out = look(n, port, target, plan, stop=0)
@@ -426,12 +429,15 @@ class Commit(Contract):
         at, its line), ms), or (None, ms)."""
         raws = list(pre) + line.raw()
         if shielding(my_pad):
-            # out of the shield the moment its stun is over, hitting within
-            # `within` frames of it
+            # out of the shield the moment its stun is over: the shield
+            # held the frames before the first it can act on, the answer
+            # pressed on it, hitting by frame `within` counting it as 1 (a
+            # frame-4 shine out of shield is within 4)
             self.answer.holds = "none"
-            wait = stun_over(n, port, target, raws)
-            if wait is None:
+            first = stun_over(n, port, target, raws)
+            if first is None:
                 return None, 0.0
+            wait = first - 1
             by = wait + self.within
         else:
             # no sooner than their reaction time, and before it lands
@@ -440,8 +446,9 @@ class Commit(Contract):
             by = min(line.contact_at, wait + self.within)
             if by <= wait:
                 return None, 0.0
-        good, a = self.answer.find(n, target, port, raws, tuple(my_pad), wait,
-                                   by)
+        good, a = self.answer.find(n, target, port,
+                                   raws + [self.after] * 90, tuple(my_pad),
+                                   wait, by)
         if not good:
             return None, a.ms
         return ([tuple(my_pad)] * wait + good[0].raw(), good[0]), a.ms
@@ -758,11 +765,13 @@ class Pressure(Driven):
             safe = []
             for line in cands:
                 raws = list(pre) + line.raw()
-                wait = stun_over(n, port, target, raws)
-                if wait is None:
+                first = stun_over(n, port, target, raws)
+                if first is None:
                     continue
+                # (the shield held up to the first frame out of it, the
+                # option pressed on it)
                 a = Answer(oos, holds="none", near=45, trial=20, window=400)
-                good, ar = a.find(n, target, port, raws, SHIELD, wait,
+                good, ar = a.find(n, target, port, raws, SHIELD, first - 1,
                                   len(raws) + 2)
                 ms += ar.ms
                 if not good:

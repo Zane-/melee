@@ -165,9 +165,11 @@ A drill's opponent is a script: steps in order, each a behaviour or a combinator
 "lands": "shield", "contract": {"answer": "oos_down_b", "within": 15}}`: it commits only to
 an option the player can answer with that move, searched from the player's side before it
 commits (`contracts.Answer`), as fox-anti-air's jump-in does. `within`: frames from the
-first frame the player can answer by which the answer hits: a shielding player out of
-the shield the frame its stun is over (found by playing the option ahead), any other no
-sooner than `react` frames after the commitment and before the option lands. Up to four
+first frame the player can answer by which the answer hits, that frame 1: a shielding
+player out of the shield the frame its stun is over (found by playing the option ahead;
+`{"answer": "oos_down_b", "within": 4}`: the frame-4 shine out of shield hits), any other
+no sooner than `react` frames after the commitment and before the option lands. The
+answer is searched with the opponent letting go after its line, as it plays it. Up to four
 of the best lines are looked at each time; the first answered is committed to, and the
 player's answer is kept with it (`Approach.answer`: the frame asked at, its pads), as the
 check and the demonstration play it. That is what makes a drill
@@ -187,6 +189,26 @@ plays what the check found.
   boost grabs, dash dance, crouch, platform drop, three wavelands; regrabs after
   throws), opt-in by name; `tests/native/engine_moves.py` 43 of 43, `engine.py` 17 of
   17, `ahead.py` 12 of 12.
+- 2026-11-15: the engine on the first frame the game reads an input (`engine.c`):
+  a state that ends with its animation (shield stun, landing lag, a jump squat, an
+  attack, a grab) ends in `Fighter_procAnim`, before `Fighter_procInput` reads the
+  frame's input in the state it ended into, so the engine offers its next moves at a
+  branch point whose coming frame ends it (a frame played ahead and undone: `moves_for`),
+  settles a move followed by another on the frame before its fighter can act
+  (`settle_xy`, `eng.exact`), counts a normal landing's lag as over at its landing lag,
+  not at its animation's end (Fox's jab after a short hop: frame 4, not 30), and presses
+  a short hop's aerial, a wavedash's air dodge and the shine out of shield on the first
+  airborne frame, J + 1 (`squat_ends`). Before, `oos_down_b` was a frame-6 shine out of
+  shield (the jump a frame late, down-B a frame late) and a contract `within` 5 committed
+  to options only a frame-6 shine answered. `stun_over`'s callers hold the shield the
+  frames before the first free one, not through it. An answer was searched with the
+  opponent's last pad held on after its line (an Ice Climbers' aerial's drift went on in
+  the search; for real they let go, landed elsewhere, and the frame-4 shine missed). Proof:
+  `tests/native/engine_first_frame.py` (31 of 31: shield stun, landing lag, a jump squat,
+  a whiffed grab, a forward tilt, for Fox, Marth, Peach, Falcon: the first frame a real
+  input works is the first the engine offers it; the macros on J + 1; the contract within
+  4 answered by its frame-4 shine, played). Not covered: the shield's drop (GuardOff), in
+  which the game reads X or Y and down, is still waiting to the engine.
 - 2026-11-15: layers 2 to 4 built. `tools/melee_engine/sense.py` (every condition of the
   table, and `free`), `behave.py` (`hold`, `footsies`, `retreat`, `approach`, `move`,
   `punish`, `chain_grab`; first versions of `pressure`, `chase`, `play`, footsies'

@@ -14,21 +14,21 @@
           0,
           -1
         ],
-        "frame": 6,
-        "hold": 5
+        "frame": "HIT+1",
+        "hold": "HL"
       },
       {
         "press": "jump",
-        "frame": "10+LAND",
+        "frame": "HIT+HL+LAND",
         "hold": 1
       }
     ],
     "marks": {
-      "5": "Frame 5: the down tilt hits. Hitlag: 5 frames",
-      "6": "Frame 6: the C-stick is pressed down and held",
-      "9": "Frame 9: the last frame of hitlag. The game reads the C-stick",
-      "10": "Frame 10: shifted 3 units down. {char} lands",
-      "10+LAND": "Frame {10+LAND}: the landing lag is over. Jump"
+      "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
+      "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
+      "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The game reads the C-stick",
+      "HIT+HL": "Frame {HIT+HL}: shifted 3 units down. {char} lands",
+      "HIT+HL+LAND": "Frame {HIT+HL+LAND}: the landing lag is over. Jump"
     },
     "lessons": [
       {
@@ -167,7 +167,304 @@
           }
         ]
       },
-      "camera": "normal"
+      "camera": "normal",
+      "numbers": {
+        "move": "Sheik's down tilt",
+        "opp": "Sheik",
+        "HIT": 5,
+        "HL": 5
+      }
+    },
+    {
+      "name": "Sheik's jab at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "sheik",
+        "x": -10,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "A",
+            "frame": 17,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Sheik's jab",
+        "opp": "Sheik",
+        "HIT": 5,
+        "HL": 4
+      }
+    },
+    {
+      "name": "Marth's down tilt at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "marth",
+        "x": -4,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              0,
+              -0.63
+            ],
+            "frame": 12,
+            "hold": 1
+          },
+          {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Marth's down tilt",
+        "opp": "Marth",
+        "HIT": 5,
+        "HL": 6
+      }
+    },
+    {
+      "name": "Fox's down tilt at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "fox",
+        "x": -8,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              0,
+              -0.63
+            ],
+            "frame": 11,
+            "hold": 1
+          },
+          {
+            "press": "A",
+            "frame": 11,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Fox's down tilt",
+        "opp": "Fox",
+        "HIT": 5,
+        "HL": 6
+      }
+    },
+    {
+      "name": "Fox's jab at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "fox",
+        "x": -10,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "A",
+            "frame": 17,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Fox's jab",
+        "opp": "Fox",
+        "HIT": 5,
+        "HL": 4
+      }
+    },
+    {
+      "name": "Falco's down tilt at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "falco",
+        "x": -8,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              0,
+              -0.63
+            ],
+            "frame": 11,
+            "hold": 1
+          },
+          {
+            "press": "A",
+            "frame": 11,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Falco's down tilt",
+        "opp": "Falco",
+        "HIT": 5,
+        "HL": 7
+      }
+    },
+    {
+      "name": "Falco's jab at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "falco",
+        "x": -10,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "A",
+            "frame": 17,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Falco's jab",
+        "opp": "Falco",
+        "HIT": 5,
+        "HL": 4
+      }
+    },
+    {
+      "name": "Pikachu's down tilt at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "pikachu",
+        "x": -10,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              0,
+              -0.63
+            ],
+            "frame": 12,
+            "hold": 1
+          },
+          {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Pikachu's down tilt",
+        "opp": "Pikachu",
+        "HIT": 5,
+        "HL": 5
+      }
+    },
+    {
+      "name": "Yoshi's forward tilt at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "yoshi",
+        "x": -6,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              0.5,
+              0
+            ],
+            "frame": 13,
+            "hold": 1
+          },
+          {
+            "press": "A",
+            "frame": 13,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Yoshi's forward tilt",
+        "opp": "Yoshi",
+        "HIT": 5,
+        "HL": 7
+      }
+    },
+    {
+      "name": "Samus's dash attack at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "samus",
+        "x": 10,
+        "facing": "player",
+        "inputs": [
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 1,
+            "hold": 12
+          },
+          {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Samus's dash attack",
+        "opp": "Samus",
+        "HIT": 5,
+        "HL": 7
+      }
     }
   ],
   "attempt": {
@@ -175,8 +472,8 @@
     "judge": {
       "frame": 30
     },
-    "within": 24,
-    "missed": "Not counted: the down tilt missed. Stand still in front of the opponent."
+    "within": "HIT+19",
+    "missed": "Not counted: {move} missed. Stand still in front of {opp}."
   },
   "measures": {
     "air": {
@@ -221,7 +518,7 @@
   "parts": [
     {
       "name": "The hit lifts you",
-      "teach": "Stand still and take the opponent's down tilt. Hitlag lasts 5 frames, then the hit lifts {char} off the floor.",
+      "teach": "Stand still and take {move}. Hitlag lasts {HL} frames, then the hit lifts {char} off the floor.",
       "example": [
         {
           "stick": [
@@ -233,22 +530,22 @@
         }
       ],
       "marks": {
-        "5": "Frame 5: the down tilt hits. Hitlag: 5 frames",
-        "10": "Frame 10: hitlag ends. {char} is lifted off the floor"
+        "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
+        "HIT+HL": "Frame {HIT+HL}: hitlag ends. {char} is lifted off the floor"
       },
       "cues": [
         {
           "frames": [
-            5,
-            9
+            "HIT",
+            "HIT+HL-1"
           ],
           "words": "Hitlag",
           "kind": "info"
         },
         {
           "frames": [
-            10,
-            30
+            "HIT+HL",
+            "HIT+25"
           ],
           "words": "In the air",
           "kind": "info"
@@ -256,7 +553,19 @@
       ],
       "checks": [],
       "success": "In the air for {air_frames} after hitlag.",
-      "streak": 1
+      "streak": 1,
+      "scenario": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
     },
     {
       "name": "C-stick down in hitlag",
@@ -267,45 +576,45 @@
             0,
             -1
           ],
-          "frame": 6,
-          "hold": 5
+          "frame": "HIT+1",
+          "hold": "HL"
         }
       ],
       "marks": {
-        "5": "Frame 5: the down tilt hits. Hitlag begins",
-        "6": "Frame 6: the C-stick is pressed down and held",
-        "9": "Frame 9: the last frame of hitlag. The C-stick is read",
-        "10": "Frame 10: {char} lands"
+        "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
+        "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
+        "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The C-stick is read",
+        "HIT+HL": "Frame {HIT+HL}: {char} lands"
       },
       "cues": [
         {
           "frames": [
-            5,
-            8
+            "HIT",
+            "HIT+HL-2"
           ],
           "words": "Hitlag: press the C-stick down and hold it",
           "kind": "info"
         },
         {
           "frames": [
-            9,
-            9
+            "HIT+HL-1",
+            "HIT+HL-1"
           ],
           "words": "Last frame of hitlag: the C-stick is read now",
           "kind": "go"
         },
         {
           "frames": [
-            10,
-            11
+            "HIT+HL",
+            "HIT+HL+1"
           ],
           "words": "Hitlag over: too late",
           "kind": "late"
         },
         {
           "frames": [
-            12,
-            30
+            "HIT+HL+2",
+            "HIT+25"
           ],
           "words": "On the floor",
           "kind": "info"
@@ -315,7 +624,19 @@
         "grounded"
       ],
       "success": "ASDI down: on the floor at the end of hitlag.",
-      "streak": 3
+      "streak": 3,
+      "scenario": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
     },
     {
       "name": "Then jump or shield",
@@ -326,50 +647,50 @@
             0,
             -1
           ],
-          "frame": 6,
-          "hold": 5
+          "frame": "HIT+1",
+          "hold": "HL"
         },
         {
           "press": "jump",
-          "frame": "10+LAND",
+          "frame": "HIT+HL+LAND",
           "hold": 1
         }
       ],
       "marks": {
-        "5": "Frame 5: the down tilt hits. Hitlag begins",
-        "6": "Frame 6: the C-stick is pressed down and held",
-        "10": "Frame 10: {char} lands. Landing lag: {LAND} frames",
-        "10+LAND": "Frame {10+LAND}: the landing lag is over. Jump"
+        "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
+        "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
+        "HIT+HL": "Frame {HIT+HL}: {char} lands. Landing lag: {LAND} frames",
+        "HIT+HL+LAND": "Frame {HIT+HL+LAND}: the landing lag is over. Jump"
       },
       "cues": [
         {
           "frames": [
-            5,
-            8
+            "HIT",
+            "HIT+HL-2"
           ],
           "words": "Hitlag: press the C-stick down and hold it",
           "kind": "info"
         },
         {
           "frames": [
-            9,
-            9
+            "HIT+HL-1",
+            "HIT+HL-1"
           ],
           "words": "Last frame of hitlag: the C-stick is read now",
           "kind": "go"
         },
         {
           "frames": [
-            10,
-            "9+LAND"
+            "HIT+HL",
+            "HIT+HL+LAND-1"
           ],
           "words": "Landing lag: a press here is ignored",
           "kind": "info"
         },
         {
           "frames": [
-            "10+LAND",
-            "15+LAND"
+            "HIT+HL+LAND",
+            "HIT+HL+LAND+5"
           ],
           "words": "Jump or shield now",
           "kind": "go"
@@ -391,18 +712,18 @@
             ],
             "window": [
               1,
-              5
+              "HL"
             ]
           },
           {
             "label": "Landing",
             "state": "landing",
             "perfect": [
-              6
+              "HL+1"
             ],
             "window": [
-              6,
-              6
+              "HL+1",
+              "HL+1"
             ]
           },
           {
@@ -410,16 +731,28 @@
             "button": "jump",
             "held": false,
             "perfect": [
-              "6+LAND"
+              "HL+1+LAND"
             ],
             "window": [
-              "6+LAND",
-              "11+LAND"
+              "HL+1+LAND",
+              "HL+6+LAND"
             ]
           }
         ],
-        "note": "Frame 1 is the hit. The C-stick is read on frame 5, the last frame of hitlag; {char} lands on frame 6 and can act on frame {6+LAND}."
-      }
+        "note": "Frame 1 is the hit. The C-stick is read on frame {HL}, the last frame of hitlag; {char} lands on frame {HL+1} and can act on frame {HL+1+LAND}."
+      },
+      "scenario": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
     }
   ],
   "mistakes": [
@@ -445,8 +778,8 @@
             0,
             -1
           ],
-          "frame": 6,
-          "hold": 3
+          "frame": "HIT+1",
+          "hold": "max(1, HL-3)"
         }
       ],
       "fails": "grounded"
@@ -459,7 +792,7 @@
             0,
             -1
           ],
-          "frame": 10,
+          "frame": "HIT+HL",
           "hold": 4
         }
       ],
@@ -473,12 +806,12 @@
             0,
             -1
           ],
-          "frame": 6,
-          "hold": 5
+          "frame": "HIT+1",
+          "hold": "HL"
         },
         {
           "press": "jump",
-          "frame": "9+LAND",
+          "frame": "HIT+HL+LAND-2",
           "hold": 6
         }
       ],
@@ -492,12 +825,12 @@
             0,
             -1
           ],
-          "frame": 6,
-          "hold": 5
+          "frame": "HIT+1",
+          "hold": "HL"
         },
         {
           "press": "jump",
-          "frame": "17+LAND",
+          "frame": "HIT+HL+LAND+7",
           "hold": 1
         }
       ],
@@ -514,21 +847,22 @@
         ],
         "window": [
           1,
-          5
+          "HL"
         ]
       },
       {
         "label": "Landing",
         "state": "landing",
         "perfect": [
-          6
+          "HL+1"
         ],
         "window": [
-          6,
-          6
+          "HL+1",
+          "HL+1"
         ]
       }
     ],
-    "note": "Frame 1 is the hit. The C-stick is read on frame 5, the last frame of hitlag; pressed down on frames 1 to 5 and held through frame 5, {char} lands on frame 6."
-  }
+    "note": "Frame 1 is the hit. The C-stick is read on frame {HL}, the last frame of hitlag; pressed down on frames 1 to {HL} and held through frame {HL}, {char} lands on frame {HL+1}."
+  },
+  "switch": "success"
 }

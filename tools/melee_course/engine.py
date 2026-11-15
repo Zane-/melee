@@ -700,7 +700,11 @@ class Session:
         loaded already, and named it can be swapped to); no more than fit,
         so that none of the deck's is left out."""
         out = []
-        for c in [e.cpu for e in self.d.deck or ()] + self.also:
+        # the deck now's, then every opponent of the drill's parts (a
+        # drill's `opponents`: a later part's deck there from the first
+        # load), then the course's
+        for c in [e.cpu for e in self.d.deck or ()] + \
+                list(getattr(self.d, "opponents", ())) + self.also:
             if c is not None and c != cpu and c not in out:
                 if len([o for o in out if o != self.char]) >= \
                         self.FIGHTERS - 2 and c != self.char:

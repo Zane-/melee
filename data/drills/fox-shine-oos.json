@@ -1,0 +1,2193 @@
+{
+  "id": "fox-shine-oos",
+  "name": "Shine out of shield",
+  "part": "punish",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Punish an attack on your shield with a frame 4 shine out of shield",
+  "why": "An attack on your shield leaves its attacker in its recovery after your shield stun ends. Fox's jump out of the shield and down-B on his first frame in the air hits on frame 4 out of shield, sooner than most attacks recover: it punishes aerials that hit the shield early, tilts, smashes and dash attacks that end close.",
+  "switch": "success",
+  "tutorial": {
+    "what": "Out of shield, X or Y with the shield held jumps on frame 1; down-B on frame {J+1}, the first frame in the air, is the shine, its hitbox out at once.",
+    "expect": "Each attack is judged when the shine comes out, or at a spot dodge, a roll, a dropped shield, or frame 20 out of shield: the frame you jumped on, the frame of the shine, and whether it hit. An attack that misses your shield is not counted.",
+    "example": [
+      {
+        "trigger": "R",
+        "frame": -9,
+        "hold": 400
+      },
+      {
+        "press": "jump",
+        "frame": 1,
+        "from": "start"
+      },
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": "J+1",
+        "from": "start"
+      },
+      {
+        "press": "B",
+        "frame": "J+1",
+        "from": "start"
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: shield stun over. X, the shield held",
+      "2": "Frame {f}: jump squat",
+      "J+1": "Frame {J+1}: down-B, the first frame in the air. The shine hits",
+      "J+2": "Frame {f}: the shine"
+    },
+    "lessons": [
+      {
+        "title": "Out of shield",
+        "text": [
+          "A hit on the shield freezes both fighters, then holds Fox in shield stun: every button is ignored. Frame 1 is the first frame after it. X or Y on it, the shield still held, starts the jump.",
+          "Down-B on frame {J+1}, the jump's first frame in the air, is the shine at ground level. Its hitbox is out on that frame: frame {J+1} out of shield."
+        ],
+        "scenario": 2,
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "trigger": "R",
+                "frame": -9,
+                "hold": 400
+              },
+              {
+                "press": "jump",
+                "frame": 1,
+                "from": "start"
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "J+1",
+                "from": "start"
+              },
+              {
+                "press": "B",
+                "frame": "J+1",
+                "from": "start"
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: shield stun over. X, the shield held",
+              "2": "Frame {f}: jump squat",
+              "J+1": "Frame {J+1}: down-B, the first frame in the air. The shine hits",
+              "J+2": "Frame {f}: the shine"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  1
+                ],
+                "words": "X or Y now, the shield held",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  2,
+                  "J"
+                ],
+                "words": "Jump squat: down-B is ignored",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+1"
+                ],
+                "words": "Down-B now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+2",
+                  "J+12"
+                ],
+                "words": "Shine",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "What it punishes",
+        "text": [
+          "The shine hits an attacker still in its attack {J+1} frames after your stun: aerials that hit the shield early, tilts, smashes and dash attacks that end close. The opponents here attack only with those.",
+          "Down on the control stick in the shield is a spot dodge, to the side a roll, and X or Y with the shield let go drops it."
+        ],
+        "scenario": 2,
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "trigger": "R",
+                "frame": -9,
+                "hold": 400
+              },
+              {
+                "press": "jump",
+                "frame": 1,
+                "from": "start"
+              },
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": "J+1",
+                "from": "start"
+              },
+              {
+                "press": "B",
+                "frame": "J+1",
+                "from": "start"
+              }
+            ],
+            "frame": "J+1",
+            "cue": {
+              "words": "Frame {J+1}: the shine hits",
+              "kind": "go"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Shielding",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "marth",
+        "x": 30,
+        "facing": "player"
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Fox",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "fox",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_fair_in,sh_dair_in,sh_bair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,utilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "fsmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "down_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Marth",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "marth",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_uair_in,sh_fair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dtilt,ftilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "fsmash,dsmash,usmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "side_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Jigglypuff",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "jigglypuff",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_bair,sh_nair,sh_uair_in,sh_fair_in,sh_bair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "side_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "fsmash,ftilt,dtilt",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Falco",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "falco",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_fair_in,sh_bair_in,sh_nair",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,utilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "fsmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "down_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Sheik",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "sheik",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_bair_in,sh_dair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,dtilt,utilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "fsmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Captain Falcon",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "captain-falcon",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_fair,sh_fair_in,sh_dair_in,sh_nair",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,dtilt,utilt",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "fsmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "side_b,down_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Peach",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "peach",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_bair_in,sh_fair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "dtilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Ice Climbers",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "ice-climbers",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_fair_in,sh_bair_in,sh_uair_in,sh_dair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,dtilt,utilt",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "down_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Pikachu",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "pikachu",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_bair_in,sh_fair_in,sh_uair_in,sh_nair_in,sh_dair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,dtilt,utilt",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "dsmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "side_b",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Yoshi",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "yoshi",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 3,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "sh_nair_in,sh_bair_in,sh_fair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "dtilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "fsmash,usmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    },
+    {
+      "name": "Samus",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": {
+        "character": "samus",
+        "x": 20,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "footsies",
+            "range": [
+              28,
+              42
+            ],
+            "for": 20
+          },
+          {
+            "mix": [
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "sh_uair_in,sh_fair_in",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 2,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "dash_attack",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "approach",
+                    "moves": "ftilt,utilt,jab",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "footsies",
+                    "range": [
+                      6,
+                      12
+                    ],
+                    "for": 24
+                  },
+                  {
+                    "do": "approach",
+                    "moves": "fsmash,usmash",
+                    "lands": "shield",
+                    "wait": [
+                      0,
+                      30
+                    ],
+                    "contract": {
+                      "answer": "oos_down_b",
+                      "within": 4
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal"
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "shield"
+    },
+    "judge": [
+      {
+        "enters": "jump_squat"
+      },
+      {
+        "enters": "spot_dodge"
+      },
+      {
+        "enters": "roll"
+      },
+      {
+        "enters": "shield_release"
+      }
+    ],
+    "limit": 600,
+    "timeout": "drop"
+  },
+  "measures": {
+    "dropped": {
+      "happened": {
+        "enters": "shield_release"
+      }
+    },
+    "drop_dodge": {
+      "happened": {
+        "enters": "spot_dodge",
+        "from": "shield_release"
+      }
+    },
+    "spot_dodge": {
+      "happened": {
+        "enters": "spot_dodge",
+        "not_from": "shield_release"
+      }
+    },
+    "rolled": {
+      "happened": {
+        "enters": "roll"
+      }
+    },
+    "jumped": {
+      "happened": {
+        "enters": "jump_squat"
+      }
+    },
+    "out_of_shield": {
+      "happened": {
+        "enters": "jump_squat",
+        "from": "shield"
+      }
+    },
+    "jump_frame": {
+      "frame_of": {
+        "enters": "jump_squat"
+      }
+    },
+    "shined": {
+      "happened": {
+        "enters": "shine"
+      }
+    },
+    "shine_frame": {
+      "frame_of": {
+        "enters": "shine"
+      }
+    },
+    "shine_after": {
+      "frames": [
+        {
+          "enters": "jump_squat"
+        },
+        {
+          "enters": "shine"
+        }
+      ]
+    },
+    "connected": {
+      "happened": "connects"
+    },
+    "hit_again": {
+      "happened": {
+        "enters": "shield_stun",
+        "not_from": "shield_stun"
+      }
+    }
+  },
+  "checks": {
+    "kept the shield": {
+      "measure": "dropped",
+      "equals": false,
+      "expect": "X or Y with the shield held",
+      "words": "the shield dropped",
+      "headline": "Released the shield first",
+      "fix": "Keep L or R held as you press X or Y. With the shield let go, X or Y drops it instead: Fox can jump only a frame later, and down on the control stick then is a spot dodge."
+    },
+    "no drop dodge": {
+      "measure": "drop_dodge",
+      "equals": false,
+      "expect": "No spot dodge out of the shield's drop",
+      "words": "a spot dodge",
+      "headline": "Released the shield first",
+      "fix": "Keep L or R held as you press X or Y. With the shield let go, X or Y drops it instead of jumping, and down-B then is a spot dodge."
+    },
+    "no spot dodge": {
+      "measure": "spot_dodge",
+      "equals": false,
+      "expect": "No spot dodge",
+      "words": "down on the control stick in the shield",
+      "headline": "Spot dodge",
+      "fix": "Press X or Y first and leave the control stick in the middle. Down-B goes on frame {J+1}, once Fox is in the air; down in the shield is a spot dodge."
+    },
+    "no roll": {
+      "measure": "rolled",
+      "equals": false,
+      "expect": "No roll",
+      "words": "the control stick to the side in the shield",
+      "headline": "Roll",
+      "fix": "Keep the control stick in the middle until Fox is in the air. Left or right in the shield is a roll."
+    },
+    "one hit": {
+      "measure": "hit_again",
+      "equals": false,
+      "expect": "Out of the shield before another hit",
+      "words": "the shield was hit again before the jump",
+      "headline": "Too late",
+      "fix": "Press X or Y on frame 1, the first after shield stun. Waiting, the attacker can act again: its next hit on the shield holds Fox in shield stun again."
+    },
+    "jumped": {
+      "measure": "jumped",
+      "equals": true,
+      "expect": "A jump out of the shield",
+      "words": "{char} stayed in the shield",
+      "headline": "No jump",
+      "fix": "Press X or Y while holding the shield, as soon as shield stun is over. During the stun every button is ignored, and a press held from it does nothing: press again."
+    },
+    "out of shield": {
+      "measure": "out_of_shield",
+      "equals": true,
+      "expect": "The jump out of the shield",
+      "words": "the jump did not come from the shield",
+      "headline": "Not out of shield",
+      "fix": "Hold L or R first, then press X or Y with the shield up."
+    },
+    "jump in time": {
+      "measure": "jump_frame",
+      "at_most": 3,
+      "expect": "X or Y within 2 frames of shield stun's end",
+      "words": "X or Y on frame {measure} out of shield; frame 1 is the first after shield stun",
+      "headline": "Late jump",
+      "fix": "Press X or Y the moment shield stun is over. Pressed during the stun it is ignored: press it again.",
+      "strict": {
+        "equals": 1,
+        "expect": "X or Y on the first frame after shield stun",
+        "fix": "Press X or Y on frame 1, the first frame after shield stun, not later. Pressed during the stun it is ignored."
+      }
+    },
+    "shined": {
+      "measure": "shined",
+      "equals": true,
+      "expect": "A shine out of the jump",
+      "words": "{char} jumped without a shine",
+      "headline": "No shine",
+      "fix": "Press down-B on frame {J+1} counting X as frame 1: Fox's first frame in the air. Down-B during the jump squat is ignored."
+    },
+    "shine in time": {
+      "measure": "shine_after",
+      "within": [
+        "J",
+        "J+1"
+      ],
+      "expect": "Down-B within a frame of leaving the ground",
+      "words": "the shine came on frame {shine_after+1} of the jump; {J+1} is the first in the air",
+      "headline": "Late shine",
+      "fix": "Press down-B {J} frames after X or Y, on Fox's first frame in the air. Later, the shine comes out above the ground and after the opponent can act.",
+      "strict": {
+        "equals": "J",
+        "expect": "Down-B on the first frame in the air",
+        "fix": "Press down-B {J} frames after X or Y, on frame {J+1}: Fox's first frame in the air, not a frame later."
+      }
+    },
+    "hit": {
+      "measure": "connected",
+      "equals": true,
+      "expect": "The shine hits",
+      "words": "the opponent was out of reach",
+      "headline": "No hit",
+      "fix": "The frame {J+1} shine reaches every attack this opponent makes on your shield; later, the attacker has moved or can act. Jump on frame 1 and down-B on frame {J+1}."
+    }
+  },
+  "verdict": {
+    "success": "Shine out of shield on frame {shine_frame}."
+  },
+  "parts": [
+    {
+      "name": "Jump out of shield",
+      "teach": "Hold R or L to shield, then press X or Y with the shield still held: the jump squat. Leave the control stick in the middle.",
+      "example": [
+        {
+          "trigger": "R",
+          "frame": 1,
+          "hold": 12
+        },
+        {
+          "press": "jump",
+          "frame": 10
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: R, the shield up",
+        "10": "Frame 10: X, the shield held: the jump squat"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            9
+          ],
+          "words": "Shield held",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            10,
+            10
+          ],
+          "words": "X or Y now, the shield held",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "kept the shield",
+        "no spot dodge",
+        "no roll",
+        "jumped"
+      ],
+      "success": "Jump out of shield.",
+      "streak": 3,
+      "scenario": 0,
+      "coach": {
+        "rows": [
+          {
+            "label": "Shield (R or L)",
+            "button": "shield",
+            "held": true,
+            "perfect": []
+          },
+          {
+            "label": "Jump (X or Y)",
+            "button": "jump",
+            "perfect": []
+          },
+          {
+            "label": "Control stick",
+            "stick": "any",
+            "perfect": []
+          }
+        ],
+        "note": "X or Y with the shield held, the control stick in the middle: down is a spot dodge, to the side a roll."
+      }
+    },
+    {
+      "name": "The shine out of shield",
+      "teach": "From the shield, X or Y, then down-B on frame {J+1}, Fox's first frame in the air: the shine at ground level.",
+      "example": [
+        {
+          "trigger": "R",
+          "frame": -8,
+          "hold": 10
+        },
+        {
+          "press": "jump",
+          "frame": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1"
+        },
+        {
+          "press": "B",
+          "frame": "J+1"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: X, the shield held",
+        "2": "Frame {f}: jump squat",
+        "J+1": "Frame {J+1}: down-B: the shine"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "X or Y, the shield held",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            2,
+            "J"
+          ],
+          "words": "Jump squat: down-B is ignored",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "no drop dodge",
+        "no spot dodge",
+        "no roll",
+        "out of shield",
+        "shined",
+        "shine in time"
+      ],
+      "success": "Shine on frame {shine_frame} of the jump.",
+      "streak": 3,
+      "scenario": 0,
+      "attempt": {
+        "start": [
+          {
+            "enters": "jump_squat"
+          },
+          {
+            "enters": "spot_dodge"
+          },
+          {
+            "enters": "roll"
+          }
+        ],
+        "judge": [
+          {
+            "enters": "shine"
+          },
+          {
+            "enters": "spot_dodge"
+          },
+          {
+            "enters": "roll"
+          },
+          {
+            "frame": "J+12"
+          }
+        ],
+        "limit": 60,
+        "timeout": "judge"
+      },
+      "coach": {
+        "rows": [
+          {
+            "label": "Shield (R or L)",
+            "button": "shield",
+            "held": true,
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Jump (X or Y)",
+            "button": "jump",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Down-B",
+            "button": "B",
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+2"
+            ],
+            "strict_window": [
+              "J+1",
+              "J+1"
+            ]
+          },
+          {
+            "label": "Shine",
+            "state": "shine",
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+2"
+            ],
+            "strict_window": [
+              "J+1",
+              "J+1"
+            ]
+          }
+        ],
+        "note": "Frame 1 is X. Down-B on frame {J+1}, the first in the air."
+      }
+    },
+    {
+      "name": "Against an attack",
+      "teach": "Shield the attack. On frame 1, the first after shield stun, X or Y with the shield held; down-B on frame {J+1}. The shine hits before the attacker can act. D-pad left and right: another opponent.",
+      "example": [
+        {
+          "trigger": "R",
+          "frame": -9,
+          "hold": 400
+        },
+        {
+          "press": "jump",
+          "frame": 1,
+          "from": "start"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1",
+          "from": "start"
+        },
+        {
+          "press": "B",
+          "frame": "J+1",
+          "from": "start"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: shield stun over. X, the shield held",
+        "2": "Frame {f}: jump squat",
+        "J+1": "Frame {J+1}: down-B, the first frame in the air. The shine hits",
+        "J+2": "Frame {f}: the shine"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "X or Y now, the shield held",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            2,
+            "J"
+          ],
+          "words": "Jump squat: down-B is ignored",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Down-B now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+2",
+            "J+12"
+          ],
+          "words": "Shine",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "kept the shield",
+        "no spot dodge",
+        "no roll",
+        "one hit",
+        "jumped",
+        "jump in time",
+        "shined",
+        "shine in time",
+        "hit"
+      ],
+      "streak": 5,
+      "scenario": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "attempt": {
+        "start": {
+          "leaves": "shield_stun"
+        },
+        "judge": [
+          {
+            "enters": "shine"
+          },
+          {
+            "enters": "spot_dodge"
+          },
+          {
+            "enters": "roll"
+          },
+          {
+            "enters": "shield_release"
+          },
+          {
+            "frame": 20
+          }
+        ],
+        "limit": 40,
+        "timeout": "judge",
+        "within": 300,
+        "missed": "Not counted: the attack missed your shield. Hold L or R and let it hit."
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "X with the shield let go",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": 1,
+          "hold": 9
+        },
+        {
+          "press": "jump",
+          "frame": 10
+        }
+      ],
+      "fails": "kept the shield"
+    },
+    {
+      "name": "the shield let go, then down-B",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": -8,
+          "hold": 9
+        },
+        {
+          "press": "jump",
+          "frame": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+1"
+        },
+        {
+          "press": "B",
+          "frame": "J+1"
+        }
+      ],
+      "fails": "no drop dodge"
+    },
+    {
+      "name": "the stick down in the shield",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": 1,
+          "hold": 20
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 10,
+          "hold": 3
+        }
+      ],
+      "fails": "no spot dodge"
+    },
+    {
+      "name": "the stick to the side in the shield",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": 1,
+          "hold": 20
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 10,
+          "hold": 3
+        }
+      ],
+      "fails": "no roll"
+    },
+    {
+      "name": "down-B in the jump squat",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": -8,
+          "hold": 10
+        },
+        {
+          "press": "jump",
+          "frame": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 2
+        },
+        {
+          "press": "B",
+          "frame": 2
+        }
+      ],
+      "fails": "shined"
+    },
+    {
+      "name": "down-B two frames late",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": -8,
+          "hold": 10
+        },
+        {
+          "press": "jump",
+          "frame": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+3"
+        },
+        {
+          "press": "B",
+          "frame": "J+3"
+        }
+      ],
+      "fails": "shine in time"
+    },
+    {
+      "name": "the jump three frames late",
+      "inputs": [
+        {
+          "trigger": "R",
+          "frame": -9,
+          "hold": 400
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "from": "start"
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "J+4",
+          "from": "start"
+        },
+        {
+          "press": "B",
+          "frame": "J+4",
+          "from": "start"
+        }
+      ],
+      "fails": "jump in time"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Shield (R or L)",
+        "button": "shield",
+        "held": true,
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Jump (X or Y)",
+        "button": "jump",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          3
+        ],
+        "strict_window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Down-B",
+        "button": "B",
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "J+5"
+        ],
+        "strict_window": [
+          "J+1",
+          "J+1"
+        ]
+      },
+      {
+        "label": "Shine",
+        "state": "shine",
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "J+5"
+        ],
+        "strict_window": [
+          "J+1",
+          "J+1"
+        ]
+      }
+    ],
+    "note": "Frame 1 is the first frame after shield stun. X or Y on it with the shield held; down-B on frame {J+1}, Fox's first frame in the air."
+  }
+}

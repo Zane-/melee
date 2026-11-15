@@ -7,110 +7,110 @@
   "why": "A multi-hit attack holds you in place for its last, strongest hit. Each new smash of the control stick during hitlag moves {char} 6 units while still frozen, and one on every hit takes {char} out of the attack before that hit comes. A stick held still moves {char} once.",
   "tutorial": {
     "what": "SDI moves {char} 6 units toward the control stick for every new smash of the stick during hitlag.",
-    "expect": "Each attack is judged after its last hit could have landed: how far SDI moved {char}, how many of the 7 hits landed, and whether the 7th launched {char}.",
+    "expect": "Each attack is judged after its last hit could have landed: how far SDI moved {char}, how many of its hits landed, and whether the last launched {char}.",
     "example": [
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 8,
+        "frame": "HIT+1",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 11,
+        "frame": "HIT+1+AGAIN",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 13,
+        "frame": "HIT+1+1*GAP",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 16,
+        "frame": "HIT+1+1*GAP+AGAIN",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 18,
+        "frame": "HIT+1+2*GAP",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 21,
+        "frame": "HIT+1+2*GAP+AGAIN",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 23,
+        "frame": "HIT+1+3*GAP",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 26,
+        "frame": "HIT+1+3*GAP+AGAIN",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 28,
+        "frame": "HIT+1+4*GAP",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 31,
+        "frame": "HIT+1+4*GAP+AGAIN",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 33,
+        "frame": "HIT+1+5*GAP",
         "hold": 1
       },
       {
         "stick": [
-          0,
-          1
+          "SX",
+          "SY"
         ],
-        "frame": 36,
+        "frame": "HIT+1+5*GAP+AGAIN",
         "hold": 1
       }
     ],
     "marks": {
-      "7": "Frame 7: the first hit. Hitlag: 4 frames",
-      "8": "Frame 8: the stick smashed up. {char} moves 6 units",
-      "9": "Frame 9: the stick back to the center",
-      "11": "Frame 11: smashed up again, for the next hit"
+      "HIT": "Frame {HIT}: the first hit. Hitlag: {HL} frames",
+      "HIT+1": "Frame {HIT+1}: the stick smashed {way}. {char} moves 6 units",
+      "HIT+2": "Frame {HIT+2}: the stick back to the center",
+      "HIT+1+AGAIN": "Frame {HIT+1+AGAIN}: smashed {way} again"
     },
     "lessons": [
       {
@@ -337,16 +337,175 @@
           }
         ]
       },
-      "camera": "normal"
+      "camera": "normal",
+      "numbers": {
+        "move": "Pikachu's down smash",
+        "opp": "Pikachu",
+        "HIT": 7,
+        "HL": 4,
+        "GAP": 5,
+        "AGAIN": 3,
+        "HITS": 7,
+        "OUT": 5,
+        "END": 40,
+        "SX": 0,
+        "SY": 1,
+        "TX": 1,
+        "TY": 0,
+        "way": "up",
+        "into": "toward Pikachu",
+        "clear": "Up and away often drifts back beside Pikachu and into the 7th hit; up keeps clear."
+      }
+    },
+    {
+      "name": "Jigglypuff's down air at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "jigglypuff",
+        "x": -18,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "X",
+            "frame": 11,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": 16,
+            "hold": 2
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Jigglypuff's down air",
+        "opp": "Jigglypuff",
+        "HIT": 7,
+        "HL": 3,
+        "GAP": 5,
+        "AGAIN": 2,
+        "HITS": 8,
+        "OUT": 2,
+        "END": 40,
+        "SX": -1,
+        "SY": 0,
+        "TX": 0.7071,
+        "TY": 0.7071,
+        "way": "away",
+        "into": "up and toward Jigglypuff",
+        "clear": "Smashed up or down, its hits keep dragging along under Jigglypuff; away, they stop."
+      }
+    },
+    {
+      "name": "Fox's down air at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "fox",
+        "x": -19,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "X",
+            "frame": 13,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": 16,
+            "hold": 2
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Fox's down air",
+        "opp": "Fox",
+        "HIT": 7,
+        "HL": 4,
+        "GAP": 5,
+        "AGAIN": 2,
+        "HITS": 5,
+        "OUT": 2,
+        "END": 30,
+        "SX": -1,
+        "SY": 0,
+        "TX": 1,
+        "TY": 0,
+        "way": "away",
+        "into": "toward Fox",
+        "clear": "Smashed up or down, the drill keeps dragging along under Fox; away, it stops."
+      }
+    },
+    {
+      "name": "Peach's down air at 0%",
+      "stage": "final-destination",
+      "player": {
+        "x": -20,
+        "percent": 0
+      },
+      "opponent": {
+        "character": "peach",
+        "x": -18,
+        "facing": "player",
+        "inputs": [
+          {
+            "press": "X",
+            "frame": 3,
+            "hold": 1
+          },
+          {
+            "cstick": [
+              0,
+              -1
+            ],
+            "frame": 9,
+            "hold": 2
+          }
+        ]
+      },
+      "camera": "normal",
+      "numbers": {
+        "move": "Peach's down air",
+        "opp": "Peach",
+        "HIT": 7,
+        "HL": 4,
+        "GAP": 8,
+        "AGAIN": 2,
+        "HITS": 4,
+        "OUT": 1,
+        "END": 30,
+        "SX": -1,
+        "SY": 0,
+        "TX": 0,
+        "TY": 1,
+        "way": "away",
+        "into": "up into Peach",
+        "clear": "Smashed up, its hits keep holding under Peach; away from her, they stop."
+      }
     }
   ],
   "attempt": {
     "start": "hit",
     "judge": {
-      "frame": 40
+      "frame": "END"
     },
-    "within": 26,
-    "missed": "Not counted: the down smash missed. Stand still in front of Pikachu."
+    "within": "HIT+19",
+    "missed": "Not counted: {move} missed. Stand still in front of {opp}."
   },
   "measures": {
     "sdi": {
@@ -362,7 +521,7 @@
     }
   },
   "verdict": {
-    "success": "Out after {hits} of 7 hits; SDI moved {char} {sdi} units."
+    "success": "Out after {hits} of {HITS} hits; SDI moved {char} {sdi} units."
   },
   "checks": {
     "sdi": {
@@ -375,61 +534,61 @@
     },
     "out": {
       "measure": "hits",
-      "at_most": 5,
-      "expect": "Out of the attack within 5 of its 7 hits",
-      "words": "hit {measure} times of 7",
+      "at_most": "OUT",
+      "expect": "Out of the attack before its last hits",
+      "words": "hit {measure} times of {HITS}",
       "headline": "Caught in the attack",
-      "fix": "Smash the stick again on every hit, back to the center between smashes, in a direction that leaves the hitboxes. Against this attack up does; toward Pikachu keeps {char} inside."
+      "fix": "Smash the stick again on every hit, back to the center between smashes, in a direction that leaves the hitboxes. Against {move}, {way} does; {into} keeps {char} inside."
     },
     "not launched": {
       "measure": "launched",
       "equals": false,
-      "expect": "Clear of the 7th hit",
-      "words": "launched by the 7th hit",
+      "expect": "Clear of the last hit",
+      "words": "launched by the last hit",
       "headline": "Launched",
-      "fix": "Keep smashing until {char} is clear of the attack. Up and away often drifts back beside Pikachu and into the 7th hit; up keeps clear."
+      "fix": "Keep smashing until {char} is clear of the attack. {clear}"
     }
   },
   "parts": [
     {
       "name": "One smash, six units",
-      "teach": "When the down smash hits, smash the control stick once, from the center to the rim, during hitlag. {char} moves 6 units that way while still frozen.",
+      "teach": "When {move} hits, smash the control stick once, from the center to the rim, during hitlag. {char} moves 6 units that way while still frozen.",
       "example": [
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 8,
+          "frame": "HIT+1",
           "hold": 1
         }
       ],
       "marks": {
-        "7": "Frame 7: the first hit. Hitlag: 4 frames",
-        "8": "Frame 8: the stick smashed up. {char} moves 6 units",
-        "11": "Frame 11: hitlag ends"
+        "HIT": "Frame {HIT}: the first hit. Hitlag: {HL} frames",
+        "HIT+1": "Frame {HIT+1}: the stick smashed {way}. {char} moves 6 units",
+        "HIT+HL": "Frame {HIT+HL}: hitlag ends"
       },
       "cues": [
         {
           "frames": [
-            7,
-            7
+            "HIT",
+            "HIT"
           ],
           "words": "The hit: SDI is not read on this frame",
           "kind": "info"
         },
         {
           "frames": [
-            8,
-            10
+            "HIT+1",
+            "HIT+HL-1"
           ],
           "words": "Hitlag: smash the stick now",
           "kind": "go"
         },
         {
           "frames": [
-            11,
-            12
+            "HIT+HL",
+            "HIT+HL+1"
           ],
           "words": "Hitlag over: too late for this hit",
           "kind": "late"
@@ -439,144 +598,150 @@
         "sdi"
       ],
       "success": "SDI: moved {sdi} units.",
-      "streak": 3
+      "streak": 3,
+      "scenario": [
+        0,
+        1,
+        2,
+        3
+      ]
     },
     {
       "name": "A smash on every hit",
-      "teach": "Smash the stick again on every hit, back to the center between smashes, until {char} is out of the attack. Any direction counts if it gets {char} out before the last hits; against this attack, up does for every character.",
+      "teach": "Smash the stick again on every hit, back to the center between smashes, until {char} is out of the attack. Any direction counts if it gets {char} out before the last hits; against {move}, {way} does for every character.",
       "example": [
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 8,
+          "frame": "HIT+1",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 11,
+          "frame": "HIT+1+AGAIN",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 13,
+          "frame": "HIT+1+1*GAP",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 16,
+          "frame": "HIT+1+1*GAP+AGAIN",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 18,
+          "frame": "HIT+1+2*GAP",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 21,
+          "frame": "HIT+1+2*GAP+AGAIN",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 23,
+          "frame": "HIT+1+3*GAP",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 26,
+          "frame": "HIT+1+3*GAP+AGAIN",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 28,
+          "frame": "HIT+1+4*GAP",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 31,
+          "frame": "HIT+1+4*GAP+AGAIN",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 33,
+          "frame": "HIT+1+5*GAP",
           "hold": 1
         },
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 36,
+          "frame": "HIT+1+5*GAP+AGAIN",
           "hold": 1
         }
       ],
       "marks": {
-        "7": "Frame 7: the first hit",
-        "8": "Frame 8: smashed up",
-        "9": "Frame 9: the stick back to the center",
-        "11": "Frame 11: smashed up again, for the next hit"
+        "HIT": "Frame {HIT}: the first hit",
+        "HIT+1": "Frame {HIT+1}: smashed {way}",
+        "HIT+2": "Frame {HIT+2}: the stick back to the center",
+        "HIT+1+AGAIN": "Frame {HIT+1+AGAIN}: smashed {way} again"
       },
       "cues": [
         {
           "frames": [
-            7,
-            7
+            "HIT",
+            "HIT"
           ],
           "words": "The hit: SDI is not read on this frame",
           "kind": "info"
         },
         {
           "frames": [
-            8,
-            10
+            "HIT+1",
+            "HIT+HL-1"
           ],
           "words": "Hitlag: smash the stick now",
           "kind": "go"
         },
         {
           "frames": [
-            11,
-            12
+            "HIT+HL",
+            "HIT+HL+1"
           ],
           "words": "Hitlag over: too late for this hit",
           "kind": "late"
         },
         {
           "frames": [
-            11,
-            40
+            "HIT+HL",
+            "HIT+33"
           ],
           "words": "Smash again on every hit, back to the center between",
           "kind": "info"
@@ -587,7 +752,13 @@
         "out",
         "not launched"
       ],
-      "streak": 3
+      "streak": 3,
+      "scenario": [
+        0,
+        1,
+        2,
+        3
+      ]
     }
   ],
   "mistakes": [
@@ -610,96 +781,96 @@
       "inputs": [
         {
           "stick": [
-            0,
-            1
+            "SX",
+            "SY"
           ],
-          "frame": 7,
+          "frame": "HIT",
           "hold": 30
         }
       ],
       "fails": "sdi"
     },
     {
-      "name": "smashed toward Pikachu on every third frame",
+      "name": "smashed into the attack on every third frame",
       "inputs": [
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 8,
+          "frame": "HIT+1+0",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 11,
+          "frame": "HIT+1+3",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 14,
+          "frame": "HIT+1+6",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 17,
+          "frame": "HIT+1+9",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 20,
+          "frame": "HIT+1+12",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 23,
+          "frame": "HIT+1+15",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 26,
+          "frame": "HIT+1+18",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 29,
+          "frame": "HIT+1+21",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 32,
+          "frame": "HIT+1+24",
           "hold": 1
         },
         {
           "stick": [
-            1,
-            0
+            "TX",
+            "TY"
           ],
-          "frame": 35,
+          "frame": "HIT+1+27",
           "hold": 1
         }
       ],
@@ -709,17 +880,18 @@
   "coach": {
     "rows": [
       {
-        "label": "Stick up",
-        "stick": "up",
+        "label": "Stick {way}",
+        "stick": "any",
         "perfect": [
           2
         ],
         "window": [
           2,
-          4
+          "HL"
         ]
       }
     ],
-    "note": "Frame 1 is the first hit. Its SDI frames are 2 to 4, the frozen frames after it; every later hit has its own."
-  }
+    "note": "Frame 1 is the first hit. Its SDI frames are 2 to {HL}, the frozen frames after it; every later hit has its own."
+  },
+  "switch": "success"
 }

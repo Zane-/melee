@@ -6,12 +6,16 @@
 For every character the drill allows (or those named), headless:
 - the tutorial's example and each part's example pass that part's checks;
 - each mistake fails, on the check it names;
+- a part whose scenarios are a deck of opponents (each scenario another
+  opponent: fox-shine-oos's deck) plays its example, its frame-perfect
+  example and the mistakes judged as it in every scenario of the deck;
 - the words a player would read for each, printed once (for a person to
   read: the format cannot check that they are clear).
 
 A drill is done when this passes and the owner has played it.
 """
 import argparse
+import json
 import os
 import sys
 import time
@@ -45,6 +49,23 @@ def play(session, drill, inputs, part, strict=False, scenario=None):
         return session.run(demo=True)
     finally:
         del drill.build_reference
+
+
+def deck(spec, part):
+    """Is a part's list of scenarios a deck of opponents (each another
+    opponent, or the same one with its own "numbers": another of its
+    moves), not one situation from two sides (the ledges: no opponent, no
+    numbers of their own)?"""
+    sc = part.get("scenario")
+    return isinstance(sc, list) and len(sc) > 1 and len(
+        {_situation(spec["scenarios"][k]) for k in sc}) == len(sc)
+
+
+def _situation(sc):
+    """A scenario's opponent and its own numbers."""
+    op = sc.get("opponent", "none")
+    return (op["character"] if isinstance(op, dict) else op,
+            json.dumps(sc.get("numbers", {}), sort_keys=True))
 
 
 def main():
@@ -81,29 +102,52 @@ def main():
             cases += [("part %d example" % (i + 1), F.pick(p, "example", ch),
                        i, None)
                       for i, p in enumerate(spec["parts"])]
+            # (what, inputs, part, the check it fails on or None, strict,
+            # the scenario of the part's list or None)
+            cases = [(w, x, part, None, False, None)
+                     for w, x, part, _ in cases]
             # a part with a list of scenarios (the ledgedash's two
             # ledges): its example in each of the others too
             cases += [("part %d example, %s" % (i + 1, spec["scenarios"][k][
-                "name"]), F.pick(p, "example", ch), i, ("scenario", k))
+                "name"]), F.pick(p, "example", ch), i, None, False, k)
                 for i, p in enumerate(spec["parts"])
-                if isinstance(p.get("scenario"), list)
+                if isinstance(p.get("scenario"), list) and not deck(spec, p)
                 for k in p["scenario"][1:]]
             # the examples are frame-perfect: they pass strict timing too
-            if any("strict" in ck for ck in spec["checks"].values()):
+            strict_too = any("strict" in ck
+                             for ck in spec["checks"].values())
+            if strict_too:
                 cases += [("part %d example, frame-perfect" % (i + 1),
-                           F.pick(p, "example", ch), i, "strict")
-                          for i, p in enumerate(spec["parts"])]
+                           F.pick(p, "example", ch), i, None, True, None)
+                          for i, p in enumerate(spec["parts"])
+                          if not deck(spec, p)]
             # a mistake is judged as the first part that counts its check
-            cases += [("mistake: " + m["name"], F.pick(m, "inputs", ch),
-                       next(i for i, p in enumerate(spec["parts"])
-                            if m["fails"] in p.get("checks", [])),
-                       m["fails"])
+            judged = [(m, next(i for i, p in enumerate(spec["parts"])
+                               if m["fails"] in p.get("checks", [])))
                       for m in spec.get("mistakes", [])]
-            for what, inputs, part, fails in cases:
+            cases += [("mistake: " + m["name"], F.pick(m, "inputs", ch), i,
+                       m["fails"], False, None)
+                      for m, i in judged if not deck(spec, spec["parts"][i])]
+            # a deck of opponents: all of it in every one of them
+            for i, p in enumerate(spec["parts"]):
+                if not deck(spec, p):
+                    continue
+                for k in p["scenario"]:
+                    name = spec["scenarios"][k]["name"]
+                    cases.append(("part %d example, %s" % (i + 1, name),
+                                  F.pick(p, "example", ch), i, None, False,
+                                  k))
+                    if strict_too:
+                        cases.append(("part %d example, frame-perfect, %s"
+                                      % (i + 1, name), F.pick(
+                                          p, "example", ch), i, None, True,
+                                      k))
+                    cases += [("mistake: %s, %s" % (m["name"], name),
+                               F.pick(m, "inputs", ch), i, m["fails"],
+                               False, k)
+                              for m, j in judged if j == i]
+            for what, inputs, part, fails, strict, scen in cases:
                 total += 1
-                strict = fails == "strict"
-                scen = fails[1] if isinstance(fails, tuple) else None
-                fails = None if strict or scen is not None else fails
                 r = play(s, drill, inputs, part, strict, scen)
                 checks = {c["expect"]: c for c in r.get("checks", [])}
                 if fails is None:

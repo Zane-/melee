@@ -77,6 +77,11 @@ def holds(e, f, fd):
             return 0.0 < f["hitlag"] <= 1.0
         if e == "shot":
             return f["items"] > p["items"]
+        if e == "connects":
+            # the opponent took damage: the player's attack landed
+            return f.get("opp_percent") is not None and \
+                p.get("opp_percent") is not None and \
+                f["opp_percent"] > p["opp_percent"]
         return False
     if "is" in e:
         if not holds(e["is"], f, fd):
@@ -163,10 +168,19 @@ class JsonDrill(Drill):
     # ---- the drill's numbers -------------------------------------------------------
 
     def nums(self, c):
-        return F.names(c.fd, c.fd.id.replace("-", " ").title())
+        """The character's numbers, and the scenario's own (its
+        "numbers": the hit's frame, its hitlag, the DI that survives
+        it)."""
+        out = F.names(c.fd, c.fd.id.replace("-", " ").title())
+        out.update(self.scenario().get("numbers", {}))
+        return out
 
     lesson_scenario = None  # a lesson's own, while the client records it
     scenario_at = None      # the one of a part's list played now
+    # inputs timed from an event ("from", inputs_to_refs) are marks of the
+    # course runtime, set on the frame the event comes, in the same pass
+    live_marks = True
+    anchors = ()            # a demonstration's events its inputs are timed from
     @property
     def switch(self):
         """How a part's scenarios change by themselves (the engine's
@@ -191,8 +205,26 @@ class JsonDrill(Drill):
         idx = self._part_scenarios()
         if len(idx) < 2:
             return None
-        return [Entry(self.cpu, i, self.spec["scenarios"][i]["name"])
+        return [Entry(self.op_char(i), i, self.spec["scenarios"][i]["name"])
                 for i in idx]
+
+    def op_char(self, i):
+        """Scenario `i`'s opponent (a deck of opponents: each scenario its
+        own, swapped in as the runtime turns to it), or the drill's."""
+        op = self.spec["scenarios"][i].get("opponent", "none")
+        return op["character"] if isinstance(op, dict) else self.cpu
+
+    @property
+    def opponents(self):
+        """Every opponent of the drill's scenarios, in order: loaded with
+        its match (Session._opponents), so that a later part's deck is
+        there from the first load."""
+        out = []
+        for sc in self.spec["scenarios"]:
+            op = sc.get("opponent", "none")
+            if isinstance(op, dict) and op["character"] not in out:
+                out.append(op["character"])
+        return out
 
     def scenario(self):
         """The scenario the part now is taught in (its "scenario", the one
@@ -283,6 +315,11 @@ class JsonDrill(Drill):
         self.camera(c.n, c.s.person)
         self.trace(c.n, c.s.person)
         self.v = dict(rec=[], last=None)
+        # a demonstration's inputs timed from an event: the events (mark k
+        # the k-th), looked for frame by frame (_look_ahead)
+        self.anchors = list(getattr(self.build_reference(c), "anchors",
+                                    ())) if c.is_demo else []
+        self.predicted = {}
 
     filming = False     # the client recording the tutorial's examples
     strict = False      # frame-perfect timing (Settings): checks' "strict"
@@ -353,6 +390,10 @@ class JsonDrill(Drill):
                 kw = dict(test=lambda e, d=d: (
                     e["ly"] <= -STICK_SMASH < e["ply"]) if d == "down" else
                     (e["ly"] >= STICK_SMASH > e["ply"]) if d == "up" else
+                    # any: past a smash whichever way, newly (an SDI's)
+                    (max(abs(e["lx"]), abs(e["ly"])) >= STICK_SMASH >
+                     max(abs(e.get("plx", 0)), abs(e["ply"])))
+                    if d == "any" else
                     # side: either way, past a smash, newly
                     abs(e["lx"]) >= STICK_SMASH > abs(e.get("plx", 0)))
             else:
@@ -388,7 +429,9 @@ class JsonDrill(Drill):
                     lx=log.get("lx", 0), ly=log.get("ly", 0),
                     cx=log.get("cx", 0), cy=log.get("cy", 0),
                     p=self.v.get("last"), i=-1, nums=self.v.get("nums"),
-                    gf=c.n.state().get("frame"))
+                    gf=c.n.state().get("frame"),
+                    opp_percent=c.cpu.percent if c.cpu is not None
+                    else None)
 
     def _script(self, c, op):
         """The scenario's scripted opponent (`op`: its "script", "react",
@@ -437,11 +480,103 @@ class JsonDrill(Drill):
                             int(r.cy) if r.cy else None,
                             r.trigger or None)
 
+    def judged_part(self):
+        """The part an attempt is judged as: the part now; while the client
+        records a lesson played in a scenario the part now does not have,
+        the first part that has it (a lesson of the punish, recorded while
+        the player is on the first part, is judged as the punish: its
+        frames counted from the punish's start)."""
+        ls = self.lesson_scenario
+        if ls is not None and ls not in self._part_scenarios():
+            for p in self.parts:
+                sc = p.get("scenario", 0)
+                if ls in (sc if isinstance(sc, list) else [sc]):
+                    return p
+        return self.part_now
+
     def attempt(self):
         """The part's attempt: the drill's, with what the part changes."""
         a = dict(self.spec["attempt"])
-        a.update(self.part_now.get("attempt", {}))
+        a.update(self.judged_part().get("attempt", {}))
         return a
+
+    def _anchor_holds(self, e, rec, c, a):
+        """Does the event an input is timed from happen on frame record
+        `rec` ("start": the attempt's start, while it waits for it)?"""
+        if e == "start":
+            return c.phase == WAIT and holds(a["start"], rec, c.fd)
+        return holds(e, rec, c.fd)
+
+    def _predict(self, c, f):
+        """The coming frame's record, before it is played: played ahead in
+        the game with the pads it will have (the player's as the
+        demonstration sets them, the opponent's as it chose them this
+        frame) and undone (melee_actor/ahead.py). State, air, position,
+        damage, hitlag and the pad are the coming frame's; speed,
+        invulnerability and items the last one's. None if the game cannot
+        look ahead."""
+        from melee_actor.ahead import look
+        from melee_course.react import player_raw
+        from melee_engine.opponent import raw_to_pad
+        from native import NativeError
+        s = c.s
+        if s.cpu_port is not None:
+            s._set_pad(s.cpu_port, c._pad)    # (as it will be given)
+        pad = s.player_pad
+        try:
+            out = look(c.n, s.person, s.cpu_port if s.cpu_port is not None
+                       else 1 - s.person,
+                       [(1, raw_to_pad(player_raw(c)))], stop=0)
+        except NativeError:
+            return None
+        if not out.rows:
+            return None
+        r = out.rows[0]
+        held = pad["buttons"]
+        if max(pad.get("lt", 0), pad.get("rt", 0)) >= 43:
+            held |= F.BUTTONS["L"]
+        rec = dict(f, state=r.a_state, air=bool(r.a_air), x=r.a_x, y=r.a_y,
+                   facing=1 if r.a_facing >= 0 else -1, percent=r.a_percent,
+                   hitlag=r.a_hitlag, held=held, lx=pad.get("lx", 0),
+                   ly=pad.get("ly", 0), cx=pad.get("cx", 0),
+                   cy=pad.get("cy", 0), p=f,
+                   i=len(self.v.get("rec") or ()) + 1
+                   if c.phase == ATTEMPT else 0, gf=None,
+                   opp_percent=r.t_percent if s.cpu_port is not None
+                   else None)
+        return rec
+
+    def _look_ahead(self, c, f, a):
+        """A demonstration's inputs timed from an event ("from"): its
+        frame found before it is played, so that an input on the event's
+        own frame goes on it (the jump on the first frame out of shield
+        stun: the game reads only a new press there). Each frame while an
+        event is due, the coming frame is played ahead; where the event
+        happens on it, its mark is that frame and the demonstration's pad
+        for it is made again (Session.replay). An event the look missed is
+        marked on the frame it was seen (its inputs from then on a frame
+        late); one looked for that did not come is looked for again."""
+        s = c.s
+        for k, at in list(self.predicted.items()):
+            if at == s.attempt_frame - 1 and s.marks[k] == at and \
+                    not self._anchor_holds(self.anchors[k - 1], f, c, a):
+                s.marks[k] = -1         # it did not come: again
+            del self.predicted[k]
+        due = [k for k in range(1, len(self.anchors) + 1) if s.marks[k] < 0]
+        for k in list(due):
+            if self._anchor_holds(self.anchors[k - 1], f, c, a):
+                c.mark(k, back=1)       # (seen only now)
+                due.remove(k)
+        if not due:
+            return
+        pred = self._predict(c, f)
+        if pred is None:
+            return
+        for k in due:
+            if self._anchor_holds(self.anchors[k - 1], pred, c, a):
+                c.mark(k)
+                s.replay = True         # (this frame's pad, made again)
+                self.predicted[k] = s.attempt_frame
 
     def _lesson_inputs_left(self, c):
         """While the client records a lesson (its own scenario and inputs,
@@ -451,8 +586,18 @@ class JsonDrill(Drill):
         if self.lesson_scenario is None or build is None:
             return False
         js = c.fd.jump_squat
-        end = max((self.ref_lead + r.frame + r.js * js + (r.hold or 1)
-                   for r in build(c) if r.mark == 0), default=0)
+        refs = build(c)
+        timed = [r for r in refs if r.mark > 0]
+        if timed:
+            # inputs timed from an event are the technique (those before
+            # it, a shield held until then, are the setup): played to
+            # their end, from where their event came
+            marks = c.s.marks
+            end = max((marks[r.mark] + r.frame + (r.hold or 1)
+                       for r in timed if marks[r.mark] >= 0), default=0)
+        else:
+            end = max((self.ref_lead + r.frame + r.js * js + (r.hold or 1)
+                       for r in refs if r.mark == 0), default=0)
         return c.s.attempt_frame < end
 
     def think(self, c):
@@ -474,6 +619,8 @@ class JsonDrill(Drill):
         if c.phase == WAIT and f["p"] is not None:
             f["p"]["p"] = None      # (no chain of every frame since)
         v["last"] = f
+        if self.anchors:
+            self._look_ahead(c, f, a)
         if c.phase == WAIT:
             f["i"] = 0
             v.pop("judge_due", None)
@@ -706,7 +853,7 @@ class JsonDrill(Drill):
 
     def _judge(self, c, rec):
         nums = self.nums(c)
-        part = self.part_now
+        part = self.judged_part()
         measured = {k: self._measure(m, c, rec)
                     for k, m in self.spec["measures"].items()}
         # every check is measured (the coach shows them all); the part's
@@ -746,10 +893,20 @@ class JsonDrill(Drill):
                  part_passed=passed_part, next_part=next_part)
 
 
+class Refs(list):
+    """A reference, and the events its inputs are timed from (`anchors`:
+    mark k is the k-th)."""
+
+    def __init__(self):
+        super().__init__()
+        self.anchors = []
+
+
 def inputs_to_refs(inputs, nums, start=REF_START):
     """A drill's inputs (frame 1 = the attempt's first) as the course
-    runtime's reference (Ref), after a lead of `start` frames."""
-    out = []
+    runtime's reference (Ref), after a lead of `start` frames. An input
+    timed "from" an event is a mark's (frame 1 the event's own frame)."""
+    out = Refs()
     for i in inputs:
         f = int(F.value(i["frame"], nums))
         hold = int(F.value(i.get("hold", 1), nums))
@@ -758,13 +915,21 @@ def inputs_to_refs(inputs, nums, start=REF_START):
             kw["buttons"] = F.BUTTONS[i["press"]] & ~0x800 \
                 if i["press"] == "jump" else F.BUTTONS[i["press"]]
         elif "stick" in i:
-            kw["lx"], kw["ly"] = (int(round(a * 127)) for a in i["stick"])
+            kw["lx"], kw["ly"] = (int(round(F.value(a, nums) * 127))
+                                  for a in i["stick"])
         elif "cstick" in i:
-            kw["cx"], kw["cy"] = (int(round(a * 127)) for a in i["cstick"])
+            kw["cx"], kw["cy"] = (int(round(F.value(a, nums) * 127))
+                                  for a in i["cstick"])
         else:
             kw["buttons"] = F.BUTTONS[i["trigger"]]
             kw["trigger"] = int(i.get("amount", 1.0) * 255)
-        out.append(Ref(0, start + f - 1, hold, **kw))
+        if "from" in i:
+            if i["from"] not in out.anchors:
+                out.anchors.append(i["from"])
+            out.append(Ref(1 + out.anchors.index(i["from"]), f - 1, hold,
+                           **kw))
+        else:
+            out.append(Ref(0, start + f - 1, hold, **kw))
     return out
 
 

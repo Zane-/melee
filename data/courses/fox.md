@@ -24,8 +24,10 @@ grabs, tech chases, crouch-cancel punishes and being edgeguarded. **Neutral** th
 player to earn the opening against an opponent that commits, and hands over to the punish
 drill that starts from it.
 
-`fox-shine-oos` runs on the engine; it is the Shine OoS event
-(`src/tmce/events/shineoos/`) moved over, and reuses that event's scenario deck.
+`fox-shine-oos` is in the drill format (`data/drills/fox-shine-oos.json`, 2026-11-15): its
+deck the 2021 tier list's top 11, each opponent a script of the engine's vocabulary that
+approaches the shield and commits only to what a frame-4 shine out of shield answers. The
+Shine OoS event (`src/tmce/events/shineoos/`) is the overlay's.
 
 ## Tech skill
 
@@ -85,7 +87,7 @@ From the three openings: a move on Fox's shield, a grab, a landed hit or shine.
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 1 | `fox-shine-oos` | Shine out of shield | Punish a shielded move with a frame 4 shine | deck: Marth, Sheik, Peach, Falcon, Falco, Jigglypuff attacks | `fox-waveshine` | `fox-waveshine-usmash` | [seed](../characters/fox.md#shine-out-of-shield-punish), [OoS](../techniques/out-of-shield.md) | implemented: `src/tmce/events/course/drills/fox_shine_oos.inc.h`; 9 specs pass in the simulator, 1 confirmed in Dolphin (2026-11-12). No full spec section or guide yet |
+| 1 | `fox-shine-oos` | Shine out of shield | Punish a shielded move with a frame 4 shine | deck: the 2021 top 11 (Fox, Marth, Jigglypuff, Falco, Sheik, Captain Falcon, Peach, Ice Climbers, Pikachu, Yoshi, Samus), each an engine script: footsies, then an approach on the shield (aerials, tilts, smashes, dash attacks, some specials) held to the contract `{"answer": "oos_down_b", "within": 4}` | `fox-waveshine` | `fox-waveshine-usmash` | [seed](../characters/fox.md#shine-out-of-shield-punish), [OoS](../techniques/out-of-shield.md) | drill format: `data/drills/fox-shine-oos.json` (2026-11-15): jump out of shield, the shine out of shield, then against the deck; `check.py` 45 of 45 (every opponent); the frame-perfect example against 16 approaches of each opponent, 176 of 176; `tests/client/shine_oos.py`. A match holds eight fighters: the rotation draws Fox to the Ice Climbers, Pikachu, Yoshi and Samus come with D-pad left and right (a match loaded). The overlay's C drill: `src/tmce/events/course/drills/fox_shine_oos.inc.h` |
 | 2 | `fox-oos-choice` | Pick the out-of-shield option | Choose shine, grab, nair, up smash or wavedash by spacing and advantage | deck, mixed spacings | 1 | - | [OoS](../techniques/out-of-shield.md) | implemented: `drills/fox_punish.inc.h`; the Shine OoS scenarios from 0, 4 or 8 units farther; any hit or grab before the CPU has recovered and reacted (4 frames) counts, and the verdict names the option. Simulator specs pass (2026-11-12). It does not judge whether the option was the best one |
 | 3 | `fox-waveshine-usmash` | Waveshine to up smash | Shine a grounded opponent and up smash before they act | characters that slide from shine | `fox-waveshine` | - | [seed](../characters/fox.md#waveshine-to-up-smash) | implemented on Marth: `drills/fox_punish.inc.h`; he shields as soon as he can. Simulator specs pass (2026-11-12). Marth slides 44 units, so only a near-flat wavedash reaches; no other characters |
 | 4 | `fox-shine-knockdown` | Shine knockdown: jab reset or tech chase | React to tech in place, tech away, tech in or no tech after shine | characters that fall from shine; random tech | 3 | - | [seed](../characters/fox.md#jab-reset-or-tech-chase-after-shine), [tech chase](../techniques/tech-chase.md) | implemented on Falco and Fox: `drills/fox_punish_confirms.inc.h`; the CPU techs in place, away or in, or misses and then gets up, rolls or attacks (option to fix the choice); he shields once he is up. Simulator and Dolphin specs pass (2026-11-12). No demonstration |

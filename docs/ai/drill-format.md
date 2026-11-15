@@ -19,6 +19,10 @@ waveland, pivot, ledgedash), Fundamentals (L-cancel, SHFFL, jump-cancel grab and
 DI, SDI, ASDI, shield drop, edge cancel, slide off) and Fox's Character (waveshine, shine
 grab, SHFFL shine and shine grab, jump-cancel shine, multishine, shortened Illusion, Firefox
 angles, ledge stall, double laser), each passing `check.py`; the owner's QA is next.
+Punish (2026-11-15): Fox's shine out of shield (`fox-shine-oos`), the first drill whose
+opponent is a script of the engine's vocabulary (`opponent-vocabulary.md`): a deck of the
+2021 tier list's top 11, each approaching the shield held to the shine out of shield
+contract.
 
 ## Where things are
 
@@ -80,13 +84,18 @@ its proof, never written into one drill's file.
   squat landing landing_special up_smash nair fair bair uair dair aerial aerial_landing
   shield grab dash_grab air_dodge platform_drop teeter roll spot_dodge damage tumble ledge
   ledge_catch ledge_hang` (Ness's up smash and Yoshi's shield are their own states,
-  `CHAR_STATES`), and
+  `CHAR_STATES`), the shield's own `shield_stun` (GuardSetOff, 181: after a hit on it,
+  every input ignored) and `shield_release` (GuardOff, 180: let go, 15 frames; X or Y
+  there jumps, down is a spot dodge), both in `shield` too, and
   Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
-  shine_ground`.
+  shine_ground`. Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
+  frame shield stun's animation ends is the first a new X or Y works on (Guard reads it on
+  that frame), and the record of that frame is the first that has left `shield_stun`.
 - **Events** (when something happens, frame by frame): `start`, `end`, `airborne`, `lands`,
   `apex` (the first frame not rising), `fast_fall`, `hit` (damage taken), `hitlag_last`
   (the last frozen frame, whose stick DI and ASDI read: `Fighter_procHitlag` runs before the
-  frame's input), `hitlag_end`, `shot` (an item more than the frame before: a laser);
+  frame's input), `hitlag_end`, `shot` (an item more than the frame before: a laser),
+  `connects` (the opponent took damage: the player's attack landed);
   `{"is": SIMPLE, "from": S}` (a simple event with modifiers: left the ground out of a
   shine);
   `{"enters": S, "from": S2}`, `{"leaves": S, "to": S2}`, `{"pressed": B}`,
@@ -121,7 +130,16 @@ its proof, never written into one drill's file.
   `within: [lo, hi]`.
 - **Inputs**: `{"press": B, "frame": F, "hold": H}`, `{"stick": [x, y], ...}`,
   `{"cstick": [x, y], ...}`, `{"trigger": "L"|"R", "amount": 0..1, ...}`; entries on the
-  same frame combine (down-B: a stick and a press). A character's own inputs, where the
+  same frame combine (down-B: a stick and a press). An input may be timed from an event,
+  `"from": EVENT` (`"start"`: the attempt's start): its `frame` counts from it, 1 the frame
+  the event happens on (none before it). A demonstration finds that frame before it is
+  played: each frame while the event is due the coming frame is played ahead in the game
+  (`melee_actor/ahead.py`, the opponent's pad as it chose it) and undone, and where the
+  event happens on it the input goes on it (the jump on the first frame after shield stun:
+  Guard reads only a new press, so it cannot wait until the stun is seen to be over). The
+  events of states, the ground, position, damage and hitlag can be looked for so; one the
+  look misses is taken where it is seen, a frame late. A drill's inputs timed from events
+  are the course runtime's marks (`Ref.mark`, `live_marks`). A character's own inputs, where the
   common ones cannot work for it, go beside them: `"example_for"` / `"inputs_for"`:
   `{"mr-game-and-watch": [...]}` (his neutral air cannot be L-cancelled). Frame 1 is the
   attempt's first; stick x
@@ -147,14 +165,30 @@ its proof, never written into one drill's file.
   drill's `"switch"`: `"manual"` (the default), `"success"` (the next after a success:
   every drill of ledge work plays both sides of the stage, the owner: "so players don't
   overtrain one side! It should have options to swap ledges on success too"), `"every"`;
+  a part's list may be a deck of opponents, each scenario its own (`fox-shine-oos`: eleven
+  characters, each its own script), each swapped in as the list turns to it; every
+  opponent of a drill's scenarios is loaded with its match (`JsonDrill.opponents`, up to
+  the native build's eight fighters: the rest load a match when turned to);
   the pause menu's Swap changes it. A scenario facing left on a platform, the stage or in
   the air plays the examples mirrored: forward is the way it faces), `lead` (frames from the reset to
   an example's frame 1: 10, and 0
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
   what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
-  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`, `trace`. A
-  part names its scenario by index (`"scenario"`).
+  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`, `trace`,
+  `numbers`. A part names its scenario by index (`"scenario"`).
+
+  `"numbers"`: the scenario's own numbers and words, named in the drill's expressions
+  and words while it is played, beside the character's (`J`, `LAND`): `{"HIT": 12, "HL":
+  8, "DX": 0.7071, "DY": 0.7071, "move": "Fox's forward smash"}`. Every scenario names the
+  same ones, none a character's number or a measure's. A stick's or C-stick's `[x, y]` may
+  be expressions of them (`["DX", "DY"]`), so one part's example plays each attacker's own
+  timing and DI; so may a check's expectation (`"within": ["LO", "HI"]`: each launch angle
+  its own range), an attempt's `within` and `judge` frame, marks, cues and coach rows. The
+  words `check.py` compares across scenarios (a check's `expect` and `headline`) do not
+  name them; its `words` and `fix` may. `universal-di` (14 attackers, each with its hit
+  frame, hitlag, survival DI and the launch angles that pass), `universal-sdi` and
+  `universal-asdi` use it.
 
   `"trace": "di"` draws TM-CE's DI display for the player, in the game's world (and so in
   the client's pictures, the tutorial's and the coach's): its Lab's "DI Display",
@@ -210,8 +244,9 @@ its proof, never written into one drill's file.
   colour and words over the example's picture on those frames ("Release now: short hop" in
   green, "Held here: full hop" in red); `{f}` in the words is the frame shown.
 - **Coach rows** (the drill's `coach`, or a part's own `coach`): `{"label", "button": B,
-  "held"}`, `{"label", "stick": "down"|"up"|"side"}` (a tap; side: either way), the same with
-  `"cstick"`, or `{"label", "state": S}`
+  "held"}`, `{"label", "stick": "down"|"up"|"side"|"any"}` (a tap; side: either way; any:
+  whichever way, an SDI's smash out of attacks left by different ways), the same with
+  `"cstick"` (not `any`), or `{"label", "state": S}`
   (entered),
   each with `perfect` and `window` frames.
 - **Cameras**: `"normal"` (the match camera), `"stage"` (the whole stage, still),
@@ -227,6 +262,11 @@ its proof, never written into one drill's file.
   Measured through the window build (a stage point's move in the picture): a short hop
   9.8 px a frame at most and 146 px in all before, 0.35 and 2.3 after; a full hop 13.4 and
   291 before, 1.7 and 23 after; a dash is still followed, smoothly.
+
+  A lesson played in a scenario the part now lacks (the punish's, while the player is on
+  the first part) is judged as the first part that has it, its frames counted from that
+  part's start; its inputs timed from an event play to their end before the try is judged
+  (those before the event, a shield held until then, are its setup).
 
 ### Finding the numbers in the game
 
@@ -270,6 +310,8 @@ card shows the try against the example of the part being played, from the same s
 game's own pictures of both), the input timeline with the target window, the check that
 failed as the headline ("Held through the squat") and its `fix` ("Let go of X or Y within
 2 frames of pressing it ..."). The verdict after every try says the same in a line.
+The full-size example of a part whose inputs are timed from its start is numbered from that
+start, as the card's pictures and the coach number it (`tutorial_example_run`).
 
 ## Proof
 
@@ -278,6 +320,11 @@ example and each part's example (each must pass), and each mistake (each must fa
 check it names, judged as the first part that counts that check). It prints the words a
 player would read once, for a person to read. `universal-short-hop`: 182 of 182 cases for
 the 26 characters (jump squats of 3 to 8 frames), in 8 seconds.
+
+A part whose scenarios are a deck of opponents (each scenario another opponent) plays its
+example, its frame-perfect example and every mistake judged as it in each scenario of the
+deck. `fox-shine-oos`: 45 of 45 cases, the eleven opponents' scripts each meeting the
+frame-perfect example and the late jump, in 30 seconds.
 
 A drill generated from a description is done when `check.py` passes and the owner has
 played it.
@@ -302,3 +349,10 @@ The owner plays and QAs the 27 Tech skill drills; then the Punish, Defense and N
 in the format. Known runtime issues found while writing them: a reset during an opponent's
 sliding attack can leave it slightly off its mark (`universal-di` judges late to avoid it);
 the Ice Climbers' partner is not moved by a reset (`universal-sdi` allows 4 hits for it).
+A match holds the player and seven opponents (`Session.FIGHTERS`); a drill's rotation draws
+only scenarios whose opponent is loaded, and turning by hand to another loads a match. So a
+drill keeps to seven opponents (`universal-di`: the top seven; `universal-asdi`: Pikachu,
+Yoshi and Samus with four of them). With the Ice Climbers as the player, the native build
+crashes after about seven matches loaded in one game (signal 11 in `fn_800DA054`, called
+through `Fighter_procAccessory`): reproduced headless by playing a ten-opponent
+`universal-di` through every scenario in one game.

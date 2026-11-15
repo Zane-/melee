@@ -146,7 +146,15 @@ scripts set it at the frame they may be cancelled, and only they read it; no oth
 and no new match clears it. So after a fighter's first attack it stays set. Read in every
 state, it ended a grab line on its second frame for the rest of the process (2026-11-15).
 The engine counts it only in the states that read it, or once it has been seen cleared
-since the state began (`follow_interrupt`, `engine.c`).
+since the state began (`follow_interrupt`, `engine.c`). A state that ends with its
+animation ends in `Fighter_procAnim`, before `Fighter_procInput` reads the frame's input
+in the state it ended into: the first frame a fighter can act on is the frame after which
+it is first seen able to. So a branch point whose coming frame ends the state offers the
+next state's moves (`moves_for`, the frame played ahead and undone), and a move followed
+by another settles on the frame before (`settle_xy` with `eng.exact`: the frame undone,
+from the last mark, the path played again); a normal landing's lag ends at its landing lag
+(`ftCo_Landing_IASA`), not at its animation's end (2026-11-15,
+`tests/native/engine_first_frame.py`).
 
 **E3, the engine as the opponent: begun.** `tools/melee_engine/opponent.py` (`Mind`): each
 time the fighter can act it searches, picks one of the best lines by a softmax over their

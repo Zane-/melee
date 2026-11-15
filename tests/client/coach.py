@@ -6,10 +6,12 @@ client, checked off screen.
 Fox's course, Punish, "Shine out of shield". The pause menu has the
 drill's tab, the course's and the settings' (R goes round them), and Input
 display there turns TM-CE's controller on (the game makes it). Then a
-player who only holds shield misses three times in a row: the coach's card
-opens, with the try's path and the demonstration's, and a headline. Y
-replays the try from its start: it plays to the same verdict, a frame at a
-time at the end; B goes back to the card, A to the drill.
+player who presses down in the shield (a spot dodge, the first part's
+mistake) misses three times in a row: the coach's card opens, with the
+try's path and the demonstration's, and a headline. Y replays the try from
+its start: it plays to the same verdict, a frame at a time at the end; B
+goes back to the card, A to the drill. (The drill's tutorial, on its first
+open, is skipped with START.)
 """
 import argparse
 import os
@@ -112,8 +114,19 @@ def main():
                     seen["hold"] = (key, left - 1)
                 return
             step = seen["step"]
-            if step == 0 and frame == 0 and not seen.get("let_go"):
+            if frame == -6:
+                # the tutorial's card, on the drill's first open: START,
+                # straight to the drill (once it is drawn; held directly:
+                # press()'s release takes the next call, and the drill's
+                # frame 0 went by with the A that started it held)
                 game.key("x", False)             # the A that started it
+                seen["tut"] = seen.get("tut", 0) + 1
+                if seen["tut"] == 4:
+                    game.key("Return")
+                return
+            if step == 0 and frame >= 0 and not seen.get("let_go"):
+                game.key("x", False)             # the A that started it
+                game.key("Return", False)        # (the tutorial's START)
                 seen["let_go"] = True
             if step == 0 and frame >= 0:
                 seen["wait"] += 1
@@ -140,10 +153,18 @@ def main():
                 seen["step"] = 3
                 seen["wait"] = 0
             elif step == 3 and frame >= 0:
-                game.key("s")                    # hold shield, nothing else
+                # the shield, and the stick down in it: a spot dodge, a
+                # miss every try (every 30 frames: a try paused and
+                # resumed is past frame 12)
+                game.key("s")
+                if frame % 30 == 12:
+                    game.key("Down")
+                elif frame % 30 == 15:
+                    game.key("Down", False)
                 seen["tries"] = list(c.results_now())
             elif step == 3 and frame == -4:      # the coach's card
                 game.key("s", False)
+                game.key("Down", False)
                 seen["card"] = dict(c.coach_now)
                 seen["tries"] = list(c.results_now())
                 seen["wait"] += 1

@@ -43,7 +43,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from native import (HARNESS, Native, NativeError, ROOT,  # noqa: E402
                     die_with_parent)
 
-EXE = ROOT / "build/native-window/melee_native"
+# (MELEE_WINDOW: another window build for every driver and test, as
+# MELEE_HEADLESS is for the headless one: an optimised one beside the
+# shared one, native_build.py --window --out)
+EXE = Path(os.environ.get("MELEE_WINDOW") or
+           ROOT / "build/native-window/melee_native")
 
 
 def _started_by(pid):

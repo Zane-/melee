@@ -7,7 +7,9 @@ away (the game's picture in the middle) and back; a START tap opens the
 client's pause menu over the frozen match, with the drill's settings (a
 setting changed there is in force from the next try); the verdict in
 colour (a failure red); D-pad right held 3 s goes to the next drill of the
-course. Fox's "Shine out of shield" is the drill.
+course. Fox's "Shine out of shield" is the drill: its tutorial, on first
+open, skipped with START; the setting its Timing (Lenient to
+Frame-perfect); a failure a spot dodge in the shield.
 """
 import argparse
 import os
@@ -117,10 +119,21 @@ def main():
         seen = dict(step=0, n=0)
 
         def person(game, frame):
+            if frame == -6:
+                # the tutorial's card, on the drill's first open: START,
+                # straight to the drill (once it is drawn)
+                game.key("x", False)             # the A that started it
+                seen["card"] = seen.get("card", 0) + 1
+                if seen["card"] == 4:
+                    game.key("Return")
+                elif seen["card"] == 6:
+                    game.key("Return", False)
+                return
             seen["n"] += 1
             step = seen["step"]
             if step == 0:
                 game.key("x", False)             # the A that started it
+                game.key("Return", False)        # (the tutorial's START)
                 seen.update(step=1, n=0)
             elif step == 1 and seen["n"] > 30:
                 game.key("Return")               # hold START 3 s
@@ -141,38 +154,45 @@ def main():
                 seen["back"] = not c.column_hidden
                 seen.update(step=5, n=0)
             elif step == 5 and seen["n"] > 10:
-                # the pause menu: CPU Percent from 20 to 23
-                ch = seen.setdefault("pick", Chooser(c, "opt2"))
+                # the pause menu: Timing from Lenient to Frame-perfect
+                ch = seen.setdefault("pick", Chooser(c, "timing"))
                 if not ch.done:
                     ch(game)
                 if c.pause_open and ch.done and not seen.get("rights"):
                     seen["rights"] = 0
                 if c.pause_open and "rights" in seen and \
-                        seen["rights"] < 6:
-                    # Right, one frame on and one off, three times
+                        seen["rights"] < 2:
+                    # Right, one frame on and one off, once
                     if seen["rights"] % 2 == 0:
                         game.key("Right")
                     else:
                         game.key("Right", False)
                     seen["rights"] += 1
-                elif c.pause_open and seen.get("rights") == 6 and \
+                elif c.pause_open and seen.get("rights") == 2 and \
                         not seen.get("pshot"):
                     game.shot(os.path.join(shots, "pause.png"))
                     seen["pshot"] = True
-                elif c.pause_open and seen.get("rights") == 6:
-                    seen["percent_row"] = [r for r in c.pause_rows("drill")
-                                           if r[0] == "opt2"][0][2]
+                elif c.pause_open and seen.get("rights") == 2:
+                    seen["timing_row"] = [r for r in c.pause_rows("drill")
+                                          if r[0] == "timing"][0][2]
                     game.key("z")                # B: back to the drill
                     seen["rights"] = 7
                 elif seen.get("rights") == 7 and not c.pause_open:
                     game.key("z", False)
                     seen.update(step=6, n=0)
             elif step == 6:
-                if "cpu_percent" not in seen:     # the new try's start
-                    seen["cpu_percent"] = game.fighter(1).percent
-                game.key("s")                    # shield only: a failure
+                if "strict" not in seen:          # the new try's start
+                    seen["strict"] = getattr(c.session.d, "strict", None)
+                # the shield and the stick down in it: a spot dodge, a
+                # failure
+                game.key("s")
+                if seen["n"] % 30 == 12:
+                    game.key("Down")
+                elif seen["n"] % 30 == 15:
+                    game.key("Down", False)
                 if c.results_now():
                     game.key("s", False)
+                    game.key("Down", False)
                     seen.update(step=7, n=0)
             elif step == 7 and seen["n"] == 5:
                 path = game.shot(os.path.join(shots, "failure.png"))
@@ -193,7 +213,7 @@ def main():
             c.frame()
             if c.screen == "list" and seen["step"] == 9:
                 break
-        for key in ("x", "s", "h", "Return", "z", "Right"):
+        for key in ("x", "s", "h", "Return", "z", "Right", "Down"):
             w.key(key, False)
         frames(6)
         check("START held 3 s puts the column away, the game in the middle",
@@ -201,18 +221,27 @@ def main():
               seen["sides"][1] < 0.01 and seen["sides"][2] > 0.02,
               "sides %.3f %.3f, middle %.3f" % seen.get("sides", (-1,) * 3))
         check("held again: the column is back", seen.get("back") is True)
-        check("a setting in the pause menu: CPU Percent 20 to 23",
-              seen.get("percent_row") == "23%", str(seen.get("percent_row")))
-        check("and the next try has it", abs(seen.get("cpu_percent", -1) -
-                                            23) < 0.5,
-              str(seen.get("cpu_percent")))
+        check("a setting in the pause menu: Timing Lenient to "
+              "Frame-perfect", seen.get("timing_row") == "Frame-perfect",
+              str(seen.get("timing_row")))
+        check("and the next try has it (the drill judges frame-perfect)",
+              seen.get("strict") is True, str(seen.get("strict")))
         check("a failure shows red on the banner", seen.get("red", 0) > 200,
               "%s red pixels" % seen.get("red"))
         drills = c.drills()
-        check("D-pad right held 3 s went to the next drill, and the pause "
-              "menu back to the list", c.screen == "list" and
-              c.row[c.part] == (first_row + 1) % len(drills),
-              "row %d -> %d" % (first_row, c.row[c.part]))
+        # (the next that plays here: the client passes the drills not
+        # built for it; in Punish only this one is rebuilt, and it opens
+        # again)
+        want = first_row
+        for _ in range(len(drills)):
+            want = (want + 1) % len(drills)
+            if drills[want]["id"] in c.here:
+                break
+        check("D-pad right held 3 s went to the next drill that plays "
+              "here, and the pause menu back to the list",
+              c.screen == "list" and c.row[c.part] == want,
+              "row %d -> %d (%s)" % (first_row, c.row[c.part],
+                                     drills[c.row[c.part]]["id"]))
         bad = [line.strip()[:160] for line in w.log
                if "aurora" in line and ("warn" in line or "error" in line)]
         check("the interface raised no warnings", not bad,

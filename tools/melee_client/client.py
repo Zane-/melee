@@ -205,6 +205,8 @@ class Play:
                     self.head = head
             if p.get("strip"):          # and the strip's under the replay
                 head = e["f"]
+                if head is not None and head > p.get("strip_n", head):
+                    head = None         # (past the try's boxes)
                 if head != p.get("shead"):
                     if p.get("shead") is not None:
                         self.w.ui("class c%sn%d now 0" % (pid, p["shead"]))
@@ -3023,7 +3025,11 @@ class Client:
                 self.has_cover = False
             if left.to == "drill":
                 drills = self.drills()
-                at = (self.row[self.part] + left.step) % len(drills)
+                at = self.row[self.part]
+                for _ in range(len(drills)):
+                    at = (at + left.step) % len(drills)
+                    if drills[at]["id"] in self.here:
+                        break           # (the drills not built here: past)
                 self.focus_row(at)
                 d = drills[at]
             elif left.to == "hub":
@@ -3653,6 +3659,19 @@ class Client:
         """One pass of the example: "back" (B), or "again" (A at its end)."""
         from melee_drills.drill import inputs_to_refs
         labels = [str(i) for i in range(1, n + 1)]
+        anchors = getattr(inputs_to_refs(inputs, nums), "anchors", [])
+        timed = 1 + anchors.index("start") if "start" in anchors else None
+
+        def number(frame):
+            # the example's frame shown at the session's `frame`: from the
+            # reset and its lead; for inputs timed from the attempt's start
+            # (the first frame after shield stun), from that start, as the
+            # card and the coach count it (its mark, set by the drill as it
+            # comes; frames before it are not numbered: None)
+            if timed is None:
+                return frame - lead - 1
+            m = session.marks[timed]
+            return frame - m if m >= 0 else None
 
         def caption(f):
             said = [at[k] for k in sorted(at) if k <= f]
@@ -3713,14 +3732,14 @@ class Client:
 
         def each(game, frame):
             # the picture now is the frame before this one, played
-            f = frame - lead - 1
+            f = number(frame)
             if seek is not None and frame < seek:
                 hide(True)
                 return
             if state["quiet"]:
                 hide(False)
                 state["paused"] = True
-            if f < -12:
+            if f is None or f < -12:
                 return
             if f in at and f not in state["seen"]:
                 state["seen"].add(f)
@@ -3739,7 +3758,8 @@ class Client:
             # the one the judgement stopped before playing
             frame = res["frames"]
             session.set_player_pad()
-            while frame - lead - 1 <= n + 30:
+            while (number(frame) if number(frame) is not None else n + 31) \
+                    <= n + 30:
                 each(self.w, frame)
                 self.w.step()
                 frame += 1
@@ -3943,10 +3963,12 @@ class Client:
             you_pic=self.pic_panel(0, 0, you_seq, mask, tall),
             target_pic=self.pic_panel(1, 1, tgt_seq, mask, tall),
             anim=[dict(id="y", view=0, ring=0, seq=you_seq,
-                       strip=bool(result.get("timeline"))),
+                       strip=bool(result.get("timeline")),
+                       strip_n=(result.get("timeline") or {}).get("frames")),
                   dict(id="t", view=1, ring=1, seq=tgt_seq,
                        strip=bool(result.get("timeline")) and
-                       target_track is not None)],
+                       target_track is not None,
+                       strip_n=(result.get("timeline") or {}).get("frames"))],
             replay=True)
 
     COACH_WAIT = 30         # frames of the verdict before the card
