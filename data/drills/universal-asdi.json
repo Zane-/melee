@@ -165,8 +165,7 @@
             "frame": 14,
             "hold": 1
           }
-        ],
-        "every": 120
+        ]
       },
       "camera": "normal"
     }
@@ -175,7 +174,9 @@
     "start": "hit",
     "judge": {
       "frame": 30
-    }
+    },
+    "within": 24,
+    "missed": "Not counted: the down tilt missed. Stand still in front of the opponent."
   },
   "measures": {
     "air": {

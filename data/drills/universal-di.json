@@ -135,8 +135,7 @@
             "frame": 14,
             "hold": 2
           }
-        ],
-        "every": 120
+        ]
       },
       "camera": "normal",
       "trace": "di"
@@ -146,7 +145,9 @@
     "start": "hit",
     "judge": {
       "frame": 28
-    }
+    },
+    "within": 38,
+    "missed": "Not counted: the forward smash missed. Stand still in front of the opponent."
   },
   "measures": {
     "launch": {

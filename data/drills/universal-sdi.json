@@ -7,7 +7,7 @@
   "why": "A multi-hit attack holds you in place for its last, strongest hit. Each new smash of the control stick during hitlag moves {char} 6 units while still frozen, and one on every hit takes {char} out of the attack before that hit comes. A stick held still moves {char} once.",
   "tutorial": {
     "what": "SDI moves {char} 6 units toward the control stick for every new smash of the stick during hitlag.",
-    "expect": "Each attack is judged after its last hit could have landed: how far SDI moved {char} in the first hit's hitlag and over the whole attack, how many of the 7 hits landed, and whether the 7th launched {char}.",
+    "expect": "Each attack is judged after its last hit could have landed: how far SDI moved {char}, how many of the 7 hits landed, and whether the 7th launched {char}.",
     "example": [
       {
         "stick": [
@@ -335,8 +335,7 @@
             "frame": 14,
             "hold": 2
           }
-        ],
-        "every": 120
+        ]
       },
       "camera": "normal"
     }
@@ -345,18 +344,11 @@
     "start": "hit",
     "judge": {
       "frame": 40
-    }
+    },
+    "within": 26,
+    "missed": "Not counted: the down smash missed. Stand still in front of Pikachu."
   },
   "measures": {
-    "shift": {
-      "distance": [
-        "start",
-        {
-          "frame": 4
-        }
-      ],
-      "axis": "xy"
-    },
     "sdi": {
       "moved_while": "hitlag"
     },
@@ -373,29 +365,21 @@
     "success": "Out after {hits} of 7 hits; SDI moved {char} {sdi} units."
   },
   "checks": {
-    "moved": {
-      "measure": "shift",
-      "at_least": 5,
-      "expect": "Moved by SDI in the first hit's hitlag",
-      "words": "moved {measure} units in the first hit's hitlag",
-      "headline": "No SDI",
-      "fix": "Smash the control stick from the center to the rim during hitlag, after the hit lands. A stick already held when the hit lands, or tilted part way, does not move {char}."
-    },
-    "smashes": {
+    "sdi": {
       "measure": "sdi",
-      "at_least": 10,
-      "expect": "SDI moved {char} 10 units or more over the attack",
-      "words": "SDI moved {char} {sdi} units over the attack",
-      "headline": "Too few SDI inputs",
-      "fix": "Smash the stick again on every hit, back to the center between smashes. A stick held still moves {char} once: 6 units."
+      "at_least": 5,
+      "expect": "Moved by SDI while frozen by the attack",
+      "words": "SDI moved {char} {measure} units",
+      "headline": "No SDI",
+      "fix": "Smash the control stick from the center to the rim while a hit freezes {char}. A stick already held when the hit lands does not move {char}: it must come out of the center during hitlag."
     },
     "out": {
       "measure": "hits",
-      "at_most": 4,
-      "expect": "Out of the attack within 4 of its 7 hits",
+      "at_most": 5,
+      "expect": "Out of the attack within 5 of its 7 hits",
       "words": "hit {measure} times of 7",
       "headline": "Caught in the attack",
-      "fix": "SDI in a direction that leaves the hitboxes. Against this attack up does; away from Pikachu or toward it keeps {char} inside for more hits."
+      "fix": "Smash the stick again on every hit, back to the center between smashes, in a direction that leaves the hitboxes. Against this attack up does; toward Pikachu keeps {char} inside."
     },
     "not launched": {
       "measure": "launched",
@@ -452,14 +436,14 @@
         }
       ],
       "checks": [
-        "moved"
+        "sdi"
       ],
-      "success": "SDI: moved {shift} units in the first hit's hitlag.",
+      "success": "SDI: moved {sdi} units.",
       "streak": 3
     },
     {
       "name": "A smash on every hit",
-      "teach": "Smash the stick again on every hit, back to the center between smashes, until {char} is out of the attack. Any direction counts if it gets {char} out before the 7th hit; against this attack, up does for every character.",
+      "teach": "Smash the stick again on every hit, back to the center between smashes, until {char} is out of the attack. Any direction counts if it gets {char} out before the last hits; against this attack, up does for every character.",
       "example": [
         {
           "stick": [
@@ -599,7 +583,7 @@
         }
       ],
       "checks": [
-        "smashes",
+        "sdi",
         "out",
         "not launched"
       ],
@@ -619,35 +603,21 @@
           "hold": 1
         }
       ],
-      "fails": "moved"
+      "fails": "sdi"
     },
     {
-      "name": "one smash only",
+      "name": "stick already held when the hit lands",
       "inputs": [
         {
           "stick": [
             0,
             1
           ],
-          "frame": 8,
-          "hold": 1
-        }
-      ],
-      "fails": "smashes"
-    },
-    {
-      "name": "one smash up, then held",
-      "inputs": [
-        {
-          "stick": [
-            0,
-            1
-          ],
-          "frame": 8,
+          "frame": 7,
           "hold": 30
         }
       ],
-      "fails": "smashes"
+      "fails": "sdi"
     },
     {
       "name": "smashed toward Pikachu on every third frame",
