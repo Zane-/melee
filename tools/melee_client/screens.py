@@ -687,55 +687,51 @@ def mode_tile(i, m, focus):
                 esc(m.name.upper())))
 
 
-def _stock_cell(cid, costume, n):
-    """`n` of `cid`'s stock icons (none: an empty place)."""
+def _stock(cid, costume):
     pic = art.stock(cid, costume) if cid else None
-    if pic is None or n == 0:
-        return '<div class="mkicons"/>'
-    return '<div class="mkicons">%s</div>' % "".join(
-        '<img class="mkstock" src="%s"/>' % picture(pic) for _ in range(n))
+    return '<img class="mkstock" src="%s"/>' % picture(pic) if pic else ""
 
 
-def tennis_track(me, opp):
-    """Tennis's score as a track: the game for the other side, its
-    advantage, deuce, your advantage, your game; each place the stock
-    icons the HUD shows there. `me`, `opp`: (character id, costume)."""
-    places = ((opp, 2, "Game"), (opp, 1, "Advantage"), (None, 0, "Deuce"),
-              (me, 1, "Advantage"), (me, 2, "Game"))
-    cells = "".join(
-        '<div class="mkcell%s">%s<div class="mklabel">%s</div></div>' % (
-            " mid" if who is None else "", _stock_cell(
-                who[0] if who else None, who[1] if who else 0, n),
-            esc(label))
-        for who, n, label in places)
-    return ('<div class="mktrack">%s</div><div class="mksides"><div>Them'
-            '</div><div class="grow"/><div>You</div></div>' % cells)
+def tug_track(me, opp, lead):
+    """Tug of War's score as a rope: their stock icon at one end, yours at
+    the other, a notch for each point either way, even in the middle.
+    `me`, `opp`: (character id, costume); `lead`: how far ahead wins."""
+    notches = "".join('<div class="mkn%s"/>' % (" mid" if i == lead else "")
+                      for i in range(2 * lead + 1))
+    return (
+        '<div class="mktrack"><div class="mkend">%s<div class="mklabel">'
+        'They win</div></div><div class="mkrope"><div class="mkbar"/>'
+        '<div class="mkticks">%s</div><div class="mkeven">Even</div></div>'
+        '<div class="mkend">%s<div class="mklabel">You win</div></div></div>'
+        '<div class="mksides"><div>+%d</div><div class="grow"/><div>+%d'
+        '</div></div>' % (_stock(*opp), notches, _stock(*me), lead, lead))
 
 
 def mode_card(m, me=None, opp=None):
     """The card about the mode in focus: its icon and name on its colour,
-    the line about it, how it is scored, (Tennis) the score as stock icons.
-    `me`, `opp`: (character id, costume) for the icons."""
+    the line about it as set, how it is scored, (Tug of War) the score as a
+    rope. `me`, `opp`: (character id, costume) for the icons."""
     rules = "".join('<div class="mrule"><div class="mdot" style="'
                     'background-color: %s"/><div class="mrt">%s</div></div>'
-                    % (m.colour, esc(r)) for r in m.rules)
-    track = tennis_track(me or ("fox", 0), opp or ("falco", 0)) \
-        if m.ident == "tennis" else ""
+                    % (m.colour, esc(r)) for r in m.rules_text())
+    track = tug_track(me or ("fox", 0), opp or ("falco", 0),
+                      m.settings["lead"]) if m.ident == "tug-of-war" else ""
+    go = "Options" if m.options else "Choose characters"
     return (
         '<div class="mchead" style="background-color: %s; color: %s">%s'
         '<div class="mcname">%s</div><div class="mctag">%s</div></div>'
         '<div class="mcbody"><div class="fl">How it is scored</div>%s%s'
-        '<div class="grow"/><div class="go"><div class="un">%s<div>Choose '
-        'characters</div></div></div></div>' % (
+        '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
+        '</div></div></div>' % (
             m.colour, m.ink, icon(m.icon, "mcicon" + (
                 " dark" if m.ink != "#F3F6FA" else "")), esc(m.name),
-            esc(m.tagline), rules, track, key("A", dark=True)))
+            esc(m.line()), rules, track, key("A", dark=True), esc(go)))
 
 
 def mode_select(mode_list, focus, me=None, opp=None):
-    """Versus > Local: what the match is played for (modes.py). `me`,
-    `opp`: (character id, costume) for the score's icons (the last match's,
-    or Fox's and Falco's)."""
+    """Versus > Local: what the match is played for (modes.py), each mode
+    as set. `me`, `opp`: (character id, costume) for the score's icons
+    (the last match's, or Fox's and Falco's)."""
     tiles = [mode_tile(i, m, i == focus) for i, m in enumerate(mode_list)]
     rows = "".join('<div class="mgrow">%s</div>' % "".join(
         tiles[i:i + MODE_COLUMNS])
@@ -745,14 +741,55 @@ def mode_select(mode_list, focus, me=None, opp=None):
         '<div class="mgrid">' + rows + '</div>' +
         '<div id="card" class="card">' +
         mode_card(mode_list[focus], me, opp) + '</div>' +
-        footer(mode_list[focus].tagline,
+        footer(mode_list[focus].line(),
                [("A", "Choose"), ("B", "Back")]))
     return page("Choose a mode", body)
 
 
+def option_rows(m, at):
+    """The mode's settings as the settings screens' rows."""
+    return controls_rows([(o.key, o.name, o.about.split(":")[0].split(".")[0],
+                           o.words(m.settings[o.key]), m.colour)
+                          for o in m.options], at)
+
+
+def option_panel(m, at, me=None, opp=None):
+    """The setting in focus, edited: its value big between arrows, what it
+    does, (Tug of War) the rope as it would be."""
+    o = m.options[at]
+    v = m.settings[o.key]
+    number, unit = o.words(v).split(" ", 1)
+    track = tug_track(me or ("fox", 0), opp or ("falco", 0), v) \
+        if m.ident == "tug-of-war" and o.key == "lead" else ""
+    return (
+        _panel_head(o.name, m.name) +
+        '<div class="dly"><div class="darr%s"><div class="un">&lt;</div>'
+        '</div><div class="dnum">%s</div><div class="dside"><div '
+        'class="dword">%s</div></div><div class="darr%s"><div class="un">'
+        '&gt;</div></div><div class="grow"/></div>'
+        '<div class="spara">%s</div><div class="otrack">%s</div>' % (
+            " on" if v != o.values[0] else "", esc(number), esc(unit),
+            " on" if v != o.values[-1] else "", esc(o.about), track))
+
+
+def mode_options(m, at, me=None, opp=None):
+    """After the mode, its settings (the owner, 2026-11-14: "It should go
+    select the mode, then configure options, then start game!"): the rows
+    on the left, the one in focus edited beside them; A goes on to the
+    characters."""
+    body = (
+        header(["Versus", m.name]) +
+        '<div id="slist" class="slist">%s</div>' % option_rows(m, at) +
+        '<div id="spanel" class="spanel">%s</div>' % option_panel(
+            m, at, me, opp) +
+        footer(m.line(), [("D-SIDE", "Change"), ("A", "Choose characters"),
+                          ("B", "Back")]))
+    return page(m.name, body)
+
+
 def versus_rail(c, opp, who, what, stage, lab, mode=None):
     """The column beside a match in Versus or the Lab. `mode`: (the game
-    mode's name, its score in words) in Versus."""
+    mode's name, its score in words, its settings in words) in Versus."""
     head = ('<div class="top" style="background-color: %s"/>'
             '<div class="slant" style="background-color: %s"/>'
             '<div class="head" style="color: %s"><div class="tags">%s</div>'
@@ -773,8 +810,10 @@ def versus_rail(c, opp, who, what, stage, lab, mode=None):
         '<div class="grow"/><div class="hints">%s</div>%s' % (
             esc(opp["name"]), esc(who), esc(what), esc(stage),
             ('<div class="fact"><div class="fl">Mode</div><div class="fv">'
-             '%s</div><div id="vscore" class="fv vscore">%s</div></div>' % (
-                 esc(mode[0]), esc(mode[1])) if mode else ""), tools,
+             '%s</div><div class="fl">%s</div><div id="vscore" class="fv '
+             'vscore">%s</div></div>' % (esc(mode[0]), esc(mode[2]),
+                                          esc(mode[1])) if mode else ""),
+            tools,
             match_hints()))
     return page("Versus", over_game() + '<div id="rail" class="rail">%s'
                 '<div class="body">%s</div></div>' % (head, body), paper=False)

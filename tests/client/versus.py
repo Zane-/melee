@@ -3,7 +3,7 @@ on the other side, checked without a person or a desktop.
 
     python tests/client/versus.py [--shots DIR]
 
-Versus: Local's game mode (Unlimited; Tennis has tests/client/
+Versus: Local's game mode (Unlimited; Tug of War has tests/client/
 versus_modes.py), Fox, the opponent screen (who plays the opponent), the stage
 select, a match against Falco played by the model trained for that
 pairing: it has to load, answer nearly every frame without the game

@@ -1039,6 +1039,18 @@ class Client:
         opp = self.roster[self.opp_at]
         return (me["id"], self.dressed(me)), (opp["id"], self.opp_dressed(opp))
 
+    def make_mode(self, cls):
+        """A mode as the player last set it (its settings kept with the
+        rest the client keeps)."""
+        kept = self.progress.data.get("modes", {}).get(cls.ident, {})
+        return cls(**kept)
+
+    def keep_mode(self, m):
+        """`m`'s settings kept for next time."""
+        self.progress.data.setdefault("modes", {})[m.ident] = \
+            dict(m.settings)
+        self.progress.save()
+
     def show_modes(self):
         """Versus > Local: what the match is played for (the owner,
         2026-11-14: "Make sure we have a good game mode selector so we can
@@ -1048,7 +1060,8 @@ class Client:
         self.w.capture(True)
         self.mode_at = getattr(self, "mode_at", 0)
         self.load("modes", screens.mode_select(
-            [m() for m in modes.MODES], self.mode_at, *self.score_icons()))
+            [self.make_mode(m) for m in modes.MODES], self.mode_at,
+            *self.score_icons()))
 
     def on_modes(self, pressed, moves):
         at, n, cols = self.mode_at, len(modes.MODES), screens.MODE_COLUMNS
@@ -1064,13 +1077,55 @@ class Client:
             self.w.ui("class m%d focus 0" % self.mode_at)
             self.mode_at = at
             self.w.ui("class m%d focus 1" % at)
-            m = modes.MODES[at]()
+            m = self.make_mode(modes.MODES[at])
             self.put("card", screens.mode_card(m, *self.score_icons()))
-            self.say(m.tagline)
+            self.say(m.line())
         if pressed & B:
             self.show_versus_menu()
         elif pressed & A:
-            self.versus_mode = modes.MODES[self.mode_at].ident
+            cls = modes.MODES[self.mode_at]
+            self.versus_mode = cls.ident
+            if cls.options:
+                self.show_mode_options()
+            else:
+                self.show_characters()
+
+    def show_mode_options(self):
+        """The mode's settings, after the mode (the owner, 2026-11-14:
+        "It should go select the mode, then configure options, then start
+        game!")."""
+        self.menu_music()
+        self.screen = "mopts"
+        self.w.capture(True)
+        self.mode_now = self.make_mode(modes.BY_ID[self.versus_mode])
+        self.opt_at = 0
+        self.load("mopts", screens.mode_options(
+            self.mode_now, self.opt_at, *self.score_icons()))
+
+    def on_mopts(self, pressed, moves):
+        m = self.mode_now
+        at, n = self.opt_at, len(m.options)
+        if moves & UP and at > 0:
+            at -= 1
+        if moves & DOWN and at < n - 1:
+            at += 1
+        changed = at != self.opt_at
+        self.opt_at = at
+        if moves & (LEFT | RIGHT):
+            o = m.options[at]
+            v = o.step(m.settings[o.key], 1 if moves & RIGHT else -1)
+            if v != m.settings[o.key]:
+                m.settings[o.key] = v
+                self.keep_mode(m)
+                changed = True
+        if changed:
+            self.put("slist", screens.option_rows(m, at))
+            self.put("spanel", screens.option_panel(m, at,
+                                                    *self.score_icons()))
+            self.say(m.line())
+        if pressed & B:
+            self.show_modes()
+        elif pressed & A:
             self.show_characters()
 
     def on_chars(self, pressed, moves):
@@ -1101,7 +1156,11 @@ class Client:
         if pressed & B:
             if self.mode == "versus" and \
                     getattr(self, "versus_kind", "local") == "local":
-                self.show_modes()
+                if modes.BY_ID[getattr(self, "versus_mode",
+                                       "unlimited")].options:
+                    self.show_mode_options()
+                else:
+                    self.show_modes()
             elif self.mode == "versus":
                 self.show_versus_menu()
             else:
@@ -1324,8 +1383,8 @@ class Client:
         self.last = self.me
         # the game mode (modes.py): its score from the KOs seen, in the
         # HUD's stocks (shown once the fighters are in: show_score)
-        self.game_mode = modes.BY_ID[getattr(self, "versus_mode",
-                                             "unlimited")]() \
+        self.game_mode = self.make_mode(modes.BY_ID[getattr(
+            self, "versus_mode", "unlimited")]) \
             if self.mode == "versus" else None
         self.kos = modes.KOs()
         self.score_shown = False
@@ -1342,7 +1401,8 @@ class Client:
         self.in_match("versus", screens.versus_rail(
             self.me, opp, name, what, stage.replace("-", " ").title(),
             self.mode == "lab",
-            mode=(self.game_mode.name, self.game_mode.status(self.sides()))
+            mode=(self.game_mode.name, self.game_mode.status(self.sides()),
+                  self.game_mode.summary())
             if self.game_mode is not None and self.game_mode.scores()
             else None), START | (DPAD if self.mode == "lab" else 0))
         self.w.capture(False)

@@ -878,12 +878,19 @@ img { display: inline-block; }
 .mrule { display: flex; flex-direction: row; margin-top: 8dp; }
 .mdot { width: 8dp; height: 8dp; margin-top: 6dp; margin-right: 10dp; transform: skewX(-12deg); }
 .mrt { flex: 1; font-size: 14dp; line-height: 1.3em; color: #D5DCE5; }
-/* Tennis's score as a track of stock icons: them, deuce, you */
-.mktrack { display: flex; flex-direction: row; margin-top: 14dp; padding-top: 10dp; border-top: 1dp #4A5361; }
-.mkcell { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.mkicons { height: 30dp; display: flex; flex-direction: row; align-items: center; justify-content: center; }
-.mkstock { width: 24dp; height: 24dp; margin: 0dp 1dp; }
-.mkcell.mid .mkicons { border-bottom: 2dp #F3F6FA; width: 24dp; height: 16dp; margin-bottom: 14dp; }
-.mklabel { margin-top: 2dp; font-size: 11dp; color: #A9B4C2; }
-.mksides { display: flex; flex-direction: row; margin-top: 4dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 11dp; font-weight: 600; color: #6B7686; }
+/* Tug of War's score as a rope: their icon, a notch a point, even in the
+   middle, yours */
+.mktrack { display: flex; flex-direction: row; align-items: center; margin-top: 14dp; padding-top: 12dp; border-top: 1dp #4A5361; }
+.mkend { width: 58dp; display: flex; flex-direction: column; align-items: center; }
+.mkstock { width: 24dp; height: 24dp; }
+.mkrope { position: relative; flex: 1; height: 40dp; margin: 0dp 4dp; }
+.mkbar { position: absolute; left: 0dp; right: 0dp; top: 13dp; height: 4dp; background-color: #E2B563; }
+.mkticks { position: absolute; left: 0dp; right: 0dp; top: 7dp; height: 16dp; display: flex; flex-direction: row; justify-content: space-between; }
+.mkn { width: 2dp; height: 16dp; background-color: #6B7686; }
+.mkn.mid { width: 4dp; background-color: #F3F6FA; }
+.mkeven { position: absolute; left: 0dp; right: 0dp; top: 26dp; text-align: center; font-size: 11dp; color: #A9B4C2; }
+.mklabel { margin-top: 2dp; font-size: 11dp; color: #A9B4C2; white-space: nowrap; }
+.mksides { display: flex; flex-direction: row; margin-top: 2dp; padding: 0dp 18dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 11dp; font-weight: 600; color: #6B7686; }
+/* the options screen's rope: wider, below what the setting does */
+.otrack { margin-top: 18dp; width: 560dp; }
 .vscore { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; color: #C9E24A; }

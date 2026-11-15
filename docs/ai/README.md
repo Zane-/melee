@@ -9,6 +9,7 @@ Start with the root `CLAUDE.md`, then read only what the task needs.
 | [runtime.md](runtime.md) | You need the boot → mode → scene → frame flow, GObjs, fighters, text, memory, files |
 | [overlay-build.md](overlay-build.md) | You are adding code that must ship: sections, hooks, state, the layout invariant |
 | [modding.md](modding.md) | You want a quick shifted dev build for an experiment |
+| [game-modes.md](game-modes.md) | You add or change a Versus game mode: the standard format (a class in `modes.py`, its options), what the client does with it, how its score shows in the HUD's stock icons, the check; skill `add-game-mode` |
 | [drill-format.md](drill-format.md) | You make or change a drill: the JSON format every drill is written in, the tutorial and the coach, the proof, how to generate one from a description |
 | [training-courses.md](training-courses.md) | You are working on character courses: the hub, the drill engine, any Tech / Neutral / Punish / Defense drill |
 | [simulator.md](simulator.md) | You want to run or test game behaviour without Dolphin: the headless simulator, its limits, fixing it when it stops |
