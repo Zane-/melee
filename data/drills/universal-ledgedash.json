@@ -1,0 +1,901 @@
+{
+  "id": "universal-ledgedash",
+  "name": "Ledgedash",
+  "part": "tech",
+  "characters": [
+    "bowser",
+    "captain-falcon",
+    "donkey-kong",
+    "dr-mario",
+    "falco",
+    "fox",
+    "ganondorf",
+    "ice-climbers",
+    "jigglypuff",
+    "kirby",
+    "link",
+    "luigi",
+    "mario",
+    "marth",
+    "mewtwo",
+    "mr-game-and-watch",
+    "ness",
+    "pichu",
+    "pikachu",
+    "roy",
+    "samus",
+    "sheik",
+    "yoshi",
+    "young-link",
+    "zelda"
+  ],
+  "goal": "Land on the stage from the ledge with invincibility left",
+  "why": "Hanging from the ledge makes {char} invincible for a short time, and the count keeps running after {char} lets go. A ledgedash gets {char} standing on the stage while some of it is left, so {char} can attack or grab an opponent waiting at the ledge without being hit.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 140,
+      "height": 10
+    },
+    "what": "A ledgedash is a let-go from the ledge, a double jump on the next frame, and an air dodge onto the stage as soon as {char} is above it, on frame {LD}. {char} lands with 10 frames of landing lag and invincibility left from the ledge.",
+    "expect": "Each ledgedash is judged 60 frames after the let-go: how soon {char} double jumped, whether the air dodge landed on the stage, and whether invincibility was left after the landing lag. After misses, the coach shows your inputs frame by frame.",
+    "example": [
+      {
+        "stick": [
+          0,
+          -1
+        ],
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "press": "jump",
+        "frame": 2,
+        "hold": 1
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 2,
+        "hold": "LD-2"
+      },
+      {
+        "stick": [
+          0.7,
+          -0.7
+        ],
+        "frame": "LD",
+        "hold": 1
+      },
+      {
+        "press": "R",
+        "frame": "LD",
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: stick down. {char} lets go of the ledge",
+      "2": "Frame 2: X pressed, stick toward the stage. Double jump",
+      "LD": "Frame {LD}: above the stage. R pressed, stick down and toward the stage",
+      "LD+2": "Frame {f}: landing lag. Still invincible"
+    },
+    "lessons": [
+      {
+        "title": "Ledge invincibility",
+        "text": [
+          "Hanging from the ledge, {char} is invincible for 30 frames from the start of the hang. The count does not stop when {char} lets go, so each frame spent getting onto the stage uses it up.",
+          "To let go, push the stick down or away from the stage. The game takes it only after one frame of the hang with the stick at rest. Then the double jump: press X or Y on the next frame, the first frame {char} can."
+        ],
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "jump",
+                "frame": 2,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 2,
+                "hold": "LD-2"
+              },
+              {
+                "stick": [
+                  0.7,
+                  -0.7
+                ],
+                "frame": "LD",
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "LD",
+                "hold": 1
+              }
+            ],
+            "frame": 0,
+            "cue": {
+              "words": "Hanging: invincible for 30 frames from the start of the hang",
+              "kind": "info"
+            },
+            "inputs_for": {
+              "mewtwo": [
+                {
+                  "stick": [
+                    0,
+                    -1
+                  ],
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "press": "jump",
+                  "frame": 2,
+                  "hold": 1
+                },
+                {
+                  "stick": [
+                    1,
+                    0
+                  ],
+                  "frame": 2,
+                  "hold": "LD-2"
+                },
+                {
+                  "stick": [
+                    0.6,
+                    -0.8
+                  ],
+                  "frame": "LD",
+                  "hold": 1
+                },
+                {
+                  "press": "R",
+                  "frame": "LD",
+                  "hold": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "title": "Air dodge onto the stage",
+        "text": [
+          "Once {char} has risen above the stage, an air dodge down and toward it touches down at once, and {char} lands in 10 frames of landing lag. For {char} that is frame {LD}, counting the let-go as 1. Pressed earlier, while {char} is still below the stage, the air dodge hits its side and {char} falls helpless. Aim the stick about 45 degrees below level. Mewtwo needs a steeper angle, about 53 degrees: at 45 his air dodge touches down a frame later, and none of his invincibility is left after the landing lag.",
+          "Invincibility left after the 10 frames of landing lag is time {char} can act and cannot be hit. Each frame of delay before the double jump or the air dodge takes a frame from it. How much is left depends on the double jump: Peach's sinks before it rises, so none of hers is left after the landing lag, and this drill is not offered for her."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0,
+                  -1
+                ],
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "press": "jump",
+                "frame": 2,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 2,
+                "hold": "LD-2"
+              },
+              {
+                "stick": [
+                  0.7,
+                  -0.7
+                ],
+                "frame": "LD",
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "LD",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: stick down. {char} lets go of the ledge",
+              "2": "Frame 2: X pressed, stick toward the stage. Double jump",
+              "LD": "Frame {LD}: above the stage. R pressed, stick down and toward the stage",
+              "LD+2": "Frame {f}: landing lag. Still invincible"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  1
+                ],
+                "words": "Let go",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  2,
+                  2
+                ],
+                "words": "Double jump",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  3,
+                  "LD-1"
+                ],
+                "words": "Rising toward the stage",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "LD",
+                  "LD"
+                ],
+                "words": "Air dodge onto the stage",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "LD+2",
+                  "LD+9"
+                ],
+                "words": "Landing lag: 10 frames, invincible",
+                "kind": "info"
+              }
+            ],
+            "inputs_for": {
+              "mewtwo": [
+                {
+                  "stick": [
+                    0,
+                    -1
+                  ],
+                  "frame": 1,
+                  "hold": 1
+                },
+                {
+                  "press": "jump",
+                  "frame": 2,
+                  "hold": 1
+                },
+                {
+                  "stick": [
+                    1,
+                    0
+                  ],
+                  "frame": 2,
+                  "hold": "LD-2"
+                },
+                {
+                  "stick": [
+                    0.6,
+                    -0.8
+                  ],
+                  "frame": "LD",
+                  "hold": 1
+                },
+                {
+                  "press": "R",
+                  "frame": "LD",
+                  "hold": 1
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "example_for": {
+      "mewtwo": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 2,
+          "hold": "LD-2"
+        },
+        {
+          "stick": [
+            0.6,
+            -0.8
+          ],
+          "frame": "LD",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "LD",
+          "hold": 1
+        }
+      ]
+    }
+  },
+  "scenarios": [
+    {
+      "name": "On the ledge",
+      "stage": "final-destination",
+      "player": {
+        "ledge": "left"
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "leaves": "ledge",
+      "to": "fall"
+    },
+    "judge": {
+      "frame": 60
+    }
+  },
+  "measures": {
+    "jump_after": {
+      "frames": [
+        {
+          "leaves": "ledge"
+        },
+        {
+          "pressed": "jump"
+        }
+      ]
+    },
+    "onto": {
+      "happened": [
+        {
+          "enters": "landing_special",
+          "from": "air_dodge"
+        },
+        {
+          "enters": "landing_special",
+          "from": "double_jump"
+        },
+        {
+          "enters": "landing_special",
+          "from": "fall"
+        }
+      ]
+    },
+    "inv": {
+      "frames_while": "invulnerable",
+      "from": "lands"
+    }
+  },
+  "verdict": {
+    "success": "Ledgedash. Frames of invincibility left after the landing lag: {inv-10}."
+  },
+  "checks": {
+    "jump at once": {
+      "measure": "jump_after",
+      "at_most": 1,
+      "expect": "Double jump on the frame after the let-go",
+      "words": "X or Y pressed {frames} after the let-go",
+      "headline": "Late double jump",
+      "fix": "Press X or Y on the frame after the stick lets go of the ledge. Each frame spent falling first is a frame of invincibility gone, and {char} has further to rise."
+    },
+    "onto the stage": {
+      "measure": "onto",
+      "equals": true,
+      "expect": "An air dodge that lands on the stage",
+      "words": "no air dodge landed on the stage",
+      "headline": "No landing on the stage",
+      "fix": "Air dodge down and toward the stage on frame {LD} or later, once {char} has risen above it. Below the stage, the air dodge hits its side and {char} falls helpless."
+    },
+    "invincible": {
+      "measure": "inv",
+      "at_least": 11,
+      "expect": "Invincibility left after the landing lag",
+      "words": "invincible for {frames} from the landing; the landing lag takes 10",
+      "headline": "No invincibility left after the landing lag",
+      "fix": "Let go of the ledge as soon as you can, double jump on the next frame, and air dodge on frame {LD}, the first frame {char} is above the stage. The invincibility counts down from the start of the hang: each frame of delay takes a frame from the end of the landing lag."
+    }
+  },
+  "parts": [
+    {
+      "name": "Let go and jump",
+      "teach": "Tap the stick down to let go, and press X on the next frame with the stick toward the stage: a double jump as soon as {char} can.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 2,
+          "hold": 20
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: stick down. {char} lets go",
+        "2": "Frame 2: double jump"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "Let go",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            2,
+            2
+          ],
+          "words": "Double jump",
+          "kind": "go"
+        }
+      ],
+      "checks": [
+        "jump at once"
+      ],
+      "success": "Double jump on the frame after the let-go.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Let go",
+            "stick": "down",
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              1
+            ]
+          },
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": false,
+            "perfect": [
+              2
+            ],
+            "window": [
+              2,
+              2
+            ]
+          }
+        ],
+        "note": "Press X or Y on the frame after the let-go."
+      }
+    },
+    {
+      "name": "Air dodge onto the stage",
+      "teach": "Let go, double jump, and once {char} is above the stage, from frame {LD}, press R with the stick down and toward it. {char} lands out of the air dodge.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 2,
+          "hold": "LD-2"
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": "LD",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "LD",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: stick down. {char} lets go of the ledge",
+        "2": "Frame 2: X pressed, stick toward the stage. Double jump",
+        "LD": "Frame {LD}: above the stage. R pressed, stick down and toward the stage",
+        "LD+2": "Frame {f}: landing lag. Still invincible"
+      },
+      "checks": [
+        "jump at once",
+        "onto the stage"
+      ],
+      "success": "Ledgedash: {char} landed on the stage out of the air dodge.",
+      "streak": 3,
+      "example_for": {
+        "mewtwo": [
+          {
+            "stick": [
+              0,
+              -1
+            ],
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "press": "jump",
+            "frame": 2,
+            "hold": 1
+          },
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 2,
+            "hold": "LD-2"
+          },
+          {
+            "stick": [
+              0.6,
+              -0.8
+            ],
+            "frame": "LD",
+            "hold": 1
+          },
+          {
+            "press": "R",
+            "frame": "LD",
+            "hold": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "Invincibility left",
+      "teach": "Let go, double jump on the next frame, and air dodge on frame {LD}, the first frame above the stage. {char} has to be invincible still when the 10 frames of landing lag end.",
+      "example": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 2,
+          "hold": "LD-2"
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": "LD",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "LD",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: stick down. {char} lets go of the ledge",
+        "2": "Frame 2: X pressed, stick toward the stage. Double jump",
+        "LD": "Frame {LD}: above the stage. R pressed, stick down and toward the stage",
+        "LD+2": "Frame {f}: landing lag. Still invincible"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            1
+          ],
+          "words": "Let go",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            2,
+            2
+          ],
+          "words": "Double jump",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            3,
+            "LD-1"
+          ],
+          "words": "Rising toward the stage",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "LD",
+            "LD"
+          ],
+          "words": "Air dodge onto the stage",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "LD+2",
+            "LD+9"
+          ],
+          "words": "Landing lag: 10 frames, invincible",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "jump at once",
+        "onto the stage",
+        "invincible"
+      ],
+      "streak": 5,
+      "example_for": {
+        "mewtwo": [
+          {
+            "stick": [
+              0,
+              -1
+            ],
+            "frame": 1,
+            "hold": 1
+          },
+          {
+            "press": "jump",
+            "frame": 2,
+            "hold": 1
+          },
+          {
+            "stick": [
+              1,
+              0
+            ],
+            "frame": 2,
+            "hold": "LD-2"
+          },
+          {
+            "stick": [
+              0.6,
+              -0.8
+            ],
+            "frame": "LD",
+            "hold": 1
+          },
+          {
+            "press": "R",
+            "frame": "LD",
+            "hold": 1
+          }
+        ]
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "double jump 3 frames late",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 4,
+          "hold": "LD-1"
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": "LD+3",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "LD+3",
+          "hold": 1
+        }
+      ],
+      "fails": "jump at once"
+    },
+    {
+      "name": "air dodge below the stage",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 2,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 3,
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": 3,
+          "hold": 1
+        }
+      ],
+      "fails": "onto the stage"
+    },
+    {
+      "name": "let go 15 frames late",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 16,
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 17,
+          "hold": 1
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 17,
+          "hold": "LD-2"
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": "LD+15",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "LD+15",
+          "hold": 1
+        }
+      ],
+      "fails": "invincible"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Let go",
+        "stick": "down",
+        "perfect": [
+          1
+        ],
+        "window": [
+          1,
+          1
+        ]
+      },
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": false,
+        "perfect": [
+          2
+        ],
+        "window": [
+          2,
+          2
+        ]
+      },
+      {
+        "label": "L or R",
+        "button": "shield",
+        "held": false,
+        "perfect": [
+          "LD"
+        ],
+        "window": [
+          "LD",
+          "LD"
+        ]
+      }
+    ],
+    "note": "Let go, double jump on the next frame, and air dodge on frame {LD}, the first frame {char} is above the stage."
+  }
+}
