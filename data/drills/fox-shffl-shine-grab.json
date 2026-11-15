@@ -14,7 +14,7 @@
       "height": 8
     },
     "what": "A SHFFL shine grab is a SHFFL, a shine on the first frame after the landing lag, a jump out of the shine on its frame {4}, and Z on the next frame, before Fox leaves the ground.",
-    "expect": "Each attempt is judged when the grab comes out: the SHFFL, the shine's timing after the landing lag, the jump out of the shine and the grab. After misses, the coach shows your inputs frame by frame against these frames.",
+    "expect": "Each attempt is judged when the grab comes out: the SHFFL, the shine's timing after the landing lag, the jump out of the shine and the grab. After misses, the coach shows your inputs frame by frame against these frames. A jump out of the shine that lands without an aerial is not counted.",
     "example": [
       {
         "press": "jump",
@@ -334,7 +334,8 @@
     },
     "judge": [
       {
-        "enters": "grab"
+        "enters": "grab",
+        "after": "lands"
       },
       {
         "is": "airborne",
@@ -345,6 +346,116 @@
       {
         "leaves": "shine",
         "to": "wait"
+      },
+      {
+        "leaves": "shine",
+        "to": "squat"
+      },
+      {
+        "is": "airborne",
+        "after": "lands"
+      },
+      {
+        "enters": "landing",
+        "after": [
+          {
+            "enters": "jump_squat",
+            "from": "wait"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "squat"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "landing"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "turn"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "turn_run"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "dash"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "run"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "run_brake"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "shield"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "teeter"
+          }
+        ]
+      },
+      {
+        "enters": "landing_special",
+        "after": [
+          {
+            "enters": "jump_squat",
+            "from": "wait"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "squat"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "landing"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "turn"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "turn_run"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "dash"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "run"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "run_brake"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "shield"
+          },
+          {
+            "enters": "jump_squat",
+            "from": "teeter"
+          }
+        ]
+      }
+    ],
+    "cancel": [
+      {
+        "leaves": "jump_squat",
+        "on_ground": true
+      },
+      {
+        "enters": "landing"
+      },
+      {
+        "enters": "landing_special"
       }
     ],
     "limit": 70,
@@ -360,6 +471,11 @@
     "fast_fell": {
       "happened": "fast_fall"
     },
+    "landing_lag": {
+      "happened": {
+        "enters": "aerial_landing"
+      }
+    },
     "land_frame": {
       "frame_of": "lands"
     },
@@ -368,6 +484,11 @@
         "in": "aerial_landing"
       },
       "from": "lands"
+    },
+    "free_frame": {
+      "frame_of": {
+        "leaves": "aerial_landing"
+      }
     },
     "shined": {
       "happened": {
@@ -418,7 +539,7 @@
     }
   },
   "verdict": {
-    "success": "SHFFL shine grab. Shine on frame {shine_frame}, grab on frame {grab_frame}."
+    "success": "SHFFL shine grab. Shine on frame {shine_frame} (the first possible: {free_frame}), grab on frame {grab_frame}."
   },
   "checks": {
     "short hop": {
@@ -445,6 +566,14 @@
       "headline": "No fast fall",
       "fix": "Tap the control stick down once {char} starts to fall, from frame {SA} of the short hop. The aerial does not stop a fast fall."
     },
+    "with landing lag": {
+      "measure": "landing_lag",
+      "equals": true,
+      "expect": "Land during the aerial",
+      "words": "landed with no aerial landing lag",
+      "headline": "No landing lag",
+      "fix": "Land while the aerial is still out: press A or the C-stick once {char} is off the ground, from frame {J+1}. An aerial that has ended, or that has only just begun, lands with no landing lag, and the shine is timed from the end of that lag."
+    },
     "l-cancel": {
       "measure": "lag",
       "at_most": 11,
@@ -457,21 +586,21 @@
       "measure": "shined",
       "equals": true,
       "expect": "A shine after landing",
-      "words": "no shine after landing",
+      "words": "no shine after the landing lag",
       "headline": "No shine",
-      "fix": "Press down-B on the first frame after the landing lag. Down-B pressed during the landing lag is ignored."
+      "fix": "Press down-B on the first frame after the landing lag. Down-B pressed during the lag is ignored, and holding B does not carry it over: press it again."
     },
     "shine in time": {
       "measure": "shine_gap",
       "at_most": 1,
       "expect": "Shine within {1} frame of the landing lag's end",
-      "words": "shine {frames} after the landing lag",
+      "words": "late by {frames}: the shine came on frame {shine_frame}, the first frame it could was {free_frame}",
       "headline": "Late shine",
-      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air.",
+      "fix": "Press down-B on the first frame after the landing lag: {7} frames after landing for an L-cancelled neutral air, {9} for down air. Pressed during the lag it is ignored.",
       "strict": {
         "equals": 0,
         "expect": "Shine on the first frame after the landing lag",
-        "fix": "Press down-B on the first frame after the landing lag: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+        "fix": "Press down-B on the first frame after the landing lag, not a frame later: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
       }
     },
     "jumped": {
@@ -486,7 +615,7 @@
       "measure": "shine_to_jump",
       "at_most": 5,
       "expect": "Jump on frame {4}, {5} or {6} of the shine",
-      "words": "jumped {frames} after the shine",
+      "words": "jumped on frame {shine_to_jump+1} of the shine; the first that accepts a jump is frame {4}",
       "headline": "Late jump",
       "fix": "Press X or Y {3} frames after down-B. Frame {4} of the shine is the first that accepts a jump.",
       "strict": {
@@ -579,19 +708,42 @@
         }
       ],
       "attempt": {
-        "judge": {
-          "enters": "shine_ground"
-        }
+        "judge": [
+          {
+            "enters": "shine_ground"
+          },
+          {
+            "is": "airborne",
+            "after": "lands"
+          },
+          {
+            "enters": "landing"
+          },
+          {
+            "enters": "landing_special"
+          }
+        ],
+        "cancel": [
+          {
+            "leaves": "jump_squat",
+            "on_ground": true
+          },
+          {
+            "enters": "jump_squat",
+            "from": "shine"
+          }
+        ]
       },
       "checks": [
         "short hop",
         "aerial",
         "fast fall",
+        "with landing lag",
         "l-cancel",
         "shined",
         "shine in time"
       ],
-      "success": "SHFFL shine. Landing lag {lag_frames}, shine on frame {shine_frame}.",
+      "success": "SHFFL shine. Landing lag {lag_frames}, shine on frame {shine_frame} (the first possible: {free_frame}).",
       "streak": 3,
       "coach": {
         "rows": [
@@ -727,6 +879,10 @@
           {
             "leaves": "shine",
             "to": "wait"
+          },
+          {
+            "leaves": "shine",
+            "to": "squat"
           }
         ],
         "cancel": "hit",
@@ -844,6 +1000,7 @@
         "short hop",
         "aerial",
         "fast fall",
+        "with landing lag",
         "l-cancel",
         "shined",
         "shine in time",
@@ -978,6 +1135,139 @@
         }
       ],
       "fails": "jumped"
+    },
+    {
+      "name": "jump held through the squat: full hop",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": "J"
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "FA-1",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "FA+8",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "FA+16"
+        },
+        {
+          "press": "B",
+          "frame": "FA+16"
+        }
+      ],
+      "fails": "short hop"
+    },
+    {
+      "name": "no shine, then the next jump",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": "J+1",
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": "SA",
+          "hold": 3
+        },
+        {
+          "press": "L",
+          "frame": "SA+2",
+          "hold": 1
+        },
+        {
+          "press": "jump",
+          "frame": 30,
+          "hold": 1
+        },
+        {
+          "press": "A",
+          "frame": 33,
+          "hold": 1
+        }
+      ],
+      "fails": "shined"
+    },
+    {
+      "name": "jump on frame 7 of the shine",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 7,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": 8,
+          "hold": 1
+        }
+      ],
+      "fails": "jump in time"
+    },
+    {
+      "name": "Z once Fox is in the air",
+      "inputs": [
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 1
+        },
+        {
+          "press": "B",
+          "frame": 1
+        },
+        {
+          "press": "jump",
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "press": "Z",
+          "frame": "J+4",
+          "hold": 1
+        }
+      ],
+      "fails": "grabbed"
     }
   ],
   "coach": {
