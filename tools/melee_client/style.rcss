@@ -31,8 +31,10 @@ span { display: inline; }
 
 .header { position: absolute; left: 0dp; top: 0dp; width: 1280dp; height: 84dp; display: flex; flex-direction: row; }
 .plate { margin-left: -14dp; padding: 0dp 40dp 0dp 62dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-12deg); display: flex; flex-direction: row; align-items: center; }
-.title { transform: skewX(12deg); font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 46dp; text-transform: uppercase; letter-spacing: 1dp; }
-.title .dim { color: #A9B4C2; }
+.titles { transform: skewX(12deg); display: flex; flex-direction: column; justify-content: center; }
+.title { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 46dp; line-height: 1.0em; text-transform: uppercase; letter-spacing: 1dp; white-space: nowrap; }
+/* the screens above this one, over its name */
+.trail { font-family: "Barlow Condensed"; font-weight: 700; font-style: italic; font-size: 17dp; line-height: 1.0em; text-transform: uppercase; letter-spacing: 2dp; color: #A9B4C2; white-space: nowrap; margin-bottom: 4dp; }
 .stripe { width: 14dp; margin-left: 8dp; transform: skewX(-12deg); }
 .who { display: flex; flex-direction: row; align-items: center; padding-right: 48dp; font-weight: 600; font-size: 15dp; }
 .who .port { font-family: "IBM Plex Mono"; font-style: normal; font-size: 13dp; color: #4A5361; margin-right: 10dp; }

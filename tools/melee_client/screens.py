@@ -285,11 +285,15 @@ def key(letter, dark=False, wide=False):
 
 def header(crumbs, tag=None):
     """`crumbs`: where this screen is, the last being the screen itself.
-    `tag`: (text, colour, text colour) for the character being trained."""
-    words = []
-    for c in crumbs[:-1]:
-        words.append('<span class="dim">%s / </span>' % esc(c))
-    words.append(esc(crumbs[-1]))
+    `tag`: (text, colour, text colour) for the character being trained.
+    The screens above it are a small line over its name (the owner,
+    2026-11-14: "The breadcrumb menu doesn't work with this much nesting":
+    TRAIN / FOX / TECH SKILL / FUNDAMENTALS in the title's type did not
+    fit)."""
+    trail = ""
+    if len(crumbs) > 1:
+        trail = '<div class="trail">%s</div>' % " / ".join(
+            esc(c) for c in crumbs[:-1])
     stripes = "".join('<div class="stripe" style="background-color: %s"/>'
                       % PART_COLOR[p] for p in PART_COLOR)
     who = ""
@@ -303,9 +307,10 @@ def header(crumbs, tag=None):
             '<div class="layout">Default layout</div>')
     # (no ruler of ticks under it: the owner, 2026-11-14, "delete the weird
     # ruler marks near the top of every window")
-    return ('<div class="header"><div class="plate"><div class="title">%s'
-            '</div></div>%s<div class="grow"/><div class="who">%s</div></div>'
-            % ("".join(words), stripes, who))
+    return ('<div class="header"><div class="plate"><div class="titles">'
+            '%s<div class="title">%s</div></div></div>%s<div class="grow"/>'
+            '<div class="who">%s</div></div>'
+            % (trail, esc(crumbs[-1]), stripes, who))
 
 
 def footer(text, hints, tab="#F3F6FA"):
@@ -1261,9 +1266,7 @@ def drill_list(c, course, part, here, progress, at, top, cat=None):
             PART_CLASS[p], " on" if p == part else "", title(p),
             len(course["parts"][p])) for p in PARTS)
     body = (
-        # (in a category, the first crumb gives way: four do not fit)
-        header(([] if cat else ["Train"]) + [c["name"], title(part)] +
-               ([cat] if cat else []),
+        header(["Train", c["name"], title(part)] + ([cat] if cat else []),
                tag=(c["name"], c["color"], c["fg"])) +
         '<div class="tabs">' + key("L", dark=True, wide=True) + tabs +
         key("R", dark=True, wide=True) + '</div>'
