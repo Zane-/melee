@@ -13,8 +13,12 @@ it"; and a drill says whether a CPU is spawned and how the camera behaves ("for 
 there is no CPU needed here and the camera should track the player but be zoomed out a
 little bit so it doesn't feel jarring").
 
-The old drills were wiped (2026-11-14) and are rebuilt in this format one at a time with the
-owner, Tech first. Done: `universal-short-hop`.
+The old drills were wiped (2026-11-14) and are rebuilt in this format. Done (2026-11-14):
+Tech skill, all three subcourses: Movement (short hop, fast fall, dash dance, wavedash,
+waveland, pivot, ledgedash), Fundamentals (L-cancel, SHFFL, jump-cancel grab and up smash,
+DI, SDI, ASDI, shield drop, edge cancel, slide off) and Fox's Character (waveshine, shine
+grab, SHFFL shine and shine grab, jump-cancel shine, multishine, shortened Illusion, Firefox
+angles, ledge stall, double laser), each passing `check.py`; the owner's QA is next.
 
 ## Where things are
 
@@ -229,8 +233,7 @@ tutorial's examples are filmed closer (90), to see the crouch.
 
 ## Next
 
-The rest of the Tech part, one at a time with the owner: the wavedash in parts (the jump;
-an air dodge into the ground from a short hop's top; the air dodge on the first airborne
-frame; angle and length), L-cancel, SHFFL, dash dance, the jump-cancelled grab and up smash,
-the shield drop, the ledgedash. Words added as they need them (an air dodge's frame, the
-slide, the landing lag, the stick's angle).
+The owner plays and QAs the 27 Tech skill drills; then the Punish, Defense and Neutral parts
+in the format. Known runtime issues found while writing them: a reset during an opponent's
+sliding attack can leave it slightly off its mark (`universal-di` judges late to avoid it);
+the Ice Climbers' partner is not moved by a reset (`universal-sdi` allows 4 hits for it).

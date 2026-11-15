@@ -38,43 +38,43 @@ plan table, numbered from 1. Drills are written in the drill format (`data/drill
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 1 | `universal-short-hop` | Short hop | Short hop ten times in a row | none | - | - | implemented: `drills/tech_short_hop.inc.h`; simulator and Dolphin specs pass (2026-11-12). Press length shown in the verdict | implemented: `data/drills/universal-short-hop.json` |
-| 2 | `universal-fast-fall` | Fast fall | Fast fall at the top of a jump | none | - | - | - | planned |
-| 3 | `universal-dash-dance` | Dash dance | Dash back and forth without breaking into a run | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): switches counted, longest dance kept, light-ray targets; the C still counts to a number of dashes | planned |
-| 4 | `universal-wavedash` | Wavedash | Air dodge into the ground on the first frame in the air | none | - | - | implemented: `drills/tech_wavedash.inc.h`; simulator and Dolphin specs pass (2026-11-12). Chosen length / angle not built | planned |
-| 5 | `universal-waveland` | Waveland | Air dodge into the stage or a platform as you land | none | - | - | - | planned |
-| 6 | `universal-pivot` | Pivot | Turn around out of a dash and stand still | none | - | - | - | planned |
-| 7 | `universal-ledgedash` | Ledgedash | Land on the stage from the ledge with invincibility left | none | - | - | implemented on Final Destination's left ledge: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Fox only checked. Native (2026-11-13): starts on the ledge, falling, on the stage or on a respawn platform; a regrab is a refresh, not a failure | planned |
+| 1 | `universal-short-hop` | Short hop | Short hop ten times in a row | none | - | - | implemented: `drills/tech_short_hop.inc.h`; simulator and Dolphin specs pass (2026-11-12). Press length shown in the verdict | drill format: `data/drills/universal-short-hop.json` |
+| 2 | `universal-fast-fall` | Fast fall | Fast fall at the top of a jump | none | - | - | - | drill format: `data/drills/universal-fast-fall.json` |
+| 3 | `universal-dash-dance` | Dash dance | Dash back and forth without breaking into a run | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): switches counted, longest dance kept, light-ray targets; the C still counts to a number of dashes | drill format: `data/drills/universal-dash-dance.json` |
+| 4 | `universal-wavedash` | Wavedash | Air dodge into the ground on the first frame in the air | none | - | - | implemented: `drills/tech_wavedash.inc.h`; simulator and Dolphin specs pass (2026-11-12). Chosen length / angle not built | drill format: `data/drills/universal-wavedash.json` |
+| 5 | `universal-waveland` | Waveland | Air dodge into the stage or a platform as you land | none | - | - | - | drill format: `data/drills/universal-waveland.json` |
+| 6 | `universal-pivot` | Pivot | Turn around out of a dash and stand still | none | - | - | - | drill format: `data/drills/universal-pivot.json` |
+| 7 | `universal-ledgedash` | Ledgedash | Land on the stage from the ledge with invincibility left | none | - | - | implemented on Final Destination's left ledge: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Fox only checked. Native (2026-11-13): starts on the ledge, falling, on the stage or on a respawn platform; a regrab is a refresh, not a failure | drill format: `data/drills/universal-ledgedash.json` |
 
 ### Fundamentals
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 1 | `universal-l-cancel` | L-cancel | Halve an aerial's landing lag | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) | planned |
-| 2 | `universal-shffl` | SHFFL | Short hop, aerial, fast fall and L-cancel in one motion | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) | planned |
-| 3 | `universal-jc-grab` | Jump-cancel grab | A standing grab out of a dash | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): an up smash is not counted (its own drill below) | planned |
-| 4 | `universal-jc-upsmash` | Jump-cancel up smash | An up smash out of a dash | none | - | - | native only (2026-11-13, the owner: "JC up smash should be its own drill below JC grab"): `tools/melee_course/drills/tech_movement.py`; no C drill in the overlay | planned |
-| 5 | `universal-di` | Directional Influence (DI) | Change your launch angle with the control stick | hits you | - | - | - | planned |
-| 6 | `universal-sdi` | Smash DI (SDI) | Move out of a multi-hit attack during hitlag | hits you | - | - | - | planned |
-| 7 | `universal-asdi` | Automatic SDI (ASDI) | Shift your position at the end of hitlag | hits you | - | - | - | planned |
-| 8 | `universal-shield-drop` | Shield drop | Drop through a platform out of shield | none | - | - | implemented on Battlefield's left platform: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Native (2026-11-13): left, top and right platforms, standing, dropping onto it or jumping up to it, on four stages (L/R held 5 s) | planned |
-| 9 | `universal-edge-cancel` | Edge cancel | Slide off the edge during an aerial's landing lag | none | - | - | - | planned |
-| 10 | `universal-slide-off` | Slide off | Slide off a platform during landing lag | none | - | - | - | planned |
+| 1 | `universal-l-cancel` | L-cancel | Halve an aerial's landing lag | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) | drill format: `data/drills/universal-l-cancel.json` |
+| 2 | `universal-shffl` | SHFFL | Short hop, aerial, fast fall and L-cancel in one motion | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12). Demonstrations succeed for every character but Mr. Game & Watch's three aerials that cannot be L-cancelled (simulator and native, 2026-11-13) | drill format: `data/drills/universal-shffl.json` |
+| 3 | `universal-jc-grab` | Jump-cancel grab | A standing grab out of a dash | none | - | - | implemented: `drills/tech_movement.inc.h`; simulator and Dolphin specs pass (2026-11-12); demonstration passes for all 26 characters. Native (2026-11-13): an up smash is not counted (its own drill below) | drill format: `data/drills/universal-jc-grab.json` |
+| 4 | `universal-jc-upsmash` | Jump-cancel up smash | An up smash out of a dash | none | - | - | native only (2026-11-13, the owner: "JC up smash should be its own drill below JC grab"): `tools/melee_course/drills/tech_movement.py`; no C drill in the overlay | drill format: `data/drills/universal-jc-upsmash.json` |
+| 5 | `universal-di` | Directional Influence (DI) | Change your launch angle with the control stick | hits you | - | - | - | drill format: `data/drills/universal-di.json` |
+| 6 | `universal-sdi` | Smash DI (SDI) | Move out of a multi-hit attack during hitlag | hits you | - | - | - | drill format: `data/drills/universal-sdi.json` |
+| 7 | `universal-asdi` | Automatic SDI (ASDI) | Shift your position at the end of hitlag | hits you | - | - | - | drill format: `data/drills/universal-asdi.json` |
+| 8 | `universal-shield-drop` | Shield drop | Drop through a platform out of shield | none | - | - | implemented on Battlefield's left platform: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12). Native (2026-11-13): left, top and right platforms, standing, dropping onto it or jumping up to it, on four stages (L/R held 5 s) | drill format: `data/drills/universal-shield-drop.json` |
+| 9 | `universal-edge-cancel` | Edge cancel | Slide off the edge during an aerial's landing lag | none | - | - | - | drill format: `data/drills/universal-edge-cancel.json` |
+| 10 | `universal-slide-off` | Slide off | Slide off a platform during landing lag | none | - | - | - | drill format: `data/drills/universal-slide-off.json` |
 
 ### Character
 
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
-| 1 | `fox-waveshine` | Waveshine | Shine, jump out of it, and wavedash | none | - | - | implemented without a target: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). Passive target not built. Native (2026-11-13): up to 5 frames late counts by default | planned |
-| 2 | `fox-shine-grab` | Shine grab | Shine, jump out of it, and grab during jump squat | none | - | - | implemented on a shielding Marth: `drills/fox_pressure.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
-| 3 | `fox-shffl-shine` | SHFFL shine | SHFFL an aerial, then shine as you land | none | - | - | - | planned |
-| 4 | `fox-shffl-shine-grab` | SHFFL shine grab | SHFFL an aerial, shine as you land, then grab | none | - | - | - | planned |
-| 5 | `fox-jc-shine` | Jump-cancel shine | Jump out of a dash and shine as you leave the ground | none | - | - | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
-| 6 | `fox-multishine` | Multishine | Jump out of each shine and shine again as you leave the ground | none | - | - | implemented without a shield: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). On-shield variant not built | planned |
-| 7 | `fox-shorten` | Shortened Illusion | Stop Illusion at the length you choose | none | - | - | - | planned |
-| 8 | `fox-firefox-angles` | Firefox angles | Recover with Firefox at the angle each position needs | none | - | - | - | planned |
-| 9 | `fox-ledge-stall` | Firefox ledge stall | Drop from the ledge and grab it again with Firefox | none | - | - | implemented: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12) | planned |
-| 10 | `fox-double-laser` | Double laser | Two lasers in one short hop | none | - | - | - | planned |
+| 1 | `fox-waveshine` | Waveshine | Shine, jump out of it, and wavedash | none | - | - | implemented without a target: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). Passive target not built. Native (2026-11-13): up to 5 frames late counts by default | drill format: `data/drills/fox-waveshine.json` |
+| 2 | `fox-shine-grab` | Shine grab | Shine, jump out of it, and grab during jump squat | none | - | - | implemented on a shielding Marth: `drills/fox_pressure.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-shine-grab.json` |
+| 3 | `fox-shffl-shine` | SHFFL shine | SHFFL an aerial, then shine as you land | none | - | - | - | drill format: `data/drills/fox-shffl-shine.json` |
+| 4 | `fox-shffl-shine-grab` | SHFFL shine grab | SHFFL an aerial, shine as you land, then grab | none | - | - | - | drill format: `data/drills/fox-shffl-shine-grab.json` |
+| 5 | `fox-jc-shine` | Jump-cancel shine | Jump out of a dash and shine as you leave the ground | none | - | - | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-jc-shine.json` |
+| 6 | `fox-multishine` | Multishine | Jump out of each shine and shine again as you leave the ground | none | - | - | implemented without a shield: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). On-shield variant not built | drill format: `data/drills/fox-multishine.json` |
+| 7 | `fox-shorten` | Shortened Illusion | Stop Illusion at the length you choose | none | - | - | - | drill format: `data/drills/fox-shorten.json` |
+| 8 | `fox-firefox-angles` | Firefox angles | Recover with Firefox at the angle each position needs | none | - | - | - | drill format: `data/drills/fox-firefox-angles.json` |
+| 9 | `fox-ledge-stall` | Firefox ledge stall | Drop from the ledge and grab it again with Firefox | none | - | - | implemented: `drills/tech_ledge.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-ledge-stall.json` |
+| 10 | `fox-double-laser` | Double laser | Two lasers in one short hop | none | - | - | - | drill format: `data/drills/fox-double-laser.json` |
 
 TM-CE already has events for some of these (wavedash, L-cancel, ledgedash, legacy
 Multishine, shield drop).
