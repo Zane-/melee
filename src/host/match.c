@@ -40,6 +40,7 @@
 
 HostMatch host_match = {
     .ckind = { 2, 9, -1, -1 }, /* Fox, Marth */
+    .level = { 9, 9, 9, 9 },
     .human = { 1, 1, 0, 0 },
     .stage = 0x20, /* Final Destination */
     .seed = 1,
@@ -179,6 +180,11 @@ static void on_enter(GameModeState* state)
             p->ckind = (s8) host_match.ckind[i];
             p->color = (u8) host_match.color[i];
             p->slot_type = host_match.human[i] ? Gm_PKind_Human : Gm_PKind_Cpu;
+            if (!host_match.human[i]) {
+                /* the level the game's own select gives a CPU */
+                p->cpu_level = (u8) (host_match.level[i] ? host_match.level[i]
+                                                         : 9);
+            }
             /* a person's controller rumbles, as the game's own default
                (gm_LoadRumbleEnabled: humans only); whether it reaches
                the controller is the host's setting (window.c), so both

@@ -344,6 +344,28 @@ player keeps; drills and the Lab keep it as it was. `tests/client/stage_select.p
 checks); `menu.py`, `versus.py`, `course.py`, `sound.py`, `portraits.py`, `fullscreen.py`,
 `settings_menu.py` and `online.py` follow the new layout.
 
+**The classic character select, up to four players (2026-11-14).** The owner: "build it
+more like the classic character selection where there is a single grid of characters and
+then the port cards below it! This should allow me to add CPUs at will ... the stock CPU
+selector doesn't have a way to select the level. Also the AI model should start to get
+preloaded as soon as the characters are locked in"; eight players asked for too, kept for
+later (the owner chose four now: the game's engine has 6 player slots, 4 controller ports,
+a HUD and spawn points for 4). Local Versus opens one grid of the characters (nine to a
+row) and a card per port below it (`screens.versus_select`, `Client.show_vselect`): P1
+yours; the others the game's CPU at a level (1 to 9), a trained model (its list for the
+pairing), a dummy, or a second controller (the GameCube adapter's port of the same number,
+or the next SDL controller), or removed; the card after the ports adds one, up to four (two
+in a 1v1 mode). A in the grid gives the character to the port in turn; A on a card opens
+its options; Y its costume; START with every port's character goes on. Then each model
+port's process starts loading (`vpreload`), on the stage select, and is told the stage
+when the match starts (`Bot.tell_stage`; the policy server's `{"stage"}`); the processes
+stay for the next match and close when Versus is left. The host's `vsslots L1 L2 [C3 H3 L3
+[C4 H4 L4]]` (sent by `Native.match` before every match, two players by default) sets
+players 3 and 4 and the CPU levels (`PlayerInitData.cpu_level`); `state()` lists 3 or 4
+fighters only in such a match. The Lab, Train and Online keep their select.
+`tests/client/versus_select.py`; `tests/client/vselkeys.py` drives it for the other tests
+(`versus.py`, `stage_select.py`, `versus_modes.py`, `rules.py`).
+
 **Every stage, and a toggle (2026-11-14).** The owner: "add support for all stages in
 melee in the same way we supported the legal stages? Then in stage select have a toggle
 between all and legal!". All 29 stages of the game's VS select are in `stages.STAGES`, in

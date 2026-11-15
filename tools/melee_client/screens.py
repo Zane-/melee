@@ -586,6 +586,126 @@ def character_select(roster, focus, title="Choose your character",
     return page("Character select", body)
 
 
+# ---- versus: the classic select (one grid, a card per port) --------------------
+
+# (the owner, 2026-11-14: "more like the classic character selection where
+# there is a single grid of characters and then the port cards below it!
+# This should allow me to add CPUs at will")
+VCOLUMNS = 9                 # the grid's places to a row, as the game's
+PORT_TINT = ("#E5484D", "#3E7BFA", "#F5BE1B", "#2BB673")   # as .pvp's
+PORT_INK = ("#FFFFFF", "#FFFFFF", "#12161C", "#FFFFFF")
+# what a port's player is, as its chip says it
+KIND_CHIP = {"you": "YOU", "human": "HMN", "cpu": "CPU", "model": "AI",
+             "dummy": "DUMMY"}
+
+
+def vtile(i, c, focus, marks):
+    """A place in the grid: the character's panel, and a small tag for
+    each port that has chosen it (`marks`: port numbers)."""
+    tags = "".join('<div class="vmark" style="background-color: %s; color: '
+                   '%s">P%d</div>' % (PORT_TINT[p], PORT_INK[p], p + 1)
+                   for p in marks)
+    return ('<div id="c%d" class="char vchar%s" style="background-color: '
+            '%s">%s<div class="vmarks">%s</div></div>' % (
+                i, " focus" if focus else "", c["color"], tile(c), tags))
+
+
+def port_card(port, slot, focus, active, editing=None, rows=()):
+    """A port's card below the grid. `slot`: {"kind", "char" (a roster
+    entry or None), "costume", "level", "model_name"}; `focus`: the card
+    the cursor is on; `active`: the port the grid chooses for;
+    `editing`: the row in focus when its options are open (`rows`:
+    [(label, value)])."""
+    tint, ink = PORT_TINT[port], PORT_INK[port]
+    c = slot.get("char")
+    kind = slot["kind"]
+    chip = KIND_CHIP.get(kind, "")
+    if kind == "cpu":
+        chip = "CPU %d" % slot.get("level", 9)
+    face = ""
+    if c is not None:
+        pic = _portrait(c, slot.get("costume", 0))
+        if pic is not None:
+            face = '<img class="vface" src="%s"/>' % picture(pic)
+    name = c["name"] if c is not None else "Choose"
+    who = {"you": "You", "human": "A second controller",
+           "cpu": "The game's CPU", "dummy": "Stands still"}.get(
+               kind, slot.get("model_name", "A trained model"))
+    inner = (
+        '<div class="vtop"><div class="vport" style="background-color: %s; '
+        'color: %s"><div class="un">P%d</div></div><div class="vkind"><div '
+        'class="un">%s</div></div></div><div class="vpic" style="'
+        'background-color: %s">%s</div><div class="vname"><div class="un">'
+        '%s</div><div class="vwho">%s</div></div>' % (
+            tint, ink, port + 1, esc(chip), c["color"] if c else "#2B3340",
+            face, esc(name), esc(who)))
+    if editing is not None:
+        inner += '<div class="vopts">%s</div>' % "".join(
+            '<div class="vrow%s"><div class="vrl">%s</div><div class="grow"/>'
+            '<div class="vrv">%s</div></div>' % (
+                " focus" if i == editing else "", esc(label), esc(value))
+            for i, (label, value) in enumerate(rows))
+    return ('<div id="vp%d" class="vcard%s%s" style="border-color: %s">'
+            '<div class="ring"/>%s</div>' % (
+                port, " focus" if focus else "",
+                " active" if active else "", tint, inner))
+
+
+def add_card(focus, n):
+    """The card after the ports: another player (a CPU at first)."""
+    return ('<div id="vpadd" class="vcard vadd%s"><div class="ring"/>'
+            '<div class="vplus">+</div><div class="vaddl"><div class="un">'
+            'Add player</div><div class="vwho">P%d</div></div></div>' % (
+                " focus" if focus else "", n + 1))
+
+
+def port_cards(slots, card_at, active, editing=None, rows=(), most=4):
+    """The row of port cards: each port's, then (fewer than `most`) the
+    card that adds one, then empty places up to four."""
+    out = [port_card(i, sl, card_at == i, active == i,
+                     editing if card_at == i else None, rows)
+           for i, sl in enumerate(slots)]
+    if len(slots) < most:
+        out.append(add_card(card_at == len(slots), len(slots)))
+    while len(out) < 4:
+        out.append('<div class="vcard vnone"/>')
+    return "".join(out)
+
+
+def versus_select(roster, focus, slots, area, card_at, active, crumbs,
+                  editing=None, rows=(), most=4, ready=False,
+                  locked=False):
+    """Versus's character select, as the game's own: one grid of
+    characters, a card per port below it. `focus`: the place in focus in
+    the grid; `area`: "grid" or "cards"; `slots`: each port's (see
+    port_card); `active`: the port the grid chooses for; `most`: the
+    players the mode allows; `ready`: every port has a character (START
+    goes on); `locked`: the mode fixes the characters (the grid shows
+    them, A does not change them)."""
+    marks = {}
+    for p, sl in enumerate(slots):
+        if sl.get("char") is not None:
+            marks.setdefault(sl["char"]["id"], []).append(p)
+    tiles = [vtile(i, c, area == "grid" and i == focus,
+                   marks.get(c["id"], [])) for i, c in enumerate(roster)]
+    rows_html = "".join('<div class="vrrow">%s</div>' % "".join(
+        tiles[i:i + VCOLUMNS]) for i in range(0, len(tiles), VCOLUMNS))
+    hints = [("A", "Choose" if area == "grid" else "Options"),
+             ("Y", "Costume")]
+    if ready:
+        hints.append(("START", "Stage select"))
+    hints.append(("B", "Back"))
+    body = (
+        header(crumbs, port=False) +
+        '<div id="vgrid" class="vgrid%s">%s</div>' % (
+            " locked" if locked else "", rows_html) +
+        '<div id="vports" class="vports">%s</div>' % port_cards(
+            slots, card_at if area == "cards" else -1, active, editing,
+            rows, most) +
+        footer("", hints))
+    return page("Versus", body)
+
+
 # ---- versus and lab: who is on the other side ---------------------------------
 
 def opponent_card(c, who, what, count, go, costume=0):
@@ -1020,7 +1140,7 @@ def results_page(m, sides, winner, rows, time, stage, online=False):
                [("A", "Continue")] if online else
                [("A", "Rematch"),
                 ("X", "Options" if m.fighters else "Characters"),
-                ("B", "Opponent" if m.stage else "Change stage")]))
+                ("B", "Characters" if m.stage else "Change stage")]))
     return page("Results", body)
 
 

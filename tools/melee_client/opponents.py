@@ -270,6 +270,12 @@ class Bot:
         return dict(buttons=pad["buttons"], stick=tuple(pad["stick"]),
                     cstick=tuple(pad["cstick"]), l=pad["l"])
 
+    def tell_stage(self, stage):
+        """The stage, for a model loaded before it was chosen (its answer
+        is read with the next ones; nothing waits for it)."""
+        self._send(dict(stage=stage))
+        self.stage_told = stage
+
     def again(self):
         """A new match with the same model."""
         if self.loaded:

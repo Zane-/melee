@@ -120,6 +120,11 @@ typedef struct HostMatch {
     int item_freq;
     unsigned long long item_mask;
     float damage_ratio;
+    /// Each slot's CPU level (1 to 9, as the game's own select sets it),
+    /// and whether slots 3 and 4 are in the match at all (`vsslots`, the
+    /// driver's before each `match`: Versus's classic select, up to four
+    /// players).
+    int level[4];
 } HostMatch;
 
 extern HostMatch host_match;

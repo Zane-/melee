@@ -120,6 +120,13 @@ def main():
             if player is not None:
                 player.first = True
             say(dict(ok=True))
+        elif "stage" in msg and "load" not in msg:
+            # the stage, told once it is chosen: the model loaded before
+            # (the client starts loading it when the characters are in)
+            if player is not None:
+                player.stage = policy.STAGES.get(msg["stage"], 0)
+                player.first = True
+            say(dict(ok=True))
         elif "frame" in msg and player is not None:
             frame = msg["frame"]
             game.p = frame["p"]

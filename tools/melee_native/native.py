@@ -274,7 +274,8 @@ class Native:
         return self.frame
 
     def match(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True, stocks=0, preload=(), rules=None):
+              p2_human=True, stocks=0, preload=(), rules=None, others=(),
+              levels=(9, 9)):
         """Ask for a match (the game's debug VS mode). It loads over the
         next frames; start() also waits for it. `stocks`: each player's;
         0 is an endless time match. `preload`: further characters loaded
@@ -283,10 +284,16 @@ class Native:
         (NO_RULES's keys: "time" in seconds, "items" the frequency, -1 for
         none, "mask" the items on, a bit per item kind, "ratio" the
         damage ratio); every match is sent its own, none by default (a
-        drill, the Lab)."""
+        drill, the Lab). `others`: players 3 and 4, (character, a person or
+        not, CPU level 1-9) each; `levels`: players 1 and 2's CPU levels
+        (as the game's own select sets them). Every match is sent them,
+        none and 9 by default."""
         r = dict(NO_RULES, **(rules or {}))
         self._cmd("vsrules %d %d %x %.2f" % (r["time"], r["items"],
                                              r["mask"], r["ratio"]))
+        self._cmd("vsslots %d %d%s" % (levels[0], levels[1], "".join(
+            " %d %d %d" % (CHARACTERS[c], 1 if human else 0, level)
+            for c, human, level in list(others)[:2])))
         extra = [CHARACTERS[c] for c in preload if c != p2]
         self._cmd("match %d %d %d %d %d %d%s" % (
             CHARACTERS[p1], CHARACTERS[p2] if p2 else -1, STAGES[stage],
@@ -294,7 +301,8 @@ class Native:
             "".join(" %d" % c for c in extra)))
         self.match_info = dict(p1=p1, p2=p2, stage=stage, seed=seed,
                                p2_human=p2_human, preload=tuple(preload),
-                               rules=r)
+                               rules=r, others=tuple(others),
+                               levels=tuple(levels))
 
     def swap(self, port, character):
         """Player `port` becomes a CPU of `character` this frame, put where
@@ -343,7 +351,8 @@ class Native:
         self.quieted = on         # (what thinks for an opponent asks)
 
     def start(self, p1="fox", p2="marth", stage="final-destination", seed=1,
-              p2_human=True, settle=True, stocks=0, preload=(), rules=None):
+              p2_human=True, settle=True, stocks=0, preload=(), rules=None,
+              others=(), levels=(9, 9)):
         """A match with both fighters (p2=None: one) standing on the stage,
         ready to act:
         boot, ask for the match, wait for the fighters, and (settle) for
@@ -353,7 +362,8 @@ class Native:
         # A match may already be running: its fighters go before the new
         # ones come, and "both fighters exist" must mean the new ones.
         had = bool(self.fighter(0).fp)
-        self.match(p1, p2, stage, seed, p2_human, stocks, preload, rules)
+        self.match(p1, p2, stage, seed, p2_human, stocks, preload, rules,
+                   others, levels)
         if had:
             for _ in range(300):
                 self.step()
@@ -361,7 +371,10 @@ class Native:
                     break
         for _ in range(600):
             self.step()
-            if self.fighter(0).fp and (self.fighter(1).fp or not p2):
+            p = self.state()["p"]
+            if self.fighter(0).fp and (self.fighter(1).fp or not p2) and \
+                    all(i < len(p) and p[i] for i in
+                        range(2, 2 + len(others))):
                 break
         else:
             raise NativeError("the match never started")

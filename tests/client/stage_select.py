@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import client  # noqa: E402
+import vselkeys as vk  # noqa: E402
 import marks  # noqa: E402
 import pausekeys  # noqa: E402
 import stages  # noqa: E402
@@ -146,9 +147,9 @@ def main():
         tap("Left")
         tap("x")                      # Versus: Local or Online
         tap("x")                      # Local: the game mode
-        tap("x")                      # Unlimited: the characters
-        tap("x")                      # Fox
-        tap("x")                      # Marth, the opponent
+        tap("x", after=10)            # Unlimited: the classic select
+        vk.setup(c, tap, "fox", "marth", kind="dummy")
+        tap("Return", after=10)       # START: the stage select
         check("after the characters, the stage select",
               c.screen == "stages" and c.mode == "versus")
         page = text("stages.rml")
@@ -221,8 +222,8 @@ def main():
         tap("Down")
         check("Down six on: Brinstar Depths, a row below Rainbow Cruise",
               c.stage_id() == "brinstar-depths", c.stage_id())
-        tap("z")
-        tap("x", after=10)
+        tap("z", after=8)             # the select
+        tap("Return", after=10)       # START: the stage select again
         check("kept: back on the stage select, every stage still",
               c.screen == "stages" and c.every_stage())
         tap("c", after=10)
@@ -241,9 +242,9 @@ def main():
         pausekeys.leave(c, w, "stages", frames)
         tap("c", after=10)                  # the legal six again
         tap("v", after=40)
-        check("X: a stage at random, and the match starts",
-              c.screen == "versus" and
-              w.match_info["stage"] in client.STAGE_ORDER,
+        check("X: a stage at random (from the Random Stage Switch's), "
+              "and the match starts", c.screen == "versus" and
+              w.match_info["stage"] in stages.BY_ID,
               str(w.match_info.get("stage")))
 
         # ---- Versus without the sidebar ------------------------------------

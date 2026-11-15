@@ -343,14 +343,24 @@ static void print_items(void)
 
 static void print_state(void)
 {
-    char a[512], b[512];
+    char a[512], b[512], c[512], d[512];
+    /* players 3 and 4 only when the match has them (`vsslots`): two
+       fighters otherwise, as every drill and 1v1 reads it */
+    int n = host_match.ckind[3] >= 0 ? 4 : host_match.ckind[2] >= 0 ? 3 : 2;
 
     host_fighter_json(0, a, sizeof a);
     host_fighter_json(1, b, sizeof b);
+    if (n > 2) {
+        host_fighter_json(2, c, sizeof c);
+    }
+    if (n > 3) {
+        host_fighter_json(3, d, sizeof d);
+    }
     printf("@ {\"frame\":%u,\"rng\":%u,\"match\":%u,\"ended\":%u,"
-           "\"outcome\":%d,\"p\":[%s,%s],\"items\":",
+           "\"outcome\":%d,\"p\":[%s,%s%s%s%s%s],\"items\":",
            host.frame, (unsigned) *HSD_RandSeedPtr, host_match.entered,
-           host_match.ended, host_match.outcome, a, b);
+           host_match.ended, host_match.outcome, a, b, n > 2 ? "," : "",
+           n > 2 ? c : "", n > 3 ? "," : "", n > 3 ? d : "");
     print_items();
     printf("}\n");
 }
@@ -777,6 +787,36 @@ static void command(char* line)
         if (why != NULL) {
             printf("@ error %s\n", why);
         } else {
+            printf("@ ok\n");
+        }
+    } else if (strcmp(cmd, "vsslots") == 0) {
+        /* "vsslots L1 L2 [C3 H3 L3 [C4 H4 L4]]": the CPU levels of players
+           1 and 2, and players 3 and 4 (a CharacterKind or -1 for none, a
+           person or the CPU, its level) in the matches from now on; the
+           driver sends it before each "match" (none: two players) */
+        int v[8] = {9, 9, -1, 0, 9, -1, 0, 9};
+        int got = sscanf(line, "%d %d %d %d %d %d %d %d", &v[0], &v[1],
+                         &v[2], &v[3], &v[4], &v[5], &v[6], &v[7]);
+        if (got < 2) {
+            printf("@ error vsslots L1 L2 [C3 H3 L3 [C4 H4 L4]]\n");
+        } else {
+            int i;
+            host_match.level[0] = v[0];
+            host_match.level[1] = v[1];
+            for (i = 0; i < 2; i++) {
+                int ck = got >= 3 + 3 * i ? v[2 + 3 * i] : -1;
+                host_match.ckind[2 + i] = ck;
+                host_match.human[2 + i] = v[3 + 3 * i];
+                host_match.level[2 + i] = v[4 + 3 * i];
+                if (ck >= 0 && v[3 + 3 * i]) {
+                    host.pads[2 + i].connected = 1;
+                }
+            }
+            for (i = 0; i < 4; i++) {
+                if (host_match.level[i] < 1 || host_match.level[i] > 9) {
+                    host_match.level[i] = 9;
+                }
+            }
             printf("@ ok\n");
         }
     } else if (strcmp(cmd, "vsrules") == 0) {

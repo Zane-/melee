@@ -4,10 +4,11 @@ on the other side, checked without a person or a desktop.
     python tests/client/versus.py [--shots DIR]
 
 Versus: Local's game mode (Unlimited; Tug of War has tests/client/
-versus_modes.py), Fox, the opponent screen (who plays the opponent), the stage
-select, a match against Falco played by the model trained for that
-pairing: it has to load, answer nearly every frame without the game
-waiting for it, and play (move about, change state). Then the same Falco
+versus_modes.py), the classic select (Fox; Falco on P2's card, who plays
+it; tests/client/versus_select.py has the rest), the stage select, a match
+against Falco played by the model trained for that pairing, loaded since
+the characters were locked in: it has to answer nearly every frame
+without the game waiting for it, and play (move about, change state). Then the same Falco
 played by the game's CPU, on the stage chosen. The Lab, in Train: an
 opponent nobody plays, its damage set and both put back from the D-pad. Needs a slippi-ai checkout
 with its models (~/Games/Melee/slippi-ai); without one the model's part is
@@ -26,6 +27,8 @@ import client  # noqa: E402
 import opponents  # noqa: E402
 import window  # noqa: E402
 import pausekeys  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vselkeys as vk  # noqa: E402
 
 WAIT = 14
 checks = []
@@ -76,47 +79,39 @@ def main():
         tap("x")
         check("Local: the game mode first (modes.py), Unlimited in focus",
               c.screen == "modes" and c.mode_at == 0, c.screen)
-        tap("x")
-        tap("x")
-        check("Local: your character, then the opponent screen",
-              c.mode == "versus" and c.screen == "opp" and
-              c.me["id"] == "fox")
-        for key in ("Up", "Left", "Left"):
-            tap(key)
-        players = c.players()
-        check("the opponent can be played by the game's CPU or nobody",
-              c.roster[c.opp_at]["id"] == "falco" and
-              [p[0] for p in players[-2:]] == [client.CPU, client.NOBODY])
-        shot("opponent")
-        n = len(players)
-        tap("h")
-        tap("h")
-        tap("f")
-        check("the D-pad steps who plays it, either way (not X round the "
-              "whole list)", c.who == 1 % n, "%d of %d" % (c.who, n))
-        tap("f")
-        tap("c")
-        card = open(os.path.join(c.out, "part-card.rml")).read()
-        check("Y changes the opponent's costume, its picture on the card",
-              c.opp_dressed() == 1 and "portrait/falco-1.png" in card,
-              str(c.opp_dressed()))
-        tap("x")
-        check("A on the opponent screen opens the stage select, "
-              "Battlefield first", c.screen == "stages" and
-              client.STAGE_ORDER[c.stage_at] == "battlefield")
+        tap("x", after=10)
+        check("Local, Unlimited: the classic select, your card first",
+              c.mode == "versus" and c.screen == "vsel" and
+              c.vslots[0]["kind"] == "you" and c.vactive == 0, c.screen)
+        vk.pick(c, tap, 0, "fox")
+        vk.pick(c, tap, 1, "falco")
+        check("Fox, and Falco for P2, who can be the game's CPU, a trained "
+              "model, a dummy or a second controller",
+              [sl["char"]["id"] for sl in c.vslots] == ["fox", "falco"] and
+              c.VKINDS[:4] == ("cpu", "model", "dummy", "human"))
+        shot("select")
+        vk.to_card(c, tap, 1)
+        tap("c", after=6)
+        page = open(os.path.join(c.out, "vselect.rml")).read()
+        check("Y on P2's card: Falco's next costume, its picture on the "
+              "card", c.vslots[1]["costume"] == 1 and
+              "portrait/falco-1.png" in page, str(c.vslots[1]["costume"]))
+        tap("Return", after=10)
+        check("START opens the stage select, Battlefield first",
+              c.screen == "stages" and c.stage_id() == "battlefield")
         shot("stages")
         tap("Right")
         tap("Down")
         check("the stick moves over the stages, three to a row",
-              client.STAGE_ORDER[c.stage_at] == "fountain-of-dreams",
-              client.STAGE_ORDER[c.stage_at])
+              c.stage_id() == "fountain-of-dreams", c.stage_id())
         tap("Up")
         tap("Left")
-        tap("z")
-        check("B goes back to the opponent", c.screen == "opp")
+        tap("z", after=8)
+        check("B goes back to the select", c.screen == "vsel")
 
-        if opponents.available() and len(players) > 2:
-            names = [p[1] for p in players[:-2]]
+        models = c.vmodels(1)
+        if opponents.available() and models:
+            names = [m[1] for m in models]
             check("the models by name and difficulty, the ranks first, "
                   "then the specialists for this pairing only",
                   names[:5] == ["Gold", "Platinum", "Diamond", "Master",
@@ -125,16 +120,19 @@ def main():
                   all(n == "Fox Specialist" for n in names
                       if n.endswith("Specialist")) and
                   not any("_" in n for n in names), ", ".join(names))
-            tap("x")
+            vk.set_kind(c, tap, 1, "model")
+            tap("Return", after=10)
             tap("x", after=10)
             w.pace(True)
-            for _ in range(900):          # the model loads beside the match
+            bot = c.vbots.get(1)
+            for _ in range(900):          # loaded since the select
                 c.frame()
-                if c.bot is not None and c.bot.ready() is not None:
+                if bot is not None and bot.ready() is not None:
                     break
-            check("the match starts and the model loads beside it",
-                  c.screen == "versus" and c.bot is not None and
-                  c.bot.ready() is True, c.bot.error if c.bot else "")
+            check("the match starts, the model loaded since the "
+                  "characters were locked in", c.screen == "versus" and
+                  bot is not None and bot.ready() is True and
+                  c.vplaying.get(1) is bot, bot.error if bot else "")
             seen, xs = set(), []
             for f in range(420):
                 c.frame()
@@ -143,7 +141,6 @@ def main():
                 xs.append(g.pos[0])
                 if f == 300:
                     shot("versus")
-            bot = c.bot
             check("it answers nearly every frame",
                   bot.answered >= 0.9 * bot.asked and bot.asked >= 400,
                   "%d of %d" % (bot.answered, bot.asked))
@@ -153,19 +150,19 @@ def main():
                                                   max(xs) - min(xs)))
             w.pace(False)
             leave()
-            check("holding START comes back, and the model is let go",
-                  c.screen == "opp" and c.bot is None and
-                  bot.p.poll() is not None)
+            check("out of the match: the select, the model kept loaded for "
+                  "the next one", c.screen == "vsel" and
+                  not c.vplaying and bot.p.poll() is None,
+                  "%s %s %s area %s" % (c.screen, c.vplaying, bot.p.poll(),
+                                        getattr(c, "varea", None)))
         else:
+            bot = None
             print("      (no slippi-ai with models here: the trained "
                   "opponent was not tried)")
 
         # ---- the game's own CPU ----------------------------------------------
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.CPU:
-                break
-            tap("h", after=2)
-        tap("x")
+        vk.set_kind(c, tap, 1, "cpu")
+        tap("Return", after=10)
         for key in ("Down", "Right", "Right"):
             tap(key)
         tap("x", after=20)
@@ -174,8 +171,8 @@ def main():
             c.frame()
             seen.add(w.fighter(1).state)
         check("against the game's CPU: it plays, with no model running",
-              c.screen == "versus" and c.bot is None and len(seen) >= 3,
-              "%d states" % len(seen))
+              c.screen == "versus" and not c.match_bots() and
+              len(seen) >= 3, "%d states" % len(seen))
         check("on the stage chosen", w.match_info["stage"] ==
               "pokemon-stadium", w.match_info["stage"])
         check("Falco in the costume chosen for him",
@@ -187,11 +184,8 @@ def main():
         # START is the client's: its pause menu over the frozen match, never
         # the game's own pause (whose L+R+A+Start once took the native game
         # into its memory card screen: the owner, 2026-11-13).
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.NOBODY:
-                break
-            tap("h", after=2)
-        tap("x")
+        vk.set_kind(c, tap, 1, "dummy")
+        tap("Return", after=10)
         tap("x", after=20)
         frames(60)
         before = w.state().get("ended", 0)
@@ -225,19 +219,20 @@ def main():
               "moved %.1f" % abs(w.fighter(0).pos[0] - x0))
         leave()
         st = w.state()
-        check("Back to the opponent in the pause menu", c.screen == "opp" and
-              st.get("ended") == before, "%s, ended %s" % (
-                  c.screen, st.get("ended")))
+        check("Characters in the pause menu: back on the select",
+              c.screen == "vsel" and st.get("ended") == before, "%s, ended "
+              "%s" % (c.screen, st.get("ended")))
 
         # ---- the Lab ---------------------------------------------------------
         tap("z")
-        tap("z")
-        check("B from the character select goes back to the modes",
+        check("B from the select goes back to the modes",
               c.screen == "modes", c.screen)
         tap("z")
         check("and B again to Local or Online", c.screen == "vmenu",
               c.screen)
         tap("z")
+        check("out of Versus: the models loaded for it are let go",
+              bot is None or bot.p.poll() is not None)
         tap("Right")
         check("back at the main menu, on Train",
               c.screen == "main" and c.focus == "train", c.focus)

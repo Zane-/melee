@@ -30,6 +30,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vselkeys as vk  # noqa: E402
 import modes  # noqa: E402
 import window  # noqa: E402
 
@@ -176,18 +178,16 @@ def main():
         tap("x")
         check("and the options keep it", c.screen == "mopts" and
               c.mode_now.settings["lead"] == 3)
-        tap("x")
-        check("A goes on to the character select", c.screen == "chars")
+        tap("x", after=10)
+        check("A goes on to the character select (the classic one, two "
+              "cards for a 1v1 mode)", c.screen == "vsel" and
+              len(c.vslots) == 2, c.screen)
         tap("z")
         check("B from the characters goes back to the options",
               c.screen == "mopts")
-        tap("x")
-        tap("x")                    # Fox
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.NOBODY:
-                break
-            tap("h", after=2)
-        tap("x")                    # the stage select
+        tap("x", after=10)
+        vk.setup(c, tap, "fox", "marth", kind="dummy")
+        tap("Return", after=10)     # START: the stage select
         tap("x", after=20)          # Battlefield: the match
         frames(90)
         check("the match is Tug of War won by 3, even",
@@ -279,10 +279,9 @@ def main():
               rule(0) == "all" and rule(1) == "all")
 
         # Shine Battle: Fox against Fox on Jungle Japes, shine only
-        tap("z")                    # the opponent
-        tap("z")                    # the characters
-        tap("z")                    # Tug of War's options
-        tap("z")                    # the modes
+        tap("z", after=8)           # the select
+        tap("z", after=8)           # Tug of War's options
+        tap("z", after=8)           # the modes
         to_mode("shine-battle")
         check("Shine Battle is third on the selector",
               c.screen == "modes" and c.mode_at == 2 and
@@ -296,20 +295,17 @@ def main():
         check("its A goes on to the opponent",
               "Choose opponent" in open(os.path.join(
                   c.out, "mopts.rml")).read())
-        tap("x")
-        check("A goes straight to who plays the other Fox: no character "
-              "select", c.screen == "opp" and c.me["id"] == "fox" and
-              c.roster[c.opp_at]["id"] == "fox", c.screen)
-        at = c.opp_at
+        tap("x", after=10)
+        check("A: the select with the characters fixed, Fox and Fox",
+              c.screen == "vsel" and [sl["char"]["id"] for sl in
+                                      c.vslots] == ["fox", "fox"], c.screen)
         tap("Right")
-        tap("Down")
-        check("the stick does not change the opponent", c.opp_at == at)
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.NOBODY:
-                break
-            tap("h", after=2)
+        tap("x", after=6)
+        check("A in the grid does not change them",
+              [sl["char"]["id"] for sl in c.vslots] == ["fox", "fox"])
+        vk.set_kind(c, tap, 1, "dummy")
         shot("opponent-shine")
-        tap("x", after=20)
+        tap("Return", after=20)     # START: the stage is the mode's
         frames(90)
         check("A starts the match: no stage select, Jungle Japes",
               c.screen == "versus" and c.stage_now == "jungle-japes" and
@@ -336,7 +332,7 @@ def main():
         page = open(os.path.join(c.out, "results.rml")).read()
         check("the results: 3 stocks left, the shines counted",
               c.screen == "results" and "3 stocks left" in page and
-              "Shines that hit" in page and "Opponent" in page,
+              "Shines that hit" in page and "Characters" in page,
               c.screen)
         worn = [w.state()["p"][i]["costume"] for i in (0, 1)]
         check("each Fox's stock icon in the costume it wore (the second "
@@ -344,8 +340,8 @@ def main():
                   "stock/fox-%d.png" % k in page for k in worn), str(worn))
         shot("results-shine")
         tap("z", after=10)
-        check("B goes back to who plays the other Fox", c.screen == "opp"
-              and rule(0) == "all", c.screen)
+        check("B goes back to the select", c.screen == "vsel" and
+              rule(0) == "all", c.screen)
         tap("z")
         check("and B again to the mode's options", c.screen == "mopts")
     finally:

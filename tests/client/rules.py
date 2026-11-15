@@ -27,6 +27,8 @@ sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
 
 import client  # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import vselkeys as vk  # noqa: E402
 import modes  # noqa: E402
 import stages  # noqa: E402
 import window  # noqa: E402
@@ -129,13 +131,9 @@ def main():
         check("B, B: back to the mode select", c.screen == "modes",
               c.screen)
 
-        tap("x")                    # Unlimited: no options
-        tap("x")                    # Fox
-        for _ in range(len(c.players())):
-            if c.players()[c.who][0] == client.NOBODY:
-                break
-            tap("h", after=2)
-        tap("x")                    # the stage select
+        tap("x", after=10)          # Unlimited: the classic select
+        vk.setup(c, tap, "fox", "marth", kind="dummy")
+        tap("Return", after=10)     # START: the stage select
         check("on to the stage select", c.screen == "stages", c.screen)
         tap("v", after=20)          # X: Random
         frames(30)

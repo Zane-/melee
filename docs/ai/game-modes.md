@@ -13,10 +13,11 @@ creating them so we can extend this!". To add one, use the skill `add-game-mode`
 Versus > Local > **Choose a mode** (`screens.mode_select`: a panel per mode, its icon on
 its colour; a card saying how it is scored) > **its options**, if it has any
 (`screens.mode_options`: a row per setting, the one in focus edited big beside them, left
-and right to change; the client keeps them) > the character select > the opponent > the
-stage > the match > **the results**. B steps back the same way. A mode that fixes the
-characters skips the character select (the opponent screen then only says who plays the
-other side), and one that fixes the stage skips the stage select. **Online** goes the same
+and right to change; the client keeps them) > the character select (local: the classic one,
+a card per port; a mode that keeps a score between two sides allows two players, others up
+to four) > the stage > the match > **the results**. B steps back the same way. A mode that
+fixes the characters shows them in the select without letting the grid change them (the
+cards still say who plays them), and one that fixes the stage skips the stage select. **Online** goes the same
 way to the online screen (Versus > Online > the mode > its options > the character, unless
 fixed); see "Online" below.
 

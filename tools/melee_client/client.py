@@ -494,6 +494,10 @@ class Client:
         self.say(self.about(self.focus))
 
     def show_characters(self):
+        if self.mode == "versus" and \
+                getattr(self, "versus_kind", "local") == "local":
+            self.show_vselect()     # the classic select, a card per port
+            return
         self.menu_music()
         self.screen = "chars"
         self.w.capture(True)
@@ -597,6 +601,14 @@ class Client:
                 self.bot.close()
                 self.bot = None
             self.w.pad(1 - self.port)
+            for p, sl in enumerate(getattr(self, "vslots", None) or []):
+                if p != self.port:
+                    if sl["kind"] == "human":
+                        self.w.live(p, "off")
+                    self.w.pad(p)
+            self.vplaying = None
+            if to == "main":
+                self.vclose_bots()
         self.w.mask(0)
         self.mode_rules(None)
         self.inputs_off()
@@ -775,7 +787,8 @@ class Client:
         rows.append(("column", "Show sidebar" if self.column_hidden
                      else "Hide sidebar", None, "sidebar"))
         if kind == "versus":
-            rows.append(("opp", "Opponent select", None, "person"))
+            rows.append(("opp", "Characters" if self.vlocal() else
+                         "Opponent select", None, "person"))
             rows.append(("stages", "Stage select", None, "stage"))
             if self.mode == "lab" and self.lab_from == "hub":
                 rows.append(("hub", "Course", None, "course"))
@@ -1062,6 +1075,7 @@ class Client:
             self.w.ui("class %s focus 1" % to)
             self.say(next(v[3] for v in screens.VERSUS if v[0] == to))
         if pressed & B:
+            self.vclose_bots()      # the models loaded for Versus
             self.show_main()
         elif pressed & A:
             self.versus_kind = "online" if self.vfocus == "vonline" \
@@ -1470,6 +1484,307 @@ class Client:
             return rest + trained
         return trained + rest
 
+    # ---- versus: the classic select (one grid, a card per port) -------------
+
+    # what the others' cards can be, in the order left and right step them
+    VKINDS = ("cpu", "model", "dummy", "human", "remove")
+    VKIND_WORD = {"cpu": "CPU", "model": "AI model", "dummy": "Dummy",
+                  "human": "Human", "remove": "Remove"}
+
+    def vmost(self):
+        """The players the mode allows: two for one that keeps a score
+        between two sides (Tug of War, Shine Battle), else four (the
+        game's ports; more later)."""
+        cls = self.mode_class()
+        return 2 if cls is not None and self.make_mode(cls).scores() else 4
+
+    def vslots_fresh(self):
+        """The ports as they are when the select opens: you, and the last
+        opponent as a level 9 CPU (or as the mode fixes them)."""
+        cls = self.mode_class()
+        me = self.me or self.roster[self.at]
+        slots = getattr(self, "vslots", None)
+        if not slots:
+            opp = self.roster[self.opp_at] if getattr(
+                self, "last_match", None) else None
+            slots = [dict(kind="you", char=me, costume=self.dressed(me)),
+                     dict(kind="cpu", level=9, char=opp,
+                          costume=self.opp_dressed(opp) if opp else 0)]
+        slots = slots[:self.vmost()]
+        if cls is not None and cls.fighters is not None:
+            for sl, cid in zip(slots, cls.fighters):
+                sl["char"] = next(c for c in self.roster if c["id"] == cid)
+        return slots
+
+    def show_vselect(self):
+        """Versus's character select, as the game's own (the owner,
+        2026-11-14): one grid of the characters, a card per port below it;
+        A on a card opens its options (who plays it, the CPU's level, the
+        model), the card after the ports adds one."""
+        self.menu_music()
+        self.screen = "vsel"
+        self.w.capture(True)
+        self.vslots = self.vslots_fresh()
+        self.varea = "grid"         # the select opens on the grid
+        self.vcard = min(getattr(self, "vcard", 0), len(self.vslots))
+        self.vactive = 0            # your card first, then the next
+                                    # one without a character
+        ids = [c["id"] for c in self.roster]
+        first = self.vslots[self.vactive]["char"]
+        self.vat = ids.index(first["id"]) if first is not None and \
+            first["id"] in ids else self.at
+        self.vedit = None
+        self.load("vselect", self.vselect_page())
+
+    def vcrumbs(self):
+        cls = self.mode_class()
+        return ["Versus", cls.name if cls is not None else "Local",
+                "Characters"]
+
+    def vready(self):
+        return len(self.vslots) >= 2 and all(
+            sl["char"] is not None for sl in self.vslots)
+
+    def vrows(self, port):
+        """The options of port `port`'s card: [(key, label, value)]."""
+        sl = self.vslots[port]
+        if sl["kind"] == "you":
+            return [("char", "Character", sl["char"]["name"]
+                     if sl["char"] else "Choose")]
+        rows = [("kind", "Player", self.VKIND_WORD[sl["kind"]])]
+        if sl["kind"] == "cpu":
+            rows.append(("level", "Level", str(sl.get("level", 9))))
+        if sl["kind"] == "model":
+            rows.append(("model", "Model", sl.get("model_name") or "None"))
+        if not self.mode_class() or not self.mode_class().fighters:
+            rows.append(("char", "Character", sl["char"]["name"]
+                         if sl["char"] else "Choose"))
+        return rows
+
+    def vmodels(self, port):
+        """The trained models that can play port `port`'s character
+        against yours: [(file, name, about)]."""
+        sl, me = self.vslots[port], self.vslots[0]["char"]
+        if sl["char"] is None or me is None:
+            return []
+        return opponents.models(sl["char"]["id"], me["id"])
+
+    def vselect_page(self):
+        cls = self.mode_class()
+        rows = [(lbl, val) for _, lbl, val in self.vrows(self.vcard)] \
+            if self.vedit is not None else ()
+        return screens.versus_select(
+            self.roster, self.vat, self.vslots, self.varea, self.vcard,
+            self.vactive, self.vcrumbs(), self.vedit, rows, self.vmost(),
+            self.vready(), locked=cls is not None and
+            cls.fighters is not None)
+
+    def vredraw(self):
+        """The ports' cards again (and the grid's tags, the hints)."""
+        self.load("vselect", self.vselect_page())
+
+    def on_vsel(self, pressed, moves):
+        n, cols = len(self.roster), screens.VCOLUMNS
+        cls = self.mode_class()
+        locked = cls is not None and cls.fighters is not None
+        if self.vedit is not None:
+            self.on_vcard_options(pressed, moves)
+            return
+        if pressed & START and self.vready():
+            self.vlock_in()
+            return
+        if self.varea == "grid":
+            at = self.vat
+            if moves & LEFT and at % cols > 0:
+                at -= 1
+            if moves & RIGHT and at % cols < cols - 1 and at + 1 < n:
+                at += 1
+            if moves & UP and at >= cols:
+                at -= cols
+            if moves & DOWN:
+                if at + cols < n:
+                    at += cols
+                else:
+                    self.varea = "cards"
+                    self.vcard = self.vactive
+                    self.vredraw()
+                    return
+            if at != self.vat:
+                self.w.ui("class c%d focus 0" % self.vat)
+                self.vat = at
+                self.w.ui("class c%d focus 1" % at)
+            if pressed & X and self.roster[at].get("other") is not None:
+                self.switch(at)
+            if pressed & A and not locked:
+                c = self.roster[at]
+                sl = self.vslots[self.vactive]
+                sl["char"] = c
+                sl["costume"] = self.dressed(c) if sl["kind"] == "you" \
+                    else 0
+                sl.pop("model", None)
+                if sl["kind"] == "model":
+                    self.vpick_model(self.vactive, 0)
+                # on to the next port still without a character
+                self.vactive = next(
+                    (i for i, x in enumerate(self.vslots)
+                     if x["char"] is None), self.vactive)
+                self.vredraw()
+            elif pressed & Y:
+                self.vcostume(self.vactive)
+            elif pressed & B:
+                self.back_to_mode()
+            return
+        # the cards
+        cards = len(self.vslots) + (1 if len(self.vslots) < self.vmost()
+                                    else 0)
+        at = self.vcard
+        if moves & LEFT and at > 0:
+            at -= 1
+        if moves & RIGHT and at < cards - 1:
+            at += 1
+        if at != self.vcard:
+            self.vcard = at
+            self.vredraw()
+        if moves & UP or pressed & B:
+            self.varea = "grid"
+            if self.vcard < len(self.vslots):
+                self.vactive = self.vcard
+            self.vredraw()
+        elif pressed & A:
+            if self.vcard == len(self.vslots):
+                # a player more: a level 9 CPU, its character next
+                self.vslots.append(dict(kind="cpu", level=9, char=None,
+                                        costume=0))
+                self.vactive = len(self.vslots) - 1
+                self.varea = "grid"
+            elif self.vslots[self.vcard]["kind"] == "you" and not locked:
+                self.vactive, self.varea = 0, "grid"
+            else:
+                self.vedit = 0
+            self.vredraw()
+        elif pressed & Y and self.vcard < len(self.vslots):
+            self.vcostume(self.vcard)
+
+    def on_vcard_options(self, pressed, moves):
+        """A port's card open: up and down its rows, left and right its
+        value, A on Character goes to the grid for it, B closes it."""
+        port = self.vcard
+        rows = self.vrows(port)
+        at = self.vedit
+        if moves & UP and at > 0:
+            at -= 1
+        if moves & DOWN and at < len(rows) - 1:
+            at += 1
+        changed = at != self.vedit
+        self.vedit = at
+        key = rows[at][0]
+        sl = self.vslots[port]
+        step = 1 if moves & RIGHT else -1 if moves & LEFT else 0
+        if step and key == "kind":
+            kinds = self.VKINDS
+            sl["kind"] = kinds[(kinds.index(sl["kind"]) + step) % len(kinds)]
+            if sl["kind"] == "model":
+                self.vpick_model(port, 0)
+            changed = True
+        elif step and key == "level":
+            sl["level"] = max(1, min(9, sl.get("level", 9) + step))
+            changed = True
+        elif step and key == "model":
+            self.vpick_model(port, step)
+            changed = True
+        if pressed & A:
+            if key == "kind" and sl["kind"] == "remove":
+                del self.vslots[port]
+                self.vcard = min(port, len(self.vslots))
+                self.vactive = min(self.vactive, len(self.vslots) - 1)
+                self.vedit = None
+            elif key == "char":
+                self.vactive, self.varea, self.vedit = port, "grid", None
+                if sl["char"] is not None:
+                    self.vat = [c["id"] for c in self.roster].index(
+                        sl["char"]["id"]) if sl["char"] in self.roster \
+                        else self.vat
+            else:
+                self.vedit = None
+            changed = True
+        elif pressed & B:
+            if sl["kind"] == "remove":
+                sl["kind"] = "cpu"
+            self.vedit = None
+            changed = True
+        if changed:
+            self.vredraw()
+
+    def vpick_model(self, port, step):
+        """Port `port`'s model: the one `step` along the list for its
+        character (0: the first, or the one it has)."""
+        sl = self.vslots[port]
+        found = self.vmodels(port)
+        if not found:
+            sl["model"], sl["model_name"] = None, None
+            return
+        keys = [f for f, _, _ in found]
+        i = keys.index(sl["model"]) if sl.get("model") in keys else 0
+        i = (i + step) % len(found)
+        sl["model"], sl["model_name"] = found[i][0], found[i][1]
+
+    def vcostume(self, port):
+        """The next costume for port `port`'s character."""
+        sl = self.vslots[port]
+        c = sl["char"]
+        if c is None:
+            return
+        sl["costume"] = (sl.get("costume", 0) + 1) % c["costumes"]
+        if sl["kind"] == "you":
+            self.costume[c["id"]] = sl["costume"]
+        self.vredraw()
+
+    def vlock_in(self):
+        """The characters locked in: the models start loading now, while
+        the stage is chosen (the owner: "the AI model should start to get
+        preloaded as soon as the characters are locked in"); then the
+        stage select (or the match, when the mode fixes the stage)."""
+        slots = self.vslots
+        self.me = slots[0]["char"]
+        self.costume[self.me["id"]] = slots[0].get("costume", 0)
+        ids = [c["id"] for c in self.roster]
+        if slots[1]["char"]["id"] in ids:
+            self.opp_at = ids.index(slots[1]["char"]["id"])
+        if not hasattr(self, "opp_costume"):
+            self.opp_costume = {}
+        self.opp_costume[slots[1]["char"]["id"]] = slots[1].get("costume", 0)
+        self.vpreload()
+        cls = self.mode_class()
+        if cls is not None and cls.stage:
+            # START goes straight into the match: its release there is not
+            # a pause (controls() lets it go on the release)
+            if self.buttons & START:
+                self.used.add(START)
+            self.fight()
+        else:
+            self.show_stages()
+
+    def vclose_bots(self):
+        """The models' processes, closed (leaving Versus)."""
+        for bot in getattr(self, "vbots", {}).values():
+            bot.close()
+        self.vbots = {}
+
+    def vpreload(self):
+        """A model's process for each model port, loading now (the stage
+        is told when the match starts); the ones no longer wanted closed."""
+        bots = getattr(self, "vbots", {})
+        want = {p: sl.get("model") for p, sl in enumerate(self.vslots)
+                if sl["kind"] == "model" and sl.get("model")}
+        for p in list(bots):
+            if bots[p].model != want.get(p):
+                bots.pop(p).close()
+        for p, model in want.items():
+            if p not in bots:
+                bots[p] = opponents.Bot(model, port=p, opponent=0,
+                                        stage=None)
+        self.vbots = bots
+
     def opponent_card(self):
         players = self.players()
         _, name, what = players[self.who]
@@ -1492,6 +1807,10 @@ class Client:
         self.show_opponent()
 
     def show_opponent(self):
+        if self.mode == "versus" and \
+                getattr(self, "versus_kind", "local") == "local":
+            self.show_vselect()     # the opponents are the select's cards
+            return
         self.menu_music()
         self.screen = "opp"
         self.w.capture(True)
@@ -1651,6 +1970,10 @@ class Client:
     def fight(self, stage=None):
         """A match against the opponent chosen, played as chosen (on
         `stage`, or the one in focus on the select)."""
+        if self.vlocal():
+            self.vfight(stage)
+            return
+        self.vplaying = None
         opp = self.roster[self.opp_at]
         key, name, what = self.players()[self.who]
         cls = self.mode_class()
@@ -1702,6 +2025,109 @@ class Client:
             START | (DPAD if self.mode == "lab" else 0))
         self.board_now = screens.board_classes(self.game_mode)
         self.w.capture(False)
+
+    def vlocal(self):
+        """Local Versus, played from the classic select's cards."""
+        return self.mode == "versus" and \
+            getattr(self, "versus_kind", "local") == "local" and \
+            bool(getattr(self, "vslots", None))
+
+    def vwho(self, port):
+        """Who plays port `port`, in a few words (the column, the
+        results)."""
+        sl = self.vslots[port]
+        return {"you": "You", "cpu": "CPU, level %d" % sl.get("level", 9),
+                "dummy": "Dummy", "human": "A second controller"}.get(
+                    sl["kind"], sl.get("model_name") or "A trained model")
+
+    def vsource(self, port):
+        """The controller a second person plays port `port` with: the
+        GameCube adapter's port of that number, or else the controllers
+        SDL lists, in order, past the one you play with."""
+        if str(self.source).startswith("gcc"):
+            return "gcc%d" % (port + 1)
+        humans = [p for p, sl in enumerate(self.vslots)
+                  if sl["kind"] == "human"]
+        first = 2 if str(self.source).startswith("pad") else 1
+        return "pad%d" % (first + humans.index(port))
+
+    def vfight(self, stage=None):
+        """A match of the classic select's ports: you, then each card as
+        set (the game's CPU at its level, a model in its process loaded
+        since the characters were locked in, a dummy, a second
+        controller), up to four players."""
+        slots = self.vslots
+        opp = slots[1]["char"]
+        cls = self.mode_class()
+        stage = cls.stage if cls is not None and cls.stage else \
+            stage or self.stage_id()
+        self.stage_now = stage
+        self.rules_now = self.vs_rules().native()
+        self.game_mode = self.make_mode(cls) if cls is not None else None
+        self.mode_rules(self.game_mode)
+        # each port's controller: the models', the people's
+        self.vpreload()
+        self.vplaying = {}
+        for p, sl in enumerate(slots):
+            if p != self.port:
+                self.w.pad(p)
+            if sl["kind"] == "model" and p in self.vbots:
+                bot = self.vbots[p]
+                if getattr(bot, "stage_told", None) != stage:
+                    bot.tell_stage(stage)
+                self.vplaying[p] = bot
+            elif sl["kind"] == "human" and p != self.port:
+                self.w.live(p, self.vsource(p))
+        self.bot = None
+        self.bot_said = None
+        # the costumes: a character twice in one costume, the next one
+        used = set()
+        for p, sl in enumerate(slots):
+            c, n = sl["char"], sl.get("costume", 0)
+            for _ in range(c["costumes"]):
+                if (c["id"], n) not in used:
+                    break
+                n = (n + 1) % c["costumes"]
+            used.add((c["id"], n))
+            self.w.costume(p, n)
+        others = [(sl["char"]["id"], sl["kind"] != "cpu", sl.get("level", 9))
+                  for sl in slots[2:]]
+        levels = (9, slots[1].get("level", 9))
+        self.load_quietly(lambda: self.w.start(
+            self.me["id"], opp["id"], stage,
+            seed=random.randrange(1, 1 << 30),
+            p2_human=slots[1]["kind"] != "cpu", settle=False,
+            stocks=self.game_mode.stock_match()
+            if self.game_mode is not None else 0, rules=self.rules_now,
+            others=others, levels=levels))
+        self.last = self.me
+        self.mode_begin()
+        self.last_match = "%s against %s · %s" % (
+            self.me["name"], " and ".join(sl["char"]["name"]
+                                          for sl in slots[1:]),
+            stages.name(stage))
+        if self.game_mode is not None and self.game_mode.scores():
+            self.last_match += " · " + self.game_mode.name
+        self.screen = "versus"
+        self.start_held = 0
+        self.playing()
+        self.damage = 0
+        self.in_match("versus", screens.versus_rail(
+            self.me, opp, self.vwho(1), "", stages.name(stage), False,
+            mode=(self.game_mode.name, self.game_mode.status(self.sides()),
+                  self.game_mode.summary())
+            if self.game_mode is not None and self.game_mode.scores()
+            else None,
+            board=screens.board(self.game_mode, self.port_stocks())),
+            START)
+        self.board_now = screens.board_classes(self.game_mode)
+        self.w.capture(False)
+
+    def match_bots(self):
+        """{port: model} playing this match."""
+        if getattr(self, "vplaying", None):
+            return self.vplaying
+        return {1 - self.port: self.bot} if self.bot is not None else {}
 
     def sides(self):
         """The two sides' names, by port (a character against itself:
@@ -1835,7 +2261,8 @@ class Client:
         sides[1 - self.port] = dict(
             c=opp, costume=self.worn(1 - self.port, self.opp_dressed(opp)),
             name=self.sides()[1 - self.port],
-            who=online["them"] if online else self.players()[self.who][1])
+            who=online["them"] if online else self.vwho(1)
+            if self.vlocal() else self.players()[self.who][1])
         rows = [(m.name, m.stats()), ("The match", self.match_stats.rows())]
         stage = stages.name(self.stage_now)
         self.screen = "results"
@@ -2159,23 +2586,26 @@ class Client:
 
     def on_versus(self, pressed, moves):
         other = 1 - self.port
-        if self.bot is not None:
-            ready = self.bot.ready()
+        fighters = None
+        for port, bot in self.match_bots().items():
+            ready = bot.ready()
             if ready is None:
                 self.bot_state("Loading. The opponent stands still until "
                                "it is ready.")
             elif not ready:
                 self.bot_state("Could not load (%s). The opponent stands "
-                               "still." % self.bot.error[:80])
+                               "still." % bot.error[:80])
             else:
-                self.bot_state("%d-frame reaction." % self.bot.delay)
+                self.bot_state("%d-frame reaction." % bot.delay)
                 # the answer to last frame's question; then this frame's
-                pad = self.bot.answer(0.002)
+                pad = bot.answer(0.002)
                 if pad is not None:
-                    self.w.pad(other, **pad)
-                pads = [None, None]
+                    self.w.pad(port, **pad)
+                if fighters is None:
+                    fighters = self.w.state()["p"]
+                pads = [None] * len(fighters)
                 pads[self.port] = self.pad_now
-                self.bot.ask(self.w.state()["p"], pads)
+                bot.ask(fighters, pads)
         if self.mode_frame():
             return
         if self.mode == "lab":

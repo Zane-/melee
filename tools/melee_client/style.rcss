@@ -926,6 +926,36 @@ img { display: inline-block; }
 .sglogo { position: absolute; left: 33dp; top: 76dp; width: 224dp; height: 56dp; }
 .sgstrip { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 30dp; background-color: #12161C; color: #F3F6FA; display: flex; flex-direction: row; align-items: center; justify-content: center; }
 .sgstrip .un { font-family: "Barlow Condensed"; font-weight: 700; font-size: 18dp; text-transform: uppercase; letter-spacing: 0.5dp; white-space: nowrap; }
+/* Versus's character select, as the game's own: one grid of the
+   characters (nine to a row), a card for each port below it. */
+.vgrid { position: absolute; left: 176dp; top: 98dp; width: 940dp; height: 318dp; display: flex; flex-direction: column; }
+.vrrow { display: flex; flex-direction: row; flex-wrap: nowrap; height: 106dp; }
+.char.vchar { width: 92dp; height: 96dp; margin: 0dp 12dp 10dp 0dp; }
+.vgrid.locked .char.vchar { opacity: 0.45; }
+.vmarks { position: absolute; left: 4dp; top: 4dp; display: flex; flex-direction: row; transform: skewX(12deg); }
+.vmark { padding: 0dp 4dp; margin-right: 3dp; height: 14dp; line-height: 14dp; border-radius: 2dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 10dp; }
+.vports { position: absolute; left: 80dp; top: 424dp; width: 1120dp; height: 204dp; display: flex; flex-direction: row; }
+.vcard { position: relative; width: 266dp; height: 204dp; margin-right: 18dp; background-color: #12161C; border: 3dp #12161C; color: #F3F6FA; }
+.vcard .ring { left: -8dp; top: -8dp; right: -8dp; bottom: -8dp; border-width: 4dp; }
+.vcard.active { border-width: 3dp; }
+.vnone { background-color: transparent; border-width: 0dp; }
+.vtop { position: absolute; left: 0dp; top: 0dp; right: 0dp; height: 30dp; display: flex; flex-direction: row; align-items: center; z-index: 2; }
+.vport { padding: 2dp 12dp; margin-left: 8dp; transform: skewX(-12deg); }
+.vport .un, .vkind .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; }
+.vkind { padding: 2dp 10dp; margin-left: 6dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-12deg); }
+.vpic { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 52dp; overflow: hidden; clip: always; }
+.vface { position: absolute; left: 33dp; top: -6dp; width: 200dp; height: 200dp; }
+.vname { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 52dp; padding: 6dp 12dp; box-sizing: border-box; background-color: #12161C; }
+.vname .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; line-height: 1em; text-transform: uppercase; }
+.vwho { font-size: 12dp; color: #A9B4C2; white-space: nowrap; }
+.vopts { position: absolute; left: 0dp; top: 30dp; right: 0dp; bottom: 52dp; padding: 8dp 10dp; box-sizing: border-box; background-color: #12161CEE; display: flex; flex-direction: column; z-index: 3; }
+.vrow { display: flex; flex-direction: row; align-items: center; height: 28dp; padding: 0dp 8dp; font-size: 15dp; font-weight: 600; }
+.vrow.focus { background-color: #F3F6FA; color: #12161C; }
+.vrv { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 14dp; }
+.vadd { background-color: #2B3340; border-color: #6B7685; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.vplus { font-family: "Barlow Condensed"; font-weight: 800; font-size: 72dp; line-height: 1em; color: #A9B4C2; }
+.vaddl { text-align: center; }
+.vaddl .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 22dp; text-transform: uppercase; }
 /* Every stage (Y on the stage select): 29 smaller panels, six to a row. */
 .sgrid.all .sgrow { height: 90dp; margin-bottom: 7dp; }
 .sgrid.all .sg { width: 104dp; height: 88dp; margin-right: 12dp; }
