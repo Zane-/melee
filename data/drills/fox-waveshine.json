@@ -13,7 +13,7 @@
       "distance": 90,
       "height": 8
     },
-    "what": "A waveshine is a shine, a jump out of it on frame {4}, and an air dodge down and forward on frame {J+4}, the frame the jump squat ends. The air dodge drives Fox into the ground on that same frame, so he slides instead of rising.",
+    "what": "A waveshine is a shine, a jump out of it on frame {4}, and an air dodge down and forward on frame {J+4}, the frame Fox leaves the ground. The air dodge drives Fox into the ground on that same frame, so he slides instead of rising.",
     "expect": "Each waveshine is judged when its landing lag ends: the frame of the jump, the frame Fox landed and how far he slid. After misses, the coach shows your inputs frame by frame against these frames.",
     "example": [
       {
@@ -48,7 +48,7 @@
     ],
     "marks": {
       "1": "Frame 1: down-B. The hitbox and the intangibility last this frame only",
-      "4": "Frame {4}: X pressed. The shine is cancelled into the jump squat",
+      "4": "Frame {4}: X pressed. The jump cancels the shine",
       "J+4": "Frame {J+4}: R and the stick down and forward. Fox lands at once",
       "J+13": "Frame {J+13}: the last frame of landing lag",
       "J+14": "Frame {J+14}: Fox can act"
@@ -58,7 +58,7 @@
         "title": "Jump out of the shine",
         "text": [
           "The shine comes out on the frame down-B is pressed, frame 1. Its hitbox and Fox's intangibility last that frame only, and frames {2} and {3} cannot be cancelled.",
-          "From frame {4}, pressing X or Y while the shine is out starts a jump squat. A jump pressed on frames 1 to {3} is ignored, and holding it does not carry it over to frame {4}: the press itself has to come on frame {4} or later."
+          "From frame {4}, X or Y pressed while the shine is out cancels it into a jump. A jump pressed on frames 1 to {3} is ignored, and holding it does not carry it over to frame {4}: the press itself has to come on frame {4} or later."
         ],
         "show": {
           "example": {
@@ -83,8 +83,8 @@
             "marks": {
               "1": "Frame 1: down-B. The shine comes out",
               "2": "Frame {f}: the shine. A jump pressed now is ignored",
-              "4": "Frame {4}: X pressed. The jump squat begins",
-              "5": "Frame {f}: jump squat",
+              "4": "Frame {4}: X pressed. The jump cancels the shine",
+              "5": "Frame {f}: the jump, still on the ground",
               "J+4": "Frame {J+4}: airborne"
             },
             "cues": [
@@ -109,7 +109,7 @@
                   5,
                   "J+3"
                 ],
-                "words": "Jump squat",
+                "words": "Jump",
                 "kind": "info"
               },
               {
@@ -127,8 +127,8 @@
       {
         "title": "Air dodge into the ground",
         "text": [
-          "The jump squat lasts {J} frames, {4} to {J+3}. On frame {J+4} Fox leaves the ground, and an air dodge pressed on that frame with the stick down and forward drives him back into the floor in the same frame. He lands with {10} frames of landing lag, frames {J+4} to {J+13}, sliding, and can act on frame {J+14}.",
-          "L or R pressed during the jump squat is ignored, and Fox jumps. Pressed a frame late, the air dodge starts from higher and Fox lands {2} frames later."
+          "After a jump on frame {4}, Fox leaves the ground on frame {J+4}. An air dodge on that frame, stick down and forward, puts him back on the floor in the same frame. He slides through {10} frames of landing lag and can act on frame {J+14}.",
+          "L or R pressed before Fox leaves the ground is ignored, and he jumps. A frame late, the air dodge starts higher and Fox lands {2} frames later."
         ],
         "show": {
           "example": {
@@ -165,7 +165,7 @@
             ],
             "marks": {
               "4": "Frame {4}: jump pressed out of the shine",
-              "5": "Frame {f}: jump squat. L or R pressed now is ignored",
+              "5": "Frame {f}: still on the ground. L or R now is ignored",
               "J+4": "Frame {J+4}: R and the stick down and forward. Fox lands",
               "J+5": "Frame {f}: sliding in landing lag",
               "J+14": "Frame {J+14}: free to act"
@@ -176,7 +176,7 @@
                   4,
                   "J+3"
                 ],
-                "words": "Jump squat: an air dodge is ignored",
+                "words": "Too soon: an air dodge is ignored",
                 "kind": "late"
               },
               {
@@ -317,7 +317,7 @@
       "expect": "An air dodge into the ground",
       "words": "landed without an air dodge",
       "headline": "No air dodge",
-      "fix": "Press L or R on frame {J+4}, the first frame Fox is off the ground, with the stick down and forward. L or R pressed during the jump squat is ignored."
+      "fix": "Press L or R on frame {J+4}, the first frame Fox is off the ground, with the stick down and forward. L or R pressed before that is ignored."
     },
     "first airborne frame": {
       "measure": "to_land",
@@ -325,11 +325,11 @@
       "expect": "Land within {J+2} frames of the jump",
       "words": "landed {frames} after the jump; frame-perfect is {J}",
       "headline": "Late air dodge",
-      "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump. Each frame later, Fox rises higher and lands later.",
+      "fix": "Press L or R on the frame Fox leaves the ground, {J} frames after the jump. Each frame later, Fox rises higher and lands later.",
       "strict": {
         "equals": "J",
         "expect": "Land {J} frames after the jump",
-        "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump: Fox then lands on that same frame."
+        "fix": "Press L or R on the frame Fox leaves the ground, {J} frames after the jump: he then lands on that same frame."
       }
     },
     "slide": {
@@ -365,7 +365,7 @@
       ],
       "marks": {
         "1": "Frame 1: down-B. The shine comes out",
-        "4": "Frame {4}: X pressed. The jump squat begins",
+        "4": "Frame {4}: X pressed. The jump cancels the shine",
         "J+4": "Frame {J+4}: airborne"
       },
       "cues": [
@@ -390,7 +390,7 @@
             5,
             "J+3"
           ],
-          "words": "Jump squat",
+          "words": "Jump",
           "kind": "info"
         }
       ],
@@ -445,7 +445,7 @@
     },
     {
       "name": "Air dodge on frame {J+4}",
-      "teach": "Shine, jump on frame {4}, and press R with the stick down and forward on frame {J+4}, as the jump squat ends. Fox meets the ground on that frame and slides.",
+      "teach": "Shine, jump on frame {4}, and press R with the stick down and forward on frame {J+4}, as Fox leaves the ground. Fox meets the ground on that frame and slides.",
       "example": [
         {
           "stick": [
@@ -488,7 +488,7 @@
             4,
             "J+3"
           ],
-          "words": "Jump squat",
+          "words": "Jump",
           "kind": "info"
         },
         {
@@ -559,7 +559,7 @@
             ]
           }
         ],
-        "note": "Jump on frame {4}; the jump squat ends after {J} frames, and the air dodge goes on frame {J+4}."
+        "note": "Jump on frame {4}; the air dodge goes on frame {J+4}, as Fox leaves the ground."
       }
     },
     {
@@ -636,7 +636,7 @@
       "fails": "jumped"
     },
     {
-      "name": "air dodge during the jump squat",
+      "name": "air dodge too soon",
       "inputs": [
         {
           "stick": [
@@ -785,6 +785,6 @@
         ]
       }
     ],
-    "note": "Jump on frame {4}; air dodge on frame {J+4}, as the jump squat ends."
+    "note": "Jump on frame {4}; air dodge on frame {J+4}, as Fox leaves the ground."
   }
 }

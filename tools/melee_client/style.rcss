@@ -350,6 +350,11 @@ img { display: inline-block; }
 
 .rail .body { top: 128dp; height: 584dp; }
 .try { margin-top: 8dp; padding: 8dp 14dp; background-color: #1D2430; }
+/* in a drill's column the try takes what the numbers above it leave */
+.rail .try { flex: 1; overflow: hidden; margin-top: 12dp; }
+/* the drill's own keys, under the pause menu's (a drill only) */
+.phint.pkeys { display: none; margin-top: 6dp; }
+.phint.pkeys.on { display: flex; }
 .verdict { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 44dp; line-height: 0.95em; text-transform: uppercase; }
 .chk { display: flex; flex-direction: row; align-items: center; padding: 3dp 0dp; border-top: 1dp #4A5361; font-size: 15dp; font-weight: 600; }
 .chk .box { width: 12dp; height: 12dp; border-color: #F3F6FA; }

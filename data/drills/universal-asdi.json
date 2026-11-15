@@ -34,8 +34,8 @@
       {
         "title": "ASDI",
         "text": [
-          "On the last frame of hitlag the game reads the C-stick. If it is past 70% of its reach, {char} is shifted 3 units toward it as hitlag ends. If the C-stick is short of that, the control stick is used instead, if it is past 70%; the control stick also turns the launch angle (DI).",
-          "The opponent's down tilt lifts {char} off the floor. Held down, the C-stick shifts {char} 3 units down, into the floor: {char} lands at once instead of flying. Press it during hitlag, not before: standing, the C-stick down is a down smash."
+          "The game reads the C-stick on the last frame of hitlag: past 70% of its reach, it shifts {char} 3 units toward it. Short of that, the control stick is used if past 70%; it also turns the launch angle (DI).",
+          "The down tilt lifts {char} off the floor. Held down, the C-stick shifts {char} back down, and {char} lands at once. Press it during hitlag: standing, the C-stick down is a down smash."
         ],
         "show": {
           "example": {

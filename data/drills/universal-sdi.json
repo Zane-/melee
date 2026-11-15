@@ -116,8 +116,8 @@
       {
         "title": "SDI",
         "text": [
-          "On every frame of hitlag after the hit's own, the game moves {char} 6 units toward the control stick if the stick is past 70% of its reach and came out of the center within the last 4 frames. Each input moves {char} once: a stick held still does nothing more until it goes back to the center and out again. A stick already held when the hit lands does not count.",
-          "Pikachu's down smash freezes {char} for 4 frames per hit: a third of its 2 damage plus 3 is 3 frames, and electric hits freeze the victim half as long again. The frozen frames after the hit's own, 3 of them, take SDI inputs."
+          "On each frozen frame after the hit's own, the game moves {char} 6 units toward the control stick if it is past 70% of its reach and left the center within the last 4 frames. A stick held still counts once, and one held from before the hit not at all.",
+          "Electric hits freeze the victim half as long again: Pikachu's 2-damage down smash freezes {char} 4 frames per hit, 3 of them after the hit's own."
         ],
         "show": {
           "example": {
@@ -168,7 +168,7 @@
       },
       {
         "title": "Out of a multi-hit",
-        "text": "Pikachu's down smash hits up to 7 times: 6 hits of 2 damage keep {char} beside Pikachu, then the 7th launches. Each hit has its own hitlag and takes new SDI inputs. Smash the stick on every hit, back to the center between smashes, and {char} leaves the hitboxes before the 7th. Against this attack up works for every character: smashed every 2 or 3 frames, it is out within 4 hits and clear of the last. One smash, or a stick held, moves {char} 6 units and no more.",
+        "text": "Pikachu's down smash hits up to 7 times: 6 weak hits hold {char} beside Pikachu, then the 7th launches. Each hit takes new SDI inputs. Smash on every hit, back to the center between, and {char} is out before the 7th. Against this attack up works for every character, out within 4 hits. One smash, or a held stick, moves {char} 6 units and no more.",
         "show": {
           "example": {
             "inputs": [

@@ -481,14 +481,17 @@ class Native:
             return self._cmd("ucf") == "1"
         return self._cmd("ucf %d" % (1 if on else 0)) == "1"
 
-    def ledge(self, port=None, percent=0.0):
-        """Where the stage's left ledge is, (x, y); with `port`, that
-        fighter is put hanging on it as after a fresh grab of it (full
-        ledge intangibility), with that much damage."""
+    def ledge(self, port=None, percent=0.0, side="left"):
+        """Where the stage's left (or `side` "right") ledge is, (x, y);
+        with `port`, that fighter is put hanging on it as after a fresh
+        grab of it (full ledge intangibility, facing the stage), with that
+        much damage."""
+        right = " right" if side == "right" else ""
         if port is None:
-            words = self._cmd("ledge").split()
+            words = self._cmd("ledge" + right).split()
         else:
-            words = self._cmd("ledge %d %.9g" % (port, percent)).split()
+            words = self._cmd("ledge %d %.9g%s" % (port, percent,
+                                                   right)).split()
         return float(words[0]), float(words[1])
 
     def net(self, what, *args):

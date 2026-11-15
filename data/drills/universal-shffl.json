@@ -48,7 +48,7 @@
         "title": "Four inputs",
         "text": [
           "A SHFFL is four inputs in order. Release the jump button within {J-1} frames: a short hop. Press A or the C-stick: the aerial. Tap the control stick down from the top of the jump, frame {SA}: the fast fall. Press L, R or Z on the landing frame or up to 6 frames before it: the L-cancel.",
-          "The aerial must still be going when {char} lands, or there is no landing lag to halve. Start it a few frames before the top, so it is still going when the fast fall brings {char} down."
+          "Start the aerial a few frames before the top, so it is still going when {char} lands: an aerial that has ended leaves no landing lag to halve."
         ],
         "show": {
           "example": {
@@ -247,7 +247,7 @@
       "expect": "A short hop",
       "words": "a {measure} hop",
       "headline": "Full hop",
-      "fix": "Release the jump button within {J-1} frames, during jump squat."
+      "fix": "Release the jump button within {J-1} frames of pressing it."
     },
     "fast fell": {
       "measure": "fast_fell",
@@ -354,7 +354,7 @@
             "perfect": []
           }
         ],
-        "note": "Jump squat is {J} frames: release X or Y within {J-1} frames."
+        "note": "Short hop: release X or Y within {J-1} frames."
       },
       "example_for": {
         "mr-game-and-watch": [

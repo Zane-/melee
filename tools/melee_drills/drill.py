@@ -14,7 +14,8 @@ whether it was passed, and which comes next.
 """
 import math
 
-from melee_course.engine import Drill, Ref, Row, STICK_SMASH
+from melee_course.engine import (Drill, Entry, Ref, Row, STICK_SMASH,
+                                 SWITCH_MANUAL)
 
 from melee_drills import format as F
 
@@ -160,13 +161,35 @@ class JsonDrill(Drill):
         return F.names(c.fd, c.fd.id.replace("-", " ").title())
 
     lesson_scenario = None  # a lesson's own, while the client records it
+    scenario_at = None      # the one of a part's list played now
+    switch = SWITCH_MANUAL  # a list's scenario kept until the player turns
+
+    def _part_scenarios(self):
+        """The part's scenarios: [index] (its "scenario"), or the list the
+        player turns through with the D-pad's left and right."""
+        sc = self.part_now.get("scenario", 0)
+        return list(sc) if isinstance(sc, list) else [sc]
+
+    @property
+    def deck(self):
+        """A part with several scenarios (the ledgedash from either ledge)
+        as the runtime's deck: D-pad left and right, and the pause menu's
+        Scenario, change it."""
+        idx = self._part_scenarios()
+        if len(idx) < 2:
+            return None
+        return [Entry(self.cpu, i, self.spec["scenarios"][i]["name"])
+                for i in idx]
 
     def scenario(self):
-        """The scenario the part now is taught in (its "scenario", else
-        the first), or the lesson's being recorded."""
+        """The scenario the part now is taught in (its "scenario", the one
+        of its list the player has chosen, else the first), or the
+        lesson's being recorded."""
         if self.lesson_scenario is not None:
             return self.spec["scenarios"][self.lesson_scenario]
-        return self.spec["scenarios"][self.part_now.get("scenario", 0)]
+        idx = self._part_scenarios()
+        at = self.scenario_at if self.scenario_at in idx else idx[0]
+        return self.spec["scenarios"][at]
 
     @property
     def ref_start(self):
@@ -203,6 +226,8 @@ class JsonDrill(Drill):
     # ---- the course runtime's hooks ------------------------------------------------
 
     def setup(self, c):
+        if c.entry is not None:         # (the deck's: a part's list)
+            self.scenario_at = c.entry.data
         sc = self.scenario()
         nums = self.nums(c)
         pl = sc["player"]
@@ -210,7 +235,8 @@ class JsonDrill(Drill):
         px = float(F.value(pl.get("x", 0), nums))
         facing = -1 if pl.get("facing") == "left" else 1
         if pl.get("ledge"):
-            c.place_on_ledge(pct)
+            c.place_on_ledge(pct, "right" if pl["ledge"] == "right" else
+                             "left")
         elif "above" in pl:
             c.place_on_platform(px, float(F.value(pl["above"], nums)),
                                 facing, pct)
@@ -285,7 +311,11 @@ class JsonDrill(Drill):
     def timeline(self, c):
         nums = self.nums(c)
         rows = []
-        coach = self.part_now.get("coach", self.spec["coach"])
+        # a lesson shows the whole technique: the drill's own rows (the
+        # owner, 2026-11-14: the L-cancel lesson's chart lacked the L, R or
+        # Z press, which part 1's rows leave out); a part, its own
+        coach = self.spec["coach"] if self.lesson_scenario is not None \
+            else self.part_now.get("coach", self.spec["coach"])
         for r in coach.get("rows", []):
             kw = {}
             if "button" in r:

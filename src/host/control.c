@@ -497,19 +497,20 @@ static void command(char* line)
         }
         printf("@ ok\n");
     } else if (strcmp(cmd, "ledge") == 0) {
-        /* "ledge": where the stage's left ledge is ("@ x y", or an error);
-           "ledge P [PERCENT]": player P hanging on it */
-        int p = -1;
+        /* "ledge [right]": where the stage's left (or right) ledge is
+           ("@ x y", or an error); "ledge P [PERCENT [right]]": player P
+           hanging on it */
+        int p = -1, right = strstr(line, "right") != NULL;
         float percent = 0.0F, x, y;
         if (sscanf(line, "%d %f", &p, &percent) >= 1) {
-            const char* why = host_ledge(p, percent);
+            const char* why = host_ledge_side(p, percent, right);
             if (why != NULL) {
                 printf("@ error %s\n", why);
                 fflush(stdout);
                 return;
             }
         }
-        if (host_left_ledge(&x, &y) < 0) {
+        if (host_ledge_at(right, &x, &y) < 0) {
             printf("@ error no ledge found\n");
         } else {
             printf("@ %.9g %.9g\n", x, y);

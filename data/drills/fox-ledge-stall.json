@@ -91,9 +91,8 @@
       {
         "title": "The charge catches the ledge",
         "text": [
-          "Up-B stops Fox's fall: the charge holds him still for {15} frames and then lets him sink slowly for the rest of its {42}. The game lets Fox catch the ledge again {29} frames after letting go, on frame {30}, and the charge is still holding him at the ledge's height then, so he catches it on that frame.",
-          "Up-B has to come within {3} frames of letting go. Later, Fox has fallen too far before the charge stops him, and on frame {30} he is below the ledge: the charge runs out and Firefox launches.",
-          "The new catch makes Fox intangible for {37} frames, frames {30} to {66}."
+          "Up-B stops Fox's fall: the charge holds him still for {15} frames, then sinks slowly. The ledge can be caught again {29} frames after letting go, on frame {30}, and the charge still holds Fox at its height then, so he catches it.",
+          "Up-B has to come within {3} frames of letting go; later, Fox is below the ledge on frame {30}, and Firefox launches. The new catch makes him intangible on frames {30} to {66}."
         ],
         "show": {
           "example": {

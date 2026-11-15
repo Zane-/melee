@@ -130,8 +130,8 @@
       {
         "title": "Two in one short hop",
         "text": [
-          "The second laser fires on the blaster's frame {20}, {19} frames after the first B. A laser due on the landing frame still fires; one due later does not, because landing puts the blaster away.",
-          "With the blaster out, a short hop lands on frame {23} when the first B comes on frame {4}, and on frame {25} when it comes on frame {5} or {6}. So the first B has to come within the first {3} frames in the air, and a fast fall lands Fox before the second laser."
+          "The second laser fires {19} frames after the first B. Landing puts the blaster away, but a laser due on the landing frame still fires.",
+          "With the blaster out, the short hop lands on frame {23} after a first B on frame {4}, and on frame {25} after one on frame {5} or {6}. So the first B must come within the first {3} frames in the air, and a fast fall lands Fox too early."
         ],
         "show": {
           "still": {

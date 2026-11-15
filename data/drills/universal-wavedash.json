@@ -43,8 +43,8 @@
       {
         "title": "Jump squat, then the air dodge",
         "text": [
-          "Pressing jump puts {char} in {J} frames of jump squat on the ground. The game ignores L and R during jump squat, and a press made there is not carried over.",
-          "Frame {J+1} is the first frame in the air. L or R pressed on that frame starts an air dodge, and with the stick aimed down the air dodge touches the ground on the same frame. {char} lands in 10 frames of landing lag and slides with the air dodge's speed along the ground."
+          "Pressing jump puts {char} in {J} frames of jump squat on the ground. The game ignores L and R during jump squat, and a press there is not carried over.",
+          "Frame {J+1} is the first frame in the air. L or R on that frame starts an air dodge, and aimed down it touches the ground on the same frame: {char} lands in 10 frames of landing lag, sliding with the air dodge's speed."
         ],
         "show": {
           "example": {
@@ -107,8 +107,8 @@
       {
         "title": "The angle sets the slide",
         "text": [
-          "The air dodge moves {char} in the direction of the control stick. Only its forward part carries into the slide: with the stick close to horizontal the slide starts fastest, and at 45 degrees it starts about a quarter slower. How far {char} slides from there depends on {char}'s traction.",
-          "The stick still has to point below the dead zone. At full tilt the shallowest angle that reaches the ground is about 17 degrees below horizontal; flatter than that, the air dodge travels along the ground without touching it and ends in a helpless fall."
+          "The air dodge moves {char} along the stick's direction, and only its forward part carries into the slide. Near horizontal the slide starts fastest; at 45 degrees, about a quarter slower. Then {char}'s traction sets its length.",
+          "The stick must still point below the dead zone: at full tilt, about 17 degrees below horizontal at the shallowest. Flatter, the air dodge skims along the ground and ends in a helpless fall."
         ],
         "show": {
           "still": {

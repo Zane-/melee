@@ -111,8 +111,8 @@
       {
         "title": "Down into the notch",
         "text": [
-          "With the stick held to the side for 4 frames or more, UCF does not let a stick at the rim spot dodge. Roll the stick down along the rim into the down-diagonal notch, 45 degrees below level, and {char} drops through the platform.",
-          "The stick must stay at the rim and reach the notch within 6 frames of passing a quarter of its reach downward. From about 42 to 52 degrees below level, {char} drops on that frame; at 38 to 40 degrees, one frame later. Shallower, {char} stays in shield. Deeper, or with the stick held to the side for fewer than 4 frames, {char} spot dodges."
+          "After 4 frames to the side, UCF stops a stick at the rim from spot dodging. Roll it down the rim into the down-diagonal notch, 45 degrees below level, and {char} drops through the platform.",
+          "Reach the notch within 6 frames of the stick passing a quarter of its reach down. {char} drops at about 42 to 52 degrees, one frame later at 38 to 40. Shallower, {char} stays in shield; deeper, or after under 4 frames to the side, {char} spot dodges."
         ],
         "show": {
           "example": {

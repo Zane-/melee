@@ -66,7 +66,7 @@ plan table, numbered from 1. Drills are written in the drill format (`data/drill
 | # | id | Drill | Goal | CPU | Requires | Leads to | Knowledge | Status |
 |-|-|-|-|-|-|-|-|-|
 | 1 | `fox-waveshine` | Waveshine | Shine, jump out of it, and wavedash | none | - | - | implemented without a target: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12). Passive target not built. Native (2026-11-13): up to 5 frames late counts by default | drill format: `data/drills/fox-waveshine.json` |
-| 2 | `fox-shine-grab` | Shine grab | Shine, jump out of it, and grab during jump squat | none | - | - | implemented on a shielding Marth: `drills/fox_pressure.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-shine-grab.json` |
+| 2 | `fox-shine-grab` | Shine grab | Shine, jump out of it, and grab before leaving the ground | none | - | - | implemented on a shielding Marth: `drills/fox_pressure.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-shine-grab.json` |
 | 3 | `fox-shffl-shine` | SHFFL shine | SHFFL an aerial, then shine as you land | none | - | - | - | drill format: `data/drills/fox-shffl-shine.json` |
 | 4 | `fox-shffl-shine-grab` | SHFFL shine grab | SHFFL an aerial, shine as you land, then grab | none | - | - | - | drill format: `data/drills/fox-shffl-shine-grab.json` |
 | 5 | `fox-jc-shine` | Jump-cancel shine | Jump out of a dash and shine as you leave the ground | none | - | - | implemented: `drills/fox_shine_tech.inc.h`; simulator and Dolphin specs pass (2026-11-12) | drill format: `data/drills/fox-jc-shine.json` |

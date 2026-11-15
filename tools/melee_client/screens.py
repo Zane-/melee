@@ -69,10 +69,13 @@ def over_game(board=""):
         '</div><div id="ptabs" class="ptabs"/><div id="prows" class='
         '"prows"/><div id="pnav" class="pnav"/><div class="grow"/><div '
         'class="phint">%s<div>Choose</div>%s<div>Change</div>%s<div>Back'
-        '</div></div></div></div>'
+        '</div></div><div id="pkeys" class="phint pkeys">%s<div>Tutorial'
+        '</div>%s<div>Scenario</div><div>Hold: change drill</div></div>'
+        '</div></div>'
         '<div id="coach" class="coach"/>'
         '<div id="replay" class="replay"/>'
-        % (key("A"), key("D-SIDE"), key("B")))
+        % (key("A"), key("D-SIDE"), key("B"), key("D-UP"),
+           key("D-SIDE")))
 
 
 def rays(points):
@@ -1247,26 +1250,28 @@ def drill_rail(c, d, course, about, stages=None):
             '"dname" style="font-size: %ddp">%s</div></div>' % (
                 PART_COLOR[part], PART_COLOR[part], fg, esc(label),
                 number, total, size, esc(d["name"])))
+    # the numbers first, always in view; the try below them takes what is
+    # left, cut at its foot if it must be (the owner, 2026-11-14: a long
+    # try "completely hides the attempts counter"); the button hints are
+    # in the pause menu ("tuck them in the pause menu")
     body = (
         '<div class="line">%s</div>'
         '<div id="status" class="line now"/>'
-        '<div class="try"><div class="row"><div class="lbl">THIS TRY</div>'
-        '<div class="grow"/><div id="n" class="lbl">0</div></div>'
-        '<div id="verdict" class="verdict">Go</div>'
-        '<div id="why" class="why"/><div id="checks"/><div id="tl"/></div>'
-        '<div class="row lastrow"><div class="lbl">LAST 10</div>'
-        '<div class="grow"/><div id="count" class="lbl">0 OF 0</div></div>'
-        '<div id="last" class="sqs3">%s</div>'
         '<div class="stats two"><div class="stat"><div id="tries" class="n">'
         '0</div><div class="l">tries</div></div><div class="stat"><div '
         'id="rate" class="n">-</div><div class="l">success</div></div><div '
         'class="stat"><div id="best" class="n">0</div><div class="l">best '
         'run</div></div></div>'
-        '<div class="grow"/>%s%s' % (
-            esc(about), last_squares([]),
-            '<div id="stage" class="line stageline">Stage: %s</div>' % esc(
-                stages[0].replace("-", " ").title()) if stages else "",
-            match_hints(drill=True, stages=bool(stages))))
+        '<div class="row lastrow"><div class="lbl">LAST 10</div>'
+        '<div class="grow"/><div id="count" class="lbl">0 OF 0</div></div>'
+        '<div id="last" class="sqs3">%s</div>%s'
+        '<div class="try"><div class="row"><div class="lbl">THIS TRY</div>'
+        '<div class="grow"/><div id="n" class="lbl">0</div></div>'
+        '<div id="verdict" class="verdict">Go</div>'
+        '<div id="why" class="why"/><div id="checks"/><div id="tl"/></div>'
+        % (esc(about), last_squares([]),
+           '<div id="stage" class="line stageline">Stage: %s</div>' % esc(
+               stages[0].replace("-", " ").title()) if stages else ""))
     return page("Drill", over_game() + '<div id="rail" class="rail">%s'
                 '<div class="body">%s</div></div>' % (head, body),
                 paper=False)

@@ -11,8 +11,8 @@
       "distance": 120,
       "height": 10
     },
-    "what": "A jump-cancelled grab is a grab pressed during jump squat. It turns the jump into a standing grab.",
-    "expect": "Each jump is judged when the jump squat ends: whether {char} grabbed during it, and how many frames after the jump. After misses, the coach shows your jump and Z against the {J}-frame jump squat.",
+    "what": "A jump-cancelled grab is a grab pressed right after the jump, before {char} leaves the ground. It turns the jump into a standing grab.",
+    "expect": "Each jump is judged when {char} grabs or leaves the ground: whether {char} grabbed, and how many frames after the jump. After misses, the coach shows your jump and Z frame by frame.",
     "example": [
       {
         "stick": [
@@ -34,15 +34,15 @@
     ],
     "marks": {
       "1": "Frame 1: control stick forward: dash",
-      "6": "Frame 6: jump pressed. Jump squat begins",
-      "7": "Frame 7: Z pressed in jump squat: standing grab, still sliding"
+      "6": "Frame 6: jump pressed",
+      "7": "Frame 7: Z pressed: standing grab, still sliding"
     },
     "lessons": [
       {
-        "title": "A grab during jump squat",
+        "title": "A grab right after the jump",
         "text": [
-          "On every frame of jump squat after the first, the game checks for a grab and for an up smash before it lets {char} leave the ground. Press Z, or A with L or R held, during jump squat and {char} grabs from the ground instead of jumping: the jump squat is cancelled.",
-          "Jump squat is {J} frames, counting the jump's press as frame 1. Z on frames 2 to {J} grabs. Z on frame {J+1} is too late: {char} is in the air."
+          "Right after the jump button is pressed, the game still accepts a grab until {char} leaves the ground. Press Z, or A with L or R held, on frames 2 to {J} after the jump's press, and {char} grabs from the ground instead of jumping.",
+          "On frame {J+1} {char} is in the air, and Z comes out as an aerial."
         ],
         "show": {
           "example": {
@@ -58,18 +58,10 @@
               }
             ],
             "marks": {
-              "1": "Frame 1: jump pressed. Jump squat begins",
-              "2": "Frame 2: Z pressed in jump squat: standing grab"
+              "1": "Frame 1: jump pressed",
+              "2": "Frame 2: Z pressed: standing grab"
             },
             "cues": [
-              {
-                "frames": [
-                  1,
-                  1
-                ],
-                "words": "Jump squat",
-                "kind": "info"
-              },
               {
                 "frames": [
                   2,
@@ -83,19 +75,18 @@
                   "J+1",
                   "J+1"
                 ],
-                "words": "Z here: airborne",
+                "words": "Z here: in the air",
                 "kind": "late"
               }
             ]
           }
-        },
-        "characters": "jump_squat"
+        }
       },
       {
         "title": "Out of a dash",
         "text": [
-          "During a dash, Z gives a dash grab. A jump cancels the dash into jump squat, and Z during the jump squat gives the standing grab, while {char} keeps sliding with the dash's speed.",
-          "So the order is: dash, jump, then Z 1 to {J-1} frames after the jump. Z on the same frame as the jump is still read in the dash and gives a dash grab."
+          "During a dash, Z gives a dash grab. Press jump first, then Z 1 to {J-1} frames later, and {char} does the standing grab instead, sliding with the dash's speed.",
+          "Z on the same frame as the jump is still read in the dash and gives a dash grab."
         ],
         "show": {
           "example": {
@@ -120,8 +111,8 @@
             ],
             "marks": {
               "1": "Frame 1: control stick forward: dash",
-              "6": "Frame 6: jump pressed. Jump squat begins",
-              "7": "Frame 7: Z pressed in jump squat: standing grab, still sliding"
+              "6": "Frame 6: jump pressed",
+              "7": "Frame 7: Z pressed: standing grab, still sliding"
             },
             "cues": [
               {
@@ -210,21 +201,21 @@
       "expect": "Jump, then Z",
       "words": "Z with no jump before it",
       "headline": "Dash grab",
-      "fix": "Press jump first and Z 1 to {J-1} frames after it. Z on the same frame as jump, or without a jump, gives a dash grab."
+      "fix": "Press jump first and Z 1 to {J-1} frames after it. Z on the same frame as the jump, or without a jump, gives a dash grab."
     },
-    "in jump squat": {
+    "before leaving the ground": {
       "measure": "done",
       "equals": true,
-      "expect": "Z during jump squat",
+      "expect": "Z before {char} leaves the ground",
       "words": "left the ground with no grab",
       "headline": "Jumped",
-      "fix": "Press Z 1 to {J-1} frames after jump, while {char} is still in jump squat. Z on frame {J+1} or later comes out in the air."
+      "fix": "Press Z 1 to {J-1} frames after the jump, before {char} leaves the ground. Z on frame {J+1} or later comes out in the air."
     }
   },
   "parts": [
     {
-      "name": "Grab in jump squat",
-      "teach": "Press jump, then Z 1 to {J-1} frames later, during jump squat. {char} grabs without leaving the ground.",
+      "name": "Grab after the jump",
+      "teach": "Press jump, then Z 1 to {J-1} frames later. {char} grabs without leaving the ground.",
       "example": [
         {
           "press": "jump",
@@ -237,8 +228,8 @@
         }
       ],
       "marks": {
-        "1": "Frame 1: jump pressed. Jump squat begins",
-        "2": "Frame 2: Z pressed in jump squat"
+        "1": "Frame 1: jump pressed",
+        "2": "Frame 2: Z pressed: standing grab"
       },
       "cues": [
         {
@@ -254,12 +245,12 @@
             "J+1",
             "J+1"
           ],
-          "words": "Airborne: too late",
+          "words": "In the air: too late",
           "kind": "late"
         }
       ],
       "checks": [
-        "in jump squat"
+        "before leaving the ground"
       ],
       "streak": 3
     },
@@ -287,8 +278,8 @@
       ],
       "marks": {
         "1": "Frame 1: control stick forward: dash",
-        "6": "Frame 6: jump pressed. Jump squat begins",
-        "7": "Frame 7: Z pressed in jump squat: standing grab, still sliding"
+        "6": "Frame 6: jump pressed",
+        "7": "Frame 7: Z pressed: standing grab, still sliding"
       },
       "cues": [
         {
@@ -341,14 +332,14 @@
       },
       "checks": [
         "no dash grab",
-        "in jump squat"
+        "before leaving the ground"
       ],
       "streak": 3
     }
   ],
   "mistakes": [
     {
-      "name": "Z after jump squat",
+      "name": "Z too late",
       "inputs": [
         {
           "press": "jump",
@@ -360,7 +351,7 @@
           "frame": "J+1"
         }
       ],
-      "fails": "in jump squat"
+      "fails": "before leaving the ground"
     },
     {
       "name": "no Z",
@@ -371,7 +362,7 @@
           "hold": 1
         }
       ],
-      "fails": "in jump squat"
+      "fails": "before leaving the ground"
     },
     {
       "name": "Z with the jump in a dash",
@@ -408,12 +399,6 @@
         ]
       },
       {
-        "label": "Jump squat",
-        "state": "jump_squat",
-        "held": true,
-        "perfect": []
-      },
-      {
         "label": "Z",
         "button": "Z",
         "held": false,
@@ -426,6 +411,6 @@
         ]
       }
     ],
-    "note": "Jump squat is {J} frames: Z on frames 2 to {J} grabs."
+    "note": "Z on frames 2 to {J} after the jump's press grabs from the ground."
   }
 }

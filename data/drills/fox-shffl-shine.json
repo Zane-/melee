@@ -107,7 +107,7 @@
                   1,
                   "J"
                 ],
-                "words": "Jump squat",
+                "words": "Short hop",
                 "kind": "info"
               },
               {
@@ -310,7 +310,7 @@
       "expect": "An aerial",
       "words": "no aerial before landing",
       "headline": "No aerial",
-      "fix": "Press A, or tilt the C-stick, once {char} is off the ground, from frame {J+1}. A pressed during the jump squat is not an aerial."
+      "fix": "Press A, or tilt the C-stick, once {char} is off the ground, from frame {J+1}. A pressed before {char} leaves the ground is not an aerial."
     },
     "fast fall": {
       "measure": "fast_fell",

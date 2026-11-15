@@ -844,9 +844,11 @@ class Client:
         """The line over "Paused": where the player is."""
         d = getattr(self, "drill_now", None)
         if kind == "drill" and d is not None and self.course is not None:
-            total = len(self.course["parts"][d["part"]])
-            return "%s · %d OF %d · %s" % (d["part"].upper(), d["number"],
-                                           total, d["name"].upper())
+            # (its subcourse, as the drill's card says it: "FUNDAMENTALS ·
+            # 2 OF 10", not the part's whole count)
+            place, number, total = screens.place_of(self.course, d)
+            return "%s · %d OF %d · %s" % (place, number, total,
+                                           d["name"].upper())
         return {"versus": "VERSUS", "online": "ONLINE"}.get(kind,
                                                              "FREE PLAY")
 
@@ -884,6 +886,8 @@ class Client:
             self.pause_idents = [r[0] for r in rows] + (
                 ["prev", "next"] if nav else [])
             self.put("ptabs", screens.pause_tabs(tabs, tab))
+            # the drill's keys (D-pad up, left and right) under the menu's
+            self.w.ui("class pkeys on %d" % (1 if kind == "drill" else 0))
             self.put("prows", screens.pause_rows(rows, None if on_nav
                                                  else at))
             self.put("pnav", screens.pause_nav(before, after, side if on_nav

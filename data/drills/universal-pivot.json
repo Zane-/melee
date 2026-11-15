@@ -11,8 +11,8 @@
       "distance": 140,
       "height": 10
     },
-    "what": "A pivot is a dash turned around with the stick let go on the next frame. {char} does not dash back: the turn plays out and {char} stands, facing the other way.",
-    "expect": "Each pivot is judged when the turn ends: whether the dash was turned, and whether {char} stood or dashed back. After misses, the coach shows the dash and the turn frame by frame.",
+    "what": "A pivot is a dash turned around with a flick: the stick past 0.8 the other way for one frame. {char} does not dash back: the turn plays out and {char} stands, facing the other way.",
+    "expect": "Each dash is judged when {char} stops: whether a turn out of it ended with {char} standing. Dashes back before the pivot do not count against it. After misses, the coach shows the dash and the turns frame by frame.",
     "example": [
       {
         "stick": [
@@ -20,30 +20,46 @@
           0
         ],
         "frame": 1,
-        "hold": 3
+        "hold": 4
+      },
+      {
+        "stick": [
+          -0.5,
+          0
+        ],
+        "frame": 5,
+        "hold": 1
       },
       {
         "stick": [
           -1,
           0
         ],
-        "frame": 5,
+        "frame": 6,
+        "hold": 1
+      },
+      {
+        "stick": [
+          -0.5,
+          0
+        ],
+        "frame": 7,
         "hold": 1
       }
     ],
     "marks": {
       "1": "Frame 1: stick to the side. Dash",
-      "4": "Frame 4: stick back at the center",
-      "5": "Frame 5: stick smashed the other way. Turn",
-      "6": "Frame 6: stick let go. No dash back",
-      "7": "Frame {f}: the turn plays out, {char} standing"
+      "5": "Frame 5: the stick crosses back, halfway",
+      "6": "Frame 6: the stick past 0.8 the other way. Turn",
+      "7": "Frame 7: the stick back under 0.8. No dash back",
+      "8": "Frame {f}: the turn plays out, {char} standing"
     },
     "lessons": [
       {
         "title": "Turn, then dash back or stand",
         "text": [
-          "A dash turned around spends one frame in a turn. On the next frame the game checks the stick: still past 0.8 the other way, {char} dashes back, as in a dash dance. Below 0.8, there is no dash back. The turn plays out with {char} standing, facing the other way: a pivot.",
-          "Smash the stick the other way on a frame from the dash's 5th to its {DASH+1}th; a dash from standing ignores the stick for its first 4 frames, and held forward on frame {DASH+1} it becomes a run. Then let the stick go on the next frame. During the turn {char} can attack, grab, shield or jump as from standing."
+          "A dash turned around spends one frame in a turn. On the next frame, a stick still past 0.8 the other way starts a dash back. Below 0.8, the turn plays out with {char} standing, facing the other way: a pivot.",
+          "Flick the stick the other way from the dash's 5th frame. It has to pass 0.8 within 2 frames of crossing the center, and be back under it on the next frame: held at full for 2 frames, it dashes back."
         ],
         "show": {
           "example": {
@@ -54,23 +70,40 @@
                   0
                 ],
                 "frame": 1,
-                "hold": 3
+                "hold": 4
+              },
+              {
+                "stick": [
+                  -0.5,
+                  0
+                ],
+                "frame": 5,
+                "hold": 1
               },
               {
                 "stick": [
                   -1,
                   0
                 ],
-                "frame": 5,
+                "frame": 6,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  -0.5,
+                  0
+                ],
+                "frame": 7,
                 "hold": 1
               }
             ],
             "marks": {
               "1": "Frame 1: dash",
               "4": "Frame 4: the last frame that ignores the stick",
-              "5": "Frame 5: stick smashed the other way. Turn",
-              "6": "Frame 6: stick let go, below 0.8. No dash back",
-              "7": "Frame {f}: turn. {char} stands, facing the other way"
+              "5": "Frame 5: the stick crosses back, halfway",
+              "6": "Frame 6: past 0.8 the other way. Turn",
+              "7": "Frame 7: back under 0.8. No dash back",
+              "8": "Frame {f}: turn. {char} stands, facing the other way"
             },
             "cues": [
               {
@@ -84,22 +117,22 @@
               {
                 "frames": [
                   5,
-                  5
-                ],
-                "words": "Smash the stick the other way",
-                "kind": "go"
-              },
-              {
-                "frames": [
-                  6,
                   6
                 ],
-                "words": "Let the stick go now",
+                "words": "Flick the stick the other way",
                 "kind": "go"
               },
               {
                 "frames": [
                   7,
+                  7
+                ],
+                "words": "Let it come back now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  8,
                   12
                 ],
                 "words": "Turn: standing, facing the other way",
@@ -132,13 +165,35 @@
     },
     "judge": [
       {
-        "leaves": "turn"
+        "leaves": "turn",
+        "to": "wait"
+      },
+      {
+        "leaves": "turn",
+        "to": "jump_squat"
+      },
+      {
+        "leaves": "turn",
+        "to": "shield"
+      },
+      {
+        "leaves": "turn",
+        "to": "grab"
+      },
+      {
+        "leaves": "turn",
+        "to": "squat"
+      },
+      {
+        "leaves": "turn",
+        "to": "up_smash"
+      },
+      {
+        "enters": "wait",
+        "from": "dash"
       },
       {
         "enters": "run"
-      },
-      {
-        "enters": "wait"
       }
     ],
     "cancel": [
@@ -152,8 +207,12 @@
       },
       {
         "enters": "dash_grab"
+      },
+      {
+        "enters": "wait"
       }
-    ]
+    ],
+    "limit": 300
   },
   "measures": {
     "turned": {
@@ -162,10 +221,43 @@
         "from": "dash"
       }
     },
-    "dashed_back": {
+    "ran": {
       "happened": {
-        "leaves": "turn",
-        "to": "dash"
+        "enters": "run"
+      }
+    },
+    "pivot": {
+      "happened": [
+        {
+          "leaves": "turn",
+          "to": "wait"
+        },
+        {
+          "leaves": "turn",
+          "to": "jump_squat"
+        },
+        {
+          "leaves": "turn",
+          "to": "shield"
+        },
+        {
+          "leaves": "turn",
+          "to": "grab"
+        },
+        {
+          "leaves": "turn",
+          "to": "squat"
+        },
+        {
+          "leaves": "turn",
+          "to": "up_smash"
+        }
+      ]
+    },
+    "backs": {
+      "count": {
+        "enters": "dash",
+        "from": "turn"
       }
     }
   },
@@ -179,21 +271,29 @@
       "expect": "A turn out of the dash",
       "words": "no turn during the dash",
       "headline": "No turn",
-      "fix": "Smash the stick the other way during the dash, on a frame from its 5th to its {DASH+1}th. A dash from standing ignores the stick for its first 4 frames, and held forward on frame {DASH+1} it becomes a run, which turns around slowly."
+      "fix": "Flick the stick the other way from the dash's 5th frame, before frame {DASH+1} turns a held dash into a run. It has to pass 0.8 within 2 frames of crossing the center; a slower stick does not turn {char}."
     },
-    "stood": {
-      "measure": "dashed_back",
+    "no run": {
+      "measure": "ran",
       "equals": false,
-      "expect": "Standing after the turn",
-      "words": "the stick was still past 0.8 on the frame after the turn",
+      "expect": "No run",
+      "words": "the dash became a run",
+      "headline": "Ran",
+      "fix": "Let the stick go or flick it before the dash's frame {DASH+1}. Held toward the dash on that frame, the dash becomes a run, and a run turns around slowly."
+    },
+    "pivot": {
+      "measure": "pivot",
+      "equals": true,
+      "expect": "A turn that ends with {char} standing",
+      "words": "each turn led into a dash back",
       "headline": "Dashed back",
-      "fix": "Let the stick go on the frame after you smash it the other way. Still past 0.8 on that frame, {char} dashes back; below it, the turn plays out and {char} stands."
+      "fix": "Let the stick come back under 0.8 on the frame after the turn. Held at full for 2 frames, the flick starts a dash back; one frame at full, then back toward the center, and {char} stands."
     }
   },
   "parts": [
     {
       "name": "Turn out of the dash",
-      "teach": "Dash, then smash the stick the other way on a frame from the dash's 5th to its {DASH+1}th. {char} turns for one frame; held, the stick starts a dash back.",
+      "teach": "Dash, then flick the stick the other way from the dash's 5th frame. {char} turns for one frame; still held, the stick starts a dash back.",
       "example": [
         {
           "stick": [
@@ -205,17 +305,33 @@
         },
         {
           "stick": [
-            -1,
+            -0.5,
             0
           ],
           "frame": 5,
-          "hold": 5
+          "hold": 1
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 6,
+          "hold": 4
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 10,
+          "hold": 1
         }
       ],
       "marks": {
         "1": "Frame 1: dash",
-        "5": "Frame 5: stick the other way. Turn",
-        "6": "Frame 6: stick still held. Dash back"
+        "6": "Frame 6: the stick past 0.8 the other way. Turn",
+        "7": "Frame 7: still held. Dash back"
       },
       "cues": [
         {
@@ -229,9 +345,9 @@
         {
           "frames": [
             5,
-            5
+            6
           ],
-          "words": "Turn",
+          "words": "Flick the stick the other way",
           "kind": "go"
         }
       ],
@@ -243,31 +359,44 @@
       "coach": {
         "rows": [
           {
+            "label": "Stick to the side",
+            "stick": "side",
+            "perfect": [
+              1,
+              6
+            ],
+            "window": [
+              5,
+              30
+            ]
+          },
+          {
             "label": "Dash",
             "state": "dash",
             "held": true,
             "perfect": [
-              1
+              1,
+              7
             ]
           },
           {
             "label": "Turn",
             "state": "turn",
             "perfect": [
-              5
+              6
             ],
             "window": [
               5,
-              "DASH+1"
+              30
             ]
           }
         ],
-        "note": "A dash from standing can be turned from frame 5 to frame {DASH+1}."
+        "note": "A dash from standing can be turned from its 5th frame; a dash back from its 2nd."
       }
     },
     {
-      "name": "Let go on the next frame",
-      "teach": "Smash the stick the other way for one frame only, then let it go. No dash back starts: the turn plays out and {char} stands, facing the other way. Either direction counts.",
+      "name": "Back on the next frame",
+      "teach": "Flick the stick the other way: past 0.8 for one frame, then back toward the center. No dash back starts: the turn plays out and {char} stands. Dashes back before it do not count against it.",
       "example": [
         {
           "stick": [
@@ -275,43 +404,59 @@
             0
           ],
           "frame": 1,
-          "hold": 3
+          "hold": 4
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 5,
+          "hold": 1
         },
         {
           "stick": [
             -1,
             0
           ],
-          "frame": 5,
+          "frame": 6,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 7,
           "hold": 1
         }
       ],
       "marks": {
         "1": "Frame 1: dash",
-        "5": "Frame 5: stick the other way. Turn",
-        "6": "Frame 6: stick let go. No dash back",
-        "7": "Frame {f}: standing, facing the other way"
+        "6": "Frame 6: the stick past 0.8 the other way. Turn",
+        "7": "Frame 7: back under 0.8. No dash back",
+        "8": "Frame {f}: standing, facing the other way"
       },
       "cues": [
         {
           "frames": [
             5,
-            5
-          ],
-          "words": "Smash the stick the other way",
-          "kind": "go"
-        },
-        {
-          "frames": [
-            6,
             6
           ],
-          "words": "Let the stick go now",
+          "words": "Flick the stick the other way",
           "kind": "go"
         },
         {
           "frames": [
             7,
+            7
+          ],
+          "words": "Let it come back now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            8,
             12
           ],
           "words": "Turn: standing",
@@ -320,14 +465,15 @@
       ],
       "checks": [
         "turned",
-        "stood"
+        "no run",
+        "pivot"
       ],
       "streak": 5
     }
   ],
   "mistakes": [
     {
-      "name": "turned in the first 4 frames",
+      "name": "flick in the dash's first 4 frames",
       "inputs": [
         {
           "stick": [
@@ -339,17 +485,33 @@
         },
         {
           "stick": [
-            -1,
+            -0.5,
             0
           ],
           "frame": 3,
-          "hold": 2
+          "hold": 1
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 4,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 5,
+          "hold": 1
         }
       ],
       "fails": "turned"
     },
     {
-      "name": "held into a run",
+      "name": "slow flick",
       "inputs": [
         {
           "stick": [
@@ -357,13 +519,75 @@
             0
           ],
           "frame": 1,
-          "hold": 22
+          "hold": 4
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 5,
+          "hold": 2
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 7,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 8,
+          "hold": 1
         }
       ],
       "fails": "turned"
     },
     {
-      "name": "stick held the other way",
+      "name": "flick held 2 frames",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 4
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 5,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 6,
+          "hold": 2
+        },
+        {
+          "stick": [
+            -0.5,
+            0
+          ],
+          "frame": 8,
+          "hold": 1
+        }
+      ],
+      "fails": "pivot"
+    },
+    {
+      "name": "dash back held into a run",
       "inputs": [
         {
           "stick": [
@@ -379,10 +603,10 @@
             0
           ],
           "frame": 5,
-          "hold": 5
+          "hold": 30
         }
       ],
-      "fails": "stood"
+      "fails": "no run"
     }
   ],
   "coach": {
@@ -392,11 +616,11 @@
         "stick": "side",
         "perfect": [
           1,
-          5
+          6
         ],
         "window": [
           5,
-          "DASH+1"
+          30
         ]
       },
       {
@@ -412,10 +636,14 @@
         "state": "turn",
         "held": true,
         "perfect": [
-          5
+          6
+        ],
+        "window": [
+          5,
+          30
         ]
       }
     ],
-    "note": "Smash the stick the other way on a frame from 5 to {DASH+1}, and let it go on the next frame: the turn then lasts until {char} stands."
+    "note": "Flick the stick the other way and let it come back on the next frame: the turn then lasts until {char} stands."
   }
 }

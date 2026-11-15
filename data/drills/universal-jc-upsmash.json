@@ -4,15 +4,15 @@
   "part": "tech",
   "characters": "all",
   "goal": "An up smash out of a dash",
-  "why": "A dash cannot be turned into an up smash directly. Jumping first and pushing the C-stick up during jump squat gives an up smash that slides with the dash's speed, so {char} can run in and up smash at once.",
+  "why": "A dash cannot be turned into an up smash directly. Jumping first and pushing the C-stick up right after the jump gives an up smash that slides with the dash's speed, so {char} can run in and up smash at once.",
   "tutorial": {
     "camera": {
       "follow": "player",
       "distance": 120,
       "height": 10
     },
-    "what": "A jump-cancelled up smash is an up smash input during jump squat. It turns the jump into an up smash on the ground.",
-    "expect": "Each jump is judged when the jump squat ends: whether {char} went into an up smash during it, and how many frames after the jump. After misses, the coach shows your jump and C-stick against the {J}-frame jump squat.",
+    "what": "A jump-cancelled up smash is an up smash input right after the jump, before {char} leaves the ground. It turns the jump into an up smash on the ground.",
+    "expect": "Each jump is judged when {char} up smashes or leaves the ground: whether it was an up smash, and how many frames after the jump. After misses, the coach shows your jump and C-stick frame by frame.",
     "example": [
       {
         "stick": [
@@ -37,15 +37,15 @@
     ],
     "marks": {
       "1": "Frame 1: control stick forward: dash",
-      "6": "Frame 6: jump pressed. Jump squat begins",
-      "7": "Frame 7: C-stick up in jump squat: up smash, still sliding"
+      "6": "Frame 6: jump pressed",
+      "7": "Frame 7: C-stick up: up smash, still sliding"
     },
     "lessons": [
       {
-        "title": "An up smash during jump squat",
+        "title": "An up smash right after the jump",
         "text": [
-          "On every frame of jump squat after the first, the game checks for an up smash before it lets {char} leave the ground: A with the control stick up, or the C-stick pushed up. Either cancels the jump squat into an up smash on the ground.",
-          "Jump squat is {J} frames, counting the jump's press as frame 1. The C-stick on frames 2 to {J} gives the up smash. On frame {J+1} {char} is in the air and the C-stick gives an up air."
+          "Right after the jump button is pressed, the game still accepts an up smash until {char} leaves the ground: the C-stick pushed up, or A with the control stick up. On frames 2 to {J} after the jump's press, {char} up smashes from the ground instead of jumping.",
+          "On frame {J+1} {char} is in the air, and the C-stick gives an up air."
         ],
         "show": {
           "example": {
@@ -64,18 +64,10 @@
               }
             ],
             "marks": {
-              "1": "Frame 1: jump pressed. Jump squat begins",
-              "2": "Frame 2: C-stick up in jump squat: up smash"
+              "1": "Frame 1: jump pressed",
+              "2": "Frame 2: C-stick up: up smash"
             },
             "cues": [
-              {
-                "frames": [
-                  1,
-                  1
-                ],
-                "words": "Jump squat",
-                "kind": "info"
-              },
               {
                 "frames": [
                   2,
@@ -94,14 +86,13 @@
               }
             ]
           }
-        },
-        "characters": "jump_squat"
+        }
       },
       {
         "title": "Out of a dash",
         "text": [
-          "During a dash, the C-stick up does nothing and A gives a dash attack: there is no up smash from a dash. A jump cancels the dash into jump squat, and the up smash is allowed there, while {char} keeps sliding with the dash's speed.",
-          "So the order is: dash, jump, then the C-stick up 1 to {J-1} frames after the jump. Pushed on the same frame as the jump, the C-stick is read in the dash and does nothing."
+          "During a dash, the C-stick up does nothing and A gives a dash attack: there is no up smash from a dash. Press jump, then the C-stick up 1 to {J-1} frames later, and {char} up smashes, sliding with the dash's speed.",
+          "Pushed on the same frame as the jump, the C-stick is read in the dash and does nothing."
         ],
         "show": {
           "example": {
@@ -129,8 +120,8 @@
             ],
             "marks": {
               "1": "Frame 1: control stick forward: dash",
-              "6": "Frame 6: jump pressed. Jump squat begins",
-              "7": "Frame 7: C-stick up in jump squat: up smash, still sliding"
+              "6": "Frame 6: jump pressed",
+              "7": "Frame 7: C-stick up: up smash, still sliding"
             },
             "cues": [
               {
@@ -208,19 +199,19 @@
     "success": "Jump-cancelled up smash, C-stick {after_frames} after the jump."
   },
   "checks": {
-    "in jump squat": {
+    "before leaving the ground": {
       "measure": "done",
       "equals": true,
-      "expect": "C-stick up during jump squat",
+      "expect": "C-stick up before {char} leaves the ground",
       "words": "left the ground with no up smash",
       "headline": "Jumped",
-      "fix": "Push the C-stick up 1 to {J-1} frames after jump, while {char} is still in jump squat. From frame {J+1} on, {char} is in the air and the C-stick gives an up air."
+      "fix": "Push the C-stick up 1 to {J-1} frames after the jump, before {char} leaves the ground. From frame {J+1} on, {char} is in the air and the C-stick gives an up air."
     }
   },
   "parts": [
     {
-      "name": "Up smash in jump squat",
-      "teach": "Press jump, then push the C-stick up 1 to {J-1} frames later, during jump squat. {char} up smashes without leaving the ground.",
+      "name": "Up smash after the jump",
+      "teach": "Press jump, then push the C-stick up 1 to {J-1} frames later. {char} up smashes without leaving the ground.",
       "example": [
         {
           "press": "jump",
@@ -236,8 +227,8 @@
         }
       ],
       "marks": {
-        "1": "Frame 1: jump pressed. Jump squat begins",
-        "2": "Frame 2: C-stick up in jump squat"
+        "1": "Frame 1: jump pressed",
+        "2": "Frame 2: C-stick up: up smash"
       },
       "cues": [
         {
@@ -253,12 +244,12 @@
             "J+1",
             "J+1"
           ],
-          "words": "Airborne: too late",
+          "words": "In the air: too late",
           "kind": "late"
         }
       ],
       "checks": [
-        "in jump squat"
+        "before leaving the ground"
       ],
       "streak": 3
     },
@@ -289,8 +280,8 @@
       ],
       "marks": {
         "1": "Frame 1: control stick forward: dash",
-        "6": "Frame 6: jump pressed. Jump squat begins",
-        "7": "Frame 7: C-stick up in jump squat: up smash, still sliding"
+        "6": "Frame 6: jump pressed",
+        "7": "Frame 7: C-stick up: up smash, still sliding"
       },
       "cues": [
         {
@@ -336,14 +327,14 @@
         ]
       },
       "checks": [
-        "in jump squat"
+        "before leaving the ground"
       ],
       "streak": 3
     }
   ],
   "mistakes": [
     {
-      "name": "C-stick up after jump squat",
+      "name": "C-stick up too late",
       "inputs": [
         {
           "press": "jump",
@@ -358,7 +349,7 @@
           "frame": "J+1"
         }
       ],
-      "fails": "in jump squat"
+      "fails": "before leaving the ground"
     },
     {
       "name": "no C-stick up",
@@ -369,7 +360,7 @@
           "hold": 1
         }
       ],
-      "fails": "in jump squat"
+      "fails": "before leaving the ground"
     },
     {
       "name": "C-stick with the jump in a dash",
@@ -395,7 +386,7 @@
           "frame": 6
         }
       ],
-      "fails": "in jump squat"
+      "fails": "before leaving the ground"
     }
   ],
   "coach": {
@@ -409,12 +400,6 @@
         ]
       },
       {
-        "label": "Jump squat",
-        "state": "jump_squat",
-        "held": true,
-        "perfect": []
-      },
-      {
         "label": "Up smash",
         "state": "up_smash",
         "perfect": [
@@ -426,6 +411,6 @@
         ]
       }
     ],
-    "note": "Jump squat is {J} frames: the C-stick up on frames 2 to {J} gives the up smash."
+    "note": "The C-stick up on frames 2 to {J} after the jump's press gives the up smash."
   }
 }

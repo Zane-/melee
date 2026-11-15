@@ -29,11 +29,15 @@ ALL = sorted(f[:-5] for f in os.listdir(os.path.join(F.ROOT, "data",
              if f.endswith(".json"))
 
 
-def play(session, drill, inputs, part, strict=False):
+def play(session, drill, inputs, part, strict=False, scenario=None):
     """`inputs` played as the demonstration, judged as part `part` (with
-    frame-perfect timing: `strict`)."""
+    frame-perfect timing: `strict`; in scenario `scenario` of the part's
+    list)."""
     drill.set_part(part)
     drill.strict = strict
+    drill.scenario_at = scenario
+    session.scenario = -1 if scenario is None else \
+        drill._part_scenarios().index(scenario)
     drill.build_reference = lambda c, i=inputs: inputs_to_refs(
         i, drill.nums(c), drill.ref_start)
     try:
@@ -74,6 +78,13 @@ def main():
             cases += [("part %d example" % (i + 1), F.pick(p, "example", ch),
                        i, None)
                       for i, p in enumerate(spec["parts"])]
+            # a part with a list of scenarios (the ledgedash's two
+            # ledges): its example in each of the others too
+            cases += [("part %d example, %s" % (i + 1, spec["scenarios"][k][
+                "name"]), F.pick(p, "example", ch), i, ("scenario", k))
+                for i, p in enumerate(spec["parts"])
+                if isinstance(p.get("scenario"), list)
+                for k in p["scenario"][1:]]
             # the examples are frame-perfect: they pass strict timing too
             if any("strict" in ck for ck in spec["checks"].values()):
                 cases += [("part %d example, frame-perfect" % (i + 1),
@@ -88,8 +99,9 @@ def main():
             for what, inputs, part, fails in cases:
                 total += 1
                 strict = fails == "strict"
-                fails = None if strict else fails
-                r = play(s, drill, inputs, part, strict)
+                scen = fails[1] if isinstance(fails, tuple) else None
+                fails = None if strict or scen is not None else fails
+                r = play(s, drill, inputs, part, strict, scen)
                 checks = {c["expect"]: c for c in r.get("checks", [])}
                 if fails is None:
                     ok = r["success"]

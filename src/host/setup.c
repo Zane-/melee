@@ -89,7 +89,17 @@ static void release(HSD_GObj* gobj, Fighter* fp)
     }
 }
 
+static int find_ledge(Vec3* pos, int right);
+
 static int left_ledge(Vec3* pos)
+{
+    return find_ledge(pos, 0);
+}
+
+/// The stage's left or `right` ledge: the end of the floor under the
+/// middle of the stage, followed that way (a floor line's v0 is its left
+/// end, v1 its right).
+static int find_ledge(Vec3* pos, int right)
 {
     CollLine* lines = mpGetGroundCollLine();
     Vec3 hit, normal;
@@ -102,18 +112,27 @@ static int left_ledge(Vec3* pos)
         return -1;
     }
     for (int k = 0; k < 64; k++) {
-        int prev = mpLineGetPrev(line);
-        if (prev < 0 || (lines[prev].flags & LINE_FLAG_KIND) != CollLine_Floor)
+        int next = right ? mpLineGetNext(line) : mpLineGetPrev(line);
+        if (next < 0 || (lines[next].flags & LINE_FLAG_KIND) != CollLine_Floor)
         {
             break;
         }
-        line = prev;
+        line = next;
     }
-    mpLib_80053ECC_Floor(line, pos);
+    if (right) {
+        mpLib_80053DA4_Floor(line, pos);
+    } else {
+        mpLib_80053ECC_Floor(line, pos);
+    }
     return line;
 }
 
 const char* host_ledge(int slot, float percent)
+{
+    return host_ledge_side(slot, percent, 0);
+}
+
+const char* host_ledge_side(int slot, float percent, int right)
 {
     HSD_GObj* gobj = Player_GetEntity(slot);
     Fighter* fp;
@@ -126,7 +145,7 @@ const char* host_ledge(int slot, float percent)
         return "no such fighter";
     }
     wake(gobj, fp); /* from host_sleep, its damage display too */
-    line = left_ledge(&pos);
+    line = find_ledge(&pos, right);
     if (line < 0) {
         return "no ledge found";
     }
@@ -134,11 +153,12 @@ const char* host_ledge(int slot, float percent)
        course_PlaceOnLedge, TM-CE's Fighter_PlaceOnLedge): as if it had
        just come back, then hanging, then put where hanging puts it. */
     release(gobj, fp);
-    still(fp, 1.0F);
+    still(fp, right ? -1.0F : 1.0F);
     fp->used_tether = 0;
     ftCo_800D4F24(gobj, 0);
     ftCo_800D4FF4(gobj);
-    fp->facing_dir = 1.0F; /* a left ledge: facing the stage */
+    /* facing the stage: right on the left ledge, left on the right */
+    fp->facing_dir = right ? -1.0F : 1.0F;
     fp->mv.co.cliff.ledge_id = line;
     ftCo_8009A804(gobj);
     fp->mv.co.cliff.x8 = 0; /* TM-CE's FtCliffCatch.timer (x4 is the
@@ -264,8 +284,13 @@ const char* host_rebirth(int slot, float x, float y)
 
 int host_left_ledge(float* x, float* y)
 {
+    return host_ledge_at(0, x, y);
+}
+
+int host_ledge_at(int right, float* x, float* y)
+{
     Vec3 pos;
-    int line = left_ledge(&pos);
+    int line = find_ledge(&pos, right);
     *x = pos.x;
     *y = pos.y;
     return line;

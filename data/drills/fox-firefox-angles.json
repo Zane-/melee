@@ -42,9 +42,8 @@
       {
         "title": "Charge and launch",
         "text": [
-          "Up-B charges for {42} frames. For the first {15} Fox holds still in the air; for the rest he sinks slowly, about {6} units in all.",
-          "On frame {43} the game reads the control stick: Fox faces the way it points and launches at its angle, {0} degrees toward where he faces, {90} straight up. Each axis of the stick reads as 0 up to {22} of its {80} steps from the centre, so a stick within about {16} degrees of level launches level, one within about {16} degrees of vertical launches straight up, and so does neutral.",
-          "He travels {30} frames in a straight line, {81.5} units, slowing from {3.8} units a frame, then falls helpless: only the ledge or the stage ends the fall."
+          "Up-B charges for {42} frames: Fox holds still for {15}, then sinks about {6} units. On frame {43} the control stick sets the angle, {0} degrees forward to {90} straight up, and Fox turns to face it.",
+          "Each stick axis reads as 0 up to {22} of its {80} steps, so within about {16} degrees of level he launches level, and within {16} of vertical, or in neutral, straight up. He then travels {81.5} units in {30} frames and falls helpless."
         ],
         "show": {
           "example": {

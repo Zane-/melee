@@ -13,7 +13,7 @@
       "distance": 90,
       "height": 8
     },
-    "what": "A jump-cancelled shine is a jump out of a dash and down-B on frame {J+1}, the frame the jump squat ends. The shine stops Fox's rise on that frame, so it comes out at ground level and he lands in it {4} frames later.",
+    "what": "A jump-cancelled shine is a jump out of a dash and down-B on frame {J+1}, the frame Fox leaves the ground. The shine stops Fox's rise on that frame, so it comes out at ground level and he lands in it {4} frames later.",
     "expect": "Each attempt is judged when the shine comes out, or when Fox lands without one: whether the jump came out of a dash and on which frame the shine came. After misses, the coach shows your inputs frame by frame against these frames.",
     "example": [
       {
@@ -42,8 +42,8 @@
       }
     ],
     "marks": {
-      "1": "Frame 1: X pressed during the dash. The jump squat begins",
-      "J": "Frame {J}: the last frame of the jump squat. Down-B now is ignored",
+      "1": "Frame 1: X pressed during the dash",
+      "J": "Frame {J}: still on the ground. Down-B now is ignored",
       "J+1": "Frame {J+1}: down-B as Fox leaves the ground. The shine at ground level",
       "J+5": "Frame {J+5}: Fox lands in the shine"
     },
@@ -51,8 +51,8 @@
       {
         "title": "No shine from a dash",
         "text": [
-          "A dash accepts side-B but not down-B: down-B pressed while dashing does nothing. A run accepts it, but every run starts with a dash, and a jump can start out of the dash.",
-          "The jump squat accepts only a grab, an up smash and up-B: down-B pressed during the jump squat is ignored. On frame {J+1} Fox leaves the ground, and down-B on that frame is an aerial shine. It stops his rise before he has moved up, so the shine is at ground level and he lands in it {4} frames later, still shining."
+          "A dash ignores down-B. A run accepts it, but every run starts with a dash, and a jump can start out of the dash.",
+          "After the jump, down-B is ignored until Fox leaves the ground on frame {J+1}. Down-B on that frame is an aerial shine that stops his rise before he has moved, so the shine is at ground level and he lands in it {4} frames later, still shining."
         ],
         "show": {
           "example": {
@@ -75,8 +75,8 @@
               }
             ],
             "marks": {
-              "1": "Frame 1: X pressed. The jump squat begins",
-              "2": "Frame {f}: jump squat. Down-B now is ignored",
+              "1": "Frame 1: X pressed",
+              "2": "Frame {f}: still on the ground. Down-B now is ignored",
               "J+1": "Frame {J+1}: down-B. The shine at ground level",
               "J+5": "Frame {J+5}: landed in the shine"
             },
@@ -86,7 +86,7 @@
                   1,
                   "J"
                 ],
-                "words": "Jump squat: down-B is ignored",
+                "words": "Too soon: down-B is ignored",
                 "kind": "late"
               },
               {
@@ -222,7 +222,7 @@
       "expect": "A shine out of the jump",
       "words": "{char} landed without a shine",
       "headline": "No shine",
-      "fix": "Press down-B on frame {J+1}, the frame {char} leaves the ground. Down-B pressed during the jump squat is ignored."
+      "fix": "Press down-B on frame {J+1}, the frame {char} leaves the ground. Down-B pressed before it is ignored."
     },
     "first airborne frame": {
       "measure": "shine_after",
@@ -230,13 +230,13 @@
       "expect": "Shine on frame {J+1}, the first frame in the air",
       "words": "shine on frame {shine_frame}",
       "headline": "Late shine",
-      "fix": "Press down-B {J} frames after the jump, as the jump squat ends. One frame later {char} has risen, and the shine stays in the air."
+      "fix": "Press down-B {J} frames after the jump, as {char} leaves the ground. One frame later {char} has risen, and the shine stays in the air."
     }
   },
   "parts": [
     {
       "name": "Shine as you leave the ground",
-      "teach": "Standing, press X, then down-B on frame {J+1}, the frame the jump squat ends. The shine comes out at ground level.",
+      "teach": "Standing, press X, then down-B on frame {J+1}, as Fox leaves the ground. The shine comes out at ground level.",
       "example": [
         {
           "press": "jump",
@@ -266,7 +266,7 @@
             1,
             "J"
           ],
-          "words": "Jump squat: down-B is ignored",
+          "words": "Too soon: down-B is ignored",
           "kind": "late"
         },
         {
@@ -308,7 +308,7 @@
             ]
           }
         ],
-        "note": "The jump squat is {J} frames: down-B on frame {J+1}."
+        "note": "Down-B on frame {J+1}, as Fox leaves the ground."
       }
     },
     {
@@ -351,7 +351,7 @@
             1,
             "J"
           ],
-          "words": "Jump squat: down-B is ignored",
+          "words": "Too soon: down-B is ignored",
           "kind": "late"
         },
         {
@@ -373,7 +373,7 @@
   ],
   "mistakes": [
     {
-      "name": "down-B during the jump squat",
+      "name": "down-B too soon",
       "inputs": [
         {
           "press": "jump",
@@ -464,6 +464,6 @@
         ]
       }
     ],
-    "note": "The jump squat is {J} frames: down-B on frame {J+1}."
+    "note": "Down-B on frame {J+1}, as Fox leaves the ground."
   }
 }

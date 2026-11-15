@@ -6,14 +6,14 @@
     "fox"
   ],
   "goal": "SHFFL an aerial, shine as you land, then grab.",
-  "why": "An opponent who holds shield through the aerial and the shine is open to a grab. Jumping out of the shine and grabbing in the jump squat turns the pressure into a grab {4} frames after the shine, without leaving the ground.",
+  "why": "An opponent who holds shield through the aerial and the shine is open to a grab. Jumping out of the shine and grabbing before leaving the ground turns the pressure into a grab {4} frames after the shine, without leaving the ground.",
   "tutorial": {
     "camera": {
       "follow": "player",
       "distance": 90,
       "height": 8
     },
-    "what": "A SHFFL shine grab is a SHFFL, a shine on the first frame after the landing lag, a jump out of the shine on its frame {4}, and Z on the next frame of the jump squat.",
+    "what": "A SHFFL shine grab is a SHFFL, a shine on the first frame after the landing lag, a jump out of the shine on its frame {4}, and Z on the next frame, before Fox leaves the ground.",
     "expect": "Each attempt is judged when the grab comes out: the SHFFL, the shine's timing after the landing lag, the jump out of the shine and the grab. After misses, the coach shows your inputs frame by frame against these frames.",
     "example": [
       {
@@ -119,7 +119,7 @@
                   1,
                   "J"
                 ],
-                "words": "Jump squat",
+                "words": "Short hop",
                 "kind": "info"
               },
               {
@@ -240,7 +240,7 @@
       {
         "title": "Grab out of the shine",
         "text": [
-          "The shine accepts a jump from its fourth frame, and nothing else. The jump squat that follows accepts a grab: Z pressed on its second or third frame replaces the jump with a standing grab, so Fox never leaves the ground.",
+          "The shine accepts a jump from its fourth frame, and nothing else. Z pressed on one of the next {2} frames, before Fox leaves the ground, replaces the jump with a standing grab.",
           "Z pressed together with the jump out of the shine is not seen, and Fox jumps. Z pressed once he is in the air is a neutral air."
         ],
         "show": {
@@ -270,8 +270,8 @@
             ],
             "marks": {
               "1": "Frame 1: down-B. The shine",
-              "4": "Frame {4}: X. The jump squat begins",
-              "5": "Frame {5}: Z. The jump squat becomes a grab",
+              "4": "Frame {4}: X. The jump cancels the shine",
+              "5": "Frame {5}: Z. The jump becomes a grab",
               "J+4": "Frame {J+4}: grabbing"
             },
             "cues": [
@@ -435,7 +435,7 @@
       "expect": "An aerial",
       "words": "no aerial before landing",
       "headline": "No aerial",
-      "fix": "Press A, or tilt the C-stick, once {char} is off the ground, from frame {J+1}. A pressed during the jump squat is not an aerial."
+      "fix": "Press A, or tilt the C-stick, once {char} is off the ground, from frame {J+1}. A pressed before {char} leaves the ground is not an aerial."
     },
     "fast fall": {
       "measure": "fast_fell",
@@ -498,10 +498,10 @@
     "grabbed": {
       "measure": "grabbed",
       "equals": true,
-      "expect": "A grab out of the jump squat",
+      "expect": "A grab before leaving the ground",
       "words": "{char} left the ground without a grab",
       "headline": "No grab",
-      "fix": "Press Z {1} or {2} frames after the jump out of the shine, while {char} is still in the jump squat. Z pressed together with that jump is not seen; Z pressed once {char} is in the air is a neutral air."
+      "fix": "Press Z {1} or {2} frames after the jump out of the shine, while {char} is still on the ground. Z pressed together with that jump is not seen; Z pressed once {char} is in the air is a neutral air."
     }
   },
   "parts": [
@@ -779,7 +779,7 @@
             ]
           }
         ],
-        "note": "Jump on frame {4} of the shine; Z on frame {5} or {J+3}, before the jump squat ends."
+        "note": "Jump on frame {4} of the shine; Z on frame {5} or {J+3}, before Fox leaves the ground."
       }
     },
     {

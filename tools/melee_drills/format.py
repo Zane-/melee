@@ -663,9 +663,14 @@ def _problems(spec):
             need(not extra, w + ".attempt", "unknown %s" %
                  ", ".join(sorted(extra)))
         if "scenario" in p:
-            need(isinstance(p["scenario"], int) and
-                 0 <= p["scenario"] < len(spec["scenarios"]), w,
-                 "scenario: an index of the drill's scenarios")
+            # an index, or a list the player turns through (D-pad left and
+            # right: the ledgedash from either ledge)
+            sc = p["scenario"]
+            lst = sc if isinstance(sc, list) else [sc]
+            need(len(lst) > 0 and all(
+                isinstance(i, int) and 0 <= i < len(spec["scenarios"])
+                for i in lst), w,
+                "scenario: an index of the drill's scenarios, or a list")
 
     for i, m in enumerate(spec.get("mistakes", [])):
         w = "mistakes[%d]" % i

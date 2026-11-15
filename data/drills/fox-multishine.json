@@ -13,7 +13,7 @@
       "distance": 90,
       "height": 8
     },
-    "what": "A multishine is a shine, a jump out of it on frame {4}, and the next shine on frame {J+4}, the frame the jump squat ends. That shine comes out at ground level and lands {4} frames later, and the next jump goes on the frame after the landing.",
+    "what": "A multishine is a shine, a jump out of it on frame {4}, and the next shine on frame {J+4}, the frame Fox leaves the ground. That shine comes out at ground level and lands {4} frames later, and the next jump goes on the frame after the landing.",
     "expect": "Each chain is judged when it ends, or {60} frames after the first shine: how many shines came out, and the most frames from one shine to the next. After misses, the coach shows your inputs frame by frame against the frame-perfect chain.",
     "example": [
       {
@@ -94,10 +94,10 @@
     ],
     "marks": {
       "1": "Frame 1: down-B. The first shine",
-      "4": "Frame {4}: X. Jump squat",
+      "4": "Frame {4}: X. The jump cancels the shine",
       "J+4": "Frame {J+4}: down-B as Fox leaves the ground. Shine at ground level",
       "J+8": "Frame {J+8}: landed in the shine",
-      "J+9": "Frame {J+9}: X. Jump squat",
+      "J+9": "Frame {J+9}: X. The next jump",
       "15": "Frame {15}: down-B. The third shine",
       "23": "Frame {23}: the fourth shine",
       "31": "Frame {31}: the fifth shine"
@@ -106,7 +106,7 @@
       {
         "title": "The second shine",
         "text": [
-          "The shine accepts a jump from its fourth frame. The jump squat that follows ignores down-B, and on frame {J+4} Fox leaves the ground: down-B on that frame is an aerial shine. It stops his rise before he has moved up, so it is at ground level, and he lands in it {4} frames later, on frame {J+8}.",
+          "The shine accepts a jump from its fourth frame. Down-B is then ignored until Fox leaves the ground on frame {J+4}: down-B on that frame is an aerial shine. It stops his rise before he has moved up, so it is at ground level, and he lands in it {4} frames later, on frame {J+8}.",
           "Down-B pressed a frame later comes out {2} units up, and Fox floats down in it instead of landing at once."
         ],
         "show": {
@@ -142,8 +142,8 @@
             ],
             "marks": {
               "1": "Frame 1: down-B",
-              "4": "Frame {4}: X. Jump squat",
-              "5": "Frame {f}: jump squat. Down-B now is ignored",
+              "4": "Frame {4}: X. The jump cancels the shine",
+              "5": "Frame {f}: still on the ground. Down-B now is ignored",
               "J+4": "Frame {J+4}: down-B. The second shine, at ground level",
               "J+8": "Frame {J+8}: landed in the shine"
             },
@@ -169,7 +169,7 @@
                   5,
                   "J+3"
                 ],
-                "words": "Jump squat: down-B is ignored",
+                "words": "Too soon: down-B is ignored",
                 "kind": "late"
               },
               {
@@ -203,7 +203,7 @@
       {
         "title": "The next jump",
         "text": [
-          "Until the shine lands, Fox is in the air, and a jump is his double jump: he rises and the chain ends. The shine lands on its fifth frame, and a jump on the frame after, {5} frames after down-B, is a jump squat again.",
+          "Until the shine lands, Fox is in the air, and a jump is his double jump: he rises and the chain ends. The shine lands on its fifth frame, and a jump on the frame after, {5} frames after down-B, starts the next cycle.",
           "From there the cycle repeats: jump {5} frames after each shine, down-B {J} frames after each jump. Frame-perfect, a shine comes out every {8} frames: frames 1, {J+4}, {15}, {23}, {31}."
         ],
         "show": {
@@ -257,7 +257,7 @@
               "J+4": "Frame {J+4}: the second shine",
               "J+5": "Frame {f}: in the air. A jump now is the double jump",
               "J+8": "Frame {J+8}: landed in the shine",
-              "J+9": "Frame {J+9}: X. Jump squat",
+              "J+9": "Frame {J+9}: X. The next jump",
               "15": "Frame {15}: down-B. The third shine"
             },
             "cues": [
@@ -290,7 +290,7 @@
                   13,
                   14
                 ],
-                "words": "Jump squat: down-B is ignored",
+                "words": "Too soon: down-B is ignored",
                 "kind": "late"
               },
               {
@@ -425,9 +425,9 @@
       "measure": "rose",
       "equals": false,
       "expect": "Every shine on the first frame in the air",
-      "words": "{char} rose out of a jump squat without a shine",
+      "words": "{char} left the ground without a shine",
       "headline": "Shine missed",
-      "fix": "Press down-B {J} frames after each jump, on the frame the jump squat ends. Down-B during the jump squat is ignored; a frame late, Fox has left the ground."
+      "fix": "Press down-B {J} frames after each jump, on the frame Fox leaves the ground. Earlier it is ignored; a frame late, Fox has already risen."
     },
     "no double jump": {
       "measure": "double_jumped",
@@ -443,7 +443,7 @@
       "expect": "{3} shines in a row",
       "words": "{measure} shines",
       "headline": "Too few shines",
-      "fix": "Down-B {J} frames after each jump, as the jump squat ends, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
+      "fix": "Down-B {J} frames after each jump, as Fox leaves the ground, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
     },
     "five shines": {
       "measure": "shines",
@@ -451,7 +451,7 @@
       "expect": "{5} shines in a row",
       "words": "{measure} shines",
       "headline": "Too few shines",
-      "fix": "Down-B {J} frames after each jump, as the jump squat ends, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
+      "fix": "Down-B {J} frames after each jump, as Fox leaves the ground, and jump {5} frames after each shine, once it has landed. A down-B earlier or later lets Fox rise and ends the chain."
     },
     "steady": {
       "measure": "slowest",
@@ -470,7 +470,7 @@
   "parts": [
     {
       "name": "The second shine",
-      "teach": "Shine, jump on frame {4}, and down-B on frame {J+4} as the jump squat ends. The second shine comes out at ground level.",
+      "teach": "Shine, jump on frame {4}, and down-B on frame {J+4} as Fox leaves the ground. The second shine comes out at ground level.",
       "example": [
         {
           "stick": [
@@ -519,7 +519,7 @@
             5,
             "J+3"
           ],
-          "words": "Jump squat: down-B is ignored",
+          "words": "Too soon: down-B is ignored",
           "kind": "late"
         },
         {
@@ -590,7 +590,7 @@
             ]
           }
         ],
-        "note": "Jump on frame {4}; the jump squat lasts {J} frames, and the second down-B goes on frame {J+4}."
+        "note": "Jump on frame {4}; the second down-B goes on frame {J+4}, as Fox leaves the ground."
       }
     },
     {
@@ -860,7 +860,7 @@
       "fails": "no rise"
     },
     {
-      "name": "second down-B during the jump squat",
+      "name": "second down-B too soon",
       "inputs": [
         {
           "stick": [

@@ -82,14 +82,6 @@
             "cues": [
               {
                 "frames": [
-                  1,
-                  "J"
-                ],
-                "words": "Jump squat",
-                "kind": "info"
-              },
-              {
-                "frames": [
                   "J+1",
                   "J+1"
                 ],

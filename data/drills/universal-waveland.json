@@ -43,8 +43,8 @@
       {
         "title": "An air dodge that touches a floor",
         "text": [
-          "An air dodge that touches a floor ends there: {char} lands in 10 frames of landing lag and slides with the air dodge's speed along the floor. Platforms are floors too. On the first frame in the air after a jump it is a wavedash; later in a jump or a fall it is a waveland.",
-          "The air dodge moves in the direction of the control stick and loses a tenth of its speed every frame. Pressed in the last 3 frames before {char} would land, frames {SL-2} to {SL} of a short hop, it touches down within 3 frames with nearly all of it."
+          "An air dodge that touches a floor, platforms included, ends there: {char} lands in 10 frames of landing lag and slides with its speed. On the first frame in the air it is a wavedash; later in a jump or a fall, a waveland.",
+          "The air dodge loses a tenth of its speed every frame. Pressed in the last 3 frames of a short hop's fall, frames {SL-2} to {SL}, it touches down within 3 frames and keeps nearly all of it."
         ],
         "show": {
           "example": {

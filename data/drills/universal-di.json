@@ -54,8 +54,8 @@
       {
         "title": "How DI works",
         "text": [
-          "The game reads the control stick on the last frame of hitlag and turns the launch angle toward it as the launch begins. The turn is 18 degrees times the square of the stick's component perpendicular to the launch. A stick perpendicular to the launch gives all 18 degrees; a stick along the launch line gives none.",
-          "The opponent's forward smash launches {char} away at 44 degrees. Up and toward the opponent is perpendicular to that, and turns the launch to about 62 degrees. Straight up is 46 degrees off the launch line and turns it about 9."
+          "The game reads the control stick on the last frame of hitlag and turns the launch angle toward it by 18 degrees times the square of the stick's component perpendicular to the launch. Perpendicular gives all 18; along the launch line, none.",
+          "The forward smash launches {char} at 44 degrees. Up and toward the opponent is perpendicular to that and turns it to about 62. Straight up, 46 degrees off the line, turns it about 9."
         ],
         "show": {
           "example": {

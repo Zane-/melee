@@ -133,9 +133,13 @@ void host_match_loaded(char* out, size_t size);
 /// The stage's left ledge (the left end of the floor under the middle of the
 /// stage, followed left): its floor line, or -1, and where it is.
 int host_left_ledge(float* x, float* y);
+/// The left (0) or right (1) ledge: its floor line, or -1, and where.
+int host_ledge_at(int right, float* x, float* y);
 /// Player `slot` hanging on that ledge, as after a fresh grab of it (full
 /// ledge intangibility), with that much damage.
 const char* host_ledge(int slot, float percent);
+/// The same on the left (0) or right (1) ledge, facing the stage.
+const char* host_ledge_side(int slot, float percent, int right);
 const char* host_rebirth(int slot, float x, float y);
 const char* host_anchor(int slot, int on);
 void host_anchor_frame(void);

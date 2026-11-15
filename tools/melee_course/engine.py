@@ -463,11 +463,14 @@ class Ctx:
         self.n.place(self.s.person, x, 0.0, 1, False, percent)
         self._park_cpu()
 
-    def place_on_ledge(self, percent=0.0):
-        """The player hanging on the stage's left ledge, fresh: positive
-        stick X is toward the stage."""
-        self.side, self.toward = 1.0, -1.0
-        self.n.ledge(self.s.person, percent)
+    def place_on_ledge(self, percent=0.0, side="left"):
+        """The player hanging on the stage's left (or `side` "right")
+        ledge, fresh: positive stick X is toward the stage."""
+        if side == "right":
+            self.side, self.toward = -1.0, 1.0
+        else:
+            self.side, self.toward = 1.0, -1.0
+        self.n.ledge(self.s.person, percent, side)
 
     def ledge_pos(self):
         """Where the stage's left ledge is, or None."""
@@ -649,7 +652,10 @@ class Session:
             if isinstance(k, str):
                 k = [o.name for o in drill.options].index(k)
             self.opts[k] = v
-        self.common = {OPT_SCENARIO: 0, OPT_SWITCH: SWITCH_EVERY,
+        # (a drill may keep its scenario until the player changes it:
+        # its `switch`, SWITCH_MANUAL)
+        self.common = {OPT_SCENARIO: 0,
+                       OPT_SWITCH: getattr(drill, "switch", SWITCH_EVERY),
                        OPT_SIDE: SIDE_RANDOM, OPT_DEMO: DEMO_OFF}
         self.common.update(common or {})
         self.rng = random.Random(seed)
