@@ -44,9 +44,11 @@
  * weights (dmg taken ko pos adv contact shield hit held close dist),
  * lcancel=0|1, moves=PREFIX,... for the first moves allowed, then=PREFIX,...
  * for the moves allowed after the first (a line made only of a drill's
- * moves), split=N to report the best line from each of the first N moves
- * (by default from each first move; at most LINES_MAX lines), and ms=N to
- * stop after N milliseconds with the best found so far.
+ * moves; the opponent vocabulary's moves, pivots to wavelands, come in
+ * only when a prefix names them: docs/ai/opponent-vocabulary.md), split=N
+ * to report the best line from each of the first N moves (by default from
+ * each first move; at most LINES_MAX lines), and ms=N to stop after N
+ * milliseconds with the best found so far.
  *
  * The timing scan ("scan=STEP"): lines of one shape, [FIRST] + HOLD for K
  * frames + LAST, every K (a multiple of STEP) tried. FIRST one of moves=
@@ -94,9 +96,12 @@
 #include <ucontext.h>
 #include <unistd.h>
 
+#include <melee/ft/fighter.h>
 #include <melee/ft/inlines.h>
 #include <melee/ft/types.h>
 #include <melee/lb/types.h>
+#include <melee/mp/mpcoll.h>
+#include <melee/mp/mplib.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
 #include <sysdolphin/baselib/initialize.h>
@@ -115,6 +120,8 @@
 #define REDUCED_BUDGET 160
 #define WIDE 12 /* moves of a node searched deeper at most */
 #define MARK_COST 8   /* a mark and a rewind cost about as much as 8 frames */
+/* A waveland is offered in the air with a floor this close below. */
+#define WAVELAND_REACH 40.0F
 
 /* buttons (HostPad.buttons, as the protocol's) */
 #define B_A 0x0100
@@ -132,6 +139,7 @@
 #define MS_TURN 18
 #define MS_DASH 20
 #define MS_RUN 21
+#define MS_RUN_BRAKE 23
 #define MS_KNEEBEND 24
 #define MS_JUMP_FIRST 25
 #define MS_FALL_LAST 34
@@ -150,6 +158,7 @@
 #define MS_DAMAGE_LAST 91
 #define MS_DOWN_FIRST 183    /* lying down after a missed tech, U and D */
 #define MS_DOWN_LAST 198
+#define MS_PASS 244          /* dropping through a platform */
 #define MS_CLIFF_WAIT 253
 #define MS_CAPTURE_FIRST 223 /* being held: pulled, waiting, pummelled... */
 #define MS_CAPTURE_LAST 228
@@ -189,12 +198,26 @@ enum {
     /* in the air: angled up specials, air dodges */
     M_UP_B_IN, M_UP_B_OUT, M_AIRDODGE_IN, M_AIRDODGE_OUT, M_AIRDODGE_UP,
     M_AIRDODGE_DOWN,
+    /* pivots: a dash out, the turn, the attack facing in; 8 attacks x
+       (the shortest dash a reversal turns, the longest before a run) */
+    M_PIVOT_FIRST,
+    M_PIVOT_LAST = M_PIVOT_FIRST + 15,
+    /* out of a dash or run: Z; a jump cancelled into Z or an up smash; a
+       dash attack cancelled into a grab; a dash out and back */
+    M_DASH_GRAB, M_JC_GRAB, M_JC_USMASH, M_BOOST_GRAB, M_DASH_DANCE,
+    /* the stick down: a crouch, through a platform */
+    M_CROUCH, M_PLATFORM_DROP,
+    /* in the air: an air dodge onto the floor below (in, out, straight) */
+    M_WAVELAND_IN, M_WAVELAND_OUT, M_WAVELAND,
     M_COUNT
 };
 
 static const char* const AERIAL_NAME[5] = { "nair", "fair", "bair", "uair",
                                             "dair" };
 static const char* const DRIFT_NAME[3] = { "in", "", "out" };
+static const char* const PIVOT_NAME[8] = { "jab",    "ftilt", "fsmash",
+                                           "utilt",  "usmash", "dtilt",
+                                           "dsmash", "grab" };
 
 static char macro_names[M_COUNT][24];
 
@@ -233,6 +256,21 @@ static void name_macros(void)
     };
     for (int i = 0; i < (int) (sizeof rest / sizeof *rest); i++) {
         snprintf(macro_names[M_DRIFT_IN + i], 24, "%s", rest[i]);
+    }
+    /* "pivot_fsmash" and "pivot_fsmash_long": one prefix, both lengths */
+    for (int a = 0; a < 8; a++) {
+        snprintf(macro_names[M_PIVOT_FIRST + a * 2], 24, "pivot_%s",
+                 PIVOT_NAME[a]);
+        snprintf(macro_names[M_PIVOT_FIRST + a * 2 + 1], 24, "pivot_%s_long",
+                 PIVOT_NAME[a]);
+    }
+    static const char* const later[] = {
+        "dash_grab", "jc_grab",       "jc_usmash",   "boost_grab",
+        "dash_dance", "crouch",       "platform_drop", "waveland_in",
+        "waveland_out", "waveland",
+    };
+    for (int i = 0; i < (int) (sizeof later / sizeof *later); i++) {
+        snprintf(macro_names[M_DASH_GRAB + i], 24, "%s", later[i]);
     }
 }
 
@@ -453,7 +491,24 @@ static int can_act(Fighter* fp)
            m == MS_TURN || m == MS_DASH || m == MS_RUN ||
            (m >= MS_JUMP_FIRST && m <= MS_FALL_LAST) ||
            (m >= MS_SQUAT_FIRST && m <= MS_SQUAT_LAST) || m == MS_GUARD ||
-           m == MS_CATCH_WAIT;
+           m == MS_CATCH_WAIT || m == MS_PASS;
+}
+
+/// How far the floor below the fighter's feet (its ECB's bottom) is, or
+/// -1 with none within `reach` (the platform it dropped through not
+/// counted).
+static float floor_below(Fighter* fp, float reach)
+{
+    Vec3 hit, normal;
+    int line = -1;
+    u32 flags = 0;
+    float x = fp->cur_pos.x, y = fp->cur_pos.y + fp->coll_data.ecb.bottom.y;
+    if (!mpCheckFloor(x, y, x, y - reach, 0.0F, &hit, &line, &flags,
+                      &normal, fp->coll_data.floor_skip, -1, -1, NULL, NULL))
+    {
+        return -1.0F;
+    }
+    return y - hit.y;
 }
 
 static float toward(void)
@@ -763,6 +818,162 @@ static int wavedash(int d)
     return settle(0);
 }
 
+/* How far a dash goes before the move made out of it (dash_to). */
+enum { DASH_STARTED, DASH_TURNABLE, DASH_LAST };
+
+/* Each character's dash: the animation frame after which a stick still
+   held starts the run on the next frame (0: not measured yet). Not the
+   game's state: it survives the search's rewinds. */
+#define KINDS_MAX 64
+static float run_at[KINDS_MAX];
+
+static void mark(void);
+static void back_to(int at, int t);
+
+/// Is this the dash's last frame before a run: would a stick still held
+/// on the next frame start the run? The dash's script sets its run flag
+/// (cmd_vars[0]) in the next frame's animation, which the game runs
+/// before that frame's input, so the flag cannot be read a frame early.
+/// Measured once per character instead: the next frame played with the
+/// stick held, and undone (not counted against the budget).
+static int dash_ends(Fighter* fp, int stick)
+{
+    int kind = (int) fp->kind, at, t = eng.t, ran = 0;
+    float frame = fp->cur_anim_frame;
+    long spent = eng.spent;
+    if (kind >= 0 && kind < KINDS_MAX && run_at[kind] > 0.0F) {
+        return frame + 0.5F >= run_at[kind];
+    }
+    mark();
+    at = eng.marks;
+    if (play(pad_of(0, stick, 0, 0, 0, 0))) {
+        Fighter* after = fighter_of(eng.port);
+        ran = after != NULL && (int) after->motion_id == MS_RUN;
+    }
+    back_to(at, t);
+    eng.spent = spent;
+    if (ran && kind >= 0 && kind < KINDS_MAX) {
+        run_at[kind] = frame;
+    }
+    return ran;
+}
+
+/// Dash `dir` (+1 or -1 along the stage), the stick held full that way,
+/// until the dash is far enough: started; past the frames in which a
+/// reversal does nothing (the game's p_ftCommonData->x44: a dash's first
+/// 4; then a dash attack comes out too: the next frame's input is read
+/// after its animation has moved on, so one frame on); or at its last
+/// frame before it becomes a run (dash_ends). From standing, walking or
+/// turning; out of a dash either way (a dash the other way is reversed: a
+/// turn, then a dash back). `run_ok`: a run that way will do (a dash grab
+/// out of a run). 0 if it never gets there (a run, the air).
+static int dash_to(float dir, int how, int run_ok)
+{
+    int stick = (int) (127 * dir);
+    for (int i = 0; i < 40; i++) {
+        Fighter* fp = fighter_of(eng.port);
+        int m;
+        if (fp == NULL || airborne(fp)) {
+            return 0;
+        }
+        m = (int) fp->motion_id;
+        if (m == MS_DASH && fp->facing_dir * dir > 0.0F) {
+            if (how == DASH_STARTED ||
+                (how == DASH_TURNABLE &&
+                 fp->cur_anim_frame + 1.0F > p_ftCommonData->x44) ||
+                (how == DASH_LAST && dash_ends(fp, stick)))
+            {
+                return 1;
+            }
+        } else if (m >= MS_RUN && m <= MS_RUN_BRAKE) {
+            return run_ok && m != MS_RUN_BRAKE && fp->facing_dir * dir > 0.0F;
+        } else if (i == 0 && m != MS_DASH && m != MS_TURN &&
+                   (eng.last.lx > 20 || eng.last.lx < -20))
+        {
+            /* a dash needs the stick from the middle */
+            if (!play(neutral())) {
+                return 0;
+            }
+        }
+        if (!play(pad_of(0, stick, 0, 0, 0, 0))) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+/// The attack `a` (PIVOT_NAME) on the frame after a pivot's turn, facing
+/// `t`: the stick under 0.8 (a tilt's angle, or none), else the turn
+/// would become a dash back.
+static HostPad pivot_attack(int a, float t)
+{
+    switch (a) {
+    case 0:
+        return pad_of(B_A, 0, 0, 0, 0, 0);
+    case 1:
+        return pad_of(B_A, (int) (50 * t), 0, 0, 0, 0);
+    case 2:
+        return pad_of(0, 0, 0, (int) (127 * t), 0, 0);
+    case 3:
+        return pad_of(B_A, 0, 50, 0, 0, 0);
+    case 4:
+        return pad_of(0, 0, 0, 0, 127, 0);
+    case 5:
+        return pad_of(B_A, 0, -50, 0, 0, 0);
+    case 6:
+        return pad_of(0, 0, 0, 0, -127, 0);
+    default:
+        return pad_of(B_Z, 0, 0, 0, 0, 0);
+    }
+}
+
+/// A pivot into attack `a`: a dash away from the target (`longest`: to
+/// its last frame before a run; else the shortest a reversal turns), the
+/// stick flicked full toward it for one frame (a smash turn: the fighter
+/// faces the target, standing), and on the next the attack, which leaves
+/// the turn before it can become a dash back. As the pivot drill measured
+/// it: 0.8 reached within 2 frames of crossing the middle, under it the
+/// frame after the turn; full held for 2 frames dashes back.
+static int pivot(int a, int longest)
+{
+    float t = toward();
+    return dash_to(-t, longest ? DASH_LAST : DASH_TURNABLE, 0) &&
+           play(pad_of(0, (int) (127 * t), 0, 0, 0, 0)) &&
+           press(pivot_attack(a, t));
+}
+
+/// A waveland: in the air, falling onto a floor (a platform, the stage),
+/// an air dodge down and `d` (1 in, -1 out, 0 straight down) on the last
+/// frame before the fall would land by itself, so the dodge lands: its
+/// landing lag (LandingFallSpecial) and its slide. Waits for the fall
+/// first (a jump's rise, the top), at most SETTLE_MAX frames.
+static int waveland(int d)
+{
+    float t = toward();
+    for (int i = 0; i < SETTLE_MAX; i++) {
+        Fighter* fp = fighter_of(eng.port);
+        float below, vy;
+        if (fp == NULL) {
+            return 0;
+        }
+        if (!airborne(fp)) {
+            return settle(0); /* down already */
+        }
+        below = floor_below(fp, 200.0F);
+        vy = fp->self_vel.y + fp->x8c_kb_vel.y;
+        if (below >= 0.0F && vy <= 0.0F && below <= 0.5F - vy) {
+            HostPad p = d == 0 ? pad_of(B_R, 0, -127, 0, 0, 255)
+                               : pad_of(B_R, (int) (d * 100 * t), -80, 0,
+                                        0, 255);
+            return play(p) && settle(0);
+        }
+        if (!play(neutral())) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /// Play macro `m` from where the line is. 0 if the line must stop.
 static int run_macro(int m)
 {
@@ -782,7 +993,75 @@ static int run_macro(int m)
         int lx = (int) (d * 127 * t);
         return play(aerial_pad(k / 3, f, lx)) && settle(lx);
     }
+    if (m >= M_PIVOT_FIRST && m <= M_PIVOT_LAST) {
+        int k = m - M_PIVOT_FIRST;
+        return pivot(k / 2, k % 2);
+    }
     switch (m) {
+    case M_DASH_GRAB:
+        /* a dash toward the target (from standing: its first frame), Z */
+        return dash_to(t, DASH_STARTED, 1) &&
+               press(pad_of(B_Z, in, 0, 0, 0, 0));
+    case M_JC_GRAB:
+    case M_JC_USMASH:
+        /* out of a dash toward the target, the jump, and in its squat's
+           first frame Z (a standing grab) or up on the C-stick: either
+           keeps the dash's slide */
+        return dash_to(t, DASH_STARTED, 1) &&
+               play(pad_of(B_X, in, 0, 0, 0, 0)) &&
+               press(m == M_JC_GRAB ? pad_of(B_Z, 0, 0, 0, 0, 0)
+                                    : pad_of(0, 0, 0, 0, 127, 0));
+    case M_BOOST_GRAB:
+        /* a dash attack (out of a dash past its first 4 frames, or a run),
+           Z on its next frame: a dash grab with the dash attack's speed
+           (Z on its 2nd to 4th frame grabs: p_ftCommonData->x68) */
+        return dash_to(t, DASH_TURNABLE, 1) &&
+               play(pad_of(B_A, in, 0, 0, 0, 0)) &&
+               press(pad_of(B_Z, in, 0, 0, 0, 0));
+    case M_DASH_DANCE:
+        /* a dash out and one back in, 8 frames each (the reversal a turn
+           and a dash back), let go */
+        return from_middle() && hold(pad_of(0, -in, 0, 0, 0, 0), 8) &&
+               hold(pad_of(0, in, 0, 0, 0, 0), 8) && settle(0);
+    case M_CROUCH: {
+        /* on a platform a stick smashed down drops through it: there it
+           goes down slowly (out of the dead zone for 6 frames first) */
+        Fighter* fp = fighter_of(eng.port);
+        if (fp != NULL && !airborne(fp) &&
+            mpColl_IsOnPlatform(&fp->coll_data) &&
+            !hold(pad_of(0, 0, -30, 0, 0, 0), 6))
+        {
+            return 0;
+        }
+        return hold(pad_of(0, 0, -127, 0, 0, 0), 8);
+    }
+    case M_PLATFORM_DROP: {
+        /* the stick smashed down from the middle: a crouch, and through */
+        if ((eng.last.ly < -20 || eng.last.lx > 20 || eng.last.lx < -20) &&
+            !play(neutral()))
+        {
+            return 0;
+        }
+        for (int i = 0; i < 12; i++) {
+            Fighter* fp = fighter_of(eng.port);
+            if (fp == NULL) {
+                return 0;
+            }
+            if (airborne(fp)) {
+                break;
+            }
+            if (!play(pad_of(0, 0, -127, 0, 0, 0))) {
+                return 0;
+            }
+        }
+        return settle(0);
+    }
+    case M_WAVELAND_IN:
+        return waveland(1);
+    case M_WAVELAND_OUT:
+        return waveland(-1);
+    case M_WAVELAND:
+        return waveland(0);
     case M_WAIT:
         return hold(neutral(), 6);
     case M_WALK_IN:
@@ -1020,6 +1299,15 @@ static int moves_for(int* out)
         for (int i = M_UP_B_IN; i <= M_AIRDODGE_DOWN; i++) {
             out[n++] = i;
         }
+        /* a waveland: with a floor below within reach */
+        {
+            float below = floor_below(a, WAVELAND_REACH);
+            if (below >= 0.0F) {
+                for (int i = M_WAVELAND_IN; i <= M_WAVELAND; i++) {
+                    out[n++] = i;
+                }
+            }
+        }
         if (m == MS_DAMAGE_FALL) {
             for (int i = M_TECH; i <= M_TECH_OUT; i++) {
                 out[n++] = i;
@@ -1037,6 +1325,29 @@ static int moves_for(int* out)
                 continue; /* out of a run, A is a dash attack */
             }
             out[n++] = i;
+        }
+        {
+            /* a run cannot pivot or dash dance (it turns slowly), and the
+               dash moves go toward the target: not out of a run away */
+            int run = m >= MS_RUN && m <= MS_RUN_BRAKE;
+            int away = run && a->facing_dir * toward() < 0.0F;
+            if (!run) {
+                for (int i = M_PIVOT_FIRST; i <= M_PIVOT_LAST; i++) {
+                    out[n++] = i;
+                }
+            }
+            if (!away && m != MS_RUN_BRAKE) {
+                for (int i = M_DASH_GRAB; i <= M_BOOST_GRAB; i++) {
+                    out[n++] = i;
+                }
+            }
+            if (!run) {
+                out[n++] = M_DASH_DANCE;
+            }
+            out[n++] = M_CROUCH;
+            if (mpColl_IsOnPlatform(&a->coll_data)) {
+                out[n++] = M_PLATFORM_DROP;
+            }
         }
     }
     return n;
@@ -1527,7 +1838,12 @@ static float parse_weight(const char* line, const char* key, float def)
 }
 
 /// "KEY=PREFIX,PREFIX...": the macros whose names start with one of them
-/// into `allowed`; with no KEY, all of them.
+/// into `allowed`; with no KEY, all of them but the opponent vocabulary's
+/// (M_PIVOT_FIRST on: pivots, dash and jump-cancelled grabs, the dash
+/// dance, crouch, platform drop, wavelands), which come in when a prefix
+/// names them. A search with no moves= or then= keeps the action set it
+/// had (22 more moves on the ground would take half again as long to rank
+/// at every branch point, and leave a budgeted search its depth no more).
 static void parse_moves(const char* line, const char* key,
                         unsigned char* allowed)
 {
@@ -1542,7 +1858,9 @@ static void parse_moves(const char* line, const char* key,
         }
     }
     memset(allowed, m == NULL, M_COUNT);
-    if (m != NULL) {
+    if (m == NULL) {
+        memset(allowed + M_PIVOT_FIRST, 0, M_COUNT - M_PIVOT_FIRST);
+    } else {
         char list[512];
         sscanf(m, "%511s", list);
         for (char* tok = strtok(list, ","); tok != NULL;
