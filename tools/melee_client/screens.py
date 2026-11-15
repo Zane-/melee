@@ -624,9 +624,18 @@ def port_card(port, slot, focus, active, editing=None, rows=()):
         chip = "CPU %d" % slot.get("level", 9)
     face = ""
     if c is not None:
+        # the series' emblem on the colour, the portrait at its own shape
+        # against the card's right edge, where its cut side meets the
+        # card's border (the owner, 2026-11-14: "Don't squish the model
+        # and make sure they are on the right side of the selected card so
+        # we don't see the harsh line of the cut off character")
+        emb = art.emblem(c["series"])
         pic = _portrait(c, slot.get("costume", 0))
+        if emb is not None:
+            face += '<img class="vemb" src="%s" style="image-color: %s"/>' % (
+                picture(emb), _tint(c, pic is None, big=True))
         if pic is not None:
-            face = '<img class="vface" src="%s"/>' % picture(pic)
+            face += '<img class="vface" src="%s"/>' % picture(pic)
     name = c["name"] if c is not None else "Choose"
     who = {"you": "You", "human": "A second controller",
            "cpu": "The game's CPU", "dummy": "Stands still"}.get(
@@ -893,7 +902,11 @@ def option_panel(m, at, me=None, opp=None):
     does, (Tug of War) the rope as it would be."""
     o = m.options[at]
     v = m.settings[o.key]
-    number, unit = o.words(v).split(" ", 1)
+    words = o.words(v)
+    # a number and its unit ("3 stocks"), or a value that is a word
+    # ("Off": Shine Battle's Firefox and Illusion)
+    number, unit = words.split(" ", 1) if o.unit and " " in words else \
+        ("", words)
     track = tug_track(me or ("fox", 0), opp or ("falco", 0), v) \
         if m.ident == "tug-of-war" and o.key == "lead" else ""
     return (

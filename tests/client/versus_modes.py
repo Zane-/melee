@@ -291,6 +291,15 @@ def main():
         check("its options: 4 stocks, Firefox and Illusion off",
               c.screen == "mopts" and c.mode_now.settings ==
               {"stocks": 4, "recovery": "Off"}, str(c.mode_now.settings))
+        tap("Down")
+        tap("Right")
+        check("Firefox and Illusion turned on, the panel drawn (its value a "
+              "word: it once crashed the client)", c.screen == "mopts" and
+              c.mode_now.settings["recovery"] == "On" and ">On<" in open(
+                  os.path.join(c.out, "part-spanel.rml")).read(),
+              str(c.mode_now.settings))
+        tap("Left")
+        tap("Up")
         shot("options-shine")
         check("its A goes on to the opponent",
               "Choose opponent" in open(os.path.join(

@@ -944,7 +944,10 @@ img { display: inline-block; }
 .vport .un, .vkind .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; }
 .vkind { padding: 2dp 10dp; margin-left: 6dp; background-color: #12161C; color: #F3F6FA; transform: skewX(-12deg); }
 .vpic { position: absolute; left: 0dp; top: 0dp; right: 0dp; bottom: 52dp; overflow: hidden; clip: always; }
-.vface { position: absolute; left: 33dp; top: -6dp; width: 200dp; height: 200dp; }
+/* the portrait at its own shape (140 by 192), flush with the card's right
+   edge (its cut side there); the emblem on the colour to its left */
+.vface { position: absolute; right: -2dp; top: -12dp; width: 146dp; height: 200dp; }
+.vemb { position: absolute; left: 12dp; top: 38dp; width: 120dp; height: 96dp; }
 .vname { position: absolute; left: 0dp; right: 0dp; bottom: 0dp; height: 52dp; padding: 6dp 12dp; box-sizing: border-box; background-color: #12161C; }
 .vname .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; line-height: 1em; text-transform: uppercase; }
 .vwho { font-size: 12dp; color: #A9B4C2; white-space: nowrap; }

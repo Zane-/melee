@@ -112,6 +112,21 @@ def main():
     check("its stats: shines started, and the ones that hurt the other",
           m.shines == [2, 0] and m.landed == [1, 0],
           "%s %s" % (m.shines, m.landed))
+    # every mode's options screen draws at every value of every option
+    # (Shine Battle's Off/On once crashed it: a word has no unit)
+    import screens
+    bad = []
+    for cls in modes.MODES:
+        for at, o in enumerate(cls.options):
+            for v in o.values:
+                m = cls(**{o.key: v})
+                try:
+                    screens.option_panel(m, at)
+                    screens.option_rows(m, at)
+                except Exception as e:
+                    bad.append("%s %s=%r: %s" % (cls.ident, o.key, v, e))
+    check("every mode's options screen draws at every value", not bad,
+          "; ".join(bad[:3]))
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     sys.exit(0 if all(checks) else 1)
 
