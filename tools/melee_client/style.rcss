@@ -916,8 +916,8 @@ img { display: inline-block; }
    character card's portrait is; the game's name logo; the numbers. */
 .sgclip { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 218dp; overflow: hidden; clip: always; }
 .sgprev { position: absolute; left: 0dp; top: 0dp; width: 388dp; height: 218dp; }
-.sgname { position: absolute; left: 16dp; top: 214dp; width: 224dp; height: 56dp; }
-.sgname2 { position: absolute; left: 26dp; top: 224dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; }
+.sgname { position: absolute; left: 82dp; top: 214dp; width: 224dp; height: 56dp; }
+.sgname2 { position: absolute; left: 0dp; right: 0dp; text-align: center; top: 224dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 34dp; text-transform: uppercase; }
 .sgbody { position: absolute; left: 26dp; top: 278dp; width: 336dp; height: 198dp; display: flex; flex-direction: column; }
 /* Versus's game modes (screens.mode_select): panels as the stages', each
    its icon large on its colour; the card says how the mode is scored */

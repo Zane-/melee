@@ -32,7 +32,7 @@ import art
 
 ROOT = art.ROOT
 OUT = art.ART / "stage"
-VERSION = 2    # of the pictures drawn: a change draws them again
+VERSION = 3    # of the pictures drawn: a change draws them again
 BATCH = 4      # stages drawn in one window: the 32-bit window build's
                # graphics memory gives out after some 25 stage loads
 
@@ -241,8 +241,15 @@ def _render(root, only, log):
         drawn = json.loads((root / "drawn.json").read_text())
     except (OSError, ValueError):
         drawn = {}
-    width, height = RENDER
-    # the card's picture: 16:9 out of the window's middle, a little high
+    # the game draws at 4:3 at the window's left: only that is cut from
+    # (the window's whole width left a black strip down the pictures'
+    # right side)
+    width = min(RENDER[0], round(RENDER[1] * 4 / 3))
+    height = RENDER[1]
+    # the panel's picture: its shape out of the game's, a band across it
+    tall = round(width * TILE[1] / TILE[0])
+    panel = (width, tall, 0, (height - tall) // 2)
+    # the card's picture: 16:9 out of the game's middle, a little high
     wide = (width, width * 9 // 16, 0, (height - width * 9 // 16) // 2 - 10)
     with Window(window=RENDER) as w:
         for s in STAGES:
@@ -265,8 +272,8 @@ def _render(root, only, log):
                 if cam is None or view is None:
                     auto = _auto(v[6:10], s.get("zoom", 1.0))
                     cam, view = cam or auto[0], view or auto[1]
-            _picture(w, root / (s["id"] + "-tile.png"), _eye(cam),
-                     (width, height, 0, 0), TILE)
+            _picture(w, root / (s["id"] + "-tile.png"), _eye(cam), panel,
+                     TILE)
             _picture(w, root / (s["id"] + "-preview.png"), view, wide,
                      PREVIEW)
             w.studio("cam", "off")

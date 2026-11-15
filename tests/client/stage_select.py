@@ -44,6 +44,17 @@ def check(name, ok, detail=""):
                         "  (" + detail + ")" if detail else ""))
 
 
+def mean(path, box):
+    """The mean brightness of (x, y, width, height) in a 1280x720
+    picture."""
+    raw = subprocess.run(["magick", str(path), "-crop", "1280x720+0+0",
+                          "+repage", "rgb:-"], check=True,
+                         capture_output=True).stdout
+    img = np.frombuffer(raw, np.uint8).reshape(720, 1280, 3).astype(float)
+    x, y, w, h = box
+    return img[y:y + h, x:x + w].mean()
+
+
 def spread(path, boxes):
     """How much the colour varies in each (x, y, width, height) of a
     1280x720 picture: none in a box of one colour."""
@@ -194,6 +205,11 @@ def main():
               c.stage_id() == "peachs-castle" and
               "stage/peachs-castle-preview.png" in card and
               "stage/peachs-castle-name.png" in card, c.stage_id())
+        w.shot(pic)
+        edge = mean(pic, (1222, 130, 8, 160))
+        check("the card's picture reaches its right edge: no black strip "
+              "(the game is drawn 4:3 in the window the picture comes "
+              "from)", edge > 40, "right edge brightness %.0f" % edge)
         shot("stages-peach")
         tap("Right")
         tap("Down")
