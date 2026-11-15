@@ -1037,7 +1037,7 @@ class Client:
         if me is None or not hasattr(self, "opp_at"):
             return None, None
         opp = self.roster[self.opp_at]
-        return (me["id"], self.dressed(me)), (opp["id"], 0)
+        return (me["id"], self.dressed(me)), (opp["id"], self.opp_dressed(opp))
 
     def show_modes(self):
         """Versus > Local: what the match is played for (the owner,
@@ -1138,16 +1138,25 @@ class Client:
         c = c or self.roster[self.at]
         return min(self.costume.get(c["id"], 0), c["costumes"] - 1)
 
+    def opp_dressed(self, c=None):
+        """The costume chosen for opponent `c` (the one in focus on the
+        opponent screen)."""
+        c = c or self.roster[self.opp_at]
+        return min(getattr(self, "opp_costume", {}).get(c["id"], 0),
+                   c["costumes"] - 1)
+
     def dress(self, me=None, opp=None):
         """The game puts the player (`me`: the character in focus) in the
         costume chosen for it, in every match from now on (a drill's own
-        too), and the other side in its default; or, if `opp` is the same
-        character, in its second."""
+        too), and the other side in the one chosen for it (Y on the
+        opponent screen; none: its default). The same character in the
+        same costume on both sides: the opponent in the next."""
         me = me or self.roster[self.at]
         mine = self.dressed(me)
         self.w.costume(self.port, mine)
-        other = 1 if opp is not None and opp["id"] == me["id"] and \
-            mine == 0 else 0
+        other = self.opp_dressed(opp) if opp is not None else 0
+        if opp is not None and opp["id"] == me["id"] and other == mine:
+            other = (mine + 1) % opp["costumes"]
         self.w.costume(1 - self.port, other)
 
     # ---- versus and the lab: who is on the other side ------------------------------
@@ -1171,7 +1180,8 @@ class Client:
         _, name, what = players[self.who]
         return screens.opponent_card(
             self.roster[self.opp_at], name, what,
-            "%d of %d" % (self.who + 1, len(players)), "Choose stage")
+            "%d of %d" % (self.who + 1, len(players)), "Choose stage",
+            self.opp_dressed())
 
     def lab(self, c, came_from):
         """The Lab as `c` (the owner, 2026-11-14: "move Lab into Train, it
@@ -1194,11 +1204,17 @@ class Client:
             self.roster, self.opp_at, title="Choose your opponent",
             about="%s against whom, and played by whom." % self.me["name"],
             inside=self.opponent_card(),
-            hints=[("A", "Choose stage"), ("X", "Played by"),
-                   ("B", "Back")]))
+            hints=[("A", "Choose stage"), ("D-SIDE", "Played by"),
+                   ("Y", "Costume"), ("B", "Back")]))
 
     def on_opp(self, pressed, moves):
         at, n = self.opp_at, len(self.roster)
+        # the D-pad's left and right change who plays the opponent (the
+        # owner, 2026-11-14: "let's use Dpad left/right to cycle through,
+        # just using X is bad because it requires a full cycle if you
+        # overshot it"); the stick moves over the roster
+        if self.buttons & (LEFT | RIGHT):
+            moves &= ~(LEFT | RIGHT)
         if moves & LEFT and at % COLUMNS > 0:
             at -= 1
         if moves & RIGHT and at % COLUMNS < COLUMNS - 1 and at + 1 < n:
@@ -1215,10 +1231,21 @@ class Client:
             self.w.ui("attr tab style background-color: %s" %
                       self.roster[at]["color"])
             changed = True
-        if pressed & X:
-            self.who = (self.who + 1) % len(self.players())
+        if pressed & (LEFT | RIGHT):
+            step = 1 if pressed & RIGHT else -1
+            self.who = (self.who + step) % len(self.players())
             changed = True
-        if pressed & Y and self.roster[self.opp_at].get("other") is not None:
+        # X and Y as on your own character select ("make colors selectable
+        # for CPUs as well via x/y for consistency"): Y its costume, X the
+        # other of a shared place
+        if pressed & Y:
+            c = self.roster[self.opp_at]
+            if not hasattr(self, "opp_costume"):
+                self.opp_costume = {}
+            self.opp_costume[c["id"]] = (self.opp_dressed(c) + 1) % \
+                c["costumes"]
+            changed = True
+        if pressed & X and self.roster[self.opp_at].get("other") is not None:
             self.switch(self.opp_at)
             self.w.ui("attr tab style background-color: %s" %
                       self.roster[self.opp_at]["color"])

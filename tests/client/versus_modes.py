@@ -111,7 +111,7 @@ def main():
         for _ in range(len(c.players())):
             if c.players()[c.who][0] == client.NOBODY:
                 break
-            tap("v", after=2)
+            tap("h", after=2)
         tap("x")                    # the stage select
         tap("x", after=20)          # Battlefield: the match
         frames(90)

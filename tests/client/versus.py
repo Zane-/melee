@@ -88,6 +88,18 @@ def main():
               c.roster[c.opp_at]["id"] == "falco" and
               [p[0] for p in players[-2:]] == [client.CPU, client.NOBODY])
         shot("opponent")
+        n = len(players)
+        tap("h")
+        tap("h")
+        tap("f")
+        check("the D-pad steps who plays it, either way (not X round the "
+              "whole list)", c.who == 1 % n, "%d of %d" % (c.who, n))
+        tap("f")
+        tap("c")
+        card = open(os.path.join(c.out, "part-card.rml")).read()
+        check("Y changes the opponent's costume, its picture on the card",
+              c.opp_dressed() == 1 and "portrait/falco-1.png" in card,
+              str(c.opp_dressed()))
         tap("x")
         check("A on the opponent screen opens the stage select, "
               "Battlefield first", c.screen == "stages" and
@@ -152,7 +164,7 @@ def main():
         for _ in range(len(c.players())):
             if c.players()[c.who][0] == client.CPU:
                 break
-            tap("v", after=2)
+            tap("h", after=2)
         tap("x")
         for key in ("Down", "Right", "Right"):
             tap(key)
@@ -166,6 +178,9 @@ def main():
               "%d states" % len(seen))
         check("on the stage chosen", w.match_info["stage"] ==
               "pokemon-stadium", w.match_info["stage"])
+        check("Falco in the costume chosen for him",
+              w.state()["p"][1]["costume"] == 1,
+              str(w.state()["p"][1]["costume"]))
         leave()
 
         # ---- the client's pause menu ---------------------------------------------
@@ -175,7 +190,7 @@ def main():
         for _ in range(len(c.players())):
             if c.players()[c.who][0] == client.NOBODY:
                 break
-            tap("v", after=2)
+            tap("h", after=2)
         tap("x")
         tap("x", after=20)
         frames(60)

@@ -566,23 +566,23 @@ def character_select(roster, focus, title="Choose your character",
 
 # ---- versus and lab: who is on the other side ---------------------------------
 
-def opponent_card(c, who, what, count, go):
-    """The card on the opponent screen: the character, who plays it (`who`,
-    with `what` that is in a few words; `count`: "2 of 31"). The stage is
-    chosen next, on a screen of its own."""
-    form = ""
-    if c.get("other") is not None:
-        form = ('<div class="pick">%s<div>Switch to %s</div></div>' % (
-            key("Y"), esc(c["other"]["name"])))
-    return art_head(c) + (
+def opponent_card(c, who, what, count, go, costume=0):
+    """The card on the opponent screen: the character in its costume, who
+    plays it (`who`, with `what` that is in a few words; `count`: "2 of
+    31"), changed with the D-pad left and right (the owner, 2026-11-14:
+    "just using X is bad because it requires a full cycle if you overshot
+    it"); its costumes (Y) and the other of a shared place (X), as on your
+    own card ("for consistency"). The stage is chosen next, on a screen of
+    its own."""
+    return art_head(c, costume) + (
         '<div class="body low"><div class="fact"><div class="fl">Played by'
         '</div><div class="fv big2">%s</div><div class="fl">%s</div></div>'
         '<div class="pick">%s<div>Change</div><div class="grow"/>'
         '<div class="lbl">%s</div></div>%s'
         '<div class="grow"/><div class="go"><div class="un">%s<div>%s</div>'
         '</div></div></div>' % (
-            esc(who), esc(what), key("X"), esc(count), form,
-            key("A", dark=True), esc(go)))
+            esc(who), esc(what), key("D-SIDE"), esc(count),
+            costume_row(c, costume, "X"), key("A", dark=True), esc(go)))
 
 
 # ---- the stage select (the canvas's "A · Stage select: grid and card") -------

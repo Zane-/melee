@@ -7,8 +7,8 @@ The game's own portraits and emblems are in the documents (art.py reads
 them off the disc; Sheik's are drawn from her model, the first time). 25
 places, Zelda's holding Sheik. Y changes the costume on the card; X turns
 Sheik into Zelda and back, on her panel and on the card; A starts a match
-as the character shown, in the costume chosen. On the opponent screen Y
-turns that place too. --shots saves a picture of each step (under
+as the character shown, in the costume chosen. On the opponent screen X
+turns that place too (Y its costume). --shots saves a picture of each step (under
 build/shots/ they stay out of the repository).
 """
 import argparse
@@ -233,9 +233,9 @@ def main():
         check("the Lab: the opponent screen", c.screen == "opp")
         goto(place, "opp_at")
         before = c.roster[c.opp_at]["id"]
-        tap("c")
+        tap("v")
         card = text("part-card.rml")
-        check("Y there turns the shared place too",
+        check("X there turns the shared place too, as on your own",
               before == "sheik" and c.roster[c.opp_at]["id"] == "zelda" and
               "portrait/zelda-0.png" in card,
               "%s -> %s" % (before, c.roster[c.opp_at]["id"]))

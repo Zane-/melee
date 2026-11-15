@@ -489,8 +489,15 @@ standing pose, seen three-quarters as Zelda's portrait is: her taunt turns her b
 camera, her needle charge and her attacks crop badly. `tests/client/portraits.py` (14
 checks): the pictures in the documents, 25 places, Y the costume, X Sheik into Zelda and
 back on her panel and card, a match as Zelda in the costume chosen (the fighter reports
-its costume), Y on the opponent screen. Online matches keep both players in their default
-costumes: the friend's game does not know the one chosen here.
+its costume), X on the opponent screen. **The opponent screen (2026-11-14)** works as your
+own card does: Y the opponent's costume (its chips and its portrait on the card; the same
+character in the same costume as yours plays in the next), X Zelda and Sheik; who plays it
+(a trained model, the CPU, nobody) changes with the D-pad left and right, either way (the
+owner: "just using X is bad because it requires a full cycle if you overshot it"; "make
+colors selectable for CPUs as well via x/y for consistency"); the stick moves over the
+roster. `tests/client/versus.py` steps who back and forth, sets Falco's costume and finds
+him in it in the match. Online matches keep both players in their default costumes: the
+friend's game does not know the one chosen here.
 
 Two things RmlUi needed: `clip: always` on a box that clips its positioned children (it
 clips only what it counts as overflowing, which leaves them out: the portraits spilled out
