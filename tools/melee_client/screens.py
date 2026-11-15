@@ -757,7 +757,7 @@ def mode_select(mode_list, focus, me=None, opp=None):
         '<div id="card" class="card">' +
         mode_card(mode_list[focus], me, opp) + '</div>' +
         footer(mode_list[focus].line(),
-               [("A", "Choose"), ("B", "Back")]))
+               [("A", "Choose"), ("Z", "Rules"), ("B", "Back")]))
     return page("Choose a mode", body)
 
 
@@ -802,6 +802,98 @@ def mode_options(m, at, me=None, opp=None):
     return page(m.name, body)
 
 
+# ---- the rules every mode is played by (Z on the mode select) ---------------
+
+RULE_PAGES = (("items", "Item switch", "Which items appear"),
+              ("stages", "Random stages", "The stages Random picks from"))
+SWITCH_COLUMNS = 4
+
+
+def rules_rows(r, at, stages_on, stages_all):
+    """The Rules' rows: the settings, then the two switches (A opens)."""
+    from modes import ITEMS, NOT_YET
+    rows = [(o.key, o.name, o.about.split(":")[0].split(".")[0],
+             o.words(r.settings[o.key]), r.colour) for o in r.options]
+    items = [k for _, k in ITEMS]
+    counts = {"items": "%d of %d" % (len([k for k in items if k not in
+                                          r.items_off and k not in NOT_YET]),
+                                     len(ITEMS)),
+              "stages": "%d of %d" % (stages_on, stages_all)}
+    rows += [(k, name, about, counts[k], r.colour)
+             for k, name, about in RULE_PAGES]
+    return controls_rows(rows, at)
+
+
+def rules_panel(r, at, on_names):
+    """The row in focus: a setting edited big between arrows, or a
+    switch's items or stages that are on (`on_names`), A to change them."""
+    n = len(r.options)
+    if at >= n:
+        k, name, about = RULE_PAGES[at - n]
+        shown = ", ".join(on_names[:14]) + (
+            ", and %d more" % (len(on_names) - 14)
+            if len(on_names) > 14 else "")
+        return (_panel_head(name, "Rules") +
+                '<div class="spara">%s. On now: %s.</div>'
+                '<div class="grow"/><div class="go rgo"><div class="un">%s'
+                '<div>Choose</div></div></div>' % (
+                    esc(about), esc(shown or "none"), key("A", dark=True)))
+    o = r.options[at]
+    v = r.settings[o.key]
+    words = o.words(v)
+    number, word = (words.split(" ", 1) if o.key == "time" and v else
+                    (words, "") if o.key == "ratio" else ("", words))
+    return (
+        _panel_head(o.name, "Rules") +
+        '<div class="dly"><div class="darr%s"><div class="un">&lt;</div>'
+        '</div><div class="dnum">%s</div><div class="dside"><div '
+        'class="dword">%s</div></div><div class="darr%s"><div class="un">'
+        '&gt;</div></div><div class="grow"/></div>'
+        '<div class="spara">%s</div>' % (
+            " on" if v != o.values[0] else "", esc(number), esc(word),
+            " on" if v != o.values[-1] else "", esc(o.about)))
+
+
+def rules_page(r, at, stages_on, stages_all, on_names):
+    """Versus / Rules: the game's own Rules, Item Switch and Random Stage
+    Switch for every mode (the owner, 2026-11-14: "global options openable
+    via Z which has basic settings like time, items, random stage
+    selection filters, etc. just like the original game!")."""
+    body = (
+        header(["Versus", "Rules"]) +
+        '<div id="slist" class="slist">%s</div>' % rules_rows(
+            r, at, stages_on, stages_all) +
+        '<div id="spanel" class="spanel">%s</div>' % rules_panel(
+            r, at, on_names) +
+        footer(r.summary(), [("D-SIDE", "Change"), ("A", "Choose"),
+                             ("B", "Done")]))
+    return page("Rules", body)
+
+
+def switch_grid(names, on, at):
+    """A switch's tiles, a row of SWITCH_COLUMNS each: its box filled when
+    on; `at` in focus."""
+    tiles = ['<div class="swt%s%s"><div class="box%s"/><div class="swn">%s'
+             '</div></div>' % (" focus" if i == at else "",
+                               "" if on[i] else " off",
+                               " on" if on[i] else "", esc(name))
+             for i, name in enumerate(names)]
+    return "".join('<div class="swrow">%s</div>' % "".join(
+        tiles[i:i + SWITCH_COLUMNS])
+        for i in range(0, len(tiles), SWITCH_COLUMNS))
+
+
+def switch_page(title, names, on, at, desc, hints):
+    """Versus / Rules / a switch (Item switch, Random stages): every item
+    or stage, A switching the one in focus."""
+    body = (
+        header(["Versus", "Rules", title]) +
+        '<div id="swgrid" class="swgrid">%s</div>' % switch_grid(
+            names, on, at) +
+        footer(desc, hints))
+    return page(title, body)
+
+
 def next_step(m):
     """What A goes on to after mode `m` and its options: the characters,
     or, when the mode fixes them, who plays the opponent."""
@@ -817,9 +909,12 @@ def results_page(m, sides, winner, rows, time, stage, online=False):
     (modes.MatchStats). `sides`: per port {"c": the character, "costume",
     "name", "who" (You, CPU, a model's name), "you"}; `rows`: [(section,
     [(name, (port 0's, port 1's), better)])]; `time`: the match's length;
-    `stage`: its name. `online`: a match with a friend (A goes on)."""
-    w = sides[winner]
-    head = art_head(w["c"], w["costume"])
+    `stage`: its name. `online`: a match with a friend (A goes on).
+    `winner` None: a draw (TIME! with the falls and the damage even)."""
+    draw = winner is None
+    w = sides[0 if draw else winner]
+    head = "" if draw else art_head(w["c"], w["costume"])
+    line = m.result_line([s_["name"] for s_ in sides])
     # the score at a glance: each side's stock icon, the KOs each took
     kos = dict(rows).get("The match", [])
     kos = next((v for n, v, _ in kos if n == "KOs"), None)
@@ -834,17 +929,17 @@ def results_page(m, sides, winner, rows, time, stage, online=False):
             if pics[1] else "")
     card = (
         '<div class="rxwin">%s<div class="rxwbody"><div class="rxwtag" style='
-        '"background-color: %s; color: %s"><div class="un">Winner</div>'
+        '"background-color: %s; color: %s"><div class="un">%s</div>'
         '</div><div class="rxwline">%s</div>%s<div class="rxwmeta"><div '
         'class="fl">%s</div><div class="fv">%s</div><div class="fl">%s · %s'
         '</div></div></div></div>' % (
-            head, m.colour, m.ink, esc(m.result([s_["name"] for s_ in sides])),
+            head, m.colour, m.ink, "Draw" if draw else "Winner", esc(line),
             score, esc(m.name), esc(m.summary() or m.line()), esc(stage),
             esc(time)))
 
     def col(port):
         sd = sides[port]
-        place = "1st" if port == winner else "2nd"
+        place = "Draw" if draw else "1st" if port == winner else "2nd"
         pic = art.stock(sd["c"]["id"], sd["costume"])
         img = '<img class="rxstock" src="%s"/>' % picture(pic) if pic else ""
         return (
@@ -892,7 +987,7 @@ def results_page(m, sides, winner, rows, time, stage, online=False):
         header(["Versus", m.name, "Results"]) + card +
         '<div class="rxtab"><div class="rxhead"><div class="rxlab"/>%s%s</div>'
         '%s</div>' % (col(0), col(1), table) +
-        footer(m.result([s_["name"] for s_ in sides]) + ". " + time + ".",
+        footer(line + ". " + time + ".",
                [("A", "Continue")] if online else
                [("A", "Rematch"),
                 ("X", "Options" if m.fighters else "Characters"),

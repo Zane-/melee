@@ -33,6 +33,42 @@ number is marked. A plays again, X goes to the characters (the mode's options wh
 fixes them), B to the stages (the opponent when it fixes the stage); online, A goes back to
 the online screen.
 
+## The Rules (every mode)
+
+The owner, 2026-11-14: "While selecting any game mode there should be global options
+openable via Z which has basic settings like time, items, random stage selection filters,
+etc. just like the original game!". **Z on the mode select** (the D key on the keyboard)
+opens Versus / **Rules** (`screens.rules_page`, `modes.Rules`, kept as `rules` with the
+client's other settings): the game's own Rules and Item Switch and Random Stage Switch,
+for every mode.
+
+| Row | Values | What the game does |
+|-|-|-|
+| Time limit | None, 1 to 10, 15, 20, 30 minutes | its clock counts down in the HUD; at TIME! the side with fewer falls wins (in a stock match the more stocks, in Tug of War the side ahead), then the one with less damage; even in both, a draw (`Mode.time_up`; the results say "wins on time", "A draw on time") |
+| Items | Off, Very low to Very high | the game's item frequency |
+| Damage ratio | 0.5 to 2.0 | the game's own ratio, which multiplies the **knockback** of the fighters' hits and throws (`ftColl_80079AB0`), not the damage dealt |
+| Item switch | every one of the game's 31 items, on or off (A; Y all on or off) | the match's item mask, a bit per item kind (`gm_1601.c`'s `lbl_803B7844` maps the game's own menu to them); the containers carry the ones on |
+| Random stages | every stage on or off (A; X the legal six only; Y all) | the stages the stage select's Random (X) picks from |
+
+**In the game**: `native.match(..., rules=)` sends `vsrules SECONDS FREQ MASK RATIO` before
+every `match` (none by default: `native.NO_RULES`), so a drill or the Lab never inherits a
+Versus match's items or clock, and the drill engine never reuses a match played with
+rules. `src/host/match.c` puts them into the match as the game's Versus does
+(`item_freq`, the item mask, the ratio, a counting-down timer). `state()`'s `outcome` is
+how the last match the game ended was ended (1: TIME!), which `mode_frame` tells from a quit.
+Online the rules travel inside the mode in the lobby's hello (none: left out), so two sides
+with different rules do not meet and each is told what the other chose; both games get
+them before the session. `python tests/native/vsrules.py` (the clock, items and their
+switch, the ratio, no rules after), `tests/client/rules.py` (the screens, Random, a minute
+with items to TIME!).
+
+**Items not playable yet** (`modes.NOT_YET`, off whatever the switch says, shown "not
+yet"): Bunny Hood, Fire Flower, Party Ball crash the native build when they come
+(2026-11-14). The game's item code reads a second list in an item's dynamics (bytes 8 to
+15, `itcoll.c`'s `ItCollDynamics`) that `ItemDynamics` in `it/types.h` does not declare,
+so the archive readers leave it big-endian. Items that only come in containers were not yet
+opened in a test.
+
 ## A mode is a class
 
 In `tools/melee_client/modes.py`, a subclass of `Mode` with its place in `MODES` (the

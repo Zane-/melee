@@ -36,15 +36,20 @@ class Option:
     game mode has support for settings (i.e. win by 3, etc. on tug of war)
     within the mode selection"): `key` in the mode's settings, `name` and
     `about` as the options screen shows them, the `values` it steps
-    through, its `default`; `unit` (one, many) after its number."""
+    through, its `default`; `unit` (one, many) after its number;
+    `labels` the words for some values instead ({0: "None"})."""
 
-    def __init__(self, key, name, about, values, default, unit=("", "")):
+    def __init__(self, key, name, about, values, default, unit=("", ""),
+                 labels=None):
         self.key, self.name, self.about = key, name, about
         self.values, self.default, self.unit = tuple(values), default, unit
+        self.labels = dict(labels or {})
 
     def words(self, value):
         """The value and its unit ("3 stocks"); a value in words (no
         unit: "Off") as it is."""
+        if value in self.labels:
+            return self.labels[value]
         if not self.unit:
             return str(value)
         return "%s %s" % (value, self.unit[0] if value == 1
@@ -101,6 +106,31 @@ class Mode:
     def start(self):
         """A new match: the score back to nothing."""
         self.winner = None
+        self.timed_out = False
+
+    def time_up(self, fighters):
+        """TIME!: the rules' time limit ran out before the mode was won
+        (Rules). Who wins, as the game decides a time match: fewer falls
+        (in a stock match the more stocks left, in Tug of War the side
+        ahead), then less damage; even in both, a draw (`winner` stays
+        None). `fighters`: the two as the host last gave them ("falls",
+        "percent")."""
+        self.timed_out = True
+        if self.winner is not None:
+            return
+        seen = [(f or {}).get("falls", 0) for f in fighters], \
+            [int((f or {}).get("percent", 0)) for f in fighters]
+        for a, b in seen:
+            if a != b:
+                self.winner = 0 if a < b else 1
+                return
+
+    def result_line(self, names):
+        """The results' line: the mode's own, or the time-out's."""
+        if self.timed_out:
+            return "A draw on time" if self.winner is None else \
+                "%s wins on time" % names[self.winner]
+        return self.result(names)
 
     def ko(self, port):
         """Player `port` (0 or 1) was KO'd (a fall or a self-destruct
@@ -379,6 +409,133 @@ class ShineBattle(Mode):
 
 MODES = [Unlimited, TugOfWar, ShineBattle]
 BY_ID = {m.ident: m for m in MODES}
+
+
+# ---- the rules every mode is played by ------------------------------------
+
+# The game's Item Switch: each item by name and its kind, a bit of the
+# match's item mask (gm_1601.c's lbl_803B7844 maps the game's own menu to
+# them), here in the order of their names. The containers (capsule, crate,
+# barrel, egg) are not switched: they carry the items that are on, as in
+# the game.
+ITEMS = tuple(sorted((
+    ("Barrel Cannon", 0x05), ("Beam Sword", 0x0C), ("Bob-omb", 0x06),
+    ("Bunny Hood", 0x1F), ("Cloaking Device", 0x21), ("Fan", 0x18),
+    ("Fire Flower", 0x19), ("Flipper", 0x14), ("Food", 0x12),
+    ("Freezie", 0x11), ("Green Shell", 0x0E), ("Hammer", 0x1C),
+    ("Heart Container", 0x08), ("Home-Run Bat", 0x0B),
+    ("Lip's Stick", 0x17), ("Maxim Tomato", 0x09), ("Metal Box", 0x20),
+    ("Motion-Sensor Bomb", 0x13), ("Mr. Saturn", 0x07), ("Parasol", 0x0D),
+    ("Party Ball", 0x04), ("Poison Mushroom", 0x1B), ("Poké Ball", 0x22),
+    ("Ray Gun", 0x10), ("Red Shell", 0x0F), ("Screw Attack", 0x1E),
+    ("Star Rod", 0x16), ("Starman", 0x0A), ("Super Mushroom", 0x1A),
+    ("Super Scope", 0x15), ("Warp Star", 0x1D))))
+# Items the native build cannot play yet: each crashed the game when it
+# came (2026-11-14, every item alone at very high: Bunny Hood, signal 11;
+# Fire Flower, robj.c's assert; Party Ball, signal 11). Off whatever the
+# Item switch says, and shown there as not yet; out of here once fixed.
+NOT_YET = {0x1F: "Bunny Hood", 0x19: "Fire Flower", 0x04: "Party Ball"}
+FREQUENCY = {-1: "Off", 0: "Very low", 1: "Low", 2: "Medium", 3: "High",
+             4: "Very high"}
+RATIOS = tuple(round(0.5 + 0.1 * i, 1) for i in range(16))
+ALL_ITEMS = (1 << 64) - 1
+
+
+class Rules:
+    """The rules every Versus match is played by, whatever its mode (the
+    owner, 2026-11-14: "While selecting any game mode there should be
+    global options openable via Z which has basic settings like time,
+    items, random stage selection filters, etc. just like the original
+    game!"): the game's own Rules (a time limit, the damage ratio), its
+    Item Switch (how often items come, and which) and its Random Stage
+    Switch (the stages Random picks from). Kept with the client's other
+    settings; the host plays them (native.match's `rules`); online, both
+    sides must have the same (they travel with the mode)."""
+    name = "Rules"
+    colour, ink = "#3A4250", "#F3F6FA"
+    options = (
+        Option("time", "Time limit",
+               "How long a match lasts. At TIME! the side with fewer falls "
+               "wins, then the one with less damage; even in both, it is a "
+               "draw. None: the match goes on until the mode ends it.",
+               (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30), 0,
+               ("minute", "minutes"), labels={0: "None"}),
+        Option("items", "Items",
+               "How often items appear. Off: none. Which ones is the Item "
+               "switch.", tuple(FREQUENCY), -1, None, labels=FREQUENCY),
+        Option("ratio", "Damage ratio",
+               "How hard hits send: the knockback is multiplied by it, "
+               "the damage dealt stays the same (the game's own ratio). "
+               "1.0 plays as the game does.", RATIOS, 1.0, None,
+               labels={r: "%.1f" % r for r in RATIOS}),
+    )
+
+    def __init__(self, kept=None):
+        kept = kept or {}
+        self.settings = {}
+        for o in self.options:
+            v = kept.get(o.key, o.default)
+            self.settings[o.key] = v if v in o.values else o.default
+        kinds = {k for _, k in ITEMS}
+        self.items_off = {int(k) for k in kept.get("items_off", ())
+                          if k in kinds}
+        self.stages_off = set(kept.get("stages_off", ()))
+
+    def keep(self):
+        """What the client keeps of them."""
+        return dict(self.settings, items_off=sorted(self.items_off),
+                    stages_off=sorted(self.stages_off))
+
+    def mask(self):
+        """The items on, a bit per item kind (the containers always)."""
+        m = ALL_ITEMS
+        for kind in self.items_off | set(NOT_YET):
+            m &= ~(1 << kind)
+        return m
+
+    def native(self):
+        """As the host takes them (native.match's `rules`)."""
+        items = self.settings["items"]
+        return dict(time=self.settings["time"] * 60, items=items,
+                    mask=self.mask() if items >= 0 else ALL_ITEMS,
+                    ratio=self.settings["ratio"])
+
+    def plain(self):
+        """Whether the match is played as with no rules: no clock, no
+        items, the game's damage (a drill's way)."""
+        return self.native() == dict(time=0, items=-1, mask=ALL_ITEMS,
+                                     ratio=1.0)
+
+    def random_stages(self, ids):
+        """The stages of `ids` Random picks from (all, if none is on)."""
+        on = [i for i in ids if i not in self.stages_off]
+        return on or list(ids)
+
+    def summary(self):
+        """In a few words ("8 minutes · Items medium")."""
+        words = []
+        if self.settings["time"]:
+            words.append(self.options[0].words(self.settings["time"]))
+        if self.settings["items"] >= 0:
+            words.append("Items %s" % FREQUENCY[
+                self.settings["items"]].lower())
+        if self.settings["ratio"] != 1.0:
+            words.append("Damage %.1f" % self.settings["ratio"])
+        return " · ".join(words) or "No time limit · No items"
+
+
+def rules_words(native):
+    """Rules as the host takes them (Rules.native(); None: none), in a few
+    words: what a friend online chose."""
+    native = native or {}
+    words = []
+    if native.get("time"):
+        words.append("%d minutes" % (native["time"] // 60))
+    if native.get("items", -1) >= 0:
+        words.append("items %s" % FREQUENCY[native["items"]].lower())
+    if native.get("ratio", 1.0) != 1.0:
+        words.append("damage %.1f" % native["ratio"])
+    return ", ".join(words) or "no time limit, no items"
 MOVES = ("all", "shine", "recovery")
 BOARDS = (None, "rope")     # screens.BOARDS draws each
 RULES = ("none", "tug")     # src/host/rules.c

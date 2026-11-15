@@ -23,6 +23,7 @@
 #include <melee/gm/gm_1A3F.h>
 #include <melee/gm/gmscdata.h>
 #include <melee/gm/gmscene.h>
+#include <melee/gm/gmvs.h>
 #include <melee/gm/gmvsmelee.h>
 #include <melee/gm/types.h>
 #include <melee/if/ifstatus.h>
@@ -42,6 +43,9 @@ HostMatch host_match = {
     .human = { 1, 1, 0, 0 },
     .stage = 0x20, /* Final Destination */
     .seed = 1,
+    .item_freq = -1, /* no items */
+    .item_mask = ~0ULL,
+    .damage_ratio = 1.0F,
 };
 
 static TmRotEntry rot_entries[8];
@@ -136,16 +140,31 @@ void host_match_loaded(char* out, size_t size)
 /// What the game's own state does (onEnterDebugVs, gmvsmode.c): a time
 /// match with no items between two humans. Only the characters, their
 /// costumes, the stage, whether player 2 is a CPU and the random seed are
-/// the host's.
+/// the host's, and the rules a Versus match is played by (`vsrules`: by
+/// default none of them, as the drills and the Lab are played): a time
+/// limit counting down on the game's own clock, items at a frequency with
+/// the ones switched on, the damage ratio; as gmvs.c sets them from the
+/// game's own Rules menus.
 static void on_enter(GameModeState* state)
 {
     StartMeleeData* start = gm_GetGameModeStateEnterData(state);
 
     gm_SetupRulesDefaults(&start->rules);
     start->rules.stkind = host_match.stage;
-    start->rules.item_freq = -1;
+    start->rules.item_freq = (s8) host_match.item_freq;
+    start->rules.x20 = host_match.item_mask;
+    start->rules.x30 = host_match.damage_ratio > 0.0F
+                           ? host_match.damage_ratio
+                           : 1.0F;
     start->rules.sd_penalty = -1;
     start->rules.match_kind = MatchKind_Time;
+    if (host_match.time_limit > 0) {
+        /* the clock counts down to TIME! (gm_GetMatchOutcome:
+           OUTCOME_TIMEOUT), the game's HUD showing it */
+        start->rules.timer_enabled = 1;
+        start->rules.timer_counts_up = 0;
+        start->rules.time_limit = (u32) host_match.time_limit;
+    }
     if (host_match.stocks > 0) {
         start->rules.match_kind = MatchKind_Stock;
         start->rules.is_stock = 1;
@@ -210,6 +229,8 @@ static u8 mode_override(void)
         return GM_DEBUG_VS;
     }
     if (started) {
+        /* (the scene controller still holds how its match ended) */
+        host_match.outcome = gmVs_GetSceneController()->state.match_result;
         host_match.ended++;
         host_log("the game ended the match; it starts again");
         return GM_DEBUG_VS;

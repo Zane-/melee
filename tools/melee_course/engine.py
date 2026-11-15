@@ -47,7 +47,7 @@ for _p in (os.path.join(ROOT, "tools", "melee_native"),
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from native import Fighter  # noqa: E402
+from native import Fighter, NO_RULES  # noqa: E402
 
 # ---- the controller's bits (dolphin/pad.h) -----------------------------------
 
@@ -715,7 +715,9 @@ class Session:
         the drill loaded; with `cpu` None, any opponent (it is put to
         sleep). Then `swappable` is what it loaded."""
         info = getattr(self.n, "match_info", None)
+        # (never a Versus match played with items or a clock)
         if not self.reuse or not info or self.person != 0 or \
+                info.get("rules", NO_RULES) != NO_RULES or \
                 info.get("p1") != self.char or \
                 info.get("stage") != self.d.stage or \
                 not info.get("p2_human", True) or \

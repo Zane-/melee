@@ -363,6 +363,15 @@ the other list has it. A slippi-ai model on a stage it does not know is told non
 more (the owner: its line, numbers and blast zones were "too verbose"; the blast zones and
 camera limits are still read into `facts.json`). `tests/client/stage_select.py`.
 
+**The Rules (2026-11-14).** Z on Versus's mode select opens the game's own Rules for every
+mode: a time limit (the game's clock, TIME! decided by falls then damage, or a draw), items
+(the frequency and an Item switch of the game's 31 items), the damage ratio (the game's:
+it multiplies knockback) and the Random stages the stage select's X picks from. The host
+takes them with each match (`vsrules`, `native.match`'s `rules`; none by default, so
+drills and the Lab never have them) and reports how a match ended (`state`'s `outcome`).
+Three items crash the native build and stay off for now. Details: "The Rules" in
+`docs/ai/game-modes.md`; `tests/native/vsrules.py`, `tests/client/rules.py`.
+
 **Versus's game modes, and Tug of War (2026-11-14).** The owner: "We need to add support
 for different game modes instead of just the unlimited score game. Let's make our first
 mode Tennis. Here, scoring works like tug of war. A kill pulls it in your favor, and you

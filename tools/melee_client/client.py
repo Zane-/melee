@@ -67,6 +67,8 @@ from melee_course import registry as course_registry  # noqa: E402
 
 A, B, X, Y, START = 0x100, 0x200, 0x400, 0x800, 0x1000
 L, R = 0x40, 0x20
+Z = 0x10
+OUTCOME_TIMEOUT = 1      # state()'s "outcome": the game's MatchOutcome
 LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = screens.COLUMNS
@@ -1002,9 +1004,11 @@ class Client:
         if self.ended is None:
             return False
         mode = getattr(self, "game_mode", None)
-        if mode is not None and mode.scores() and \
+        timed = bool((getattr(self, "rules_now", None) or {}).get("time"))
+        if mode is not None and (mode.scores() or timed) and \
                 self.screen in ("versus", "online_match"):
-            return False    # mode_frame tells a won match from a quit one
+            return False    # mode_frame tells a won match (or TIME!)
+            #                 from a quit one
         now = self.w.state().get("ended", 0)
         if now != self.ended:
             self.ended = now
@@ -1118,6 +1122,8 @@ class Client:
             self.say(m.line())
         if pressed & B:
             self.show_versus_menu()
+        elif pressed & Z:
+            self.show_rules()
         elif pressed & A:
             cls = modes.MODES[self.mode_at]
             self.versus_mode = cls.ident
@@ -1125,6 +1131,152 @@ class Client:
                 self.show_mode_options()
             else:
                 self.after_mode()
+
+    # ---- the rules every mode is played by (Z on the mode select) ----------
+
+    def vs_rules(self):
+        """The Rules as the player last set them (modes.Rules)."""
+        return modes.Rules(self.progress.data.get("rules"))
+
+    def keep_rules(self, r):
+        self.progress.data["rules"] = r.keep()
+        self.progress.save()
+
+    def rule_stage_ids(self):
+        return [s["id"] for s in stages.STAGES]
+
+    def rule_on_names(self, r, at):
+        """The names of what the switch in focus has on (items, stages)."""
+        n = len(r.options)
+        if at < n:
+            return []
+        if screens.RULE_PAGES[at - n][0] == "items":
+            return [name for name, k in modes.ITEMS if k not in r.items_off]
+        return [stages.name(i) for i in self.rule_stage_ids()
+                if i not in r.stages_off]
+
+    def rule_args(self, r):
+        ids = self.rule_stage_ids()
+        on = len([i for i in ids if i not in r.stages_off])
+        return on, len(ids), self.rule_on_names(r, self.rules_at)
+
+    def show_rules(self):
+        """Versus / Rules (the owner, 2026-11-14: "While selecting any
+        game mode there should be global options openable via Z which has
+        basic settings like time, items, random stage selection filters,
+        etc. just like the original game!"): the game's own Rules, Item
+        Switch and Random Stage Switch, for every mode."""
+        self.menu_music()
+        self.screen = "rules"
+        self.w.capture(True)
+        self.rules_edit = self.vs_rules()
+        self.rules_at = getattr(self, "rules_at", 0)
+        self.load("rules", screens.rules_page(
+            self.rules_edit, self.rules_at, *self.rule_args(self.rules_edit)))
+
+    def on_rules(self, pressed, moves):
+        r = self.rules_edit
+        n_opt = len(r.options)
+        at, n = self.rules_at, n_opt + len(screens.RULE_PAGES)
+        if moves & UP and at > 0:
+            at -= 1
+        if moves & DOWN and at < n - 1:
+            at += 1
+        changed = at != self.rules_at
+        self.rules_at = at
+        if moves & (LEFT | RIGHT) and at < n_opt:
+            o = r.options[at]
+            v = o.step(r.settings[o.key], 1 if moves & RIGHT else -1)
+            if v != r.settings[o.key]:
+                r.settings[o.key] = v
+                self.keep_rules(r)
+                changed = True
+        if changed:
+            on, total, names = self.rule_args(r)
+            self.put("slist", screens.rules_rows(r, at, on, total))
+            self.put("spanel", screens.rules_panel(r, at, names))
+            self.say(r.summary())
+        if pressed & (B | Z):
+            self.show_modes()
+        elif pressed & A and at >= n_opt:
+            self.show_switch(screens.RULE_PAGES[at - n_opt][0])
+
+    def switch_now(self):
+        """The switch open: its names, which are on, its words."""
+        r = self.rules_edit
+        if self.switch_page == "items":
+            names = [name + (" (not yet)" if k in modes.NOT_YET else "")
+                     for name, k in modes.ITEMS]
+            on = [k not in r.items_off and k not in modes.NOT_YET
+                  for _, k in modes.ITEMS]
+            title = "Item switch"
+            hints = [("A", "Switch"), ("Y", "All on or off"),
+                     ("B", "Done")]
+        else:
+            ids = self.rule_stage_ids()
+            names = [stages.name(i) for i in ids]
+            on = [i not in r.stages_off for i in ids]
+            title = "Random stages"
+            hints = [("A", "Switch"), ("X", "Legal only"),
+                     ("Y", "All on or off"), ("B", "Done")]
+        desc = "%d of %d on." % (sum(on), len(on)) + (
+            " Random picks from these." if self.switch_page == "stages" else
+            " Items: %s." % modes.FREQUENCY[r.settings["items"]])
+        return title, names, on, desc, hints
+
+    def show_switch(self, which):
+        """The Item switch or the Random stages: every item or stage, A
+        switching the one in focus (the game's Item Switch and Random
+        Stage Switch)."""
+        self.screen = "switch"
+        self.switch_page, self.switch_at = which, 0
+        title, names, on, desc, hints = self.switch_now()
+        self.load("switch", screens.switch_page(title, names, on, 0, desc,
+                                                hints))
+
+    def on_switch(self, pressed, moves):
+        r = self.rules_edit
+        title, names, on, desc, hints = self.switch_now()
+        at, n, cols = self.switch_at, len(names), screens.SWITCH_COLUMNS
+        if moves & LEFT and at % cols > 0:
+            at -= 1
+        if moves & RIGHT and at % cols < cols - 1 and at + 1 < n:
+            at += 1
+        if moves & UP and at >= cols:
+            at -= cols
+        if moves & DOWN and at + cols < n:
+            at += cols
+        changed = at != self.switch_at
+        self.switch_at = at
+        keys = [k for _, k in modes.ITEMS] if self.switch_page == "items" \
+            else self.rule_stage_ids()
+        off = r.items_off if self.switch_page == "items" else r.stages_off
+        if pressed & A and self.switch_page == "items" and \
+                keys[at] in modes.NOT_YET:
+            self.say("%s does not play in this build yet." %
+                     modes.NOT_YET[keys[at]])
+        elif pressed & A:
+            off.symmetric_difference_update({keys[at]})
+            changed = True
+        elif pressed & Y:
+            if off:
+                off.clear()
+            else:
+                off.update(keys)
+            changed = True
+        elif pressed & X and self.switch_page == "stages":
+            legal = {s["id"] for s in stages.LEGAL}
+            off.clear()
+            off.update(k for k in keys if k not in legal)
+            changed = True
+        if pressed & (A | X | Y):
+            self.keep_rules(r)
+        if changed:
+            title, names, on, desc, hints = self.switch_now()
+            self.put("swgrid", screens.switch_grid(names, on, at))
+            self.say(desc)
+        if pressed & B:
+            self.show_rules()
 
     def mode_class(self):
         """The Versus mode chosen (Local or Online), or None outside
@@ -1457,9 +1609,14 @@ class Client:
         if pressed & B:
             self.show_opponent()
         elif pressed & X:
-            # as the game's own Random: one of them, and the match starts
-            self.stage_at = random.randrange(n)
-            self.fight()
+            # as the game's own Random: one of the stages its Random Stage
+            # Switch has on (Rules), and the match starts
+            pick = random.choice(self.vs_rules().random_stages(
+                self.rule_stage_ids()))
+            ids = [s["id"] for s in lst]
+            if pick in ids:
+                self.stage_at = ids.index(pick)
+            self.fight(stage=pick)
         elif pressed & Y:
             # every stage or the six legal ones, the stage in focus kept
             # when the other list has it
@@ -1473,14 +1630,19 @@ class Client:
         elif pressed & A:
             self.fight()
 
-    def fight(self):
-        """A match against the opponent chosen, played as chosen."""
+    def fight(self, stage=None):
+        """A match against the opponent chosen, played as chosen (on
+        `stage`, or the one in focus on the select)."""
         opp = self.roster[self.opp_at]
         key, name, what = self.players()[self.who]
         cls = self.mode_class()
         stage = cls.stage if cls is not None and cls.stage else \
-            self.stage_id()
+            stage or self.stage_id()
         self.stage_now = stage
+        # Versus is played by the Rules (a time limit, items, the damage
+        # ratio); the Lab as a drill, by none
+        self.rules_now = self.vs_rules().native() \
+            if self.mode == "versus" else None
         # the game mode (modes.py): its score from the KOs seen, in the
         # HUD's stocks (shown once the fighters are in: show_score), and
         # the moves it allows, from the first frame (src/host/moves.c)
@@ -1499,7 +1661,7 @@ class Client:
             self.me["id"], opp["id"], stage,
             seed=random.randrange(1, 1 << 30), p2_human=key != CPU,
             settle=False, stocks=self.game_mode.stock_match()
-            if self.game_mode is not None else 0))
+            if self.game_mode is not None else 0, rules=self.rules_now))
         self.last = self.me
         self.mode_begin()
         if self.mode == "versus":
@@ -1545,6 +1707,7 @@ class Client:
 
     def mode_begin(self):
         """A match with the mode begins: its score from nothing."""
+        self.last_fighters = None
         self.kos = modes.Falls()
         self.score_shown = False
         self.match_stats = modes.MatchStats()
@@ -1561,14 +1724,23 @@ class Client:
         then starts it again, and the results come over it. True when it
         has gone on to them."""
         mode = getattr(self, "game_mode", None)
-        if mode is None or not mode.scores():
+        timed = bool((getattr(self, "rules_now", None) or {}).get("time"))
+        if mode is None or not (mode.scores() or timed):
             return False
         st = self.w.state()
         fighters = st["p"]
         if self.ended_was is None:
             self.ended_was = st["ended"]
         if st["ended"] != self.ended_was:
-            if mode.winner is None:     # quit (L+R+A+Start), not won
+            if mode.winner is None and \
+                    st.get("outcome") == OUTCOME_TIMEOUT:
+                # TIME! (the Rules' time limit): who wins as the game
+                # decides it, from the fighters as the clock ran out (the
+                # host has started the match again by now)
+                mode.time_up(getattr(self, "last_fighters", None) or
+                             fighters)
+                self.show_results()
+            elif mode.winner is None:   # quit (L+R+A+Start), not won
                 if online:
                     self.leave_online("online", "You left the match.")
                 else:
@@ -1576,7 +1748,8 @@ class Client:
             else:
                 self.show_results()
             return True
-        if not self.score_shown and all(fighters):
+        self.last_fighters = fighters
+        if not self.score_shown and all(fighters) and mode.scores():
             self.show_score()           # (the HUD is there now)
             self.score_shown = True
         frame = confirmed = None
@@ -1589,7 +1762,7 @@ class Client:
             mode.tick(fighters)
         for port in kos:
             mode.ko(port)
-        if kos:
+        if kos and mode.scores():
             self.show_score()
         return False
 
@@ -1662,7 +1835,7 @@ class Client:
             self.w.freeze(False)
             self.w.quiet(False)
         if pressed & A:
-            self.fight()
+            self.fight(stage=self.stage_now)    # the same stage again
         elif pressed & (B | X):
             m = self.game_mode
             self.screen = "versus"
@@ -1812,11 +1985,16 @@ class Client:
         # the game mode, set as this side chose it: the friend's must be
         # the same (online.ModeMismatch)
         m = self.make_mode(self.mode_class() or modes.Unlimited)
+        # and the Rules, the same on both sides (none: left out, as a
+        # client from before them says)
+        mine = self.vs_rules()
+        said_mode = dict(ident=m.ident, settings=dict(m.settings))
+        if not mine.plain():
+            said_mode["rules"] = mine.native()
         try:
             met = self.lobby.meet(
                 code, dict(nick=self.nickname(), char=self.me["id"],
-                           color=0, mode=dict(ident=m.ident,
-                                              settings=dict(m.settings))),
+                           color=0, mode=said_mode),
                 stage=m.stage or self.stage_id(),
                 delay=self.settings["delay"], tick=tick)
         except online.ModeMismatch as e:
@@ -1827,6 +2005,9 @@ class Client:
                 t = theirs(**e.mode.get("settings", {}))
                 said = theirs.name + (" (%s)" % t.summary()
                                       if t.summary() else "")
+                if e.mode.get("rules") != said_mode.get("rules"):
+                    said += " with the rules: %s" % modes.rules_words(
+                        e.mode.get("rules"))
             self.online_say("%s chose %s. Choose the same mode and "
                             "settings to play." % (name or "Your friend",
                                                    said))
@@ -1864,6 +2045,8 @@ class Client:
         # told apart in a mirror
         cls = modes.BY_ID.get(met["mode"].get("ident"), modes.Unlimited)
         self.game_mode = cls(**met["mode"].get("settings", {}))
+        # the Rules both sides chose (the same: online.Lobby.meet)
+        self.rules_now = met["mode"].get("rules")
         self.stage_now = met["stage"]
         self.opp_at = characters.find(self.roster, met["chars"][other])[0]
         self.mode_rules(self.game_mode)
@@ -1880,7 +2063,8 @@ class Client:
         try:
             self.w.start(met["chars"][0], met["chars"][1], met["stage"],
                          seed=met["seed"], p2_human=True, settle=False,
-                         stocks=self.game_mode.stock_match())
+                         stocks=self.game_mode.stock_match(),
+                         rules=self.rules_now)
         finally:
             self.w.quiet(False)
         self.w.step(FRAMES_BEFORE_SESSION)

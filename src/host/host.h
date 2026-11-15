@@ -107,6 +107,19 @@ typedef struct HostMatch {
     /// followed at once by the same match again, never by the game's own
     /// boot scenes (`state`'s "ended").
     unsigned ended;
+    /// How the last match the game ended was ended (MatchOutcome: 1 a
+    /// time-out, 2 the last stock or a host rule, 7 or 9 a quit): `state`'s
+    /// "outcome".
+    int outcome;
+    /// The match's rules, as the game's own Versus sets them from its
+    /// Rules, Item Switch and Additional Rules (`vsrules`, the driver's
+    /// before each `match`): the time limit in seconds (0: none), the item
+    /// frequency (-1: no items, 0 to 4: very low to very high), the items
+    /// on (a bit per ItemKind), the damage ratio (1: as dealt).
+    int time_limit;
+    int item_freq;
+    unsigned long long item_mask;
+    float damage_ratio;
 } HostMatch;
 
 extern HostMatch host_match;

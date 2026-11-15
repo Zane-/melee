@@ -348,9 +348,9 @@ static void print_state(void)
     host_fighter_json(0, a, sizeof a);
     host_fighter_json(1, b, sizeof b);
     printf("@ {\"frame\":%u,\"rng\":%u,\"match\":%u,\"ended\":%u,"
-           "\"p\":[%s,%s],\"items\":",
+           "\"outcome\":%d,\"p\":[%s,%s],\"items\":",
            host.frame, (unsigned) *HSD_RandSeedPtr, host_match.entered,
-           host_match.ended, a, b);
+           host_match.ended, host_match.outcome, a, b);
     print_items();
     printf("}\n");
 }
@@ -777,6 +777,27 @@ static void command(char* line)
         if (why != NULL) {
             printf("@ error %s\n", why);
         } else {
+            printf("@ ok\n");
+        }
+    } else if (strcmp(cmd, "vsrules") == 0) {
+        /* "vsrules SECONDS FREQ MASK RATIO": the rules the next match is
+           played by (match.c): a time limit (0: none), the item frequency
+           (-1: none, 0..4), the items on (hex, a bit per ItemKind), the
+           damage ratio. The driver sends them before each "match" */
+        int secs = 0, freq = -1;
+        unsigned long long mask = ~0ULL;
+        float ratio = 1.0F;
+        sscanf(line, "%d %d %llx %f", &secs, &freq, &mask, &ratio);
+        if (secs < 0 || secs > 99 * 60 || freq < -1 || freq > 4 ||
+            ratio < 0.5F || ratio > 2.0F)
+        {
+            printf("@ error vsrules SECONDS FREQ MASK RATIO: SECONDS "
+                   "0..5940, FREQ -1..4, RATIO 0.5..2\n");
+        } else {
+            host_match.time_limit = secs;
+            host_match.item_freq = freq;
+            host_match.item_mask = mask;
+            host_match.damage_ratio = ratio;
             printf("@ ok\n");
         }
     } else if (strcmp(cmd, "match") == 0) {

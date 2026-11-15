@@ -339,6 +339,16 @@ img { display: inline-block; }
 .c-b { width: 56dp; box-sizing: border-box; text-align: right; font-family: "IBM Plex Mono"; font-style: normal; font-size: 15dp; }
 .c-d { width: 104dp; box-sizing: border-box; padding-left: 28dp; display: flex; flex-direction: row; align-items: center; font-size: 14dp; font-weight: 700; }
 .box { width: 16dp; height: 16dp; margin-right: 8dp; border: 2dp #12161C; transform: skewX(-12deg); }
+/* the Rules' switches (Item switch, Random stages): a tile each */
+.swgrid { position: absolute; left: 48dp; top: 120dp; width: 1184dp; height: 500dp; display: flex; flex-direction: column; }
+.swrow { display: flex; flex-direction: row; margin-bottom: 6dp; }
+.swt { width: 290dp; height: 52dp; margin-right: 8dp; box-sizing: border-box; padding: 0dp 14dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; font-size: 17dp; font-weight: 700; }
+.swt.off .swn { color: #8A94A3; }
+.swt.focus { background-color: #12161C; color: #F3F6FA; }
+.swt.focus .box { border-color: #F3F6FA; }
+.swt.focus .box.on { background-color: #F3F6FA; }
+.swt.focus.off .swn { color: #A9B4C2; }
+.rgo { margin-top: 12dp; }
 .box.on { background-color: #12161C; }
 .r.on .box { border-color: #F3F6FA; }
 .r.on .box.on { background-color: #F3F6FA; }
