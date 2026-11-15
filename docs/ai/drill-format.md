@@ -169,7 +169,9 @@ its proof, never written into one drill's file.
   characters, each its own script), each swapped in as the list turns to it; every
   opponent of a drill's scenarios is loaded with its match (`JsonDrill.opponents`, up to
   the native build's eight fighters: the rest load a match when turned to);
-  the pause menu's Swap changes it. A scenario facing left on a platform, the stage or in
+  the pause menu's Swap changes it. A drill's `"shield": "infinite"` keeps the
+  player's shield full every frame (a shield drill: never shrunk, poked through or broken;
+  the owner, 2026-11-15). A scenario facing left on a platform, the stage or in
   the air plays the examples mirrored: forward is the way it faces), `lead` (frames from the reset to
   an example's frame 1: 10, and 0
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3

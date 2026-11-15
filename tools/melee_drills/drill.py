@@ -604,6 +604,10 @@ class JsonDrill(Drill):
         a = self.attempt()
         v = self.v
         v["nums"] = v.get("nums") or self.nums(c)
+        if self.spec.get("shield") == "infinite":
+            # the shield kept full: a hit's stun and push come from its
+            # damage, not the shield's health, so nothing else changes
+            c.n.shield(c.s.person, 60.0)
         self._opponent(c)
         last = v.get("last")
         if last is not None and last.get("gf") is not None and \

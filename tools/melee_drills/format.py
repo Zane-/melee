@@ -163,7 +163,11 @@ TOP = {
     "tutorial": dict, "scenarios": list, "attempt": dict, "measures": dict,
     "checks": dict, "verdict": dict, "parts": list, "coach": dict,
 }
-OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str}
+OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str,
+            "shield": str}
+# a drill's "shield": "infinite": the player's shield full every frame (a
+# shield drill: it never shrinks, is never poked through, never breaks)
+SHIELDS = ("infinite",)
 # a drill's `switch`: how a part's scenarios change by themselves (the
 # owner, 2026-11-14: ledge work on "both sides of the stage so players
 # don't overtrain one side! It should have options to swap ledges on
@@ -481,6 +485,9 @@ def _problems(spec):
             need(isinstance(spec[k], typ), k, "%s expected" % typ.__name__)
     for k in spec:
         need(k in TOP or k in OPTIONAL, "drill", "unknown key %r" % k)
+    if "shield" in spec:
+        need(spec["shield"] in SHIELDS, "drill.shield",
+             "one of %s" % ", ".join(SHIELDS))
     if "switch" in spec:
         need(spec["switch"] in SWITCHES, "drill.switch",
              "one of %s" % ", ".join(SWITCHES))

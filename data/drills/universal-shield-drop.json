@@ -198,6 +198,7 @@
       }
     }
   ],
+  "shield": "infinite",
   "attempt": {
     "start": {
       "enters": "shield"

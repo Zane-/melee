@@ -1426,6 +1426,7 @@
       "camera": "normal"
     }
   ],
+  "shield": "infinite",
   "attempt": {
     "start": {
       "enters": "shield"
