@@ -1137,6 +1137,11 @@ static void command(char* line)
             gm_ClearDbPauseFlag(0);
         }
         printf("@ ok\n");
+    } else if (strcmp(cmd, "item") == 0) {
+        /* "item KIND X Y | list | fighter P | pokemon KIND | spawns 0|1 |
+           remove ID": items on demand, for tests (items.c) */
+        extern const char* host_item_command(const char* line);
+        printf("@ %s\n", host_item_command(line));
     } else if (strcmp(cmd, "studio") == 0) {
         /* "studio cam|bg|solo|list ...": a fighter alone, for pictures
            (studio.c) */

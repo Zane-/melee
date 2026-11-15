@@ -1250,7 +1250,8 @@ class Client:
             import items
         except ImportError:
             return [None] * len(modes.ITEMS)
-        return [screens.thumb(items.icon(k), 72, 72) for _, k in modes.ITEMS]
+        # (the game's own Item Switch pictures, 64 pixels: small already)
+        return [items.icon(k) for _, k in modes.ITEMS]
 
     def show_switch(self, which):
         """The Item switch or the Random stages: every item or stage, A

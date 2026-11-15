@@ -391,8 +391,11 @@ mode: a time limit (the game's clock, TIME! decided by falls then damage, or a d
 it multiplies knockback) and the Random stages the stage select's X picks from. The host
 takes them with each match (`vsrules`, `native.match`'s `rules`; none by default, so
 drills and the Lab never have them) and reports how a match ended (`state`'s `outcome`).
-Three items crash the native build and stay off for now. Details: "The Rules" in
-`docs/ai/game-modes.md`; `tests/native/vsrules.py`, `tests/client/rules.py`.
+Every item plays (three crashed the native build until their data was read right; the
+Pokemon and the containers too: `tests/native/items.py`), each with the game's own
+picture from its Item Switch (`tools/melee_client/items.py`). Details: "The Rules" in
+`docs/ai/game-modes.md`; `tests/native/vsrules.py`, `tests/native/items.py`,
+`tests/client/rules.py`.
 
 **Versus's game modes, and Tug of War (2026-11-14).** The owner: "We need to add support
 for different game modes instead of just the unlimited score game. Let's make our first

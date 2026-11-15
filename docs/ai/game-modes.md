@@ -63,12 +63,35 @@ them before the session. `python tests/native/vsrules.py` (the clock, items and 
 switch, the ratio, no rules after), `tests/client/rules.py` (the screens, Random, a minute
 with items to TIME!).
 
-**Items not playable yet** (`modes.NOT_YET`, off whatever the switch says, shown "not
-yet"): Bunny Hood, Fire Flower, Party Ball crash the native build when they come
-(2026-11-14). The game's item code reads a second list in an item's dynamics (bytes 8 to
-15, `itcoll.c`'s `ItCollDynamics`) that `ItemDynamics` in `it/types.h` does not declare,
-so the archive readers leave it big-endian. Items that only come in containers were not yet
-opened in a test.
+**Every item plays** (2026-11-14; `modes.NOT_YET`, items kept off whatever the switch
+says and shown "not yet", is empty). The Bunny Hood, the Fire Flower and the Party Ball
+crashed the native build when they came, and the Poke Ball's Pokemon stood still: data the
+archive readers had been told too little about (kind 1 in `docs/ai/native-port.md`):
+
+| What | The game's reading | The readers had | Now |
+|-|-|-|-|
+| An item's dynamics (Bunny Hood, Party Ball; `it_8027163C`) | a second list at bytes 8 to 15, its "dynamics hits" (`itcoll.c`'s `ItCollDynamics`) | `ItemDynamics` without it: its count big-endian ("item dynamics hit num over!", or a crash) | `hit_count`, `hit_descs` (`ItemDynamicsHit`) in `it/types.h` |
+| An HSD expression's joints (the Fire Flower's model; `HSD_RvalueResolveRefsAll`) | a list up to an element of no flags | one element (robj.c's assert `rvalue->jobj`) | `DAT_TERMINATED(0)` in `robj.h` |
+| The Poke Ball's attributes (`it_279C.c`) | 0xB4 bytes: the Pokemon's arrival, their weights | 8 (`itMBallAttributes`): the Pokemon that land stood in the air where they came out, the random choice from garbage weights | `pokemon_spawn` is the one converted (`itemattrs.h`) |
+| Chikorita's attributes (`it_802C9B20`) | where its leaves start and how fast they go | not declared: leaves that stood still | `itChicoritaAttr` with them (`itCommonItems.h`) |
+| An item's hurt bones (`it_8027163C`) | up to two | one (only a Redead has two) | `DAT_COUNT(count)` |
+
+`python tests/native/items.py` (headless with the draw pass, about 15 s): every one of
+the 31 items and the four containers spawned bare through the game's own spawn path (the
+host's `item`, `src/host/items.c`: the developers' item menu; also `item list`, `item
+fighter P`, `item pokemon KIND`, `item spawns 0|1`, `item remove ID`; `Native.item()`),
+picked up, used (swung and smashed, fired, worn, eaten, ridden, a jump with the Screw
+Attack, the Parasol opened), thrown; the containers broken by throws and by attacks,
+eight times each, and what came out of them; all 30 Pokemon out of a thrown Poke Ball,
+each doing its part (the ten with projectiles make them) and leaving; a minute of every
+item at very high on Pokemon Stadium with a CPU Marth. `--window` plays the bare items,
+the Pokemon and the minute in the window build, drawn (the rest needs snapshots, which
+the window build does not take; about 4 minutes on the software renderer). That the
+items play as the console's do is not compared frame by frame.
+
+The Item switch's pictures are the game's own: the 64x64 picture its Item Switch shows
+under the cursor, read off the disc (`tools/melee_client/items.py`, `items.icon(kind)`;
+under `build/ui/art/item`).
 
 ## A mode is a class
 

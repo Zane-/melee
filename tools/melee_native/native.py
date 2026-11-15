@@ -511,6 +511,28 @@ class Native:
         EZ IX IY IZ FOV" | "cam off", "bg R G B", "solo 1|0", "list"."""
         return self._cmd("studio " + " ".join(str(w) for w in words))
 
+    def item(self, *words):
+        """Items on demand (src/host/items.c), in a match with items
+        (rules with a frequency). item(KIND, X, Y[, VX, VY]): an item of
+        that ItemKind falling from (X, Y), through the game's own spawn
+        path; returns its id. item("list"): every item as a dict (id, kind,
+        state, x, y, vx, vy, air, holder and owner ports, -1 for none).
+        item("fighter", P): what player P has of items (held, hat, metal,
+        cloak, scale, grow, shrink, percent, star: the Starman's frames
+        left, motion, air, x, y).
+        item("pokemon", KIND): what a Poke Ball lets out (0: random).
+        item("spawns", 0|1): the random items stop or go on (kept across
+        matches until switched back).
+        item("remove", ID)."""
+        reply = self._cmd("item " + " ".join(
+            "%.9g" % w if isinstance(w, float) else str(w) for w in words))
+        rest = reply[3:] if reply.startswith("ok ") else ""
+        if words and words[0] in ("list", "fighter"):
+            return _json(rest)
+        if words and isinstance(words[0], int):
+            return int(rest)
+        return None
+
     def ucf(self, on=None):
         """UCF 0.84 (src/host/ucf.c): True or False to switch it, None to
         ask. On from the start, as on Slippi."""

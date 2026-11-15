@@ -53,6 +53,22 @@ build/nix/melee-dat/bin/melee-dat types export -o build/GALE01/dat/types.bin \
 ```
 
 Repeat the first and third after changing a `DAT_*` annotation or an archive type.
+Since 2026-11-13 the first fails: the DWARF build compiles `src/melee/tm` too, and clang
+refuses `tm_menu.c`'s `Draw(HSD_GObj*, int)` as a render callback (`intptr_t` is a `long`
+on the PowerPC target). Until that is fixed the same build runs outside Nix, with the
+error made a warning (the Nix store's clang 22 and LLVM tools; Aurora's source and newlib
+as the derivation has them):
+
+```sh
+PATH=/nix/store/...-clang-22.1.8/bin:/nix/store/...-llvm-binutils-22.1.8/bin:$PATH \
+AURORA_SRC=/nix/store/...-source cmake -S . -B build/dwarf -G Ninja \
+    -DCMAKE_BUILD_TYPE=Debug -DMELEE_DWARF=ON -DNEWLIB_INCLUDE=/nix/store/...-newlib-powerpc-none-eabi-.../powerpc-none-eabi/include \
+    -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/ppc32-clang.cmake \
+    -DCMAKE_C_FLAGS=-Wno-error=incompatible-function-pointer-types
+ninja -C build/dwarf     # build/dwarf/melee.elf, for `types export --dwarf`
+```
+
+`types export` is not byte-for-byte deterministic; the readers it gives are the same.
 Do not enter the flake's dev shells (`nix develop`) in this checkout: their shell hook
 runs `./configure.py` and installs pre-commit hooks.
 
@@ -125,9 +141,11 @@ for it:
    symbol name. Where the types are wrong or missing, fix the annotation in the header
    (`DAT_COUNT`, `DAT_EXTENT`, `DAT_BIND`, a struct instead of `UNK_T`) and regenerate:
    done for a fighter's costume texture indices, the revival platform, the table of bones
-   a character leaves out, the item throw table, the shake tables and the refraction
-   parameters. A stage file's other language version (`GrPs.usd`) uses the schema entry
-   of the `.dat`. An archive ends when its buffer is parsed again, as on the console,
+   a character leaves out, the item throw table, the shake tables, the refraction
+   parameters, and for the items an item's dynamics hits and hurt bones, HSD's
+   expression rvalue lists (`DAT_TERMINATED`), the Poke Ball's and Chikorita's
+   attributes (`docs/ai/game-modes.md`, "The Rules"). A stage file's other language
+   version (`GrPs.usd`) uses the schema entry of the `.dat`. An archive ends when its buffer is parsed again, as on the console,
    where it is that buffer.
 2. **Bit and byte order in code.** A flags word written as a number and read as
    bit-fields, or copied from file data as an integer. `PPC_LAYOUT`

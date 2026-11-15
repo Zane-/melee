@@ -132,12 +132,25 @@ struct ItemAttr {
     s32 x80; // 0x80
 };
 
+/// One of an item's dynamics hits (it_8027163C, whose itcoll.c reads it as
+/// its own ItCollDynamicsDesc): a bone, an offset from it, a size.
+struct ItemDynamicsHit {
+    /*  +0 */ s32 bone_id;
+    /*  +4 */ Vec3 offset;
+    /* +10 */ f32 size;
+};
+
 struct ItemDynamics {
     /// @todo Combine with ftDynamics? Can see in it_8027163C that this struct
     /// does not work perfectly
-    int count;
+    /* +0 */ int count;
 
-    BoneDynamicsTemplate* dyn_descs DAT_COUNT(count);
+    /* +4 */ BoneDynamicsTemplate* dyn_descs DAT_COUNT(count);
+
+    /// Read by it_8027163C ("item dynamics hit num over!"), through
+    /// itcoll.c's ItCollDynamics.
+    /* +8 */ s32 hit_count;
+    /* +C */ ItemDynamicsHit* hit_descs DAT_COUNT(hit_count);
 };
 
 /// @todo In some stage items (e.g. in @c GrCn.dat), #x4_matanim_joint and
@@ -181,7 +194,7 @@ typedef struct {
 
 typedef struct {
     s32 count;
-    ItHurtBoneDesc* descs;
+    ItHurtBoneDesc* descs DAT_COUNT(count);
 } ItHurtBoneList;
 
 struct Article {

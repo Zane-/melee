@@ -430,11 +430,12 @@ ITEMS = tuple(sorted((
     ("Ray Gun", 0x10), ("Red Shell", 0x0F), ("Screw Attack", 0x1E),
     ("Star Rod", 0x16), ("Starman", 0x0A), ("Super Mushroom", 0x1A),
     ("Super Scope", 0x15), ("Warp Star", 0x1D))))
-# Items the native build cannot play yet: each crashed the game when it
-# came (2026-11-14, every item alone at very high: Bunny Hood, signal 11;
-# Fire Flower, robj.c's assert; Party Ball, signal 11). Off whatever the
-# Item switch says, and shown there as not yet; out of here once fixed.
-NOT_YET = {0x1F: "Bunny Hood", 0x19: "Fire Flower", 0x04: "Party Ball"}
+# Items the native build cannot play yet ({kind: name}): off whatever the
+# Item switch says, and shown there as not yet. None since 2026-11-14: the
+# Bunny Hood, the Fire Flower and the Party Ball crashed the game when they
+# came until their data was read right, and tests/native/items.py plays
+# every item (docs/ai/game-modes.md, "The Rules").
+NOT_YET = {}
 FREQUENCY = {-1: "Off", 0: "Very low", 1: "Low", 2: "Medium", 3: "High",
              4: "Very high"}
 RATIOS = tuple(round(0.5 + 0.1 * i, 1) for i in range(16))

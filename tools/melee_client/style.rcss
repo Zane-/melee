@@ -342,7 +342,7 @@ img { display: inline-block; }
 /* the Rules' switches (Item switch, Random stages): a tile each */
 .swgrid { position: absolute; left: 48dp; top: 120dp; width: 1184dp; height: 500dp; display: flex; flex-direction: column; }
 .swrow { display: flex; flex-direction: row; margin-bottom: 6dp; }
-.swt { width: 290dp; height: 52dp; margin-right: 8dp; box-sizing: border-box; padding: 0dp 12dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; font-size: 17dp; font-weight: 700; }
+.swt { width: 290dp; height: 52dp; margin-right: 6dp; box-sizing: border-box; padding: 0dp 12dp; background-color: #FFFFFF; display: flex; flex-direction: row; align-items: center; font-size: 17dp; font-weight: 700; }
 .swt.off .swn { color: #8A94A3; }
 .swn { white-space: nowrap; overflow: hidden; }
 /* its picture: a stage's preview (16:9), an item's icon (square) */

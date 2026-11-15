@@ -48,14 +48,16 @@ struct HSD_Exp {
     u8 is_bytecode;
 };
 
+/// The rvalue lists end in an element of no flags (and no joint): see
+/// loadRvalue and HSD_RvalueResolveRefsAll.
 struct HSD_ExpDesc {
     f32 (*func)(void*);
-    HSD_RvalueList* rvalue;
+    HSD_RvalueList* rvalue DAT_TERMINATED(0);
 };
 
 struct HSD_ByteCodeExpDesc {
     u8* bytecode;
-    HSD_RvalueList* rvalue;
+    HSD_RvalueList* rvalue DAT_TERMINATED(0);
 };
 
 struct HSD_RObj {

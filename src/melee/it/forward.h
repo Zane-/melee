@@ -31,6 +31,7 @@ typedef struct Item_DynamicBones Item_DynamicBones;
 typedef struct ItemAttr ItemAttr;
 typedef struct ItemCommonData ItemCommonData;
 typedef struct ItemDynamics ItemDynamics;
+typedef struct ItemDynamicsHit ItemDynamicsHit;
 typedef struct ItemModelDesc ItemModelDesc;
 typedef struct ItemModStruct ItemModStruct;
 typedef struct ItemStateArray ItemStateArray;

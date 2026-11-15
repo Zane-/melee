@@ -1216,8 +1216,14 @@ typedef struct itHouou_ItemVars {
 } itHouou_ItemVars;
 
 typedef struct itChicoritaAttr {
-    f32 scale;
-    s32 x4; // x60 in item vars gets set to this if -1; max timer/lifetime?
+    /*  +0 */ f32 scale;
+    /*  +4 */ s32 x4; // x60 in item vars gets set to this if -1; max
+                      // timer/lifetime?
+    /// Where its leaves start and how fast they go: it_802C9B20 reads
+    /// these through #itChicoritaLeafAttr.
+    /*  +8 */ f32 x8;
+    /*  +C */ f32 xC;
+    /* +10 */ f32 x10;
 } itChicoritaAttr;
 
 typedef struct itMarilAttributes {
