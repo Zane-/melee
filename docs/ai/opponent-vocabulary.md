@@ -199,7 +199,12 @@ plays what the check found.
   `tests/engine/script.py` 20 of 20 (the interpreter alone, then footsies, `until`,
   approach on a shield, the shine out of shield contract played, punish, chain grab, the
   same seed, decisions in forks at 60 frames a second, an approach with pivots), the 27
-  drills' `check.py` all passing. Found on the way: a match started while port 1 holds A
-  or the stick leaves the engine's searches blind to port 1's grab for the rest of the
-  process (a real Z still grabs): a C-side bug, not fixed; the chain grab's test plays in
-  a game of its own.
+  drills' `check.py` all passing. Found on the way: once port 1 had attacked for real (a
+  match started with A held is a jab), the engine's searches never saw its grab again in
+  that process (a real Z still grabbed). Fixed the same day: the game's interrupt flag
+  (`Fighter.allow_interrupt`) is cleared only as an attack begins and read only by the
+  attacks, so it stays set in every state after one, a new match's fighter too; the
+  engine read it as "can act" everywhere, and a grab ended on its second frame. It now
+  counts it only where the game reads it (`follow_interrupt`, `engine.c`); the chain
+  grab's test plays in the shared game again, `tests/native/engine.py` checks a grab
+  after a real jab.

@@ -140,6 +140,14 @@ Found on the way: a pure halving budget never reached a grab ranked sixth (it sc
 nothing until its throw); every one of the best twelve now gets a reduced share first, and
 holding the target scores (`held`, 20 by default).
 
+Where a move ends (the fighter can act again) is read from the game, including its
+interrupt flag, `Fighter.allow_interrupt`. The game's attacks clear it as they begin, their
+scripts set it at the frame they may be cancelled, and only they read it; no other state
+and no new match clears it. So after a fighter's first attack it stays set. Read in every
+state, it ended a grab line on its second frame for the rest of the process (2026-11-15).
+The engine counts it only in the states that read it, or once it has been seen cleared
+since the state began (`follow_interrupt`, `engine.c`).
+
 **E3, the engine as the opponent: begun.** `tools/melee_engine/opponent.py` (`Mind`): each
 time the fighter can act it searches, picks one of the best lines by a softmax over their
 scores (`temperature`), plays that line's first move, and searches again. The actor's step

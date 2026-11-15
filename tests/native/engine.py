@@ -97,6 +97,29 @@ def main():
               ", ".join(l.names for l in thrown[:4]))
         n.restore(snap)
 
+        # after a real jab: its script set the fighter's interrupt flag,
+        # which the game clears only as an attack begins, so it stays set
+        # in every state after (a new match too); a grab, which never reads
+        # it, must not end on its second frame for it (engine.c,
+        # follow_interrupt; 2026-11-15)
+        n.pad(1, buttons=["A"])
+        n.step()
+        n.pad(1)
+        n.step(40)
+        fp = int(n._cmd("fp 1"), 16)
+        flag = int(n._cmd("r %x 1" % (fp + 0x2218)), 16) & 1  # bit 0
+        n.place(1, -5, 0, -1)
+        for _ in range(3):
+            n.step()
+        r = search(n, 1, 0, horizon=60, budget=0, depth=1, moves="grab")
+        after = r.lines[0] if r.lines else None
+        check("after a real jab (the game leaves its interrupt flag set), "
+              "the grab still connects, as long as before",
+              flag == 1 and after is not None and after.contact == "grab"
+              and grab is not None and after.len == grab.len,
+              "flag %d: %r, before %r" % (flag, after, grab))
+        n.restore(snap)
+
         # bad input is refused and changes nothing
         h1 = n.state_hash()
         refused = 0

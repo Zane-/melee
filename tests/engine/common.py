@@ -38,9 +38,7 @@ def put(n, port, raw):
 def restart(n, p1="fox", p2="marth"):
     """A new match, both pads let go of first (Native.start sets only port
     0's: the last test's opponent pad was held through the new match's
-    start). Found 2026-11-15: a match started while port 1 held A or the
-    stick left the engine's searches blind to port 1's grab for the rest of
-    the process, though a real Z still grabbed (script.py's chain_grab)."""
+    start: an A held through it is a jab when the countdown ends)."""
     put(n, 0, NONE)
     put(n, 1, NONE)
     n.step()

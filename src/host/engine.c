@@ -145,8 +145,12 @@
 #define MS_FALL_LAST 34
 #define MS_SQUAT_FIRST 39
 #define MS_SQUAT_LAST 41
+#define MS_ATTACK_FIRST 44    /* Attack11 */
+#define MS_ATTACK100_FIRST 47 /* the rapid jab: Attack100Start to End */
+#define MS_ATTACK100_LAST 49
 #define MS_AIR_ATTACK_FIRST 65
 #define MS_AIR_ATTACK_LAST 69
+#define MS_ATTACK_LAST 69 /* AttackAirLw */
 #define MS_GUARD_ON 178
 #define MS_GUARD 179
 #define MS_GUARD_OFF 180
@@ -160,6 +164,8 @@
 #define MS_DOWN_LAST 198
 #define MS_PASS 244          /* dropping through a platform */
 #define MS_CLIFF_WAIT 253
+#define MS_APPEAL_S_R 264    /* the side taunt */
+#define MS_APPEAL_S_L 265
 #define MS_CAPTURE_FIRST 223 /* being held: pulled, waiting, pummelled... */
 #define MS_CAPTURE_LAST 228
 
@@ -311,6 +317,10 @@ static struct {
     int contact_kind[HORIZON_MAX + 1];
     int contact_air[HORIZON_MAX + 1]; /* the target airborne at it */
     int contact_state[HORIZON_MAX + 1]; /* PORT's action state at it */
+    /* PORT's action state by t, and whether its allow_interrupt is that
+       state's own (follow_interrupt) */
+    int ia_state[HORIZON_MAX + 1];
+    unsigned char ia_own[HORIZON_MAX + 1];
     int names[DEPTH_MAX + 1];
     int nnames;
     int first_len; /* frames the current line's first move took */
@@ -476,15 +486,54 @@ static int airborne(Fighter* fp)
     return fp->ground_or_air != 0;
 }
 
-/// Can it take a new action now (not in hitlag, idle, or its move
-/// interruptible)?
+/// Whether the game reads Fighter.allow_interrupt in action state `m`: the
+/// IASA callbacks of the jabs, the dash attack, the tilts, the smashes, the
+/// aerials (ftCo_Attack1.c to ftCo_AttackAir.c) and the side taunt
+/// (ftCo_AppealS.c); not the rapid jab's.
+static int reads_interrupt(int m)
+{
+    return (m >= MS_ATTACK_FIRST && m <= MS_ATTACK_LAST &&
+            !(m >= MS_ATTACK100_FIRST && m <= MS_ATTACK100_LAST)) ||
+           m == MS_APPEAL_S_R || m == MS_APPEAL_S_L;
+}
+
+/// After frame `eng.t` of the path (0: the root), whether PORT's
+/// allow_interrupt is its state's own.
+///
+/// A move's script sets the flag at the frame the move may be cancelled
+/// (ftaction.c), and only the states that cancel on it read it: the
+/// attacks, which clear it as they begin. Nothing else clears it, neither
+/// a change of state nor a new match (its fighter is made in the memory of
+/// the last one, as it was left): after a fighter's first attack it is 1
+/// through everything until the next attack begins. Read as "can act" in
+/// every state, a grab (Catch reads nothing) was over on its first frame:
+/// once port 1 had jabbed (a match started with A held), no search saw its
+/// grab again for the rest of the process (2026-11-15). It counts in a
+/// state that reads it, and in any other once it has been seen at 0 since
+/// that state began (a character's own attack: Mr. Game & Watch's jab,
+/// Ness's smashes, which clear it too).
+static void follow_interrupt(Fighter* a)
+{
+    int k = eng.t, m = (int) a->motion_id;
+    if (!a->allow_interrupt) {
+        eng.ia_own[k] = 1; /* from here a 1 is this state's */
+    } else if (k == 0 || m != eng.ia_state[k - 1]) {
+        eng.ia_own[k] = (unsigned char) reads_interrupt(m);
+    } else {
+        eng.ia_own[k] = eng.ia_own[k - 1];
+    }
+    eng.ia_state[k] = m;
+}
+
+/// Can PORT's fighter take a new action now (not in hitlag, idle, or its
+/// move interruptible)?
 static int can_act(Fighter* fp)
 {
     int m = (int) fp->motion_id;
     if (fp->dmg.x195c_hitlag_frames > 0) {
         return 0;
     }
-    if (fp->allow_interrupt) {
+    if (fp->allow_interrupt && eng.ia_own[eng.t]) {
         return 1;
     }
     return m == MS_WAIT || (m >= MS_WALK_FIRST && m <= MS_WALK_LAST) ||
@@ -626,9 +675,12 @@ static int play(HostPad pad)
     eng.contact_kind[eng.t] = eng.contact_kind[eng.t - 1];
     eng.contact_air[eng.t] = eng.contact_air[eng.t - 1];
     eng.contact_state[eng.t] = eng.contact_state[eng.t - 1];
+    eng.ia_state[eng.t] = eng.ia_state[eng.t - 1];
+    eng.ia_own[eng.t] = eng.ia_own[eng.t - 1];
     if (a == NULL || t == NULL) {
         return 0;
     }
+    follow_interrupt(a);
     if (eng.contact_kind[eng.t] == 0) {
         int m = (int) t->motion_id;
         if (t->dmg.x1830_percent > eng.pct_t) {
@@ -1778,6 +1830,7 @@ static void search_main(void)
     eng.contact_kind[0] = 0;
     eng.contact_air[0] = 0;
     eng.contact_state[0] = 0;
+    follow_interrupt(a);
     eng.marks = 0;
     eng.base = 0;
     mark(); /* the root: 1 */

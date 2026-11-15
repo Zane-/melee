@@ -324,18 +324,11 @@ def punish(n):
 
 
 def chain_grab(n):
-    """In a game of its own: in one that has played other matches the
-    engine's searches can stop seeing Marth's grab at all (the grab macro
-    plays 2 frames, no grab), though a real Z grabs. Found 2026-11-15:
-    reproduced every time by a match started while port 1 holds A or the
-    stick; it also came after this file's other tests without that. A C-side
-    bug (host or engine), reported, not fixed here."""
-    from native import Native
-    with Native() as g:
-        _chain_grab(g)
-
-
-def _chain_grab(n):
+    """In the game the other tests played in: once Marth had attacked for
+    real, the engine read the interrupt flag his attack left (the game
+    clears it only as an attack begins) as "can act" in his grab, and every
+    grab line ended on its second frame (engine.c, follow_interrupt; found
+    2026-11-15, when this test played in a game of its own)."""
     from melee_engine.drill import Here
     restart(n, "fox", "marth")
     place(n, 0, 12)
