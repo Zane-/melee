@@ -392,6 +392,28 @@ class Client:
     def say(self, text):
         self.w.ui("text desc " + screens.esc(text))
 
+    def hold_match(self):
+        """The match left behind a menu stands still and is silent (the
+        owner, 2026-11-14: "when going from a match back to character
+        select the underlying match doesn't stop. I can still hear moves
+        and such going out"): the game's developers' pause, and the
+        fighters' and the crowd's sounds stopped. let_match() lets it go
+        before anything is played again."""
+        try:
+            self.w.freeze(True)
+            self.w.clean()
+        except NativeError:
+            pass
+
+    def let_match(self):
+        """Before a match loads, an online one starts or a drill begins:
+        the held match free again (a drill may play on in the match it
+        finds; a new match's scene clears the pause itself)."""
+        try:
+            self.w.freeze(False)
+        except NativeError:
+            pass
+
     def load_quietly(self, fn):
         """Load a match (fn): the game sets it up with its own presses, as
         fast as it goes, unseen and unheard (`quiet`: the window keeps its
@@ -399,6 +421,7 @@ class Client:
         new one appears on the next frame. No loading screen, as TM-CE's
         savestate loads: the owner, 2026-11-13, "no loading screens, no
         chopiness, no fast forwarding"."""
+        self.let_match()
         self.w.live(self.port, "off")
         self.w.quiet(True)
         try:
@@ -614,6 +637,7 @@ class Client:
         self.inputs_off()
         self.has_cover = False
         self.column_as_kept()
+        self.hold_match()
         if to == "main":
             self.show_main()
         elif to == "stages":
@@ -2516,6 +2540,7 @@ class Client:
         # session's first frame its stream's first read was still on its
         # way when rollback began, and a game hung later (3 runs in 4 of
         # tests/client/online.py).
+        self.let_match()
         self.w.quiet(True)
         try:
             self.w.start(met["chars"][0], met["chars"][1], met["stage"],
@@ -2579,6 +2604,7 @@ class Client:
         self.port = self.online_left_port
         self.w.live(self.port, self.source)
         settings.apply(self.w, self.settings)   # UCF as the player had it
+        self.hold_match()
         self.mode_rules(None)
         self.game_mode = None
         self.w.mask(0)
@@ -3112,6 +3138,7 @@ class Client:
             raise Leave()
         # the timing it holds the player to (Settings: lenient or strict)
         drill.strict = self.settings.get("timing") == "strict"
+        self.let_match()            # (a drill may play in the match held)
         session = course_engine.Session(
             drill, self.w, person=self.port, character=self.c["id"],
             live=True, on_load=self.load_quietly,

@@ -140,6 +140,14 @@ def main():
         pausekeys.leave(c, w, "opp", frames)
         check("the pause menu's Characters: back on the select",
               c.screen == "vsel" and len(c.vslots) == 3, c.screen)
+        before = [(f["x"], f["y"], f["frame"], f["state"])
+                  for f in w.state()["p"]]
+        frames(90)
+        after = [(f["x"], f["y"], f["frame"], f["state"])
+                 for f in w.state()["p"]]
+        check("the match left behind stands still under the select (the "
+              "owner: \"I can still hear moves and such going out\")",
+              before == after, "%s -> %s" % (before[1], after[1]))
 
         # a model, loading as the characters are locked in
         models = opponents.models("marth", "fox")
