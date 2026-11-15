@@ -114,7 +114,8 @@ def holds(e, f, fd):
     if "leaves" in e:
         return not _in(f["state"], e["leaves"], cid) and \
             _in(p["state"], e["leaves"], cid) and \
-            ("to" not in e or _in(f["state"], e["to"], cid))
+            ("to" not in e or _in(f["state"], e["to"], cid)) and \
+            ("not_to" not in e or not _in(f["state"], e["not_to"], cid))
     if "pressed" in e:
         bits = F.BUTTONS[e["pressed"]]
         return bool(f["held"] & bits) and not p["held"] & bits
@@ -407,6 +408,15 @@ class JsonDrill(Drill):
         v["last"] = f
         if c.phase == WAIT:
             f["i"] = 0
+            if "within" in a and c.timer > int(F.value(a["within"],
+                                                       v["nums"])):
+                # it did not start in time (the opponent's attack missed:
+                # the player jumped behind it): reset, not counted (the
+                # owner, 2026-11-14: "If the hit doesn't connect, the
+                # scenario should be reset")
+                c.s.end(None, F.text(a.get("missed", "Not counted: again"),
+                                     v["nums"]))
+                return
             if not holds(a["start"], f, c.fd):
                 return
             c.set_phase(ATTEMPT)

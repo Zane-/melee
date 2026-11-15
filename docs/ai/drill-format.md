@@ -126,11 +126,19 @@ its proof, never written into one drill's file.
   Bowser).
 - **Attempt**: `start` and `judge` (events), `cancel` (events that drop it uncounted; by
   default, leaving the start's state on the ground), `limit` (frames, default 150),
-  `timeout` (`judge` or `drop` at the limit). A part may change any of them (`attempt`).
+  `timeout` (`judge` or `drop` at the limit), `within` (frames after the reset by which the
+  start must come, or the scenario is reset uncounted, the banner saying `missed`: the
+  opponent's attack whiffed because the player jumped behind it; the owner: "If the hit
+  doesn't connect, the scenario should be reset"). A part may change any of them
+  (`attempt`). Events take `"not_to": S` beside `to` (left a state for anything but S: a
+  pivot, the turn left for anything but a dash).
 - **Scenarios**: `stage` (`final-destination battlefield yoshis-story dream-land
   fountain-of-dreams pokemon-stadium`; one stage for a drill, its first scenario's: the
   player's `x` may be an expression, `"84-SHD"`;
-  match is loaded once), `lead` (frames from the reset to an example's frame 1: 10, and 0
+  match is loaded once; a part's `"scenario"` may be a list, which the player turns through
+  with D-pad left and right or the pause menu's Scenario, kept until changed: the
+  ledgedash's two ledges, `"ledge": "left"` and `"right"`), `lead` (frames from the reset to
+  an example's frame 1: 10, and 0
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
   what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
@@ -156,7 +164,10 @@ its proof, never written into one drill's file.
   "facing": "player"|"away", "percent", "inputs", "every"}`: a CPU that plays `inputs` from
   the frame after each reset (stick x toward the player), again every `every` frames.
 - **Lessons**: `{"title", "text", "show", "characters", "scenario"}` (played in their own
-  scenario, the first by default, whichever part the player is on); `text` is a paragraph or a list
+  scenario, the first by default, whichever part the player is on, and charted with the
+  drill's own coach rows, the whole technique); `text` is a paragraph or a list, 500
+  characters at most with the longest name filled in (`LESSON_MAX`: it fits beside the
+  picture at 13dp or larger; under 440 reads at 15dp)
   of them; `show` is `{"example": {"inputs", "marks", "cues"}}` (played frame by frame from
   the game's own pictures, each frame captioned) or `{"still": {"inputs", "frame",
   "cue"}}` (one picture of that example, its frame `frame`, with a cue `{"words", "kind"}`);

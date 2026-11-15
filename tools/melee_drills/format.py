@@ -115,7 +115,9 @@ EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
                "frame", "is")
 # "after": an event that must have happened on an earlier frame of the
 # attempt (left the ground after a shine, not in the first short hop)
-EVENT_MODS = ("in_air", "on_ground", "from", "to", "after")
+# "not_to": left a state for anything but this one (a pivot: the turn left
+# for anything but a dash)
+EVENT_MODS = ("in_air", "on_ground", "from", "to", "not_to", "after")
 DIRECTIONS = ("up", "down", "forward", "back", "neutral")
 EVENTS = SIMPLE_EVENTS + EVENT_KINDS
 MEASURES = ("jump_kind", "held", "frames", "frame_of", "happened", "count",
@@ -149,7 +151,12 @@ TOP = {
 OPTIONAL = {"characters": (str, list), "mistakes": list}
 PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent")
 OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every")
-ATTEMPT_KEYS = ("start", "judge", "cancel", "limit", "timeout")
+# within: frames after the reset by which the start must have come, or the
+# scenario is reset uncounted ("missed": the words then: the opponent's
+# attack whiffed, the player jumped behind it)
+LESSON_MAX = 500          # a lesson's characters, the longest name filled
+ATTEMPT_KEYS = ("start", "judge", "cancel", "limit", "timeout", "within",
+                "missed")
 
 
 class DrillError(Exception):
@@ -358,7 +365,7 @@ def _problems(spec):
                  ", ".join(SIMPLE_EVENTS))
         else:
             num(v, where + ".frame")
-        for m in ("from", "to"):
+        for m in ("from", "to", "not_to"):
             if m in e:
                 state(e[m], where + "." + m)
         if "after" in e:
@@ -461,6 +468,16 @@ def _problems(spec):
         for k, para in enumerate(paras if isinstance(paras, list)
                                  else [paras]):
             words(para, "%s.text[%d]" % (w, k))
+        # it fits beside the picture on the tutorial's card (the owner,
+        # 2026-11-14: a long lesson broke the card; 500 characters with the
+        # longest name read at 13dp or larger)
+        try:
+            n = sum(len(text(x, dict(test, char="Mr Game And Watch")))
+                    for x in (paras if isinstance(paras, list) else [paras]))
+            need(n <= LESSON_MAX, w, "text: %d characters, more than %d "
+                 "(the card's room beside the picture)" % (n, LESSON_MAX))
+        except (DrillError, TypeError):
+            pass
         if "characters" in le:
             need(le["characters"] in CHARACTER_NUMBERS, w,
                  "characters: one of %s" % ", ".join(CHARACTER_NUMBERS))
@@ -554,6 +571,10 @@ def _problems(spec):
     if "timeout" in a:
         need(a["timeout"] in ("judge", "drop"), "attempt.timeout",
              "judge or drop")
+    if "within" in a:
+        num(a["within"], "attempt.within")
+    if "missed" in a:
+        words(a["missed"], "attempt.missed")
     extra = set(a) - set(ATTEMPT_KEYS)
     need(not extra, "attempt", "unknown %s" % ", ".join(sorted(extra)))
 
@@ -719,4 +740,6 @@ def every_character(number):
 def ids():
     if not os.path.isdir(DIR):
         return []
-    return sorted(f[:-5] for f in os.listdir(DIR) if f.endswith(".json"))
+    # (numbers.json is the characters' measured numbers, not a drill)
+    return sorted(f[:-5] for f in os.listdir(DIR)
+                  if f.endswith(".json") and f != "numbers.json")
