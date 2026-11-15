@@ -41,6 +41,9 @@ span { display: inline; }
 .who .nick { background-color: #12161C; color: #F3F6FA; padding: 5dp 12dp; border-radius: 4dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 14dp; margin-right: 10dp; }
 .who .layout { color: #4A5361; }
 .tag { padding: 4dp 18dp; border: 1dp #12161C; transform: skewX(-12deg); margin-right: 12dp; }
+/* a character's stock icon before its name in the tag (the matchup) */
+.tag.icon { display: flex; flex-direction: row; align-items: center; padding-left: 10dp; }
+.tagicon { width: 28dp; height: 28dp; margin-right: 8dp; transform: skewX(12deg); }
 .tag .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 24dp; text-transform: uppercase; letter-spacing: 1dp; }
 .hvs { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 13dp; color: #4A5361; margin-right: 12dp; }
 
@@ -84,7 +87,10 @@ span { display: inline; }
 .gcimg { height: 24dp; margin-right: 8dp; }
 .gcimg.a { height: 27dp; }
 .gcimg.b { height: 21dp; }
-.gcimg.x, .gcimg.y, .gcimg.c { height: 22dp; }
+.gcimg.y, .gcimg.c { height: 22dp; }
+/* X stands tall and narrow: its long side as long as Y's (the owner: "The
+   X button for random is much smaller than Y") */
+.gcimg.x { height: 29dp; }
 .gcimg.z { height: 14dp; }
 .gcimg.l, .gcimg.r { height: 18dp; }
 /* (.r is also the drill list's row: none of it on the R button) */

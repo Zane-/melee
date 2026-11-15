@@ -283,9 +283,11 @@ def key(letter, dark=False, wide=False):
         " dark" if dark else "", " wide" if wide else "", esc(letter))
 
 
-def header(crumbs, tag=None):
+def header(crumbs, tag=None, port=True):
     """`crumbs`: where this screen is, the last being the screen itself.
-    `tag`: (text, colour, text colour) for the character being trained.
+    `tag`: (text, colour, text colour[, stock icon]) for the character
+    being trained, or a list of two for a match; `port`: the port and
+    layout shown at the right.
     The screens above it are a small line over its name (the owner,
     2026-11-14: "The breadcrumb menu doesn't work with this much nesting":
     TRAIN / FOX / TECH SKILL / FUNDAMENTALS in the title's type did not
@@ -301,10 +303,15 @@ def header(crumbs, tag=None):
     for i, t in enumerate([tag] if isinstance(tag, tuple) else tag or []):
         if i:
             who += '<div class="hvs">VS</div>'
-        who += ('<div class="tag" style="background-color: %s; color: %s">'
-                '<div class="un">%s</div></div>' % (t[1], t[2], esc(t[0])))
-    who += ('<div class="port">PORT 1</div><div class="nick">----</div>'
-            '<div class="layout">Default layout</div>')
+        icon = t[3] if len(t) > 3 and t[3] else None
+        who += ('<div class="tag%s" style="background-color: %s; color: %s">'
+                '%s<div class="un">%s</div></div>' % (
+                    " icon" if icon else "", t[1], t[2],
+                    '<img class="tagicon" src="%s"/>' % picture(icon)
+                    if icon else "", esc(t[0])))
+    if port:
+        who += ('<div class="port">PORT 1</div><div class="nick">----</div>'
+                '<div class="layout">Default layout</div>')
     # (no ruler of ticks under it: the owner, 2026-11-14, "delete the weird
     # ruler marks near the top of every window")
     return ('<div class="header"><div class="plate"><div class="titles">'
@@ -647,11 +654,14 @@ def stage_card(s, go):
             key("A", dark=True), esc(go)))
 
 
-def stage_select(stage_list, focus, me, opp, go, every=False):
+def stage_select(stage_list, focus, me, opp, go, every=False,
+                 costumes=(0, 0)):
     """After the characters: where they play. `me`, `opp`: the two
-    characters; `go`: what A does ("Fight", or "Start" in the Lab);
+    characters (`costumes`: theirs, for their stock icons in the
+    matchup); `go`: what A does ("Fight", or "Start" in the Lab);
     `every`: all the game's stages (smaller panels, six to a row), not
     only the six legal ones (Y changes it)."""
+    import art
     cols = STAGE_COLUMNS_ALL if every else STAGE_COLUMNS
     tiles = [stage_tile(i, s, i == focus) for i, s in enumerate(stage_list)]
     rows = "".join('<div class="sgrow">%s</div>' % "".join(
@@ -659,15 +669,18 @@ def stage_select(stage_list, focus, me, opp, go, every=False):
     body = (
         header(["Choose a stage", "All stages" if every else
                 "Legal stages"],
-               tag=[(me["name"], me["color"], me["fg"]),
-                    (opp["name"], opp["color"], opp["fg"])]) +
+               tag=[(me["name"], me["color"], me["fg"],
+                     art.stock(me["id"], costumes[0])),
+                    (opp["name"], opp["color"], opp["fg"],
+                     art.stock(opp["id"], costumes[1]))],
+               port=False) +
         '<div class="sgrid%s">' % (" all" if every else "") + rows +
         '</div>' +
         '<div id="card" class="card">' + stage_card(stage_list[focus], go) +
         '</div>' +
-        footer("Where %s and %s play. The stage loads with the match." % (
-            me["name"], opp["name"]),
-            [("A", go), ("X", "Random"),
+        # (no line at the bottom: the owner, 2026-11-14, "it's
+        # unnecessary")
+        footer("", [("A", go), ("X", "Random"),
              ("Y", "Legal stages" if every else "All stages"),
              ("B", "Back")]))
     return page("Stage select", body)

@@ -163,6 +163,12 @@ def main():
         check("no line about it, no numbers, no blast zones (the owner: "
               "\"too verbose\")", "Blast zones" not in page and
               "ledge to ledge" not in page and "platforms" not in page)
+        check("the matchup at the top: each character's stock icon before "
+              "its name, no port or layout; no line at the bottom",
+              page.count('class="tagicon"') == 2 and
+              "stock/fox-" in page and "stock/marth-" in page and
+              "Default layout" not in page and
+              '<div id="desc" class="desc"></div>' in page)
         w.shot(pic)
         shot("stages")
         boxes = [(60 + 256 * (i % 3) + 80, 120 + 256 * (i // 3) + 60, 80,

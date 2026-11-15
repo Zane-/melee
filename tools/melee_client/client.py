@@ -1419,7 +1419,9 @@ class Client:
         self.load("stages", screens.stage_select(
             self.stage_list(), self.stage_at, self.me,
             self.roster[self.opp_at], self.go_word(),
-            every=self.every_stage()))
+            every=self.every_stage(),
+            costumes=(self.dressed(self.me),
+                      self.opp_dressed(self.roster[self.opp_at]))))
 
     def every_stage(self):
         """Whether the stage select shows every stage, not only the six
