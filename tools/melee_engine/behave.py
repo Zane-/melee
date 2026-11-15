@@ -209,18 +209,11 @@ class Footsies(Behaviour):
             self.body.band = (max(2.0, r - 4.0), r + 3.0)
 
     def _back(self, st):
-        """A dash away from the player, then a tap to face them again (or
-        standing still, with the ledge behind)."""
-        me = st["p"][self.ctx.port]
-        way = -toward(st, self.ctx.port, self.ctx.target)
-        coast = me["x"] + me.get("gvel", me.get("vx", 0.0)) * 12
-        if way * coast > 0 and abs(coast) + 24.0 > self.ctx.half - 12.0:
-            return [NONE] * 6
-        out = [NONE] if self.body.last_lx * way < 0 else []
-        out += [(0, 127 * way, 0, 0, 0, 0, 0)] * self.rng.randint(4, 7)
-        out += [NONE, (0, -45 * way, 0, 0, 0, 0, 0), NONE]
-        self.body.last_lx = 0
-        return out
+        """Away from the player now, facing them again at its end: the
+        body's retreat (a wavedash out, a dash away and a pivot, the dash
+        it is in turned away; standing still with the ledge behind),
+        queued in place of its plan."""
+        return self.body.retreat(st)
 
     def _outside(self, st):
         sense = self.ctx.sense
@@ -252,7 +245,7 @@ class Footsies(Behaviour):
             # closest): a dash back instead, looked at at once
             m["their_reach"] = max(m["their_reach"], gap)
             self._band()
-            self.body.queue = self._back(st)
+            self._back(st)
             self.backs += 1
             sense.ask(self.plan(st, self.ctx.frames + self.ctx.cache),
                       force=True)
@@ -279,17 +272,19 @@ class Footsies(Behaviour):
         return self.body.next(st)
 
     def _segment(self, st):
-        """One segment at a time, planned from where the fighter is when the
-        last runs out (planned further ahead from the same state, two dashes
-        the same way ran Marth off the stage)."""
+        """A phrase planned when the last runs out (the body plans each
+        from where its model has the fighter at the queue's end, so two
+        dashes the same way no longer run it off the stage)."""
         if not self.body.queue:
-            self.body.queue += self.body._segment(st)
+            self.body.extend(st)
             self.unchecked = True
 
     def plan(self, st, k):
-        self._segment(st)
-        q = list(self.body.queue[:k])
-        return q + [NONE] * (k - len(q))
+        n = len(self.body.queue)
+        out = self.body.ahead(st, k)
+        if len(self.body.queue) > n:
+            self.unchecked = True     # a phrase planned: looked at first
+        return out
 
 
 class Retreat(Footsies):

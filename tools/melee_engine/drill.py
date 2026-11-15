@@ -123,85 +123,10 @@ SHIELD = (0x20, 0, 0, 0, 0, 0, 255)       # R held, the trigger all the way
 CROUCH = (0, 0, -127, 0, 0, 0, 0)
 
 
-class Footsies:
-    """Moving as a person waiting to approach does: dash dances, walks,
-    stops, a crouch, at random lengths, keeping to a band of distances from
-    the target and on the stage, and turning back to face it. Its pads are
-    planned some frames ahead (`ahead`), so a decision can be thought out
-    for where they lead."""
-
-    def __init__(self, port, target, band=(35.0, 60.0), rng=None,
-                 half=70.0, crouch=True):
-        self.port, self.target = port, target
-        self.band = band
-        self.rng = rng or random.Random(0)
-        self.half = half
-        self.crouch = crouch
-        self.queue = []
-        self.last_lx = 0
-        self.moved = 0                   # frames the stick was not neutral
-
-    def _segment(self, st):
-        me, them = st["p"][self.port], st["p"][self.target]
-        rng = self.rng
-        dx = them["x"] - me["x"]
-        toward = 1 if dx > 0 else -1
-        d = abs(dx)
-        lo, hi = self.band
-        r = rng.random()
-        if d > hi:
-            way = toward if r < 0.85 else -toward
-        elif d < lo:
-            way = -toward if r < 0.85 else toward
-        else:
-            way = toward if r < 0.5 else -toward
-        kind = rng.choices(("dash", "walk", "wait", "crouch"),
-                           weights=(0.5, 0.2, 0.22,
-                                    0.08 if self.crouch else 0))[0]
-        # Not off the stage. Where it is going counts, not where it is: a
-        # run let go of slides 20 units and its turn carries it on (a Fox
-        # ran off Final Destination that way). From where its momentum
-        # takes it, a dash covers some 30 units more, a walk 25.
-        coast = me["x"] + me.get("vx", 0.0) * 12
-        limit = self.half - 12.0
-        reach = 30.0 if kind == "dash" else 25.0
-        if abs(coast) > limit - 10.0:
-            way, kind = (-1 if coast > 0 else 1), "dash"   # back in
-        elif way * coast > 0 and abs(coast) + reach > limit:
-            way = -way
-        out = []
-        if kind == "dash":
-            if self.last_lx * way > 0:
-                out.append(NONE)         # a dash starts from the middle
-            # an initial dash at most (a dash dance), not a run
-            out += [(0, 127 * way, 0, 0, 0, 0, 0)] * rng.randint(3, 9)
-        elif kind == "walk":
-            lx = rng.choice((40, 55, 70)) * way
-            out += [(0, lx, 0, 0, 0, 0, 0)] * rng.randint(6, 16)
-        elif kind == "crouch":
-            out += [CROUCH] * rng.randint(4, 14)
-        else:
-            out += [NONE] * rng.randint(2, 18)
-        facing_away = me["facing"] * toward < 0
-        if way != toward and (facing_away or kind in ("dash", "walk")) and \
-                rng.random() < 0.6:
-            # face them again: a tap toward them
-            out += [NONE, (0, 45 * toward, 0, 0, 0, 0, 0), NONE]
-        self.last_lx = out[-1][1]
-        return out
-
-    def ahead(self, st, k):
-        """The next `k` pads, planned now (and kept to)."""
-        while len(self.queue) < k:
-            self.queue += self._segment(st)
-        return list(self.queue[:k])
-
-    def next(self, st):
-        if not self.queue:
-            self.queue += self._segment(st)
-        raw = self.queue.pop(0)
-        self.moved += raw[1] != 0
-        return raw
+# Moving as a person waiting to approach does: dash dances turned inside
+# each character's initial dash, pivots, let-go dashes, walks, crouches,
+# wavedashes, never a run turned around (footwork.py)
+from melee_engine.footwork import Footsies  # noqa: E402,F401
 
 
 # ---- the opponent ---------------------------------------------------------------

@@ -249,7 +249,9 @@ there.** The owner asked for a dynamic drill, "where both players have to move".
 
 - `Footsies`: the opponent's movement before it approaches: dash dances, walks, stops, a
   crouch, at random lengths, keeping to a band of distances about the scenario's and on
-  the stage, turning back to face the player. Its pads are planned some frames ahead, so a
+  the stage, turning back to face the player (since 2026-11-15 `footwork.py`: each dash
+  turned inside the character's initial dash, pivots, wavedashes, never a run turned
+  around; `opponent-vocabulary.md`, Status). Its pads are planned some frames ahead, so a
   decision can be made for where they lead. (The slippi-ai body, `human.ModelBody`, can
   take its place; Falcon has no model against Fox.)
 - `JumpIn`: from a random moment on (20 to 110 frames), every 3 frames within reach of

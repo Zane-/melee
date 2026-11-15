@@ -123,7 +123,7 @@ frames ahead, as `Footsies` is) or a decision the engine searches in a fork, as
 
 | Behaviour | What it does |
 |-|-|
-| `footsies` `range` | dash dances, walks, stops and crouches, keeping to a band: `"outside"` (just out of the player's range), `"edge"` (at the edge of its own), or `[LO, HI]`. Built: `"outside"` looks at each segment it plans before playing it, and every 4 frames: the player's range over 16 frames (12 and the 4 between looks) as it plans to move; one that would take it in is dropped for a dash back. Its band follows the reach found (up to the closest a rejected plan came, sinking slowly while none is), kept for the next behaviour (`ctx.memory`). `"edge"`: a first version, the same with its own range |
+| `footsies` `range` | dash dances turned inside each character's initial dash, pivots, let-go dashes, walks in, crouches, standing, wavedashes in and out, a shield now and then, never a run turned around (the body: `footwork.py`), keeping to a band: `"outside"` (just out of the player's range), `"edge"` (at the edge of its own), or `[LO, HI]`. Built: `"outside"` looks at each segment it plans before playing it, and every 4 frames: the player's range over 16 frames (12 and the 4 between looks) as it plans to move; one that would take it in is dropped for a retreat (the body's: a dash away and a pivot, the dash it is in turned, or a wavedash out; never closer, back to the band, facing the player again). Its band follows the reach found (up to the closest a rejected plan came, sinking slowly while none is), kept for the next behaviour (`ctx.memory`). `"edge"`: a first version, the same with its own range |
 | `hold` `pad` | stands, shields, crouches (`"stand"`, `"shield"`, `"crouch"`) |
 | `retreat` | moves out of the player's range and stays there (built: `"outside"` with 12 units more) |
 | `approach` `moves` `lands` | commits to one of `moves` (by name prefix) that the engine finds lands (`"hit"`, `"shield"`, `"any"`), from wherever it is; with a contract (below) only one the player can answer. Built: `EngineOpponent` with the contract `behave.Commit`: the timing scan, the stick held K frames (still, toward, walking toward) then one of `moves`, on a shielding player as shielding on, any other as stopping; `body` (footsies closing in, or stand, shield, crouch) until then, `wait` [LO, HI] frames before it may |
@@ -230,3 +230,38 @@ plays what the check found.
   counts it only where the game reads it (`follow_interrupt`, `engine.c`); the chain
   grab's test plays in the shared game again, `tests/native/engine.py` checks a grab
   after a real jab.
+- 2026-11-15: the body, after the owner played fox-shine-oos ("the sheik is just
+  missing dash dances and in turn around lag"). The cause, measured
+  (`tools/melee_engine/gait.py`): the old body held dashes 3 to 9 frames, walked at a
+  stick of 70 and dashed again the same way in a dash's slide. The game reads the stick
+  over 80: 64 is a dash, so its walks were dashes; held past a character's initial dash
+  (Sheik 7 frames, Samus 8, Fox 11) or pressed again in its slide (50 or more), a dash
+  is a run, and a run let go is RunBrake, turned TurnRun (Marth's up to 51 frames). The
+  first 4 frames of a dash from standing ignore a turn, and a turn pressed on its 2nd or
+  3rd frame is lost. TurnRun, RunBrake and Run were 9 to 47% of the body's frames for
+  the eleven top characters; over fox-shine-oos's whole script, 156 to 468 frames in
+  30 seconds. Now `tools/melee_engine/footwork.py`: phrases (a dash dance of 2 to 5
+  dashes at a rhythm drawn for it, a dash let go of, a pivot, a walk in, a crouch,
+  standing, a wavedash in or out, a shield) each played on a model of the game's ground
+  movement (each character's initial dash, dash animation, jump squat, wavedash slide
+  and lag, pivot, speeds and friction, measured by `gait.py --calibrate` into
+  `footwork.json`), kept only if it never runs, turns where the game ignores it,
+  crosses the player or leaves the stage, one of the best by where it ends (the band,
+  facing the player) by a softmax. A turn comes from a dash's 5th frame (a dash back's
+  2nd) to its last before the run. The plan's positions follow the game's each frame
+  (0.1 units off a frame on average); a state the plan did not expect is planned again
+  from the game. `footsies` `"outside"` retreats with the body's retreat. After
+  (`gait.py`, 1,200 frames a run, stand-ins standing, shielding, moving): no TurnRun,
+  RunBrake or Run in the body's frames for any of the eleven, alone or in the drill's
+  script (the committed lines' own holds still run and turn: 0 to 34 frames in 30
+  seconds, `Commit`'s; before, 156 to 468 in all); 3.5 to 5.2 dash backs a second
+  (before 0.5 to 1.7); in its band 46 to 76% of the time against a standing or
+  shielding player (before 27 to 50%); facing the player 68 to 77% of the time (before
+  51 to 56%); the model a tenth of a unit off a frame; 0.03 ms a frame (at most 2).
+  The slippi-ai body (`human.ModelBody`, its attacks taken out; models for all eleven
+  against Fox, Falcon's and Fox's dittos): measured for Sheik, Marth, Fox, Falco and
+  Jigglypuff, it jumps 20 to 73% of its frames (its aerials taken out), dash backs at
+  most 1.3 a second, keeps no band (Sheik against a standing Fox stood still 79% of the
+  time, 80 units away) and still runs into RunBrake now and then; not used for footsies.
+  Proof: `gait.py`, `tests/engine/script.py`, `tests/engine/sense.py`, every drill's
+  `check.py`.
