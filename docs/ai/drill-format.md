@@ -348,11 +348,15 @@ tutorial's examples are filmed closer (90), to see the crouch.
 The owner plays and QAs the 27 Tech skill drills; then the Punish, Defense and Neutral parts
 in the format. Known runtime issues found while writing them: a reset during an opponent's
 sliding attack can leave it slightly off its mark (`universal-di` judges late to avoid it);
-the Ice Climbers' partner is not moved by a reset (`universal-sdi` allows 4 hits for it).
+the Ice Climbers' partner was not moved by a reset (`universal-sdi` allows 4 hits for it; a reset now puts her back with the player, `partner` in `src/host/setup.c`, so that allowance may be tightened). A placed fighter also kept its ground speed and slid on from where it was put (fixed the same day; it may be the "slightly off its mark" above).
 A match holds the player and seven opponents (`Session.FIGHTERS`); a drill's rotation draws
 only scenarios whose opponent is loaded, and turning by hand to another loads a match. So a
 drill keeps to seven opponents (`universal-di`: the top seven; `universal-asdi`: Pikachu,
 Yoshi and Samus with four of them). With the Ice Climbers as the player, the native build
-crashes after about seven matches loaded in one game (signal 11 in `fn_800DA054`, called
-through `Fighter_procAccessory`): reproduced headless by playing a ten-opponent
-`universal-di` through every scenario in one game.
+crashed (signal 11 in `fn_800DA054`, called through `Fighter_procAccessory`) when a reset
+placed the opponent while the partner, left out of the reset, held it: the placement let go
+of the grab and left her in her grab's state with nobody to hold. It had nothing to do with
+the matches loaded: 96 in one game did not crash it, and that grab crashed it at once. Fixed
+2026-11-15 (`release` and `partner` in `src/host/setup.c`). Seven opponents is a real limit:
+the preload cache holds eight characters (`GameCache.entries[8]`, the rotation's limit in
+`match.c`); a ninth asked for is not loaded.

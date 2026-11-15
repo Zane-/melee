@@ -44,13 +44,23 @@
 #include <sysdolphin/baselib/gobjplink.h>
 #include <sysdolphin/baselib/jobj.h>
 #include <sysdolphin/baselib/psstructs.h>
+#include <sysdolphin/baselib/random.h>
 
 extern HSD_Particle* hsd_804D0908[16]; /* particle.c: the particle lists */
 
 /// How far below the point asked for a floor is looked for.
 #define FLOOR_REACH 400.0F
 
+/// Where the Ice Climbers' partner goes with its leader (partner).
+enum {
+    BESIDE_GROUND,   ///< standing where the leader stands
+    BESIDE_AIR,      ///< falling with it
+    BESIDE_LEDGE,    ///< the leader hangs: standing at the ledge's end
+    BESIDE_PLATFORM, ///< on the respawn platform with it
+};
+
 static void wake(HSD_GObj* gobj, Fighter* fp);
+static void partner(HSD_GObj* leader, int how, const Vec3* ledge);
 
 /// Tell everything that keeps its own copy where the fighter now is.
 static void moved(HSD_GObj* gobj, Fighter* fp)
@@ -67,6 +77,10 @@ static void moved(HSD_GObj* gobj, Fighter* fp)
     Player_80032828(fp->player_idx, fp->is_sub_fighter, &fp->cur_pos);
 }
 
+/// Facing that way, with no speed. The ground speed too: a fighter placed
+/// in the middle of a move slid on from where it was put (Fox after a jab
+/// out of a run, 3.7 units in four frames), and the Ice Climbers' partner
+/// walked after it.
 static void still(Fighter* fp, float facing)
 {
     static const Vec3 zero = { 0.0F, 0.0F, 0.0F };
@@ -75,17 +89,30 @@ static void still(Fighter* fp, float facing)
     fp->self_vel = zero;
     fp->x74_self_accel = zero;
     fp->x8c_kb_vel = zero;
+    fp->gr_vel = 0.0F;
 }
 
 /// Let go of whoever it holds, and of it if it is held, the way the game
-/// ends a grab; otherwise the two stay linked.
+/// ends a grab when one of the two leaves it (ftCo_800DD100, as a fighter
+/// is KO'd): the other one is back to standing or falling
+/// (ftCommon_8007D92C). Otherwise the two stay linked; and a holder left in
+/// its grab's state with nobody to hold reads the missing victim in that
+/// state's callback (fn_800DA054, from Fighter_procAccessory): the Ice
+/// Climbers' partner holding the opponent as the next attempt placed the
+/// opponent, and the game fell over (signal 11).
 static void release(HSD_GObj* gobj, Fighter* fp)
 {
     if (fp->victim_gobj != NULL) {
-        ftCo_800DC920(gobj, fp->victim_gobj);
+        ftCo_800DD100(gobj);
     }
+    /* x1A5C alone: the one holding it, or the partner Popo's side special
+       takes along (ftpopospecials.c) */
     if (fp->x1A5C != NULL) {
-        ftCo_800DC920(fp->x1A5C, gobj);
+        HSD_GObj* other = fp->x1A5C;
+        ftCo_800DC920(other, gobj);
+        if (host_live_fighter(other)) {
+            ftCommon_8007D92C(other);
+        }
     }
 }
 
@@ -171,6 +198,7 @@ const char* host_ledge_side(int slot, float percent, int right)
     ftColl_8007B760(gobj, p_ftCommonData->x49C + 1);
     fp->dmg.x1830_percent = percent;
     Player_SetHUDDamage(fp->player_idx, (int) percent);
+    partner(gobj, BESIDE_LEDGE, &pos);
     ftCamera_UpdateCameraBox(gobj);
     Camera_8002F3AC();
     return NULL;
@@ -187,6 +215,172 @@ static void rebirth_stay(HSD_GObj* gobj)
     fp->mv.co.common.x0 = 2;
     fp->self_vel.x = 0.0F;
     fp->self_vel.y = 0.0F;
+}
+
+/* --- the Ice Climbers' partner -------------------------------------------- */
+
+/// The partner of the player whose fighter this is (Nana, the Ice
+/// Climbers' second fighter), or NULL: none, or not one that follows (Zelda
+/// and Sheik's second fighter is the other form).
+static HSD_GObj* partner_of(HSD_GObj* leader)
+{
+    Fighter* lp = GET_FIGHTER(leader);
+    HSD_GObj* gobj;
+
+    if (lp->is_sub_fighter) {
+        return NULL;
+    }
+    gobj = Player_GetEntityAtIndex(lp->player_idx, 1);
+    if (gobj == NULL || gobj == leader || !host_live_fighter(gobj) ||
+        GET_FIGHTER(gobj)->kind != Ft_Kind_Nana)
+    {
+        return NULL;
+    }
+    return gobj;
+}
+
+/// The partner, standing on the floor under (x, y) no more than `reach`
+/// below it; 0 if there is none.
+static int partner_stand(HSD_GObj* gobj, Fighter* fp, float x, float y,
+                         float reach)
+{
+    Vec3 pos, normal;
+    int line = -1;
+    u32 flags = 0;
+
+    if (!mpCheckFloor(x, y + 10.0F, x, y - reach, 0.0F, &pos, &line, &flags,
+                      &normal, -1, -1, -1, NULL, NULL))
+    {
+        return 0;
+    }
+    fp->coll_data.floor.index = line;
+    fp->cur_pos = pos;
+    moved(gobj, fp);
+    ft_80084280(gobj);     /* take the floor found */
+    ftCommon_8007D6A4(fp); /* grounded */
+    ft_8008A2BC(gobj);     /* standing */
+    still(fp, fp->facing_dir);
+    /* (that left her 12.5 below the floor, on collision data from before
+       the respawn, until the next frame put her back on it) */
+    fp->cur_pos = pos;
+    moved(gobj, fp);
+    return 1;
+}
+
+/// A stick's value as the partner's log keeps it (inlineM0 in
+/// ftCo_0A01.c).
+static s8 log_stick(float v)
+{
+    return (s8) (int) (v >= 0.0F ? 127.0F * v : 128.0F * v);
+}
+
+/// Her log of the leader (ftCo_800B0918 writes an entry a frame from him;
+/// she plays the one five behind): every entry what he is and holds now,
+/// as if she had followed him standing there. The respawn's reset
+/// (ftCo_800A101C) leaves the C-stick of the last attempt in it, and she
+/// down-smashed the opponent with it as the next attempt began
+/// (universal-asdi, whose examples hold the C-stick down). TM-CE's
+/// savestate load fills it with his position and facing. And what she
+/// holds is what he holds: her CPU's pad is the log's (ftCo_800B0AF4 sets
+/// it so) and her input record his, so that a stick he holds through the
+/// reset (a person's: the drills leave a live pad as it is) is not a new
+/// press for her either, a smash attack he does not do.
+static void partner_log(Fighter* lp, Fighter* fp)
+{
+    struct CpuFighter* cpu = &fp->cpu;
+
+    for (size_t i = 0; i < sizeof cpu->xFC / sizeof cpu->xFC[0]; i++) {
+        struct Fighter_x1A88_xFC_t* e = &cpu->xFC[i];
+        e->lstick.x = log_stick(lp->input.lstick[0].x);
+        e->lstick.y = log_stick(lp->input.lstick[0].y);
+        e->cstick.x = log_stick(lp->input.cstick[0].x);
+        e->cstick.y = log_stick(lp->input.cstick[0].y);
+        e->x4 = (u8) lp->input.triggers[0];
+        e->x5 = (u8) lp->input.triggers[0];
+        e->x0 = lp->input.held_buttons[0];
+        e->cur_pos = lp->cur_pos;
+        e->facing_dir = lp->facing_dir;
+    }
+    cpu->lstick = cpu->xFC[0].lstick;
+    cpu->cstick = cpu->xFC[0].cstick;
+    cpu->buttons = cpu->xFC[0].x0;
+    cpu->ltrigger = cpu->xFC[0].x4;
+    cpu->rtrigger = cpu->xFC[0].x5;
+    fp->input = lp->input;
+}
+
+/// Put the partner back with its leader, just placed, as the game brings
+/// the two back on a respawn (Player_80032070: the leader's Rebirth brings
+/// her back too). She follows a log of the leader's inputs and positions
+/// over the last 30 frames (the CPU's xFC, TM-CE's leader_log); left as
+/// she was, she walked back to where he had been and played what he had
+/// done there: through the opponent, into its attack, onto it. So whatever
+/// the last attempt left on her is gone, as a KO leaves it (a grab, what
+/// she held, a hit: ftCo_800D4F24; nothing if she is asleep), she is fresh
+/// as at a respawn (Fighter_Spawn, from ftCo_800D4FF4: her damage, shield,
+/// jumps, her CPU's state), and her log is of the leader as he is now
+/// (partner_log). Where: where she comes to rest by herself, on the
+/// leader. The game starts a match with the two 10 apart (each at the
+/// spawn point plus its own x40 along the facing: Popo 5 in front, Nana 5
+/// behind, Fighter_UnkInitReset_80067C98), and she walks up to him within
+/// a second; put 10 behind him, she walked too. She has the leader's
+/// damage.
+static void partner(HSD_GObj* leader, int how, const Vec3* ledge)
+{
+    Fighter* lp = GET_FIGHTER(leader);
+    HSD_GObj* gobj = partner_of(leader);
+    Fighter* fp;
+    u32 seed;
+
+    if (gobj == NULL) {
+        return;
+    }
+    fp = GET_FIGHTER(gobj);
+    release(gobj, fp);
+    ftCo_800D4F24(gobj, 0);
+    /* (her CPU's reset draws a random number; the attempt's are those the
+       drill seeded) */
+    seed = *HSD_RandSeedPtr;
+    ftCo_800D4FF4(gobj);
+    *HSD_RandSeedPtr = seed;
+    if (how != BESIDE_PLATFORM) {
+        ftCo_800C0200(fp, 9); /* not the respawn's flash */
+    }
+    still(fp, lp->facing_dir);
+    fp->used_tether = 0;
+    switch (how) {
+    case BESIDE_GROUND:
+        if (partner_stand(gobj, fp, lp->cur_pos.x, lp->cur_pos.y, 10.0F)) {
+            break;
+        }
+        how = BESIDE_AIR; /* (no floor found: falling there) */
+        /* fallthrough */
+    case BESIDE_AIR:
+    case BESIDE_PLATFORM:
+        fp->cur_pos = lp->cur_pos;
+        moved(gobj, fp);
+        if (how == BESIDE_AIR) {
+            ftCo_Fall_Enter(gobj);
+            fp->x1968_jumpsUsed = lp->x1968_jumpsUsed;
+        } else {
+            /* waiting on the platform, as the leader, until it leaves
+               (ftCo_RebirthWait_IASA: she goes when he does) */
+            ftCo_800D5600(gobj);
+            fp->phys_cb = rebirth_stay;
+        }
+        break;
+    case BESIDE_LEDGE:
+        /* Two cannot hang on one ledge (ft_80082E3C): she stands at its
+           end, on the stage, and stays there */
+        if (!partner_stand(gobj, fp, ledge->x, ledge->y, 10.0F)) {
+            partner_stand(gobj, fp, ledge->x + 5.0F * lp->facing_dir, ledge->y,
+                          10.0F);
+        }
+        break;
+    }
+    fp->dmg.x1830_percent = lp->dmg.x1830_percent;
+    partner_log(lp, fp);
+    ftCamera_UpdateCameraBox(gobj);
 }
 
 /* --- fighters held in place ----------------------------------------------- */
@@ -277,6 +471,7 @@ const char* host_rebirth(int slot, float x, float y)
     ftCo_800D5600(gobj);
     fp->phys_cb = rebirth_stay;
     fn_800D54A4(gobj);
+    partner(gobj, BESIDE_PLATFORM, NULL);
     ftCamera_UpdateCameraBox(gobj);
     Camera_8002F3AC();
     return NULL;
@@ -422,6 +617,12 @@ const char* host_sleep(int slot)
         ifStatus_802F6788((u8) slot);
         Camera_8002F3AC();
     }
+    /* the Ice Climbers' partner with it (placing the leader brings her
+       back: partner) */
+    if ((gobj = partner_of(gobj)) != NULL && !GET_FIGHTER(gobj)->is_sleeping) {
+        release(gobj, GET_FIGHTER(gobj));
+        ftCo_800D4F24(gobj, 0);
+    }
     return NULL;
 }
 
@@ -481,10 +682,14 @@ const char* host_place(int slot, float x, float y, float facing, int air,
         ft_80084280(gobj);       /* take the floor found */
         ftCommon_8007D6A4(fp);   /* grounded */
         ft_8008A2BC(gobj);       /* standing */
+        /* no speed again: grounding gives it the last animation's own
+           motion (ftCommon_8007D6A4, x6A4_transNOffset) */
+        still(fp, facing);
     }
     fp->dmg.x1830_percent = percent;
     Player_SetHUDDamage(fp->player_idx, (int) percent);
     fp->shield_health = p_ftCommonData->x260_startShieldHealth;
+    partner(gobj, air ? BESIDE_AIR : BESIDE_GROUND, NULL);
     ftCamera_UpdateCameraBox(gobj);
     Camera_8002F3AC();
     return NULL;
