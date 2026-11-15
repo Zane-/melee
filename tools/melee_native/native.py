@@ -44,8 +44,8 @@ CHARACTERS = {
     "roy": 0x17, "pichu": 0x18, "ganondorf": 0x19,
 }
 STAGES = {"fountain-of-dreams": 0x02, "pokemon-stadium": 0x03,
-          "yoshis-story": 0x08, "dream-land": 0x1C, "battlefield": 0x1F,
-          "final-destination": 0x20}
+          "yoshis-story": 0x08, "jungle-japes": 0x0C, "dream-land": 0x1C,
+          "battlefield": 0x1F, "final-destination": 0x20}
 
 
 def _json(text):
@@ -378,6 +378,13 @@ class Native:
         set up from now on, whoever asks for it (a drill's own start too),
         until changed."""
         self._cmd("costume %d %d" % (port, n))
+
+    def moves(self, port, rule="all"):
+        """The moves port `port`'s fighter may use (src/host/moves.c):
+        "all", "shine" (the down special and no attack: A, Z and the
+        C-stick taken, B only with the stick down) or "recovery" (the down,
+        up and side specials). For a person, a model and the game's CPU."""
+        self._cmd("moves %d %s" % (port, rule))
 
     def stocks(self, port, n):
         """Player `port` has `n` stocks now: the HUD shows `n` icons (up to

@@ -20,6 +20,7 @@ support for settings (i.e. win by 3 ...) ... select the mode, then
 configure options, then start game!".
 """
 import argparse
+import json
 import os
 import sys
 import tempfile
@@ -69,6 +70,24 @@ def main():
         return (p[0]["stocks"] if p[0] else None,
                 p[1]["stocks"] if p[1] else None)
 
+    def grey():
+        """Whether each side's colourless stock shows."""
+        return tuple("on" in json.loads(w._cmd("ui look gs%d" % i))[
+            "class"].split() for i in (0, 1))
+
+    def to_mode(ident):
+        """The selector's stick moved onto mode `ident`."""
+        want = [m.ident for m in modes.MODES].index(ident)
+        for _ in range(len(modes.MODES) * 2):
+            if c.mode_at == want:
+                return
+            tap("Right" if c.mode_at < want else "Left")
+        raise RuntimeError("the selector never reached %s" % ident)
+
+    def rule(port):
+        """The moves port `port` may use (src/host/moves.c)."""
+        return w._cmd("moves %d" % port).split()[-1]
+
     def ko(port, budget=900):
         """Port `port` dropped below the blast zone once it is back in
         play; then frames until the client has seen the KO."""
@@ -104,7 +123,7 @@ def main():
         tap("z")
         check("B goes back to Local or Online", c.screen == "vmenu")
         tap("x")
-        tap("Right")
+        to_mode("tug-of-war")
         tap("x")
         check("A on Tug of War opens its options: win by 2 at first",
               c.screen == "mopts" and c.versus_mode == "tug-of-war" and
@@ -142,6 +161,8 @@ def main():
               c.game_mode.settings["lead"] == 3 and c.game_mode.lead == 0 and
               stocks() == (0, 0) and
               c.game_mode.status(c.sides()) == "Even", str(stocks()))
+        check("even: both sides' stocks without colour, so each % is "
+              "still known", grey() == (True, True), str(grey()))
         shot("even")
 
         ko(1)
@@ -149,12 +170,18 @@ def main():
               c.game_mode.lead == 1 and stocks() == (1, 0) and
               c.game_mode.status(c.sides()) == "Fox +1",
               "%d %s" % (c.game_mode.lead, stocks()))
+        check("yours in colour now, theirs still without",
+              grey() == (False, True), str(grey()))
         frames(30)
         shot("you-plus-one")
         ko(0)
         check("they take one back: even, your stock gone",
               c.game_mode.lead == 0 and stocks() == (0, 0),
               "%d %s" % (c.game_mode.lead, stocks()))
+        check("your colourless stock waits while the last one breaks",
+              grey() == (False, True), str(grey()))
+        frames(client.Client.GREY_AFTER)
+        check("then shows", grey() == (True, True), str(grey()))
         frames(6)
         shot("even-again")
         ko(0)
@@ -174,11 +201,27 @@ def main():
         check("three ahead wins: the winning stock shows in the HUD first",
               c.screen == "versus" and stocks() == (3, 0), str(stocks()))
         frames(client.Client.GAME_SHOWN)
-        check("then the game stops, the result over it",
-              c.screen == "vover" and c.game_mode.winner == 0,
+        check("then the game stops, GAME and the winner over it",
+              c.screen == "vgame" and c.game_mode.winner == 0,
               "%s %s" % (c.screen, stocks()))
         frames(20)
         shot("game")
+        frames(client.Client.RESULTS_AFTER)
+        page = open(os.path.join(c.out, "results.rml")).read()
+        check("then the results: the winner, each side's numbers, the "
+              "mode's own first", c.screen == "results" and
+              "Fox pulled it 3 ahead" in page and
+              page.index("Biggest lead") < page.index("Damage dealt"),
+              c.screen)
+        check("the numbers: you took 5 stocks, they took 2; leads of 3 "
+              "and 1; each pulled it back to even once",
+              c.match_stats.taken == [5, 2] and
+              c.game_mode.biggest == [3, 1] and
+              c.game_mode.evened == [1, 1] and
+              c.match_stats.dealt[0] >= 0,
+              "%s %s %s" % (c.match_stats.taken, c.game_mode.biggest,
+                            c.game_mode.evened))
+        shot("results")
         tap("x", after=20)
         frames(60)
         check("A plays it again from even",
@@ -188,10 +231,84 @@ def main():
         for _ in range(3):
             ko(0)
         frames(client.Client.GAME_SHOWN)
-        check("they win by three the same way", c.screen == "vover" and
+        check("they win by three the same way", c.screen == "vgame" and
               c.game_mode.winner == 1, c.screen)
+        tap("z", after=4)
+        check("B skips to the results", c.screen == "results", c.screen)
         tap("z", after=10)
         check("B goes back to the stages", c.screen == "stages", c.screen)
+        check("leaving the match gives every move back",
+              rule(0) == "all" and rule(1) == "all")
+
+        # Shine Battle: Fox against Fox on Jungle Japes, shine only
+        tap("z")                    # the opponent
+        tap("z")                    # the characters
+        tap("z")                    # Tug of War's options
+        tap("z")                    # the modes
+        to_mode("shine-battle")
+        check("Shine Battle is third on the selector",
+              c.screen == "modes" and c.mode_at == 2 and
+              modes.MODES[c.mode_at].ident == "shine-battle", c.screen)
+        shot("modes-shine")
+        tap("x")
+        check("its options: 4 stocks, Firefox and Illusion off",
+              c.screen == "mopts" and c.mode_now.settings ==
+              {"stocks": 4, "recovery": "Off"}, str(c.mode_now.settings))
+        shot("options-shine")
+        check("its A goes on to the opponent",
+              "Choose opponent" in open(os.path.join(
+                  c.out, "mopts.rml")).read())
+        tap("x")
+        check("A goes straight to who plays the other Fox: no character "
+              "select", c.screen == "opp" and c.me["id"] == "fox" and
+              c.roster[c.opp_at]["id"] == "fox", c.screen)
+        at = c.opp_at
+        tap("Right")
+        tap("Down")
+        check("the stick does not change the opponent", c.opp_at == at)
+        for _ in range(len(c.players())):
+            if c.players()[c.who][0] == client.NOBODY:
+                break
+            tap("h", after=2)
+        shot("opponent-shine")
+        tap("x", after=20)
+        frames(90)
+        check("A starts the match: no stage select, Jungle Japes",
+              c.screen == "versus" and c.stage_now == "jungle-japes" and
+              w.match_info["stage"] == "jungle-japes" and
+              w.match_info["p1"] == "fox" and w.match_info["p2"] == "fox",
+              "%s %s" % (c.screen, w.match_info))
+        check("both sides shine only", rule(0) == "shine" and
+              rule(1) == "shine", "%s %s" % (rule(0), rule(1)))
+        check("4 stocks each in the HUD from the start",
+              stocks() == (4, 4) and grey() == (False, False),
+              str(stocks()))
+        shot("shine-start")
+        ko(0)
+        check("a KO: a stock less", stocks() == (3, 4) and
+              c.game_mode.status(c.sides()) == "Stocks 3 – 4",
+              str(stocks()))
+        for _ in range(4):
+            ko(1)
+        frames(client.Client.GAME_SHOWN)
+        check("their last stock lost: you win", c.screen == "vgame" and
+              c.game_mode.winner == 0, c.screen)
+        tap("x", after=10)
+        page = open(os.path.join(c.out, "results.rml")).read()
+        check("the results: 3 stocks left, the shines counted",
+              c.screen == "results" and "3 stocks left" in page and
+              "Shines that hit" in page and "Opponent" in page,
+              c.screen)
+        worn = [w.state()["p"][i]["costume"] for i in (0, 1)]
+        check("each Fox's stock icon in the costume it wore (the second "
+              "in the game's next)", worn[0] != worn[1] and all(
+                  "stock/fox-%d.png" % k in page for k in worn), str(worn))
+        shot("results-shine")
+        tap("z", after=10)
+        check("B goes back to who plays the other Fox", c.screen == "opp"
+              and rule(0) == "all", c.screen)
+        tap("z")
+        check("and B again to the mode's options", c.screen == "mopts")
     finally:
         if w is not None:
             w.close()

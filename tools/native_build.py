@@ -159,7 +159,43 @@ PATCHES = {
     # after the call at +0x5D0).
     "melee/ft/fighter.c": [
         ('#include "fighter.h"\n',
-         '#include "fighter.h"\n#include "melee/tm/ucf/ucf.h"\n'),
+         '#include "fighter.h"\n#include "melee/tm/ucf/ucf.h"\n'
+         'void host_moves_filter(Fighter* fp);\n'
+         'void host_moves_sticks(Fighter* fp);\n'),
+        # A Versus mode's moves (src/host/moves.c): the buttons and C-stick
+        # a fighter's rule leaves, as soon as they are read, a person's,
+        # a model's and the game CPU's alike.
+        ("""            if (ftCo_IsCpuControlled(fp)) {
+                fp->input.held_buttons[0] = ftCo_GetCpuButtons(fp);
+            } else {
+                fp->input.held_buttons[0] =
+                    HSD_PadGameStatus[fp->pad_port].button;
+            }
+""",
+         """            if (ftCo_IsCpuControlled(fp)) {
+                fp->input.held_buttons[0] = ftCo_GetCpuButtons(fp);
+            } else {
+                fp->input.held_buttons[0] =
+                    HSD_PadGameStatus[fp->pad_port].button;
+            }
+            host_moves_filter(fp);
+"""),
+        # and the C-stick again once UCF has read the pad (its PadBuffer,
+        # in tm_ucf_8000D148 just above, snaps a stick at the rim from the
+        # raw pad)
+        ("""                fp->activity_timer.lstick.y = 0;
+                fp->activity_timer.lstick.x = 0;
+            }
+
+            // Fighter_ClampSpecificValue
+            fp->active_duration.trigger++;""",
+         """                fp->activity_timer.lstick.y = 0;
+                fp->activity_timer.lstick.x = 0;
+            }
+            host_moves_sticks(fp);
+
+            // Fighter_ClampSpecificValue
+            fp->active_duration.trigger++;"""),
         ("""            if (ftCo_IsCpuControlled(fp)) {
                 SET_STICKS(fp->input.lstick[0].x, fp->input.lstick[0].y,
                            ftCo_GetCpuLStickX(fp), ftCo_GetCpuLStickY(fp));""",

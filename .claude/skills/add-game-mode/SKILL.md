@@ -1,6 +1,6 @@
 ---
 name: add-game-mode
-description: Add or change a Versus game mode in the native client (what a match is played for - its scoring from KOs, its settings, how its score shows in the HUD's stock icons, when it is won) in the standard mode format of tools/melee_client/modes.py, with its icon, its check and its test. Use when asked for a new Versus mode or rule set (first to N, stock trades, handicaps, score variants), to add a setting to a mode, or to change how a mode scores.
+description: Add or change a Versus game mode in the native client (what a match is played for - its scoring from KOs, its settings, how its score shows in the HUD's stock icons, when it is won, its stats on the results screen, and what it fixes - the characters, the stage, the moves allowed) in the standard mode format of tools/melee_client/modes.py, with its icon, its check and its test. Use when asked for a new Versus mode or rule set (first to N, stock trades, handicaps, score variants, a character or move restricted mode like Shine Battle), to add a setting or a stat to a mode, or to change how a mode scores.
 ---
 
 # Add a game mode
@@ -19,7 +19,10 @@ Before code, write down (and confirm with the owner when anything is unclear):
 - when the match is won, and by whom;
 - what the HUD's stock icons show at the start and after each KO (each side up to 5
   icons; nothing at the start reads as "nothing yet");
-- what the player can set before the match (each setting's values and default).
+- what the player can set before the match (each setting's values and default);
+- whether it fixes the characters, the stage, or the moves both sides may use (`all`,
+  `shine`, `recovery`; a rule the host lacks is C in `src/host/moves.c`, see the doc);
+- what the results screen shows of it (its own stats rows, its result line).
 
 ## 2. The class
 
@@ -62,15 +65,40 @@ class FirstTo(Mode):
 
     def scores(self):
         return True
+
+    def stats(self):                   # its rows on the results screen
+        return [("Stocks taken", tuple(self.taken), "more")]
+
+    def result(self, names):           # the line under the winner
+        return "%s took %d first" % (names[self.winner],
+                                     self.settings["goal"])
 ```
+
+A mode played with set characters, on a set stage, with only some moves (Shine Battle):
+
+```python
+    fighters = ("fox", "fox")          # yours, theirs: no character select
+    stage = "jungle-japes"             # one of native.STAGES: no stage select
+
+    def moves(self):                   # "all", "shine" or "recovery"
+        return "shine"
+
+    def tick(self, fighters):          # each frame: states for its stats
+        ...
+```
+
+A stage outside the select's six also goes in `stages.OTHER` (its name) and, if the
+native build lacks it, `native.STAGES` (its id).
 
 Then add it to `MODES` where it belongs in the selector's order.
 
 Rules the check holds a mode to (`modes.check`): `ident` lower-case words joined by `-`;
 `name`, `tagline`, `icon` set; `colour` and `ink` `#RRGGBB`; each option's default among
-its values; no win and `stocks() == (0, 0)` after `start()` for a mode that scores; stocks
-whole numbers, at most 5 a side while the match is on; `winner` only 0 or 1, never changed
-once set; `status` and the rules words.
+its values; no win after `start()`, and stocks within the HUD's 5 (a stock match shows its
+stocks from the start; a score from nothing shows `(0, 0)`); stocks whole numbers, at most 5
+a side while the match is on; `winner` only 0 or 1, never changed once set; `status`, the
+rules and the result line words; `stats()` rows `(name, (one, other), better)`; fixed
+characters and stage the native build's; `moves()` one of `modes.MOVES`.
 
 ## 3. Its icon
 
@@ -84,15 +112,18 @@ makes it; look at it on the selector before going on.
 ```sh
 python tools/melee_client/modes.py              # every mode: "ok"
 python tests/client/modes_format.py             # the same, as a test (a second)
+python tests/native/moves.py                    # a mode that restricts moves
 ```
 
 Then extend `tests/client/versus_modes.py` (a virtual display; run it in the background,
 `python -u`, a timeout of about twice its usual time: see CLAUDE.md): choose the mode on
 the selector, set its options, play a match against a fighter nobody plays, make KOs with
 its `ko(port)` helper (a fighter dropped below the blast zone), and check `c.game_mode`'s
-score, the HUD's stocks (`w.state()["p"][i]["stocks"]`), the end and the rematch. Take
-pictures (`--shots DIR`, under `build/shots/`, never committed) of the selector, the
-options and the HUD, and look at them.
+score, the HUD's stocks (`w.state()["p"][i]["stocks"]`), the end, the results screen
+(`results.rml`) and the rematch; for a mode that fixes things, that the selects are
+skipped and the moves rule is in force (`w._cmd("moves 0")`). Take pictures (`--shots
+DIR`, under `build/shots/`, never committed) of the selector, the options, the HUD and the
+results, and look at them.
 
 ## 5. Docs
 
@@ -105,6 +136,8 @@ different end) changes the host too: say what in that doc and in `docs/ai/native
 ## Limits now
 
 - Online Versus has no modes (both sides would have to agree and score alike).
+- The game's CPU does not know a moves rule: it keeps choosing attacks that never come
+  out. A restricted mode is played against a person or a model.
 - A KO is seen, not who caused it: a self-destruct counts as the other side's KO.
 - Every match is the endless time match: a mode's score is the client's, shown in the
   stock row; the game's own "+1"/"−1" pop-ups still show on each KO.

@@ -41,7 +41,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 ART = ROOT / "build" / "ui" / "art"
 VERSION = 2   # of what is written here: a change makes it all again
-STOCK_VERSION = 2   # the stock icons', apart (Sheik's portraits stay)
+STOCK_VERSION = 3   # the stock icons', apart (Sheik's portraits stay)
 # the stock icons are written this many times their 24 pixels, each pixel a
 # square: drawn at 24 dp on a large window, they are made smaller, not
 # blurred larger ("the mode icons are blurry!", the owner, 2026-11-14)
@@ -355,11 +355,12 @@ def portrait(cid, n=0, root=ART):
     return path if path.exists() else None
 
 
-def stock(cid, n=0, root=ART):
+def stock(cid, n=0, root=ART, grey=False):
     """Character `cid`'s stock icon in costume `n` (the first costume's
-    if that one has none), or None."""
+    if that one has none; `grey`: without its colour), or None."""
     for k in (n, 0):
-        path = root / "stock" / ("%s-%d.png" % (cid, k))
+        path = root / "stock" / ("%s-%d%s.png" % (cid, k,
+                                                  "-grey" if grey else ""))
         if path.exists():
             return path
     return None
@@ -412,6 +413,14 @@ def extract_stocks(root=ART):
                        np.uint8)
         out[PAD:PAD + STOCK * k, PAD:PAD + STOCK * k] = big
         write_png(root / "stock" / ("%s-%d.png" % (cid, n)), out)
+        # and without its colour: a side with no stock in a mode's score
+        # (Tug of War: "a desaturated stock when the player has 0 score so
+        # it is still easy to tell which % is who's", the owner)
+        grey = out.copy()
+        lum = (out[..., 0] * 0.3 + out[..., 1] * 0.59 + out[..., 2] * 0.11)
+        grey[..., :3] = np.clip(lum * 0.85 + 20, 0, 255).astype(
+            np.uint8)[..., None]
+        write_png(root / "stock" / ("%s-%d-grey.png" % (cid, n)), grey)
     (root / "stock" / "VERSION").write_text(str(STOCK_VERSION))
 
 

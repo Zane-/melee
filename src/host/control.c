@@ -1115,6 +1115,32 @@ static void command(char* line)
 #endif
             printf("\n");
         }
+    } else if (strcmp(cmd, "moves") == 0) {
+        /* "moves P RULE": the moves slot P may use (moves.c): all, shine
+           (the down special and no attack), recovery (the down, up and
+           side specials); "moves P": which */
+        int p = -1;
+        char rule[16] = "";
+        static const char* names[] = {"all", "shine", "recovery"};
+        int n = sscanf(line, "%d %15s", &p, rule);
+        if (p < 0 || p >= 4) {
+            printf("@ error moves P [all|shine|recovery]: P 0..3\n");
+        } else if (n < 2) {
+            printf("@ ok %s\n", names[host_moves_get(p)]);
+        } else {
+            int k = -1;
+            for (int i = 0; i < 3; i++) {
+                if (strcmp(rule, names[i]) == 0) {
+                    k = i;
+                }
+            }
+            if (k < 0) {
+                printf("@ error moves: all, shine or recovery\n");
+            } else {
+                host_moves_set(p, k);
+                printf("@ ok\n");
+            }
+        }
     } else if (strcmp(cmd, "mask") == 0) {
 #ifdef HOST_WINDOW
         /* "mask HEX": buttons of the live ports kept from the game */

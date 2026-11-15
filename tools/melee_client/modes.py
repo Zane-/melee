@@ -43,7 +43,10 @@ class Option:
         self.values, self.default, self.unit = tuple(values), default, unit
 
     def words(self, value):
-        """The value and its unit ("3 stocks")."""
+        """The value and its unit ("3 stocks"); a value in words (no
+        unit: "Off") as it is."""
+        if not self.unit:
+            return str(value)
         return "%s %s" % (value, self.unit[0] if value == 1
                           else self.unit[1])
 
@@ -68,6 +71,11 @@ class Mode:
     icon = "play"
     colour, ink = "#3A4250", "#F3F6FA"
     options = ()
+    # what a mode may fix: the two characters (the player's, the
+    # opponent's: the character select is skipped and the opponent screen
+    # only says who plays it), the stage (the stage select is skipped)
+    fighters = None
+    stage = None
 
     def __init__(self, **settings):
         self.settings = {}
@@ -107,6 +115,30 @@ class Mode:
     def scores(self):
         """Whether the mode shows a score at all (the HUD's stock row)."""
         return False
+
+    def moves(self):
+        """The moves both sides may use (src/host/moves.c): "all",
+        "shine" (the down special and no attack) or "recovery" (the down,
+        up and side specials)."""
+        return "all"
+
+    def tick(self, fighters=()):
+        """Each frame of the match, before any KO of the frame is told
+        (the mode's own stats); `fighters`: the two fighters' states as
+        the host gives them (a dict with "state", the motion state, and
+        "percent"; None for a slot with nobody)."""
+
+    def stats(self):
+        """The mode's own rows on the results screen, above the ones every
+        mode has (MatchStats): [(name, (port 0's, port 1's), better)],
+        each value a number or words, `better` "more", "less" or None (which
+        side's is marked)."""
+        return []
+
+    def result(self, names):
+        """The line under the winner on the results screen."""
+        return "%s wins" % names[self.winner] if self.winner is not None \
+            else ""
 
 
 class Unlimited(Mode):
@@ -156,13 +188,37 @@ class TugOfWar(Mode):
     def start(self):
         super().start()
         self.lead = 0           # port 0's lead (negative: port 1's)
+        self.biggest = [0, 0]   # each side's biggest lead
+        self.ahead = [0, 0]     # frames each side was ahead
+        self.evened = [0, 0]    # times each side pulled it back to even
 
     def ko(self, port):
         if self.winner is not None:
             return
         self.lead += -1 if port == 0 else 1
+        if self.lead == 0:
+            self.evened[1 - port] += 1
+        if self.lead > 0:
+            self.biggest[0] = max(self.biggest[0], self.lead)
+        if self.lead < 0:
+            self.biggest[1] = max(self.biggest[1], -self.lead)
         if abs(self.lead) >= self.settings["lead"]:
             self.winner = 0 if self.lead > 0 else 1
+
+    def tick(self, fighters=()):
+        if self.winner is None and self.lead:
+            self.ahead[0 if self.lead > 0 else 1] += 1
+
+    def stats(self):
+        return [("Biggest lead", tuple(self.biggest), "more"),
+                ("Time ahead", tuple(clock(f) for f in self.ahead), "more"),
+                ("Pulled back to even", tuple(self.evened), "more")]
+
+    def result(self, names):
+        if self.winner is None:
+            return ""
+        return "%s pulled it %d ahead" % (names[self.winner],
+                                         self.settings["lead"])
 
     def stocks(self):
         return (max(self.lead, 0), max(-self.lead, 0))
@@ -179,8 +235,182 @@ class TugOfWar(Mode):
 
 
 # the selector's list, in its order
-MODES = [Unlimited, TugOfWar]
+
+
+# Fox's down special, from the start of the shine to its end (on the ground,
+# then in the air: ftFx_MS_SpecialLwStart .. ftFx_MS_SpecialAirLwTurn), and
+# the two states it starts in
+FOX_SHINE = range(360, 370)
+FOX_SHINE_START = (360, 365)
+
+
+class ShineBattle(Mode):
+    """The owner, 2026-11-14: "Let's add a new mode called Shine battle.
+    This should be fox dittos on jungle japes, 4 stocks a piece, shine only
+    (any non shine move disabled, only jumping, shield, air dodge, etc., no
+    other aerials, etc.)". A stock match: the side that loses its last
+    stock loses. The host takes every other move away (moves.c), from a
+    person, a model and the game's CPU alike; Firefox and Illusion can be
+    let back in (an option, off at first: as the owner put it, the shine is
+    the only move)."""
+    ident = "shine-battle"
+    name = "Shine Battle"
+    tagline = "Fox against Fox on Jungle Japes. The shine is the only move."
+    icon = "shine"
+    colour, ink = "#5BC0EB", "#12161C"
+    fighters = ("fox", "fox")
+    stage = "jungle-japes"
+    options = (
+        Option("stocks", "Stocks", "How many stocks each side starts "
+               "with: lose the last and the match is lost.",
+               (1, 2, 3, 4, 5), 4, ("stock", "stocks")),
+        Option("recovery", "Firefox and Illusion", "Whether Fox's up and "
+               "side specials are allowed too, to get back to the stage: "
+               "off, the shine is the only special.", ("Off", "On"), "Off",
+               None),
+    )
+
+    def line(self):
+        return "Fox against Fox on Jungle Japes, %s each. %s" % (
+            self.options[0].words(self.settings["stocks"]),
+            "Shine, Firefox and Illusion." if self.recovery() else
+            "The shine is the only move.")
+
+    def rules_text(self):
+        return ("A stock match, %s each: lose the last and the match is "
+                "lost." % self.options[0].words(self.settings["stocks"]),
+                "The shine is the only attack: no other attack, aerial, "
+                "grab%s." % ("" if self.recovery() else " or special"),
+                "Jump, shield, dodge, tech and move as you like.")
+
+    def summary(self):
+        return "%s · %s" % (self.options[0].words(self.settings["stocks"]),
+                            "Firefox and Illusion too" if self.recovery()
+                            else "Shine only")
+
+    def recovery(self):
+        return self.settings["recovery"] == "On"
+
+    def moves(self):
+        return "recovery" if self.recovery() else "shine"
+
+    def start(self):
+        super().start()
+        self.left = [self.settings["stocks"]] * 2
+        self.shines = [0, 0]        # shines started
+        self.landed = [0, 0]        # shines that hurt the other side
+        self.was = [None, None]     # last frame's state and percent
+
+    def ko(self, port):
+        if self.winner is not None:
+            return
+        self.left[port] = max(0, self.left[port] - 1)
+        if self.left[port] == 0:
+            self.winner = 1 - port
+
+    def tick(self, fighters=()):
+        now = [None, None]
+        for port in (0, 1):
+            f = fighters[port] if port < len(fighters) else None
+            if f:
+                now[port] = (f["state"], f["percent"])
+        for port in (0, 1):
+            if now[port] is None:
+                continue
+            state, percent = now[port]
+            was = self.was[port]
+            if state in FOX_SHINE_START and (was is None or
+                                             was[0] not in FOX_SHINE_START):
+                self.shines[port] += 1
+            other = now[1 - port]
+            if was is not None and percent > was[1] and other is not None \
+                    and other[0] in FOX_SHINE:
+                self.landed[1 - port] += 1
+        self.was = now
+
+    def stocks(self):
+        return tuple(self.left)
+
+    def status(self, names):
+        if self.winner is not None:
+            return "Game: %s" % names[self.winner]
+        return "Stocks %d – %d" % tuple(self.left)
+
+    def scores(self):
+        return True
+
+    def stats(self):
+        return [("Shines", tuple(self.shines), None),
+                ("Shines that hit", tuple(self.landed), "more"),
+                ("Stocks left", tuple(self.left), "more")]
+
+    def result(self, names):
+        if self.winner is None:
+            return ""
+        n = self.left[self.winner]
+        return "%s wins, %d stock%s left" % (names[self.winner], n,
+                                             "" if n == 1 else "s")
+
+
+MODES = [Unlimited, TugOfWar, ShineBattle]
 BY_ID = {m.ident: m for m in MODES}
+MOVES = ("all", "shine", "recovery")
+
+
+def clock(frames):
+    """Frames as m:ss."""
+    s = int(frames // 60)
+    return "%d:%02d" % (s // 60, s % 60)
+
+
+class MatchStats:
+    """What every mode's results screen shows of a match, read frame by
+    frame from the two fighters (`see(fighters, kos)` with the state's
+    fighters and the ports KO'd this frame): KOs taken, damage dealt and
+    taken (a fighter's percent going up while it is in play), the highest
+    damage each reached, the average percent each took a stock at, the
+    match's length."""
+
+    def __init__(self):
+        self.frames = 0
+        self.taken = [0, 0]         # stocks each side took
+        self.dealt = [0.0, 0.0]
+        self.hurt = [0.0, 0.0]
+        self.highest = [0.0, 0.0]
+        self.at_ko = [[], []]       # the other side's percent at each KO
+        self.percent = [0.0, 0.0]   # last frame's, in play
+
+    def see(self, fighters, kos):
+        self.frames += 1
+        for port in (0, 1):
+            f = fighters[port] if port < len(fighters) else None
+            if not f or f["state"] in DEAD or f["state"] in (11, 12, 13):
+                continue
+            p = f["percent"]
+            if p > self.percent[port]:
+                self.hurt[port] += p - self.percent[port]
+                self.dealt[1 - port] += p - self.percent[port]
+            self.percent[port] = p
+            self.highest[port] = max(self.highest[port], p)
+        for port in kos:
+            self.taken[1 - port] += 1
+            self.at_ko[1 - port].append(self.percent[port])
+            self.percent[port] = 0.0
+
+    def rows(self):
+        """[(name, (port 0's, port 1's), better)] as Mode.stats."""
+        def average(v):
+            return "%d%%" % round(sum(v) / len(v)) if v else "-"
+        return [
+            ("KOs", tuple(self.taken), "more"),
+            ("Damage dealt", tuple("%d%%" % round(v) for v in self.dealt),
+             "more"),
+            ("Damage taken", tuple("%d%%" % round(v) for v in self.hurt),
+             "less"),
+            ("Highest damage", tuple("%d%%" % round(v)
+                                     for v in self.highest), None),
+            ("Average KO", tuple(average(v) for v in self.at_ko), "less"),
+        ]
 
 
 class KOs:
@@ -211,13 +441,28 @@ IDENT = re.compile(r"^[a-z][a-z0-9-]*$")
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 
-def check(cls, icons=None, tries=300, seed=1):
+def check(cls, icons=None, tries=300, seed=1, characters=None,
+          stage_ids=None):
     """What is wrong with mode class `cls` by the format
     (docs/ai/game-modes.md), as sentences ([] if nothing): its words and
-    looks, its options, and its score played through `tries` random runs
-    of KOs with every setting. `icons`: the line icons there are (icons.py
-    ICON), to check the mode's."""
+    looks, its options, what it fixes, and its score played through `tries`
+    random runs of KOs with every setting. `icons`: the line icons there
+    are (icons.py ICON), to check the mode's; `characters` and
+    `stage_ids`: the ones the native build knows (native.py CHARACTERS,
+    STAGES), to check a mode's fixed fighters and stage."""
     out = []
+    if cls.fighters is not None and not (
+            isinstance(cls.fighters, tuple) and len(cls.fighters) == 2 and
+            all(isinstance(c, str) for c in cls.fighters)):
+        out.append("%s's fighters are not (yours, theirs)" % cls.__name__)
+    elif cls.fighters is not None and characters is not None and \
+            not set(cls.fighters) <= set(characters):
+        out.append("%s's fighters %r are not characters the native build "
+                   "knows" % (cls.__name__, cls.fighters))
+    if cls.stage is not None and stage_ids is not None and \
+            cls.stage not in stage_ids:
+        out.append("%s's stage %r is not one the native build knows" % (
+            cls.__name__, cls.stage))
     for attr in ("ident", "name", "tagline", "icon"):
         if not isinstance(getattr(cls, attr, None), str) or \
                 not getattr(cls, attr):
@@ -263,9 +508,15 @@ def check(cls, icons=None, tries=300, seed=1):
                 out.append("%s(%r): won before a KO" % (cls.__name__,
                                                         kept))
                 break
-            if m.scores() and m.stocks() != (0, 0):
-                out.append("%s(%r): stocks %r before a KO" % (
-                    cls.__name__, kept, m.stocks()))
+            if m.moves() not in MOVES:
+                out.append("%s(%r): moves %r, not one of %s" % (
+                    cls.__name__, kept, m.moves(), ", ".join(MOVES)))
+                break
+            a, b = m.stocks()
+            if not (isinstance(a, int) and isinstance(b, int)) or \
+                    min(a, b) < 0 or (m.scores() and max(a, b) > HUD_MOST):
+                out.append("%s(%r): stocks %r at the start" % (
+                    cls.__name__, kept, (a, b)))
                 break
             for _ in range(rng.randrange(1, 40)):
                 before = m.winner
@@ -294,6 +545,22 @@ def check(cls, icons=None, tries=300, seed=1):
                     out.append("%s(%r): status is not words" %
                                (cls.__name__, kept))
                     break
+                for _ in range(rng.randrange(0, 90)):
+                    m.tick([dict(state=rng.choice((14, 44, 360, 361, 365)),
+                                 percent=rng.choice((0.0, 10.0, 25.0)))
+                            if rng.random() > 0.1 else None
+                            for _ in range(2)])
+                bad = _bad_rows(m.stats())
+                if bad:
+                    out.append("%s(%r): stats %s" % (cls.__name__, kept,
+                                                     bad))
+                    break
+                if m.winner is not None and (
+                        not isinstance(m.result(names), str) or
+                        not m.result(names)):
+                    out.append("%s(%r): won, but no result line" %
+                               (cls.__name__, kept))
+                    break
                 if m.winner is not None:
                     break
             if out:
@@ -305,13 +572,26 @@ def check(cls, icons=None, tries=300, seed=1):
     return out
 
 
-def check_all(icons=None):
+def _bad_rows(rows):
+    """What is wrong with a mode's stats rows, or ""."""
+    if not isinstance(rows, list):
+        return "are not a list"
+    for r in rows:
+        if not (isinstance(r, tuple) and len(r) == 3 and
+                isinstance(r[0], str) and isinstance(r[1], tuple) and
+                len(r[1]) == 2 and r[2] in ("more", "less", None)):
+            return "row %r is not (name, (one, other), better)" % (r,)
+    return ""
+
+
+def check_all(icons=None, characters=None, stage_ids=None):
     """{ident: problems} for every mode in MODES, and the list's own
-    (two modes with one ident)."""
+    (two modes with one ident). The arguments as check's."""
     out = {}
     seen = set()
     for cls in MODES:
-        problems = check(cls, icons)
+        problems = check(cls, icons, characters=characters,
+                         stage_ids=stage_ids)
         if cls.ident in seen:
             problems.append("two modes are %r" % cls.ident)
         seen.add(cls.ident)
@@ -323,8 +603,12 @@ if __name__ == "__main__":
     sys.path.insert(0, __import__("os").path.dirname(
         __import__("os").path.abspath(__file__)))
     import icons as _icons
+    sys.path.insert(0, __import__("os").path.join(__import__("os").path.dirname(
+        __import__("os").path.abspath(__file__)), "..", "melee_native"))
+    import native as _native
     bad = 0
-    for ident, problems in check_all(set(_icons.ICON)).items():
+    for ident, problems in check_all(set(_icons.ICON), _native.CHARACTERS,
+                                     _native.STAGES).items():
         print("%-12s %s" % (ident, "ok" if not problems else
                             "; ".join(problems)))
         bad += len(problems)

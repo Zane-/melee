@@ -14,9 +14,11 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_client"))
+sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
 
 import icons  # noqa: E402
 import modes  # noqa: E402
+import native  # noqa: E402
 
 checks = []
 
@@ -28,7 +30,8 @@ def check(name, ok, detail=""):
 
 
 def main():
-    for ident, problems in modes.check_all(set(icons.ICON)).items():
+    for ident, problems in modes.check_all(
+            set(icons.ICON), native.CHARACTERS, native.STAGES).items():
         check("%s is in the format" % ident, not problems,
               "; ".join(problems))
 
@@ -71,6 +74,44 @@ def main():
     check("the options' words", o.words(1) == "1 stock" and
           o.words(3) == "3 stocks" and
           modes.TugOfWar(lead=4).line() == "Start even. Win by 4 stocks.")
+    # what a mode fixes has to be the native build's
+    class Elsewhere(modes.ShineBattle):
+        ident = "elsewhere"
+        fighters = ("fox", "somebody")
+        stage = "the-moon"
+    problems = modes.check(Elsewhere, set(icons.ICON), characters=native.
+                           CHARACTERS, stage_ids=native.STAGES)
+    check("fixed fighters and a stage the native build lacks are caught",
+          len(problems) == 2, "; ".join(problems))
+
+    # Shine Battle: a stock match, shine only
+    m = modes.ShineBattle()
+    check("Shine Battle: Fox against Fox on Jungle Japes, 4 stocks each "
+          "from the start, shine only", m.fighters == ("fox", "fox") and
+          m.stage == "jungle-japes" and m.stocks() == (4, 4) and
+          m.moves() == "shine" and m.winner is None)
+    m.ko(0)
+    check("a KO is a stock less", m.stocks() == (3, 4) and
+          m.status(names) == "Stocks 3 – 4")
+    for _ in range(4):
+        m.ko(1)
+    check("the last stock lost loses", m.winner == 0 and
+          m.stocks() == (3, 0) and m.result(names) ==
+          "Fox wins, 3 stocks left")
+    check("its settings: stocks, Firefox and Illusion",
+          modes.ShineBattle(stocks=2).stocks() == (2, 2) and
+          modes.ShineBattle(recovery="On").moves() == "recovery" and
+          modes.ShineBattle.options[1].words("Off") == "Off")
+    m = modes.ShineBattle()
+    stand = dict(state=14, percent=0.0)
+    m.tick([dict(state=360, percent=0.0), stand])
+    m.tick([dict(state=361, percent=0.0), dict(state=75, percent=5.0)])
+    m.tick([dict(state=361, percent=0.0), dict(state=75, percent=5.0)])
+    m.tick([stand, dict(state=14, percent=5.0)])
+    m.tick([dict(state=365, percent=0.0), dict(state=14, percent=5.0)])
+    check("its stats: shines started, and the ones that hurt the other",
+          m.shines == [2, 0] and m.landed == [1, 0],
+          "%s %s" % (m.shines, m.landed))
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     sys.exit(0 if all(checks) else 1)
 

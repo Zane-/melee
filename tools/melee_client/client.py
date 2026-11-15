@@ -71,7 +71,9 @@ LEFT, RIGHT, DOWN, UP = 1, 2, 4, 8
 OUT = ROOT / "build" / "ui"
 COLUMNS = screens.COLUMNS
 STAGE_ORDER = tuple(s["id"] for s in stages.STAGES)
-assert set(STAGE_ORDER) == set(STAGES)
+# every stage on the select is one the native build loads (it knows more:
+# a mode's own, Shine Battle's Jungle Japes)
+assert set(STAGE_ORDER) <= set(STAGES)
 CPU, NOBODY = "the game's own CPU", "nobody"
 ONLINE = "a friend, online"
 FRAMES_BEFORE_SESSION = 10   # both games, the same frames, nobody's input
@@ -590,6 +592,8 @@ class Client:
                 self.bot = None
             self.w.pad(1 - self.port)
         self.w.mask(0)
+        self.w.moves(0)
+        self.w.moves(1)
         self.inputs_off()
         self.has_cover = False
         self.column_as_kept()
@@ -601,6 +605,8 @@ class Client:
             self.show_hub()
         elif to == "chars":
             self.show_characters()
+        elif to == "mode":
+            self.back_to_mode()
         else:
             self.show_opponent()
 
@@ -1110,7 +1116,36 @@ class Client:
             if cls.options:
                 self.show_mode_options()
             else:
-                self.show_characters()
+                self.after_mode()
+
+    def mode_class(self):
+        """The Versus mode chosen (Local), or None outside it."""
+        if self.mode != "versus" or \
+                getattr(self, "versus_kind", "local") != "local":
+            return None
+        return modes.BY_ID[getattr(self, "versus_mode", "unlimited")]
+
+    def after_mode(self):
+        """On from the mode and its options: the character select, or, when
+        the mode fixes the characters (Shine Battle: Fox against Fox), who
+        plays the opponent."""
+        cls = self.mode_class()
+        if cls is None or cls.fighters is None:
+            self.show_characters()
+            return
+        mine, theirs = cls.fighters
+        self.me = next(c for c in self.roster if c["id"] == mine)
+        self.opp_at = next(i for i, c in enumerate(self.roster)
+                           if c["id"] == theirs)
+        self.who = None
+        self.show_opponent()
+
+    def back_to_mode(self):
+        """Back to the mode's options, or the modes if it has none."""
+        if modes.BY_ID[getattr(self, "versus_mode", "unlimited")].options:
+            self.show_mode_options()
+        else:
+            self.show_modes()
 
     def show_mode_options(self):
         """The mode's settings, after the mode (the owner, 2026-11-14:
@@ -1148,7 +1183,7 @@ class Client:
         if pressed & B:
             self.show_modes()
         elif pressed & A:
-            self.show_characters()
+            self.after_mode()
 
     def on_chars(self, pressed, moves):
         at, n = self.at, len(self.roster)
@@ -1264,9 +1299,11 @@ class Client:
     def opponent_card(self):
         players = self.players()
         _, name, what = players[self.who]
+        cls = self.mode_class()
         return screens.opponent_card(
             self.roster[self.opp_at], name, what,
-            "%d of %d" % (self.who + 1, len(players)), "Choose stage",
+            "%d of %d" % (self.who + 1, len(players)),
+            "Fight" if cls is not None and cls.stage else "Choose stage",
             self.opp_dressed())
 
     def lab(self, c, came_from):
@@ -1286,11 +1323,19 @@ class Client:
         self.w.capture(True)
         if self.who is None or self.who >= len(self.players()):
             self.who = 0
+        cls = self.mode_class()
+        fixed = cls is not None and cls.fighters is not None
         self.load("opponent", screens.character_select(
-            self.roster, self.opp_at, title="Choose your opponent",
-            about="%s against whom, and played by whom." % self.me["name"],
+            self.roster, self.opp_at,
+            title="Who plays the other %s" % self.roster[self.opp_at][
+                "name"] if fixed else "Choose your opponent",
+            about="%s: %s against %s. Who plays the other side." % (
+                cls.name, self.me["name"], self.roster[self.opp_at]["name"])
+            if fixed else
+            "%s against whom, and played by whom." % self.me["name"],
             inside=self.opponent_card(),
-            hints=[("A", "Choose stage"), ("D-SIDE", "Played by"),
+            hints=[("A", "Fight" if cls is not None and cls.stage else
+                    "Choose stage"), ("D-SIDE", "Played by"),
                    ("Y", "Costume"), ("B", "Back")]))
 
     def on_opp(self, pressed, moves):
@@ -1301,6 +1346,9 @@ class Client:
         # overshot it"); the stick moves over the roster
         if self.buttons & (LEFT | RIGHT):
             moves &= ~(LEFT | RIGHT)
+        cls = self.mode_class()
+        if cls is not None and cls.fighters is not None:
+            moves = 0               # the mode fixes who it is
         if moves & LEFT and at % COLUMNS > 0:
             at -= 1
         if moves & RIGHT and at % COLUMNS < COLUMNS - 1 and at + 1 < n:
@@ -1342,10 +1390,14 @@ class Client:
         if pressed & B:
             if self.mode == "lab" and self.lab_from == "hub":
                 self.show_hub()
+            elif cls is not None and cls.fighters is not None:
+                self.back_to_mode()
             else:
                 if self.mode == "lab":
                     self.mode = "train"
                 self.show_characters()
+        elif pressed & A and cls is not None and cls.stage:
+            self.fight()
         elif pressed & A:
             self.show_stages()
 
@@ -1393,7 +1445,18 @@ class Client:
         """A match against the opponent chosen, played as chosen."""
         opp = self.roster[self.opp_at]
         key, name, what = self.players()[self.who]
-        stage = STAGE_ORDER[self.stage_at]
+        cls = self.mode_class()
+        stage = cls.stage if cls is not None and cls.stage else \
+            STAGE_ORDER[self.stage_at]
+        self.stage_now = stage
+        # the game mode (modes.py): its score from the KOs seen, in the
+        # HUD's stocks (shown once the fighters are in: show_score), and
+        # the moves it allows, from the first frame (src/host/moves.c)
+        self.game_mode = self.make_mode(cls) if cls is not None else None
+        rule = self.game_mode.moves() if self.game_mode is not None \
+            else "all"
+        self.w.moves(0, rule)
+        self.w.moves(1, rule)
         if self.bot is not None:
             self.bot.close()
             self.bot = None
@@ -1408,11 +1471,6 @@ class Client:
             seed=random.randrange(1, 1 << 30), p2_human=key != CPU,
             settle=False))
         self.last = self.me
-        # the game mode (modes.py): its score from the KOs seen, in the
-        # HUD's stocks (shown once the fighters are in: show_score)
-        self.game_mode = self.make_mode(modes.BY_ID[getattr(
-            self, "versus_mode", "unlimited")]) \
-            if self.mode == "versus" else None
         self.kos = modes.KOs()
         self.score_shown = False
         self.ends_in = None
@@ -1421,8 +1479,8 @@ class Client:
         self.match_stats = modes.MatchStats()
         if self.mode == "versus":
             self.last_match = "%s against %s · %s" % (
-                self.me["name"], opp["name"], stages.BY_ID[stage]["name"])
-            if self.game_mode.scores():
+                self.me["name"], opp["name"], stages.name(stage))
+            if self.game_mode is not None and self.game_mode.scores():
                 self.last_match += " · " + self.game_mode.name
         self.screen = "versus"
         self.start_held = 0
@@ -1456,11 +1514,18 @@ class Client:
             return None
         opp = self.roster[self.opp_at]
         grey = [None, None]
-        grey[self.port] = art.stock(self.me["id"], self.dressed(self.me),
-                                    grey=True)
-        grey[1 - self.port] = art.stock(opp["id"], self.opp_dressed(opp),
-                                        grey=True)
+        grey[self.port] = art.stock(self.me["id"], self.worn(
+            self.port, self.dressed(self.me)), grey=True)
+        grey[1 - self.port] = art.stock(opp["id"], self.worn(
+            1 - self.port, self.opp_dressed(opp)), grey=True)
         return grey
+
+    def worn(self, port, chosen):
+        """The costume port `port`'s fighter wears in the match (a
+        character against itself: the game's next for the second), or
+        `chosen` before it exists."""
+        f = self.w.state()["p"][port]
+        return f.get("costume", chosen) if f else chosen
 
     # frames a side's colourless stock waits after its last one breaks
     GREY_AFTER = 40
@@ -1525,14 +1590,15 @@ class Client:
         m = self.game_mode
         opp = self.roster[self.opp_at]
         sides = [None, None]
-        sides[self.port] = dict(c=self.me, costume=self.dressed(self.me),
-                                name=self.sides()[self.port], who="You")
+        sides[self.port] = dict(
+            c=self.me, costume=self.worn(self.port, self.dressed(self.me)),
+            name=self.sides()[self.port], who="You")
         sides[1 - self.port] = dict(
-            c=opp, costume=self.opp_dressed(opp),
+            c=opp, costume=self.worn(1 - self.port, self.opp_dressed(opp)),
             name=self.sides()[1 - self.port],
             who=self.players()[self.who][1])
         rows = [(m.name, m.stats()), ("The match", self.match_stats.rows())]
-        stage = stages.BY_ID[STAGE_ORDER[self.stage_at]]["name"]
+        stage = stages.name(self.stage_now)
         self.screen = "results"
         self.load("results", screens.results_page(
             m, sides, m.winner, rows, modes.clock(self.match_stats.frames),
@@ -1551,8 +1617,12 @@ class Client:
         if pressed & A:
             self.fight()
         elif pressed & (B | X):
+            m = self.game_mode
             self.screen = "versus"
-            self.leave_match("stages" if pressed & B else "chars")
+            if pressed & B:
+                self.leave_match("opp" if m.stage else "stages")
+            else:
+                self.leave_match("mode" if m.fighters else "chars")
 
     # ---- a friend, online (online.py; the session: src/host/net.c) --------
 
@@ -1826,7 +1896,7 @@ class Client:
             kos = self.kos.see(fighters)
             self.grey_wait()
             self.match_stats.see(fighters, kos)
-            mode.tick()
+            mode.tick(fighters)
             for port in kos:
                 mode.ko(port)
             if kos:

@@ -500,6 +500,15 @@ img { display: inline-block; }
    (src/host/inputs.c fills it in) */
 .gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
 .gpads.mid { left: 160dp; }
+/* a mode's score in the HUD's stocks: a side's first stock without its
+   colour where the HUD puts it (the game's 640 by 480 at 1.5), while the
+   side has none */
+.gstocks { position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; }
+.gstocks.mid { left: 160dp; }
+.gstock { display: none; position: absolute; top: 544dp; width: 32dp; height: 32dp; }
+.gstock.on { display: block; }
+#gs0 { left: 40dp; }
+#gs1 { left: 268dp; }
 .gpad { display: none; position: relative; width: 150dp; height: 108dp; margin-left: 10dp; }
 .gpad.on { display: block; }
 .gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 108dp; }
@@ -893,4 +902,32 @@ img { display: inline-block; }
 .mksides { display: flex; flex-direction: row; margin-top: 2dp; padding: 0dp 18dp; font-family: "IBM Plex Mono"; font-style: normal; font-size: 11dp; font-weight: 600; color: #6B7686; }
 /* the options screen's rope: wider, below what the setting does */
 .otrack { margin-top: 18dp; width: 560dp; }
+/* the results screen (screens.results_page): the winner's card on the
+   left, the two sides' numbers on the right */
+.rxwin { position: absolute; left: 48dp; top: 120dp; width: 388dp; height: 496dp; background-color: #12161C; color: #F3F6FA; overflow: hidden; }
+.rxwbody { position: absolute; left: 26dp; right: 26dp; top: 226dp; bottom: 22dp; display: flex; flex-direction: column; }
+.rxwtag { align-self: flex-start; padding: 4dp 16dp; transform: skewX(-12deg); }
+.rxwtag .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 22dp; text-transform: uppercase; letter-spacing: 1dp; transform: skewX(12deg); }
+.rxwline { margin-top: 12dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 30dp; line-height: 1.05em; text-transform: uppercase; }
+.rxscore { margin-top: 18dp; display: flex; flex-direction: row; align-items: center; }
+.rxsicon { width: 40dp; height: 40dp; }
+.rxkos { margin: 0dp 14dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 30dp; }
+.rxwmeta { margin-top: auto; padding-top: 10dp; border-top: 1dp #4A5361; }
+.rxtab { position: absolute; left: 468dp; top: 120dp; width: 764dp; height: 496dp; box-sizing: border-box; padding: 18dp 26dp; background-color: #FFFFFF; border: 1dp #C9D1DB; display: flex; flex-direction: column; }
+.rxhead { display: flex; flex-direction: row; padding-bottom: 12dp; border-bottom: 2dp #12161C; }
+.rxlab { width: 250dp; font-size: 16dp; font-weight: 600; color: #12161C; }
+.rxcol { flex: 1; margin-left: 18dp; display: flex; flex-direction: column; }
+.rxph { display: flex; flex-direction: row; align-items: center; }
+.rxstock { width: 32dp; height: 32dp; margin-right: 8dp; }
+.pvp.rxport { position: relative; width: 26dp; height: 16dp; line-height: 16dp; font-size: 11dp; opacity: 1; }
+.rxplace { padding: 2dp 12dp; background-color: #C9D1DB; transform: skewX(-12deg); }
+.rxplace.first { background-color: #F5BE1B; }
+.rxplace .un { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 20dp; transform: skewX(12deg); }
+.rxname { margin-top: 6dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 30dp; line-height: 1em; text-transform: uppercase; }
+.rxwho { font-size: 13dp; color: #4A5361; }
+.rxsec { margin-top: 12dp; padding-bottom: 2dp; border-bottom: 1dp #C9D1DB; }
+.rxsecn { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 12dp; color: #4A5361; text-transform: uppercase; }
+.rxrow { display: flex; flex-direction: row; align-items: center; height: 30dp; border-bottom: 1dp #E9EDF2; }
+.rxval { flex: 1; margin-left: 18dp; font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-size: 17dp; color: #4A5361; }
+.rxval.best { color: #12161C; font-weight: 700; }
 .vscore { font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; color: #C9E24A; }

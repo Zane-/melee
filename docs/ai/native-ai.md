@@ -384,6 +384,28 @@ fighter nobody plays, KOs made by dropping a fighter below the blast zone: the s
 HUD's stocks through respawns, the end, the rematch, B); `versus.py` and `stage_select.py`
 follow the new step.
 
+**The results screen, Shine Battle, and a mode's moves (2026-11-14).** The owner: "a more
+robust game over screen. It should have stats, etc. for both players ... (don't create
+this 1:1, it should be in our UI style, but it should support custom stats, etc. per
+mode!)"; "for tug of war, let's do a desaturated stock when the player has 0 score so it is
+still easy to tell which % is who's"; "a new mode called Shine battle ... fox dittos on
+jungle japes, 4 stocks a piece, shine only (any non shine move disabled, only jumping,
+shield, air dodge, etc., no other aerials, etc.)". When a mode is won, GAME and the winner
+show over the stopped game, then the results (`screens.results_page`): the winner's card
+and a table of both sides, the mode's own rows (`Mode.stats`) above every mode's
+(`modes.MatchStats`, read frame by frame from the fighters). A side with no stock shows its
+stock icon without colour where the HUD would put it. A mode may fix the characters, the
+stage and the moves (`fighters`, `stage`, `moves()`): the client skips those selects and
+sends the rule to the host (`moves P RULE`). `src/host/moves.c` applies it in
+`Fighter_procInput` as the fighter's buttons are read (a patch in `tools/native_build.py`,
+with a second call for the C-stick after UCF's `PadBuffer`, which snaps a stick at the rim
+back from the raw pad), so a person, a model and the game's CPU are held alike; the game's
+CPU does not know the rule and rarely shines. The format: `docs/ai/game-modes.md`.
+`tests/native/moves.py` (every way to an attack tried and none let through, the shine on
+the ground, in the air, held and out of shield by its jump, the ledge, the recovery rule,
+a level 9 CPU for a minute); `tests/client/versus_modes.py` (the results, the colourless
+stocks, a Shine Battle); `tests/client/modes_format.py`.
+
 **The character card: behind a wall (2026-11-14).** The game's portraits end flat at the
 bottom and the right of their frame, and the card's ink edge cut across each one. The
 owner chose the canvas's "A · Card: behind a wall" ("but I also want a line in between the

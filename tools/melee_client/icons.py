@@ -18,7 +18,7 @@ VERSION = 2
 SIZE = 48          # pixels: drawn at 20 to 24 dp
 # drawn larger, so made larger (the owner, 2026-11-14: "the mode icons are
 # blurry!"): the game modes' icons, 112 dp on their panels, at up to 2x
-LARGE = {"infinity": 256, "tug": 256}
+LARGE = {"infinity": 256, "tug": 256, "shine": 256}
 
 # name -> (path, filled): stroked lines unless filled
 ICON = {
@@ -54,6 +54,9 @@ ICON = {
     # Versus's game modes (modes.py)
     "infinity": ("M12 12c-2-2.6-3.6-4-6-4a4 4 0 0 0 0 8c2.4 0 4-1.4 6-4zm0 0"
                  "c2 2.6 3.6 4 6 4a4 4 0 0 0 0-8c-2.4 0-4 1.4-6 4z", False),
+    # Fox's reflector: a hexagon in a hexagon
+    "shine": ("M12 2.5l8.2 4.75v9.5L12 21.5l-8.2-4.75v-9.5z"
+              "M12 7.5l3.9 2.25v4.5L12 16.5l-3.9-2.25v-4.5z", False),
     "tug": ("M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4M12 8v8M9.5 10l-1 2 1 2"
             "M14.5 10l1 2-1 2", False),
     # the arrows either side of a value

@@ -42,7 +42,7 @@ def page(title, body, paper=True):
                 esc(title), "paper" if paper else "", body))
 
 
-def over_game():
+def over_game(grey=None):
     """What goes over the game's picture in a match or a drill: the input
     display (two controllers, filled in by the game: src/host/inputs.c),
     the pause menu, the verdict banner. Each has an id so the column can be
@@ -53,6 +53,13 @@ def over_game():
             '</div><div id="gp1" class="gpad">%s</div></div>' % (
                 pad_display("g0", 0), pad_display("g1", 1))
             if PAD_ART else "")
+    # a mode's score in the HUD's stocks: each side's first stock, without
+    # its colour, where the HUD would put it, while the side has none
+    # (`grey`: the two pictures; Client.show_score shows them)
+    # (always there, empty without a score: the column's toggle moves it)
+    pads += '<div id="gstocks" class="gstocks">%s</div>' % "".join(
+        '<img id="gs%d" class="gstock" src="%s"/>' % (i, picture(g))
+        for i, g in enumerate(grey or ()) if g)
     return (
         pads +
         '<div id="rays" class="rays"/>'
@@ -720,7 +727,7 @@ def mode_card(m, me=None, opp=None):
                     % (m.colour, esc(r)) for r in m.rules_text())
     track = tug_track(me or ("fox", 0), opp or ("falco", 0),
                       m.settings["lead"]) if m.ident == "tug-of-war" else ""
-    go = "Options" if m.options else "Choose characters"
+    go = "Options" if m.options else next_step(m)
     return (
         '<div class="mchead" style="background-color: %s; color: %s">%s'
         '<div class="mcname">%s</div><div class="mctag">%s</div></div>'
@@ -786,14 +793,113 @@ def mode_options(m, at, me=None, opp=None):
         '<div id="slist" class="slist">%s</div>' % option_rows(m, at) +
         '<div id="spanel" class="spanel">%s</div>' % option_panel(
             m, at, me, opp) +
-        footer(m.line(), [("D-SIDE", "Change"), ("A", "Choose characters"),
+        footer(m.line(), [("D-SIDE", "Change"), ("A", next_step(m)),
                           ("B", "Back")]))
     return page(m.name, body)
 
 
-def versus_rail(c, opp, who, what, stage, lab, mode=None):
+def next_step(m):
+    """What A goes on to after mode `m` and its options: the characters,
+    or, when the mode fixes them, who plays the opponent."""
+    return "Choose opponent" if m.fighters else "Choose characters"
+
+
+def results_page(m, sides, winner, rows, time, stage):
+    """After a mode is won (the owner, 2026-11-14: "Let's build a more
+    robust game over screen. It should have stats, etc. for both players
+    ... it should be in our UI style, but it should support custom stats,
+    etc. per mode!"): the winner's card on the left, the two sides' numbers
+    on the right, the mode's own first (Mode.stats), then every mode's
+    (modes.MatchStats). `sides`: per port {"c": the character, "costume",
+    "name", "who" (You, CPU, a model's name), "you"}; `rows`: [(section,
+    [(name, (port 0's, port 1's), better)])]; `time`: the match's length;
+    `stage`: its name."""
+    w = sides[winner]
+    head = art_head(w["c"], w["costume"])
+    # the score at a glance: each side's stock icon, the KOs each took
+    kos = dict(rows).get("The match", [])
+    kos = next((v for n, v, _ in kos if n == "KOs"), None)
+    score = ""
+    if kos is not None:
+        pics = [art.stock(sd["c"]["id"], sd["costume"]) for sd in sides]
+        score = '<div class="rxscore">%s<div class="rxkos">%s</div>%s</div>' % (
+            '<img class="rxsicon" src="%s"/>' % picture(pics[0])
+            if pics[0] else "",
+            esc("%s – %s" % kos),
+            '<img class="rxsicon" src="%s"/>' % picture(pics[1])
+            if pics[1] else "")
+    card = (
+        '<div class="rxwin">%s<div class="rxwbody"><div class="rxwtag" style='
+        '"background-color: %s; color: %s"><div class="un">Winner</div>'
+        '</div><div class="rxwline">%s</div>%s<div class="rxwmeta"><div '
+        'class="fl">%s</div><div class="fv">%s</div><div class="fl">%s · %s'
+        '</div></div></div></div>' % (
+            head, m.colour, m.ink, esc(m.result([s_["name"] for s_ in sides])),
+            score, esc(m.name), esc(m.summary() or m.line()), esc(stage),
+            esc(time)))
+
+    def col(port):
+        sd = sides[port]
+        place = "1st" if port == winner else "2nd"
+        pic = art.stock(sd["c"]["id"], sd["costume"])
+        img = '<img class="rxstock" src="%s"/>' % picture(pic) if pic else ""
+        return (
+            '<div class="rxcol"><div class="rxph">%s<div class="pvp p%d rxport">'
+            'P%d</div><div class="grow"/><div class="rxplace%s"><div class='
+            '"un">%s</div></div></div><div class="rxname">%s</div><div class='
+            '"rxwho">%s</div></div>' % (
+                img, port + 1, port + 1, " first" if port == winner else "",
+                place, esc(sd["c"]["name"]), esc(sd["who"])))
+
+    def number(v):
+        """A value as a number to compare: 3, "42%", "1:05" (seconds)."""
+        v = str(v).rstrip("%")
+        if ":" in v:
+            m, sec = v.split(":", 1)
+            return float(m) * 60 + float(sec)
+        return float(v)
+
+    def mark(values, better, i):
+        if better is None:
+            return ""
+        try:
+            a, b = (number(v) for v in values)
+        except ValueError:
+            return ""
+        if a == b:
+            return ""
+        best = (a > b) == (better == "more")
+        return " best" if best == (i == 0) else ""
+
+    table = ""
+    for section, section_rows in rows:
+        if not section_rows:
+            continue
+        table += '<div class="rxsec"><div class="rxsecn">%s</div></div>' % (
+            esc(section))
+        for name, values, better in section_rows:
+            table += (
+                '<div class="rxrow"><div class="rxlab">%s</div>%s</div>' % (
+                    esc(name), "".join(
+                        '<div class="rxval%s">%s</div>' % (
+                            mark(values, better, i), esc(str(v)))
+                        for i, v in enumerate(values))))
+    body = (
+        header(["Versus", m.name, "Results"]) + card +
+        '<div class="rxtab"><div class="rxhead"><div class="rxlab"/>%s%s</div>'
+        '%s</div>' % (col(0), col(1), table) +
+        footer(m.result([s_["name"] for s_ in sides]) + ". " + time + ".",
+               [("A", "Rematch"),
+                ("X", "Options" if m.fighters else "Characters"),
+                ("B", "Opponent" if m.stage else "Change stage")]))
+    return page("Results", body)
+
+
+def versus_rail(c, opp, who, what, stage, lab, mode=None, grey=None):
     """The column beside a match in Versus or the Lab. `mode`: (the game
-    mode's name, its score in words, its settings in words) in Versus."""
+    mode's name, its score in words, its settings in words) in Versus;
+    `grey`: each side's stock icon without its colour, for a mode's score
+    (over_game)."""
     head = ('<div class="top" style="background-color: %s"/>'
             '<div class="slant" style="background-color: %s"/>'
             '<div class="head" style="color: %s"><div class="tags">%s</div>'
@@ -819,7 +925,7 @@ def versus_rail(c, opp, who, what, stage, lab, mode=None):
                                           esc(mode[1])) if mode else ""),
             tools,
             match_hints()))
-    return page("Versus", over_game() + '<div id="rail" class="rail">%s'
+    return page("Versus", over_game(grey) + '<div id="rail" class="rail">%s'
                 '<div class="body">%s</div></div>' % (head, body), paper=False)
 
 

@@ -50,6 +50,12 @@ typedef struct HostState {
 extern HostState host;
 
 /// A line on stderr from the host layer itself.
+/* The moves a fighter may use (moves.c): every move, the down special only,
+   or the down special and the up and side ones (a Versus mode's rule). */
+enum { HOST_MOVES_ALL, HOST_MOVES_SHINE, HOST_MOVES_RECOVERY };
+void host_moves_set(int slot, int rule);
+int host_moves_get(int slot);
+
 void host_log(const char* fmt, ...);
 /// The same, then a backtrace and exit(2).
 _Noreturn void host_fatal(const char* fmt, ...);

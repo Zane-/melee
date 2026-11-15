@@ -67,6 +67,16 @@ STAGES = [
          cam=(275, 6, -22, 24), view=(0, 50, 320, 0, 10, 0, 30)),
 ]
 BY_ID = {s["id"]: s for s in STAGES}
+# stages a game mode plays on that are not among the six to choose from
+# (Shine Battle's Jungle Japes): no art, only a name
+OTHER = {"jungle-japes": "Jungle Japes"}
+
+
+def name(ident):
+    """A stage's name, one of the six or a mode's."""
+    if ident in BY_ID:
+        return BY_ID[ident]["name"]
+    return OTHER.get(ident, ident.replace("-", " ").title())
 LOGO = (224, 56)
 LOGOS = 30
 # what is drawn, in pixels: twice the size shown (a panel's picture is
