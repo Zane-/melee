@@ -1,0 +1,579 @@
+{
+  "id": "universal-dash-dance",
+  "name": "Dash dance",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Dash back and forth without breaking into a run",
+  "why": "A dash can be turned around in one frame; a run cannot. Dashing back and forth keeps {char} moving in and out of the opponent's range while every option stays open: from any dash {char} can dash the other way, jump, shield or attack.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 140,
+      "height": 10
+    },
+    "what": "A dash dance is a dash turned around before it becomes a run, again and again. Each reversal costs one frame of turn.",
+    "expect": "Each dance is judged when {char} stops or starts to run: how many dashes back, and whether a dash became a run. After misses, the coach shows the dashes and turns frame by frame.",
+    "example": [
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 1,
+        "hold": 4
+      },
+      {
+        "stick": [
+          -1,
+          0
+        ],
+        "frame": 5,
+        "hold": 5
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 10,
+        "hold": 5
+      },
+      {
+        "stick": [
+          -1,
+          0
+        ],
+        "frame": 15,
+        "hold": 5
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": 20,
+        "hold": 5
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: stick to the side. Dash",
+      "5": "Frame 5: stick the other way. One frame of turn",
+      "6": "Frame 6: dash back",
+      "10": "Frame 10: turn",
+      "15": "Frame 15: turn",
+      "20": "Frame 20: turn",
+      "25": "Frame 25: stick let go. The last dash plays out"
+    },
+    "lessons": [
+      {
+        "title": "The dash and the run",
+        "text": [
+          "Smash the control stick to the side and {char} dashes. The stick has to pass 0.8 of its range within 2 frames of leaving the center; pushed slower, {char} walks.",
+          "{char}'s initial dash is {DASH} frames. If the stick is still held forward on frame {DASH+1}, the dash becomes a run. Turned or let go by then, it stays a dash: let go, it plays out and {char} stands."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1,
+                "hold": "DASH+8"
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: stick smashed to the side. Dash",
+              "DASH": "Frame {DASH}: the last frame of the initial dash",
+              "DASH+1": "Frame {DASH+1}: stick still held. Run"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "DASH"
+                ],
+                "words": "Initial dash: {DASH} frames",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "DASH+1",
+                  "DASH+8"
+                ],
+                "words": "Still held: a run",
+                "kind": "late"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Dash back",
+        "text": [
+          "During the dash, smash the stick the other way. {char} turns for one frame, and if the stick is still past 0.8 on the next frame, {char} dashes the other way.",
+          "A dash from standing ignores the stick for its first 4 frames, so turn it from frame 5 to frame {DASH+1}. A dash out of a turn can be turned again from its second frame, until its own frame {DASH+1}. A run turns around slowly."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 1,
+                "hold": 4
+              },
+              {
+                "stick": [
+                  -1,
+                  0
+                ],
+                "frame": 5,
+                "hold": 5
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": 10,
+                "hold": 5
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: dash",
+              "4": "Frame 4: the last frame that ignores the stick",
+              "5": "Frame 5: stick the other way. One frame of turn",
+              "6": "Frame 6: stick still held. Dash back",
+              "10": "Frame 10: turn",
+              "11": "Frame 11: dash"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  4
+                ],
+                "words": "First 4 frames: turning is ignored",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  5,
+                  5
+                ],
+                "words": "Turn",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  6,
+                  9
+                ],
+                "words": "Dash back",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  10,
+                  10
+                ],
+                "words": "Turn",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  11,
+                  20
+                ],
+                "words": "Dash",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "dash"
+    },
+    "judge": [
+      {
+        "enters": "wait"
+      },
+      {
+        "enters": "run"
+      }
+    ],
+    "cancel": [
+      {
+        "enters": "jump_squat"
+      },
+      {
+        "enters": "shield"
+      },
+      {
+        "enters": "dash_grab"
+      }
+    ],
+    "limit": 300
+  },
+  "measures": {
+    "ran": {
+      "happened": {
+        "enters": "run"
+      }
+    },
+    "backs": {
+      "count": {
+        "enters": "dash",
+        "from": "turn"
+      }
+    }
+  },
+  "verdict": {
+    "success": "Dash dance without a run. Dashes back: {backs}."
+  },
+  "checks": {
+    "no run": {
+      "measure": "ran",
+      "equals": false,
+      "expect": "No run",
+      "words": "the dash became a run",
+      "headline": "Ran",
+      "fix": "Turn the dash or let go of the stick by its frame {DASH+1}. Still held forward on that frame, the dash becomes a run, and a run turns around slowly."
+    },
+    "dashed back": {
+      "measure": "backs",
+      "at_least": 1,
+      "expect": "A dash back",
+      "words": "{char} never dashed the other way",
+      "headline": "No dash back",
+      "fix": "Smash the stick the other way on a frame from the dash's 5th to its {DASH+1}th, and keep it there one more frame: the first frame turns {char}, the second starts the dash back. A dash from standing ignores the stick for its first 4 frames."
+    },
+    "four": {
+      "measure": "backs",
+      "at_least": 4,
+      "expect": "Four dashes back",
+      "words": "{measure} dashes back",
+      "headline": "Stopped early",
+      "fix": "Keep turning each dash before it becomes a run, four times or more before you let go of the stick."
+    }
+  },
+  "parts": [
+    {
+      "name": "The dash",
+      "teach": "Smash the stick to the side to dash, then let go before frame {DASH+1}: {char}'s initial dash is {DASH} frames. The dash plays out and {char} stands.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 6
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: stick to the side. Dash",
+        "6": "Frame 6: stick let go",
+        "7": "The dash plays out: no run"
+      },
+      "checks": [
+        "no run"
+      ],
+      "success": "Dash without a run.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Dash",
+            "state": "dash",
+            "held": true,
+            "perfect": [
+              1
+            ],
+            "window": [
+              1,
+              "DASH"
+            ]
+          },
+          {
+            "label": "Run",
+            "state": "run",
+            "perfect": []
+          }
+        ],
+        "note": "{char}'s initial dash is {DASH} frames: let go of the stick or turn by frame {DASH+1}."
+      }
+    },
+    {
+      "name": "Dash back",
+      "teach": "Dash, then smash the stick the other way on a frame from 5 to {DASH+1} and hold it: one frame of turn, then a dash back.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 4
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 5,
+          "hold": 5
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: dash",
+        "5": "Frame 5: stick the other way. Turn",
+        "6": "Frame 6: dash back",
+        "10": "Stick let go: the dash back plays out"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            4
+          ],
+          "words": "First 4 frames: turning is ignored",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            5,
+            5
+          ],
+          "words": "Turn",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            6,
+            30
+          ],
+          "words": "Dash back",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "no run",
+        "dashed back"
+      ],
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Dash",
+            "state": "dash",
+            "held": true,
+            "perfect": [
+              1,
+              6
+            ]
+          },
+          {
+            "label": "Turn",
+            "state": "turn",
+            "perfect": [
+              5
+            ],
+            "window": [
+              5,
+              "DASH+1"
+            ]
+          },
+          {
+            "label": "Run",
+            "state": "run",
+            "perfect": []
+          }
+        ],
+        "note": "A dash from standing can be turned from frame 5 to frame {DASH+1}."
+      }
+    },
+    {
+      "name": "Back and forth",
+      "teach": "Turn each dash before its frame {DASH+1}, four times or more, then let go of the stick. Either direction counts.",
+      "example": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 4
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 5,
+          "hold": 5
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 10,
+          "hold": 5
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 15,
+          "hold": 5
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 20,
+          "hold": 5
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: dash",
+        "5": "Frame 5: turn",
+        "10": "Frame 10: turn",
+        "15": "Frame 15: turn",
+        "20": "Frame 20: turn",
+        "25": "Frame 25: stick let go"
+      },
+      "checks": [
+        "no run",
+        "four"
+      ],
+      "streak": 3
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "held into a run",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 22
+        }
+      ],
+      "fails": "no run"
+    },
+    {
+      "name": "turned in the first 4 frames",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 2
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 3,
+          "hold": 2
+        }
+      ],
+      "fails": "dashed back"
+    },
+    {
+      "name": "stopped after two",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 1,
+          "hold": 4
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 5,
+          "hold": 5
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 10,
+          "hold": 5
+        }
+      ],
+      "fails": "four"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Dash",
+        "state": "dash",
+        "held": true,
+        "perfect": [
+          1,
+          6,
+          11,
+          16,
+          21
+        ]
+      },
+      {
+        "label": "Turn",
+        "state": "turn",
+        "perfect": [
+          5,
+          10,
+          15,
+          20
+        ]
+      },
+      {
+        "label": "Run",
+        "state": "run",
+        "perfect": []
+      }
+    ],
+    "note": "Turn each dash by its frame {DASH+1}: {char}'s initial dash is {DASH} frames."
+  }
+}

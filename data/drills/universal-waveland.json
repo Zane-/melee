@@ -1,0 +1,463 @@
+{
+  "id": "universal-waveland",
+  "name": "Waveland",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Air dodge into the stage or a platform as you land",
+  "why": "A waveland ends a fall early with a slide: {char} lands out of the air dodge with 10 frames of landing lag and slides with its speed along the floor. On platforms it is how {char} lands on them and moves across them, and the slide sets where {char} stands when the landing lag ends.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 140,
+      "height": 10
+    },
+    "what": "A waveland is an air dodge into the floor just before {char} would land: the stage or a platform. {char} lands out of the air dodge and slides.",
+    "expect": "Each waveland is judged when {char} lands: whether the air dodge touched the floor, and how many frames after L or R it did. After misses, the coach shows your presses frame by frame.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0.5,
+          -0.87
+        ],
+        "frame": "SL-1",
+        "hold": 1
+      },
+      {
+        "press": "R",
+        "frame": "SL-1",
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed and released. Short hop",
+      "SA": "Frame {SA}: the top of the short hop",
+      "SL-1": "Frame {SL-1}: just above the floor. R pressed, stick down and forward",
+      "SL+2": "Landed out of the air dodge: landing lag, sliding"
+    },
+    "lessons": [
+      {
+        "title": "An air dodge that touches a floor",
+        "text": [
+          "An air dodge that touches a floor ends there: {char} lands in 10 frames of landing lag and slides with the air dodge's speed along the floor. Platforms are floors too. On the first frame in the air after a jump it is a wavedash; later in a jump or a fall it is a waveland.",
+          "The air dodge moves in the direction of the control stick and loses a tenth of its speed every frame. Pressed in the last 3 frames before {char} would land, frames {SL-2} to {SL} of a short hop, it touches down within 3 frames with nearly all of it."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.5,
+                  -0.87
+                ],
+                "frame": "SL-1",
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "SL-1",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: jump pressed and released",
+              "SA": "Frame {SA}: the top. {char} falls",
+              "SL-1": "Frame {SL-1}: R pressed, just above the floor",
+              "SL+2": "Frame {f}: landing lag, sliding"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "SA",
+                  "SL-3"
+                ],
+                "words": "Falling",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "SL-2",
+                  "SL"
+                ],
+                "words": "Press L or R now: the last 3 frames of the fall",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "SL+2",
+                  "SL+7"
+                ],
+                "words": "Landing lag: 10 frames, sliding",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "Too high, too flat",
+        "text": [
+          "Pressed near the top of the jump, the air dodge has a long way down. It slows as it goes, touches down later than {char} would have landed, and the slide is short.",
+          "From the air, aim further down than for a wavedash. A stick close to horizontal skims above the floor: pressed 2 frames before landing with the stick 17 degrees down, Fox touches down 19 frames later; at 45 or 60 degrees, 2 frames later."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.5,
+                  -0.87
+                ],
+                "frame": "SA",
+                "hold": 1
+              },
+              {
+                "press": "R",
+                "frame": "SA",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: jump pressed and released",
+              "SA": "Frame {SA}: R pressed at the top: too high",
+              "SA+1": "Frame {f}: the air dodge slows on the way down"
+            },
+            "cues": [
+              {
+                "frames": [
+                  "SA",
+                  "SA"
+                ],
+                "words": "Pressed at the top: too high",
+                "kind": "late"
+              },
+              {
+                "frames": [
+                  "SA+1",
+                  "SA+8"
+                ],
+                "words": "The air dodge slows on the way down",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "battlefield",
+      "player": {
+        "x": 0
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    },
+    {
+      "name": "On a platform",
+      "stage": "battlefield",
+      "player": {
+        "x": -45,
+        "above": 40
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "enters": "landing_special",
+        "from": "air_dodge"
+      },
+      "lands"
+    ]
+  },
+  "measures": {
+    "touched": {
+      "happened": [
+        {
+          "enters": "landing_special",
+          "from": "air_dodge"
+        },
+        {
+          "enters": "landing_special",
+          "from": "fall"
+        },
+        {
+          "enters": "landing_special",
+          "from": "jump"
+        },
+        {
+          "enters": "landing_special",
+          "from": "double_jump"
+        }
+      ]
+    },
+    "to_land": {
+      "frames": [
+        {
+          "pressed": "shield"
+        },
+        {
+          "enters": "landing_special"
+        }
+      ],
+      "last": true
+    }
+  },
+  "verdict": {
+    "success": "Waveland. Frames from L or R to touchdown: {to_land}."
+  },
+  "checks": {
+    "into the floor": {
+      "measure": "touched",
+      "equals": true,
+      "expect": "An air dodge that touches the floor",
+      "words": "landed out of a fall, not out of an air dodge",
+      "headline": "No air dodge into the floor",
+      "fix": "Press L or R with the stick down and forward while {char} comes down, close enough above the floor that the air dodge reaches it."
+    },
+    "as you land": {
+      "measure": "to_land",
+      "at_most": 3,
+      "expect": "Touch down within 3 frames of L or R",
+      "words": "touched down {frames} after L or R",
+      "headline": "Early air dodge",
+      "fix": "Press L or R in the last 3 frames before {char} would land: frames {SL-2} to {SL} of a short hop. The air dodge loses a tenth of its speed every frame before it touches down: pressed high, it lands later and slides less."
+    }
+  },
+  "parts": [
+    {
+      "name": "Air dodge into the floor",
+      "scenario": 0,
+      "teach": "Short hop, then press R with the stick down and forward. The air dodge carries {char} down to the stage: {char} lands out of it in 10 frames of landing lag and slides.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.5,
+            -0.87
+          ],
+          "frame": "SA",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "SA",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: short hop",
+        "SA": "Frame {SA}: R pressed at the top, stick down and forward",
+        "SA+1": "The air dodge carries {char} down"
+      },
+      "checks": [
+        "into the floor"
+      ],
+      "success": "Air dodge into the floor: {char} slides.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": false,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "L or R",
+            "button": "shield",
+            "held": false,
+            "perfect": [
+              "SA"
+            ]
+          }
+        ],
+        "note": "Press L or R while {char} is in the air, with the stick down and forward."
+      }
+    },
+    {
+      "name": "As you land",
+      "scenario": 1,
+      "teach": "On the platform: short hop, and press R in the last 3 frames of the fall, frames {SL-2} to {SL}, just above the platform. The air dodge touches down within 3 frames and {char} slides. The stage counts the same.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.5,
+            -0.87
+          ],
+          "frame": "SL-1",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "SL-1",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: short hop",
+        "SA": "Frame {SA}: the top. Falling",
+        "SL-1": "Frame {SL-1}: R pressed just above the platform",
+        "SL+2": "Landed: landing lag, sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            "SA",
+            "SL-3"
+          ],
+          "words": "Falling",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "SL-2",
+            "SL"
+          ],
+          "words": "Press L or R now: the last 3 frames of the fall",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "SL+2",
+            "SL+7"
+          ],
+          "words": "Landing lag: sliding",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "into the floor",
+        "as you land"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "no air dodge",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        }
+      ],
+      "fails": "into the floor"
+    },
+    {
+      "name": "pressed at the top",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.5,
+            -0.87
+          ],
+          "frame": "SA",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "SA",
+          "hold": 1
+        }
+      ],
+      "fails": "as you land"
+    },
+    {
+      "name": "pressed after landing",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.5,
+            -0.87
+          ],
+          "frame": "SL+1",
+          "hold": 1
+        },
+        {
+          "press": "R",
+          "frame": "SL+1",
+          "hold": 1
+        }
+      ],
+      "fails": "into the floor"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": false,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "L or R",
+        "button": "shield",
+        "held": false,
+        "perfect": [
+          "SL-1"
+        ],
+        "window": [
+          "SL-2",
+          "SL"
+        ]
+      }
+    ],
+    "note": "{char}'s short hop lands on frame {SL}: press L or R on a frame from {SL-2} to {SL}."
+  }
+}

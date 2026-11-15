@@ -1,0 +1,494 @@
+{
+  "id": "universal-wavedash",
+  "name": "Wavedash",
+  "part": "tech",
+  "characters": "all",
+  "goal": "Air dodge into the ground on the first frame in the air",
+  "why": "A wavedash moves {char} along the ground without a dash or a run. After its 10 frames of landing lag {char} is standing, still sliding, and can attack, grab, shield or jump from wherever the slide has carried it, facing the same way as before.",
+  "tutorial": {
+    "camera": {
+      "follow": "player",
+      "distance": 140,
+      "height": 10
+    },
+    "what": "A wavedash is a jump with an air dodge into the ground on the first frame in the air. {char} lands at once and slides along the ground in landing lag.",
+    "expect": "Each wavedash is judged when {char} lands: whether the air dodge touched the ground, the frame L or R was pressed, and the angle of the control stick. After misses, the coach shows your presses frame by frame against the {J}-frame jump squat.",
+    "example": [
+      {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+      },
+      {
+        "stick": [
+          0.95,
+          -0.3
+        ],
+        "frame": 2,
+        "hold": "J"
+      },
+      {
+        "press": "R",
+        "frame": "J+1",
+        "hold": 1
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: jump pressed. Jump squat begins",
+      "J": "Frame {J}: last frame of jump squat. The stick is down and forward",
+      "J+1": "Frame {J+1}: first frame in the air. R pressed: the air dodge touches the ground",
+      "J+2": "Landing lag: {char} slides"
+    },
+    "lessons": [
+      {
+        "title": "Jump squat, then the air dodge",
+        "text": [
+          "Pressing jump puts {char} in {J} frames of jump squat on the ground. The game ignores L and R during jump squat, and a press made there is not carried over.",
+          "Frame {J+1} is the first frame in the air. L or R pressed on that frame starts an air dodge, and with the stick aimed down the air dodge touches the ground on the same frame. {char} lands in 10 frames of landing lag and slides with the air dodge's speed along the ground."
+        ],
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.95,
+                  -0.3
+                ],
+                "frame": 2,
+                "hold": "J"
+              },
+              {
+                "press": "R",
+                "frame": "J+1",
+                "hold": 1
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: jump pressed. Jump squat begins",
+              "2": "Frame {f}: jump squat. L or R is ignored here",
+              "J": "Frame {J}: last frame of jump squat",
+              "J+1": "Frame {J+1}: first frame in the air. R pressed: {char} lands at once",
+              "J+2": "Frame {f}: landing lag, sliding"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  "J"
+                ],
+                "words": "Jump squat: L or R is ignored",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "J+1",
+                  "J+1"
+                ],
+                "words": "Press L or R now",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "J+2",
+                  "J+10"
+                ],
+                "words": "Landing lag: 10 frames, sliding",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "title": "The angle sets the slide",
+        "text": [
+          "The air dodge moves {char} in the direction of the control stick. Only its forward part carries into the slide: with the stick close to horizontal the slide starts fastest, and at 45 degrees it starts about a quarter slower. How far {char} slides from there depends on {char}'s traction.",
+          "The stick still has to point below the dead zone. At full tilt the shallowest angle that reaches the ground is about 17 degrees below horizontal; flatter than that, the air dodge travels along the ground without touching it and ends in a helpless fall."
+        ],
+        "show": {
+          "still": {
+            "inputs": [
+              {
+                "press": "jump",
+                "frame": 1,
+                "hold": 1
+              },
+              {
+                "stick": [
+                  0.95,
+                  -0.3
+                ],
+                "frame": 2,
+                "hold": "J"
+              },
+              {
+                "press": "R",
+                "frame": "J+1",
+                "hold": 1
+              }
+            ],
+            "frame": "J+6",
+            "cue": {
+              "words": "Stick 17 degrees below horizontal: the longest slide",
+              "kind": "info"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "On the stage",
+      "stage": "final-destination",
+      "player": {
+        "x": -20
+      },
+      "opponent": "none",
+      "camera": {
+        "follow": "player",
+        "distance": 220,
+        "height": 10
+      }
+    }
+  ],
+  "attempt": {
+    "start": {
+      "enters": "jump_squat"
+    },
+    "judge": [
+      {
+        "enters": "landing_special",
+        "from": "jump_squat"
+      },
+      "lands"
+    ]
+  },
+  "measures": {
+    "touched": {
+      "happened": [
+        {
+          "enters": "landing_special",
+          "from": "jump_squat"
+        },
+        {
+          "enters": "landing_special",
+          "from": "jump"
+        },
+        {
+          "enters": "landing_special",
+          "from": "air_dodge"
+        }
+      ]
+    },
+    "late": {
+      "frames": [
+        {
+          "leaves": "jump_squat"
+        },
+        {
+          "pressed": "shield"
+        }
+      ]
+    },
+    "angle": {
+      "angle": "stick",
+      "at": {
+        "enters": "landing_special"
+      },
+      "from_horizontal": true
+    }
+  },
+  "verdict": {
+    "success": "Wavedash: air dodge on frame {J+1}, stick at {angle} degrees from level."
+  },
+  "checks": {
+    "into the ground": {
+      "measure": "touched",
+      "equals": true,
+      "expect": "An air dodge into the ground",
+      "words": "no air dodge touched the ground",
+      "headline": "No air dodge into the ground",
+      "fix": "Press L or R once {char} is in the air, with the control stick down and forward. A press during jump squat is ignored, and a stick held flat sends the air dodge along the ground without touching it."
+    },
+    "first frame": {
+      "measure": "late",
+      "at_most": 0,
+      "expect": "L or R on frame {J+1}, the first frame in the air",
+      "words": "L or R pressed {frames} after the first frame in the air",
+      "headline": "Late air dodge",
+      "fix": "Press L or R on frame {J+1}: {J} frames of jump squat after the jump press, the first frame {char} is in the air. On each later frame {char} has risen higher, so the air dodge lands later and {char} can act later."
+    },
+    "angle": {
+      "measure": "angle",
+      "at_least": -30,
+      "expect": "Stick within 30 degrees of level, forward or back",
+      "words": "stick at {measure} degrees from level; straight down is -90",
+      "headline": "Steep angle",
+      "fix": "Hold the control stick down and to the side, close to level: about 17 degrees below it gives the longest slide. The further down the stick points, the less of the air dodge's speed goes into the slide."
+    }
+  },
+  "parts": [
+    {
+      "name": "Air dodge into the ground",
+      "teach": "Jump, then press R with the stick down and forward while {char} is still low. The air dodge touches the ground: {char} lands in 10 frames of landing lag and slides.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": "J+3",
+          "hold": 2
+        },
+        {
+          "press": "R",
+          "frame": "J+3",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed. Jump squat begins",
+        "J+1": "Frame {J+1}: in the air",
+        "J+3": "Frame {J+3}: R pressed with the stick down and forward",
+        "J+5": "Landed out of the air dodge: landing lag, sliding"
+      },
+      "checks": [
+        "into the ground"
+      ],
+      "success": "Air dodge into the ground: {char} slides.",
+      "streak": 3,
+      "coach": {
+        "rows": [
+          {
+            "label": "Jump",
+            "button": "jump",
+            "held": false,
+            "perfect": [
+              1
+            ]
+          },
+          {
+            "label": "L or R",
+            "button": "shield",
+            "held": false,
+            "perfect": [
+              "J+1"
+            ],
+            "window": [
+              "J+1",
+              "J+8"
+            ]
+          }
+        ],
+        "note": "{char} is in jump squat on frames 1 to {J}: press L or R from frame {J+1} on."
+      }
+    },
+    {
+      "name": "First frame in the air",
+      "teach": "Press R on frame {J+1}, the first frame in the air: {J} frames of jump squat after the jump press. {char} lands on that frame and slides.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 2,
+          "hold": "J"
+        },
+        {
+          "press": "R",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed. Jump squat begins",
+        "J": "Frame {J}: last frame of jump squat",
+        "J+1": "Frame {J+1}: R pressed. {char} lands at once",
+        "J+2": "Landing lag: sliding"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            "J"
+          ],
+          "words": "Jump squat: L or R is ignored",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "J+1",
+            "J+1"
+          ],
+          "words": "Press L or R now",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "J+2",
+            "J+10"
+          ],
+          "words": "Landing lag: 10 frames, sliding",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "into the ground",
+        "first frame"
+      ],
+      "streak": 3
+    },
+    {
+      "name": "Angle and length",
+      "teach": "Wavedash forward or back with the stick close to horizontal, within 30 degrees of it. The flatter the stick, the faster the slide; too flat, and the air dodge misses the ground.",
+      "example": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            -0.95,
+            -0.3
+          ],
+          "frame": 2,
+          "hold": "J"
+        },
+        {
+          "press": "R",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: jump pressed",
+        "2": "Frame 2: stick back, 17 degrees below horizontal",
+        "J+1": "Frame {J+1}: R pressed. {char} lands at once",
+        "J+2": "Landing lag: the longest slide, backward"
+      },
+      "checks": [
+        "into the ground",
+        "first frame",
+        "angle"
+      ],
+      "streak": 5
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "R pressed in jump squat",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 2,
+          "hold": "J"
+        },
+        {
+          "press": "R",
+          "frame": "J",
+          "hold": 1
+        }
+      ],
+      "fails": "into the ground"
+    },
+    {
+      "name": "one frame late",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0.7,
+            -0.7
+          ],
+          "frame": 2,
+          "hold": "J+1"
+        },
+        {
+          "press": "R",
+          "frame": "J+2",
+          "hold": 1
+        }
+      ],
+      "fails": "first frame"
+    },
+    {
+      "name": "stick straight down",
+      "inputs": [
+        {
+          "press": "jump",
+          "frame": 1,
+          "hold": 1
+        },
+        {
+          "stick": [
+            0,
+            -1
+          ],
+          "frame": 2,
+          "hold": "J"
+        },
+        {
+          "press": "R",
+          "frame": "J+1",
+          "hold": 1
+        }
+      ],
+      "fails": "angle"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Jump",
+        "button": "jump",
+        "held": false,
+        "perfect": [
+          1
+        ]
+      },
+      {
+        "label": "L or R",
+        "button": "shield",
+        "held": false,
+        "perfect": [
+          "J+1"
+        ],
+        "window": [
+          "J+1",
+          "J+1"
+        ]
+      }
+    ],
+    "note": "{char}'s jump squat is {J} frames: press L or R on frame {J+1}."
+  }
+}
