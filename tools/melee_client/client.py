@@ -491,7 +491,8 @@ class Client:
         self.w.capture(True)
         self.load("characters",
                   screens.character_select(self.roster, self.at,
-                                           costume=self.dressed()))
+                                           costume=self.dressed(),
+                                           go=self.card_word()))
 
     def about(self, ident):
         item = next(i for i in screens.MAIN if i[0] == ident)
@@ -701,6 +702,10 @@ class Client:
         n = self.settings.get("coach", 0)
         return "After %d misses" % n if n else "Off"
 
+    def timing_words(self):
+        """The timing a drill holds the player to (settings.TIMING)."""
+        return settings.TIMING_WORDS[self.settings.get("timing", "lenient")]
+
     def pause_tabs(self, kind):
         """The pause menu's tabs for a `kind` of match ("drill", "versus",
         "online")."""
@@ -724,6 +729,8 @@ class Client:
                          self.INPUT_WORDS[self.settings["inputs"]], "input"))
             if kind == "drill":
                 rows.append(("coach", "Coach", self.coach_words(), "coach"))
+                rows.append(("timing", "Timing", self.timing_words(),
+                             "options"))
             return rows
         if tab == "Course":
             return [("list", "Back to menu", None, "menu"),
@@ -749,6 +756,7 @@ class Client:
                     "-", " ").title(), "stage"))
         if course:
             rows.append(("coach", "Coach", self.coach_words(), "coach"))
+            rows.append(("timing", "Timing", self.timing_words(), "options"))
         rows.append(("inputs", "Input display",
                      self.INPUT_WORDS[self.settings["inputs"]], "input"))
         if course:
@@ -784,6 +792,17 @@ class Client:
             self.settings["coach"] = settings.COACH[
                 (i + step) % len(settings.COACH)]
             self.progress.save()
+            return True, False
+        if ident == "timing":
+            # lenient windows or frame-perfect (the owner, 2026-11-14:
+            # leniency is fine "as long as there are settings to change
+            # them if the user wants to be held to tighter timings")
+            i = settings.TIMING.index(self.settings["timing"])
+            self.settings["timing"] = settings.TIMING[
+                (i + step) % len(settings.TIMING)]
+            self.progress.save()
+            if s is not None and hasattr(s.d, "strict"):
+                s.d.strict = self.settings["timing"] == "strict"
             return True, False
         if ident == "delay":
             n = max(0, min(settings.DELAY_MAX, self.settings["delay"] + step))
@@ -1184,9 +1203,14 @@ class Client:
             else:
                 self.lab(c, "chars")
 
+    def card_word(self):
+        """The character card's button: Continue in Versus (on to the
+        opponent), else as the card has it (Train, or Lab)."""
+        return "Continue" if self.mode == "versus" else None
+
     def show_card(self):
         c = self.roster[self.at]
-        self.put("card", screens.card(c, self.dressed()))
+        self.put("card", screens.card(c, self.dressed(), self.card_word()))
         self.w.ui("attr tab style background-color: %s" % c["color"])
 
     def switch(self, at):
@@ -2223,6 +2247,8 @@ class Client:
         drills start at once; a match that must be loaded is loaded
         quietly (on_load)."""
         drill = course_registry.get(d["id"])
+        # the timing it holds the player to (Settings: lenient or strict)
+        drill.strict = self.settings.get("timing") == "strict"
         session = course_engine.Session(
             drill, self.w, person=self.port, character=self.c["id"],
             live=True, on_load=self.load_quietly,

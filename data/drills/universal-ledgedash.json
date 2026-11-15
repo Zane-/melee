@@ -426,8 +426,13 @@
       "at_least": 11,
       "expect": "Invincibility left after the landing lag",
       "words": "invincible for {frames} from the landing; the landing lag takes 10",
-      "headline": "No invincibility left after the landing lag",
-      "fix": "Let go of the ledge as soon as you can, double jump on the next frame, and air dodge on frame {LD}, the first frame {char} is above the stage. The invincibility counts down from the start of the hang: each frame of delay takes a frame from the end of the landing lag."
+      "headline": "Too little invincibility left after the landing lag",
+      "fix": "Let go of the ledge as soon as you can, double jump on the next frame, and air dodge on frame {LD}, the first frame {char} is above the stage. The invincibility counts down from the start of the hang: each frame of delay takes a frame from the end of the landing lag.",
+      "strict": {
+        "at_least": "max(11, 29-LD)",
+        "expect": "Invincible for {max(11, 29-LD)} frames or more from the landing",
+        "fix": "Let go of the ledge on the first frame you can, double jump on the next, and air dodge on frame {LD}. Then {char} lands with {max(1, 19-LD)} frames or more of invincibility left after the landing lag."
+      }
     }
   },
   "parts": [

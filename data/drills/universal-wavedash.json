@@ -230,7 +230,12 @@
       "expect": "Stick within 30 degrees of level, forward or back",
       "words": "stick at {measure} degrees from level; straight down is -90",
       "headline": "Steep angle",
-      "fix": "Hold the control stick down and to the side, close to level: about 17 degrees below it gives the longest slide. The further down the stick points, the less of the air dodge's speed goes into the slide."
+      "fix": "Hold the control stick down and to the side, close to level: about 17 degrees below it gives the longest slide. The further down the stick points, the less of the air dodge's speed goes into the slide.",
+      "strict": {
+        "at_least": -20,
+        "expect": "Stick within 20 degrees of level, forward or back",
+        "fix": "Hold the control stick down and to the side as close to level as the dead zone allows: about 17 degrees below it, the longest slide. Flatter than that, the air dodge misses the ground."
+      }
     }
   },
   "parts": [

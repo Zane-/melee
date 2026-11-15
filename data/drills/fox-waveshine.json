@@ -304,7 +304,12 @@
       "expect": "Jump on frame {4}, {5} or {6}",
       "words": "jumped on frame {measure}",
       "headline": "Late jump",
-      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump.",
+      "strict": {
+        "equals": 4,
+        "expect": "Jump on frame {4}",
+        "fix": "Press X or Y on frame {4}, {3} frames after down-B: the first frame the shine accepts a jump."
+      }
     },
     "air dodged": {
       "measure": "wavedashed",
@@ -320,7 +325,12 @@
       "expect": "Land within {J+2} frames of the jump",
       "words": "landed {frames} after the jump; frame-perfect is {J}",
       "headline": "Late air dodge",
-      "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump. Each frame later, Fox rises higher and lands later."
+      "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump. Each frame later, Fox rises higher and lands later.",
+      "strict": {
+        "equals": "J",
+        "expect": "Land {J} frames after the jump",
+        "fix": "Press L or R on the frame the jump squat ends, {J} frames after the jump: Fox then lands on that same frame."
+      }
     },
     "slide": {
       "measure": "slide",
@@ -423,6 +433,10 @@
             "window": [
               4,
               6
+            ],
+            "strict_window": [
+              4,
+              4
             ]
           }
         ],
@@ -523,6 +537,10 @@
             "window": [
               4,
               6
+            ],
+            "strict_window": [
+              4,
+              4
             ]
           },
           {
@@ -534,6 +552,10 @@
             "window": [
               "J+4",
               "J+5"
+            ],
+            "strict_window": [
+              "J+4",
+              "J+4"
             ]
           }
         ],
@@ -741,6 +763,10 @@
         "window": [
           4,
           6
+        ],
+        "strict_window": [
+          4,
+          4
         ]
       },
       {
@@ -752,6 +778,10 @@
         "window": [
           "J+4",
           "J+5"
+        ],
+        "strict_window": [
+          "J+4",
+          "J+4"
         ]
       }
     ],

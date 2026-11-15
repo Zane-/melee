@@ -237,6 +237,7 @@ class JsonDrill(Drill):
         self.v = dict(rec=[], last=None)
 
     filming = False     # the client recording the tutorial's examples
+    strict = False      # frame-perfect timing (Settings): checks' "strict"
 
     def camera(self, n, person):
         """The scenario's camera, or while the tutorial's examples are
@@ -301,7 +302,9 @@ class JsonDrill(Drill):
                 F.text(r["label"], nums),
                 perfect=tuple(int(F.value(x, nums))
                               for x in r.get("perfect", [1])),
-                window=tuple(int(F.value(x, nums)) for x in r["window"])
+                window=tuple(int(F.value(x, nums)) for x in r[
+                    "strict_window" if self.strict and "strict_window" in r
+                    else "window"])
                 if "window" in r else None, **kw))
         return rows, F.text(coach.get("note", ""), nums)
 
@@ -526,6 +529,11 @@ class JsonDrill(Drill):
 
     def _check(self, name, c, rec, nums, measured):
         ck = self.spec["checks"][name]
+        if self.strict and "strict" in ck:
+            # the player chose frame-perfect timing: the strict expectation
+            # (and its own expect and fix words, if it has them)
+            ck = {k: v for k, v in ck.items() if k not in F.EXPECTS}
+            ck.update(self.spec["checks"][name]["strict"])
         got = measured[ck["measure"]]
         if got is None:
             ok = False      # it never happened: nothing to compare

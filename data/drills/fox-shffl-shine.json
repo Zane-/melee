@@ -342,7 +342,12 @@
       "expect": "Shine within {1} frame of the landing lag's end",
       "words": "shine {frames} after the landing lag",
       "headline": "Late shine",
-      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air.",
+      "strict": {
+        "equals": 0,
+        "expect": "Shine on the first frame after the landing lag",
+        "fix": "Press down-B on the first frame after the landing lag: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+      }
     }
   },
   "parts": [
@@ -544,6 +549,10 @@
             "window": [
               24,
               25
+            ],
+            "strict_window": [
+              24,
+              24
             ]
           }
         ],
@@ -851,6 +860,10 @@
         "window": [
           24,
           25
+        ],
+        "strict_window": [
+          24,
+          24
         ]
       }
     ],

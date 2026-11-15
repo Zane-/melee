@@ -148,7 +148,12 @@
       "expect": "Fast fall within 2 frames of the top",
       "words": "{frames} after the top",
       "headline": "Late fast fall",
-      "fix": "Tap down as the rise stops. The stick may reach down up to 2 frames before the top, but no earlier."
+      "fix": "Tap down as the rise stops. The stick may reach down up to 2 frames before the top, but no earlier.",
+      "strict": {
+        "at_most": 1,
+        "expect": "Fast fall 1 frame after the top",
+        "fix": "Tap down so the stick reaches down on the top's frame or up to 2 frames before it: the fast fall then starts on the first frame of falling."
+      }
     }
   },
   "parts": [
@@ -288,6 +293,10 @@
             "window": [
               "SA-2",
               "SA+1"
+            ],
+            "strict_window": [
+              "SA-2",
+              "SA"
             ]
           },
           {
@@ -299,6 +308,10 @@
             "window": [
               "FA-2",
               "FA+1"
+            ],
+            "strict_window": [
+              "FA-2",
+              "FA"
             ]
           }
         ],
@@ -376,6 +389,10 @@
         "window": [
           "SA-2",
           "SA+1"
+        ],
+        "strict_window": [
+          "SA-2",
+          "SA"
         ]
       },
       {
@@ -387,6 +404,10 @@
         "window": [
           "FA-2",
           "FA+1"
+        ],
+        "strict_window": [
+          "FA-2",
+          "FA"
         ]
       }
     ],

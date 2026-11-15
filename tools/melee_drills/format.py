@@ -197,7 +197,10 @@ def measured():
 
 
 _OPS = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Add, ast.Sub, ast.Mult,
-        ast.FloorDiv, ast.USub, ast.UAdd, ast.Constant, ast.Name, ast.Load)
+        ast.FloorDiv, ast.USub, ast.UAdd, ast.Constant, ast.Name, ast.Load,
+        ast.Call)
+# functions an expression may call: "max(11, 29-LD)"
+_FUNCS = {"max": max, "min": min}
 
 
 def value(x, nums):
@@ -215,12 +218,20 @@ def value(x, nums):
     for node in ast.walk(tree):
         if not isinstance(node, _OPS):
             raise DrillError("not allowed in %r: %s" % (x, type(node).__name__))
+        if isinstance(node, ast.Call) and not (
+                isinstance(node.func, ast.Name) and node.func.id in _FUNCS
+                and not node.keywords):
+            raise DrillError("only max(...) and min(...) in %r" % x)
+        if isinstance(node, ast.Name) and node.id in _FUNCS:
+            continue
         if isinstance(node, ast.Name) and node.id not in nums:
             raise DrillError("unknown number %r in %r" % (node.id, x))
         if isinstance(node, ast.Name) and isinstance(nums[node.id], str):
             raise DrillError("not a number: %r in %r" % (node.id, x))
+    names = {k: v for k, v in nums.items() if not isinstance(v, str)}
+    names.update(_FUNCS)
     return eval(compile(tree, "<drill>", "eval"), {"__builtins__": {}},
-                {k: v for k, v in nums.items() if not isinstance(v, str)})
+                names)
 
 
 def text(t, nums, **more):
@@ -389,7 +400,7 @@ def _problems(spec):
                          "%s: down, up or side" % k)
                 else:
                     state(r["state"], w + ".state")
-            for x in r.get("window", []):
+            for x in r.get("window", []) + r.get("strict_window", []):
                 num(x, w + ".window")
             for x in r.get("perfect", []):
                 num(x, w + ".perfect")
@@ -606,6 +617,20 @@ def _problems(spec):
         words(c.get("words"), w + ".words")
         words(c.get("fix"), w + ".fix")
         words(c.get("expect", "x"), w + ".expect")
+        if "strict" in c:
+            # the expectation when the player chose frame-perfect timing
+            st = c["strict"]
+            ks = [k for k in EXPECTS if isinstance(st, dict) and k in st]
+            if need(len(ks) == 1, w + ".strict", "one of %s" %
+                    ", ".join(EXPECTS)):
+                if ks[0] == "within":
+                    for x in st["within"]:
+                        num(x, w + ".strict.within")
+                elif ks[0] != "equals":
+                    num(st[ks[0]], w + ".strict." + ks[0])
+            for k in ("expect", "fix"):
+                if k in st:
+                    words(st[k], "%s.strict.%s" % (w, k))
 
     for i, p in enumerate(spec["parts"]):
         w = "parts[%d]" % i

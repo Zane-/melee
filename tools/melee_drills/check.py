@@ -29,9 +29,11 @@ ALL = sorted(f[:-5] for f in os.listdir(os.path.join(F.ROOT, "data",
              if f.endswith(".json"))
 
 
-def play(session, drill, inputs, part):
-    """`inputs` played as the demonstration, judged as part `part`."""
+def play(session, drill, inputs, part, strict=False):
+    """`inputs` played as the demonstration, judged as part `part` (with
+    frame-perfect timing: `strict`)."""
     drill.set_part(part)
+    drill.strict = strict
     drill.build_reference = lambda c, i=inputs: inputs_to_refs(
         i, drill.nums(c), drill.ref_start)
     try:
@@ -72,6 +74,11 @@ def main():
             cases += [("part %d example" % (i + 1), F.pick(p, "example", ch),
                        i, None)
                       for i, p in enumerate(spec["parts"])]
+            # the examples are frame-perfect: they pass strict timing too
+            if any("strict" in ck for ck in spec["checks"].values()):
+                cases += [("part %d example, frame-perfect" % (i + 1),
+                           F.pick(p, "example", ch), i, "strict")
+                          for i, p in enumerate(spec["parts"])]
             # a mistake is judged as the first part that counts its check
             cases += [("mistake: " + m["name"], F.pick(m, "inputs", ch),
                        next(i for i, p in enumerate(spec["parts"])
@@ -80,7 +87,9 @@ def main():
                       for m in spec.get("mistakes", [])]
             for what, inputs, part, fails in cases:
                 total += 1
-                r = play(s, drill, inputs, part)
+                strict = fails == "strict"
+                fails = None if strict else fails
+                r = play(s, drill, inputs, part, strict)
                 checks = {c["expect"]: c for c in r.get("checks", [])}
                 if fails is None:
                     ok = r["success"]

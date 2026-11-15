@@ -258,7 +258,12 @@
       "expect": "Jump on frame {4}, {5} or {6}",
       "words": "jumped on frame {measure}",
       "headline": "Late jump",
-      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump.",
+      "strict": {
+        "equals": 4,
+        "expect": "Jump on frame {4}",
+        "fix": "Press X or Y on frame {4}, {3} frames after down-B: the first frame the shine accepts a jump."
+      }
     },
     "grabbed": {
       "measure": "grabbed",
@@ -451,6 +456,10 @@
             "window": [
               4,
               6
+            ],
+            "strict_window": [
+              4,
+              4
             ]
           }
         ],
@@ -612,6 +621,10 @@
         "window": [
           4,
           6
+        ],
+        "strict_window": [
+          4,
+          4
         ]
       },
       {

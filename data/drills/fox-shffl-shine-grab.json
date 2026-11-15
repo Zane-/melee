@@ -467,7 +467,12 @@
       "expect": "Shine within {1} frame of the landing lag's end",
       "words": "shine {frames} after the landing lag",
       "headline": "Late shine",
-      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+      "fix": "Press down-B on the frame the landing lag ends: {7} frames after landing for an L-cancelled neutral air, {9} for down air.",
+      "strict": {
+        "equals": 0,
+        "expect": "Shine on the first frame after the landing lag",
+        "fix": "Press down-B on the first frame after the landing lag: {7} frames after landing for an L-cancelled neutral air, {9} for down air."
+      }
     },
     "jumped": {
       "measure": "jumped",
@@ -483,7 +488,12 @@
       "expect": "Jump on frame {4}, {5} or {6} of the shine",
       "words": "jumped {frames} after the shine",
       "headline": "Late jump",
-      "fix": "Press X or Y {3} frames after down-B. Frame {4} of the shine is the first that accepts a jump."
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} of the shine is the first that accepts a jump.",
+      "strict": {
+        "equals": 3,
+        "expect": "Jump on frame {4} of the shine",
+        "fix": "Press X or Y on frame {4} of the shine, {3} frames after down-B: the first frame it accepts a jump."
+      }
     },
     "grabbed": {
       "measure": "grabbed",
@@ -638,6 +648,10 @@
             "window": [
               24,
               25
+            ],
+            "strict_window": [
+              24,
+              24
             ]
           }
         ],
@@ -747,6 +761,10 @@
             "window": [
               4,
               6
+            ],
+            "strict_window": [
+              4,
+              4
             ]
           },
           {
@@ -1017,6 +1035,10 @@
         "window": [
           24,
           25
+        ],
+        "strict_window": [
+          24,
+          24
         ]
       },
       {
@@ -1028,6 +1050,10 @@
         "window": [
           27,
           29
+        ],
+        "strict_window": [
+          27,
+          27
         ]
       },
       {

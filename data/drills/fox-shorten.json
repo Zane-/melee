@@ -6,10 +6,10 @@
     "fox"
   ],
   "goal": "Stop Illusion at the length you choose.",
-  "why": "A full Illusion always covers the same distance, so an opponent can time a hit on its path or on where it ends. Stopping it with B gives three shorter lengths, and the one chosen decides where Fox ends up: short of the hit, at the ledge instead of past it, or at a chosen spot on the stage.",
+  "why": "A full Illusion always covers the same distance, so an edgeguarder can time a hit on its path or on where it ends. Stopping it with B gives three shorter lengths, and the one chosen decides where Fox ends up: short of the hit, at the ledge instead of over it, or at a chosen spot on the stage.",
   "tutorial": {
-    "what": "Illusion dashes on frames {20} to {23}. B pressed during the dash stops it on that frame, before the frame's move: each frame of dash adds {18.72} units, and the slide after the dash adds {23.1}.",
-    "expect": "Each Illusion is judged when it ends: how far Fox travelled, and on which frame the dash ended. After misses, the coach shows your inputs frame by frame against the frame for the length asked.",
+    "what": "In the air, Illusion dashes on frames {20} to {23}. B pressed during the dash stops it on that frame, before the frame's move: each frame of dash adds {18.72} units, and the drift after the dash adds {27.58}.",
+    "expect": "Each Illusion is judged when it ends in a helpless fall: how far Fox travelled, and on which frame the dash ended. After misses, the coach shows your inputs frame by frame against the frame for the length asked.",
     "example": [
       {
         "stick": [
@@ -35,14 +35,14 @@
       "21": "Frame {21}: the first move, {18.72} units",
       "22": "Frame {22}: the second move",
       "23": "Frame {23}: B pressed. The dash stops before its third move",
-      "24": "Frame {f}: sliding"
+      "24": "Frame {f}: drifting"
     },
     "lessons": [
       {
         "title": "Illusion's frames",
         "text": [
-          "Side-B starts with {19} frames of startup, Fox standing in place. On frame {20} the dash begins, and Fox moves {18.72} units on each of frames {21}, {22} and {23}.",
-          "On frame {24} the dash is over: Fox slides another {23.1} units while slowing down, and on the ground he can act again on frame {64}. In all, {79.26} units."
+          "Side-B starts with {19} frames of startup, Fox holding his height in the air. On frame {20} the dash begins, and Fox moves {18.72} units on each of frames {21}, {22} and {23}.",
+          "On frame {24} the dash is over: Fox drifts another {27.58} units while slowing down and starting to fall, and from frame {64} he falls helpless. In all, {83.74} units."
         ],
         "show": {
           "example": {
@@ -64,8 +64,8 @@
               "1": "Frame 1: side-B. Startup",
               "20": "Frame {20}: the dash begins",
               "21": "Frame {f}: dash, {18.72} units this frame",
-              "24": "Frame {f}: sliding",
-              "64": "Frame {64}: Fox can act"
+              "24": "Frame {f}: drifting",
+              "64": "Frame {64}: helpless"
             },
             "cues": [
               {
@@ -89,7 +89,15 @@
                   24,
                   63
                 ],
-                "words": "Slide",
+                "words": "Drift",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  64,
+                  80
+                ],
+                "words": "Helpless",
                 "kind": "info"
               }
             ]
@@ -99,7 +107,7 @@
       {
         "title": "Stopping the dash",
         "text": [
-          "B pressed during the dash ends it on that frame, before the frame's move. B on frame {20} or {21}: no move, {23.1} units in all. Frame {22}: one move, {41.82} units. Frame {23}: two moves, {60.54} units. With no B, or B from frame {24}, the dash is already over: {79.26} units.",
+          "B pressed during the dash ends it on that frame, before the frame's move. B on frame {20} or {21}: no move, {27.58} units in all. Frame {22}: one move, {46.3} units. Frame {23}: two moves, {65.02} units. With no B, or B from frame {24}, the dash is already over: {83.74} units.",
           "B pressed during the startup is ignored, and holding B from the side-B does nothing: the stop takes a new press during the dash."
         ],
         "show": {
@@ -121,10 +129,10 @@
             "marks": {
               "1": "Frame 1: side-B",
               "2": "Frame {f}: startup. B now is ignored",
-              "20": "Frame {f}: B here stops Illusion at {23} units",
-              "22": "Frame {22}: B here stops it at {42} units",
-              "23": "Frame {23}: B here stops it at {61} units",
-              "24": "Frame {f}: the dash is over. Full length, {79} units"
+              "20": "Frame {f}: B here stops Illusion at {28} units",
+              "22": "Frame {22}: B here stops it at {46} units",
+              "23": "Frame {23}: B here stops it at {65} units",
+              "24": "Frame {f}: the dash is over. Full length, {84} units"
             },
             "cues": [
               {
@@ -140,7 +148,7 @@
                   20,
                   21
                 ],
-                "words": "B now: {23} units",
+                "words": "B now: {28} units",
                 "kind": "go"
               },
               {
@@ -148,7 +156,7 @@
                   22,
                   22
                 ],
-                "words": "B now: {42} units",
+                "words": "B now: {46} units",
                 "kind": "go"
               },
               {
@@ -156,7 +164,7 @@
                   23,
                   23
                 ],
-                "words": "B now: {61} units",
+                "words": "B now: {65} units",
                 "kind": "go"
               },
               {
@@ -164,7 +172,7 @@
                   24,
                   63
                 ],
-                "words": "Full length: {79} units",
+                "words": "Full length: {84} units",
                 "kind": "info"
               }
             ]
@@ -175,19 +183,25 @@
   },
   "scenarios": [
     {
-      "name": "On the stage",
+      "name": "Above the stage",
       "stage": "final-destination",
       "player": {
-        "x": -70
+        "air": true,
+        "x": -75,
+        "y": 100
       },
       "opponent": "none",
-      "camera": "stage"
+      "camera": {
+        "follow": "player",
+        "distance": 260,
+        "height": 10
+      }
     }
   ],
   "attempt": {
     "start": {
       "enters": "illusion",
-      "on_ground": true
+      "in_air": true
     },
     "judge": {
       "leaves": "illusion"
@@ -210,55 +224,55 @@
     "success": "Illusion: {length} units, the dash ended on frame {stop}."
   },
   "checks": {
-    "length 79": {
+    "length 84": {
       "measure": "length",
       "within": [
-        74,
-        85
+        78,
+        90
       ],
-      "expect": "Full length, {79} units",
+      "expect": "Full length, {84} units",
       "words": "{measure} units; the dash ended on frame {stop}",
       "headline": "Wrong length",
       "fix": "Let the dash run out: no B after the side-B. Any B pressed during the dash stops it."
     },
-    "length 23": {
+    "length 28": {
       "measure": "length",
       "within": [
-        18,
-        28
+        22,
+        33
       ],
-      "expect": "{23} units: B on frame {20} or {21}",
+      "expect": "{28} units: B on frame {20} or {21}",
       "words": "{measure} units; the dash ended on frame {stop}",
       "headline": "Wrong length",
-      "fix": "Press B on frame {20} or {21}, the first two frames of the dash, {19} frames after side-B. B during the startup is ignored; B on frame {22} goes {42} units."
+      "fix": "Press B on frame {20} or {21}, the first two frames of the dash, {19} frames after side-B. B during the startup is ignored; B on frame {22} goes {46} units."
     },
-    "length 42": {
+    "length 46": {
       "measure": "length",
       "within": [
-        37,
-        47
+        41,
+        52
       ],
-      "expect": "{42} units: B on frame {22}",
+      "expect": "{46} units: B on frame {22}",
       "words": "{measure} units; the dash ended on frame {stop}",
       "headline": "Wrong length",
-      "fix": "Press B on frame {22}, the third frame of the dash. B on frame {21} goes {23} units, and B on frame {23} goes {61}."
+      "fix": "Press B on frame {22}, the third frame of the dash. B on frame {21} goes {28} units, and B on frame {23} goes {65}."
     },
-    "length 61": {
+    "length 65": {
       "measure": "length",
       "within": [
-        55,
-        66
+        60,
+        71
       ],
-      "expect": "{61} units: B on frame {23}",
+      "expect": "{65} units: B on frame {23}",
       "words": "{measure} units; the dash ended on frame {stop}",
       "headline": "Wrong length",
-      "fix": "Press B on frame {23}, the last frame of the dash. B on frame {22} goes {42} units; from frame {24} the dash is over and Illusion goes its full {79}."
+      "fix": "Press B on frame {23}, the last frame of the dash. B on frame {22} goes {46} units; from frame {24} the dash is over and Illusion goes its full {84}."
     }
   },
   "parts": [
     {
       "name": "Full length",
-      "teach": "Side-B alone: {19} frames of startup, the dash on frames {20} to {23}, then the slide. {79} units.",
+      "teach": "Side-B alone: {19} frames of startup, the dash on frames {20} to {23}, then the drift. {84} units.",
       "example": [
         {
           "stick": [
@@ -276,7 +290,7 @@
       "marks": {
         "1": "Frame 1: side-B",
         "20": "Frame {20}: the dash begins",
-        "24": "Frame {24}: the slide"
+        "24": "Frame {24}: the drift"
       },
       "cues": [
         {
@@ -300,12 +314,12 @@
             24,
             63
           ],
-          "words": "Slide",
+          "words": "Drift",
           "kind": "info"
         }
       ],
       "checks": [
-        "length 79"
+        "length 84"
       ],
       "streak": 2,
       "coach": {
@@ -337,8 +351,8 @@
       }
     },
     {
-      "name": "{23} units: B on frame {20} or {21}",
-      "teach": "Side-B, then B on the first or second frame of the dash: Illusion stops before it moves, {23} units with the slide.",
+      "name": "{28} units: B on frame {20} or {21}",
+      "teach": "Side-B, then B on the first or second frame of the dash: Illusion stops before it moves, {28} units with the drift.",
       "example": [
         {
           "stick": [
@@ -361,7 +375,7 @@
       "marks": {
         "1": "Frame 1: side-B",
         "20": "Frame {20}: B. The dash stops before moving",
-        "21": "Frame {f}: sliding"
+        "21": "Frame {f}: drifting"
       },
       "cues": [
         {
@@ -377,20 +391,20 @@
             20,
             21
           ],
-          "words": "B now: {23} units",
+          "words": "B now: {28} units",
           "kind": "go"
         },
         {
           "frames": [
             22,
-            40
+            50
           ],
-          "words": "Slide",
+          "words": "Drift",
           "kind": "info"
         }
       ],
       "checks": [
-        "length 23"
+        "length 28"
       ],
       "streak": 3,
       "coach": {
@@ -416,12 +430,12 @@
             ]
           }
         ],
-        "note": "B on frame {20} or {21}: {23} units."
+        "note": "B on frame {20} or {21}: {28} units."
       }
     },
     {
-      "name": "{42} units: B on frame {22}",
-      "teach": "Side-B, then B on frame {22}: one move of {18.72} units, then the slide. {42} units.",
+      "name": "{46} units: B on frame {22}",
+      "teach": "Side-B, then B on frame {22}: one move of {18.72} units, then the drift. {46} units.",
       "example": [
         {
           "stick": [
@@ -445,7 +459,7 @@
         "1": "Frame 1: side-B",
         "21": "Frame {21}: one move",
         "22": "Frame {22}: B. The dash stops",
-        "23": "Frame {f}: sliding"
+        "23": "Frame {f}: drifting"
       },
       "cues": [
         {
@@ -469,20 +483,20 @@
             22,
             22
           ],
-          "words": "B now: {42} units",
+          "words": "B now: {46} units",
           "kind": "go"
         },
         {
           "frames": [
             23,
-            40
+            50
           ],
-          "words": "Slide",
+          "words": "Drift",
           "kind": "info"
         }
       ],
       "checks": [
-        "length 42"
+        "length 46"
       ],
       "streak": 3,
       "coach": {
@@ -509,12 +523,12 @@
             ]
           }
         ],
-        "note": "B on frame {22}: {42} units."
+        "note": "B on frame {22}: {46} units."
       }
     },
     {
-      "name": "{61} units: B on frame {23}",
-      "teach": "Side-B, then B on frame {23}, the last frame of the dash: two moves, then the slide. {61} units.",
+      "name": "{65} units: B on frame {23}",
+      "teach": "Side-B, then B on frame {23}, the last frame of the dash: two moves, then the drift. {65} units.",
       "example": [
         {
           "stick": [
@@ -538,7 +552,7 @@
         "1": "Frame 1: side-B",
         "22": "Frame {22}: two moves",
         "23": "Frame {23}: B. The dash stops",
-        "24": "Frame {f}: sliding"
+        "24": "Frame {f}: drifting"
       },
       "cues": [
         {
@@ -562,20 +576,20 @@
             23,
             23
           ],
-          "words": "B now: {61} units",
+          "words": "B now: {65} units",
           "kind": "go"
         },
         {
           "frames": [
             24,
-            40
+            50
           ],
-          "words": "Slide",
+          "words": "Drift",
           "kind": "info"
         }
       ],
       "checks": [
-        "length 61"
+        "length 65"
       ],
       "streak": 3,
       "coach": {
@@ -603,7 +617,7 @@
             ]
           }
         ],
-        "note": "B on frame {23}: {61} units."
+        "note": "B on frame {23}: {65} units."
       }
     }
   ],
@@ -629,7 +643,7 @@
           "hold": 1
         }
       ],
-      "fails": "length 79"
+      "fails": "length 84"
     },
     {
       "name": "B during the startup",
@@ -652,10 +666,10 @@
           "hold": 1
         }
       ],
-      "fails": "length 23"
+      "fails": "length 28"
     },
     {
-      "name": "B one frame late for 42",
+      "name": "B one frame late for 46",
       "inputs": [
         {
           "stick": [
@@ -675,10 +689,10 @@
           "hold": 1
         }
       ],
-      "fails": "length 42"
+      "fails": "length 46"
     },
     {
-      "name": "B one frame early for 61",
+      "name": "B one frame early for 65",
       "inputs": [
         {
           "stick": [
@@ -698,10 +712,10 @@
           "hold": 1
         }
       ],
-      "fails": "length 61"
+      "fails": "length 65"
     },
     {
-      "name": "B one frame late for 61",
+      "name": "B one frame late for 65",
       "inputs": [
         {
           "stick": [
@@ -721,7 +735,7 @@
           "hold": 1
         }
       ],
-      "fails": "length 61"
+      "fails": "length 65"
     }
   ],
   "coach": {

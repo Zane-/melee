@@ -107,6 +107,12 @@ its proof, never written into one drill's file.
   check.
 - **Buttons**: A B X Y Z L R, `jump` (X or Y), `shield` (L or R), `lcancel` (L, R or Z; a
   light trigger press counts).
+- **Timing** (the player's setting, Lenient or Frame-perfect, in a drill's pause menu; the
+  owner: leniency is fine "as long as there are settings to change them if the user wants
+  to be held to tighter timings"): a check's `"strict": {an expectation, "expect", "fix"}`
+  replaces its own when the player chose Frame-perfect, and a coach row's `strict_window`
+  its window. The proof plays every part's example strictly too: examples are
+  frame-perfect.
 - **Expectations**: `equals` (a number, an expression like `"J"`, a word or true/false),
   `at_most`, `at_least`,
   `within: [lo, hi]`.

@@ -24,19 +24,19 @@
           0.5,
           -0.87
         ],
-        "frame": "SL-1",
+        "frame": "SL",
         "hold": 1
       },
       {
         "press": "R",
-        "frame": "SL-1",
+        "frame": "SL",
         "hold": 1
       }
     ],
     "marks": {
       "1": "Frame 1: jump pressed and released. Short hop",
       "SA": "Frame {SA}: the top of the short hop",
-      "SL-1": "Frame {SL-1}: just above the floor. R pressed, stick down and forward",
+      "SL": "Frame {SL}: the frame {char} would land. R pressed, stick down and forward",
       "SL+2": "Landed out of the air dodge: landing lag, sliding"
     },
     "lessons": [
@@ -59,19 +59,19 @@
                   0.5,
                   -0.87
                 ],
-                "frame": "SL-1",
+                "frame": "SL",
                 "hold": 1
               },
               {
                 "press": "R",
-                "frame": "SL-1",
+                "frame": "SL",
                 "hold": 1
               }
             ],
             "marks": {
               "1": "Frame 1: jump pressed and released",
               "SA": "Frame {SA}: the top. {char} falls",
-              "SL-1": "Frame {SL-1}: R pressed, just above the floor",
+              "SL": "Frame {SL}: R pressed on the frame {char} would land",
               "SL+2": "Frame {f}: landing lag, sliding"
             },
             "cues": [
@@ -251,7 +251,12 @@
       "expect": "Touch down within 3 frames of L or R",
       "words": "touched down {frames} after L or R",
       "headline": "Early air dodge",
-      "fix": "Press L or R in the last 3 frames before {char} would land: frames {SL-2} to {SL} of a short hop. The air dodge loses a tenth of its speed every frame before it touches down: pressed high, it lands later and slides less."
+      "fix": "Press L or R in the last 3 frames before {char} would land: frames {SL-2} to {SL} of a short hop. The air dodge loses a tenth of its speed every frame before it touches down: pressed high, it lands later and slides less.",
+      "strict": {
+        "at_most": 1,
+        "expect": "Touch down within 1 frame of L or R",
+        "fix": "Press L or R on frame {SL-1} or {SL}: the last frame of the fall or the frame {char} would land. The air dodge then touches down at once, with all of its speed in the slide."
+      }
     }
   },
   "parts": [
@@ -326,19 +331,19 @@
             0.5,
             -0.87
           ],
-          "frame": "SL-1",
+          "frame": "SL",
           "hold": 1
         },
         {
           "press": "R",
-          "frame": "SL-1",
+          "frame": "SL",
           "hold": 1
         }
       ],
       "marks": {
         "1": "Frame 1: short hop",
         "SA": "Frame {SA}: the top. Falling",
-        "SL-1": "Frame {SL-1}: R pressed just above the platform",
+        "SL": "Frame {SL}: R pressed on the frame {char} would land on the platform",
         "SL+2": "Landed: landing lag, sliding"
       },
       "cues": [
@@ -450,10 +455,14 @@
         "button": "shield",
         "held": false,
         "perfect": [
-          "SL-1"
+          "SL"
         ],
         "window": [
           "SL-2",
+          "SL"
+        ],
+        "strict_window": [
+          "SL-1",
           "SL"
         ]
       }

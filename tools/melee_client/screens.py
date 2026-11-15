@@ -507,9 +507,12 @@ def costume_row(c, costume, form_key):
     return '<div class="cos">%s%s%s</div>' % (key("Y"), chips, form)
 
 
-def card(c, costume=0):
+def card(c, costume=0, word=None):
     """The inside of the card about one character: the head, then its
-    numbers, its course, its costumes and (Zelda and Sheik) the other."""
+    numbers, its course, its costumes and (Zelda and Sheik) the other.
+    `word`: the button's word, if not Train (or Lab, without a course): in
+    Versus, Continue (the owner, 2026-11-14)."""
+    from courses import title
     stats = "".join(
         '<div class="stat"><div class="n">%s</div><div class="l">%s</div>'
         '</div>' % (esc(n), what) for n, what in (
@@ -520,7 +523,7 @@ def card(c, costume=0):
         parts = "".join(
             '<div class="part"><div class="sq" style="background-color: %s"/>'
             '<div>%s</div><div class="cnt">%d</div></div>' % (
-                PART_COLOR[p], p, counts[p])
+                PART_COLOR[p], esc(title(p)), counts[p])
             for p in PART_COLOR)
         about = ('<div class="about">A course of its own: %d drills.</div>'
                  '<div class="parts">%s</div>' % (sum(counts.values()),
@@ -530,6 +533,7 @@ def card(c, costume=0):
         about = ('<div class="about">No course of its own yet: A opens the '
                  'Lab.</div>')
         go = "Lab"
+    go = word or go
     return art_head(c, costume) + (
         '<div class="abody"><div class="stats">%s</div>%s%s<div class="grow"/>'
         '<div class="go"><div class="un">%s<div>%s</div></div></div></div>' % (
@@ -540,7 +544,7 @@ def card(c, costume=0):
 def character_select(roster, focus, title="Choose your character",
                      about="Choose who you train. A drill brings its own "
                            "opponents.", inside=None, hints=None,
-                     costume=0):
+                     costume=0, go=None):
     """`inside`: the card's content, if not the usual one about the
     character in focus (in `costume`)."""
     tiles = []
@@ -557,7 +561,7 @@ def character_select(roster, focus, title="Choose your character",
         header([title]) +
         '<div class="roster">' + rows + '</div>' +
         '<div id="card" class="card art">' +
-        (inside or card(roster[focus], costume)) + '</div>' +
+        (inside or card(roster[focus], costume, go)) + '</div>' +
         footer(about, hints or [("A", "Choose"), ("Y", "Costume"),
                                 ("B", "Back")],
                tab=roster[focus]["color"]))

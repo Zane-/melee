@@ -414,7 +414,12 @@
       "expect": "Jump on frame {4}, {5} or {6}",
       "words": "jumped on frame {measure}",
       "headline": "Late jump",
-      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump."
+      "fix": "Press X or Y {3} frames after down-B. Frame {4} is the first frame the shine accepts a jump.",
+      "strict": {
+        "equals": 4,
+        "expect": "Jump on frame {4}",
+        "fix": "Press X or Y on frame {4}, {3} frames after down-B: the first frame the shine accepts a jump."
+      }
     },
     "no rise": {
       "measure": "rose",
@@ -454,7 +459,12 @@
       "expect": "No shine more than {10} frames after the one before",
       "words": "the slowest shine came {frames} after the one before",
       "headline": "Slow shine",
-      "fix": "Jump on the frame after each shine lands, {5} frames after its down-B, and down-B {J} frames after the jump. Frame-perfect, a shine comes {8} frames after the one before."
+      "fix": "Jump on the frame after each shine lands, {5} frames after its down-B, and down-B {J} frames after the jump. Frame-perfect, a shine comes {8} frames after the one before.",
+      "strict": {
+        "at_most": 8,
+        "expect": "No shine more than {8} frames after the one before",
+        "fix": "Jump on the frame after each shine lands, {5} frames after its down-B, and down-B {J} frames after the jump: {8} frames from shine to shine."
+      }
     }
   },
   "parts": [
@@ -565,6 +575,10 @@
             "window": [
               4,
               6
+            ],
+            "strict_window": [
+              4,
+              4
             ]
           },
           {
