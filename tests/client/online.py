@@ -3,8 +3,9 @@
     python tests/client/online.py [--shots DIR]
 
 Two clients, each in its own window on its own virtual display, each driven
-from its own thread as a person would: Versus, a character (Fox, Marth),
-Versus, Online, a character (Fox, Marth); each copies its code and the
+from its own thread as a person would: Versus, Online, Unlimited, a
+character (Fox, Marth); (tests/client/online_modes.py plays the other
+modes) each copies its code and the
 other pastes it (the codes go through each display's clipboard); they meet
 (LAN addresses: MELEE_ONLINE_NO_STUN, nothing sent outside), start the same
 match and play it with rollback netcode (src/host/net.c) for ten seconds,
@@ -71,7 +72,8 @@ class Side:
         self.tap("Left")                            # to Versus
         self.tap("x")                               # Local or Online
         self.tap("Right")
-        self.tap("x")                               # Online: characters
+        self.tap("x")                               # Online: the modes
+        self.tap("x")                               # Unlimited: characters
         for _ in range(40):
             if c.roster[c.at]["id"] == self.char:
                 break

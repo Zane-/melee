@@ -53,6 +53,12 @@ extern HostState host;
 /* The moves a fighter may use (moves.c): every move, the down special only,
    or the down special and the up and side ones (a Versus mode's rule). */
 enum { HOST_MOVES_ALL, HOST_MOVES_SHINE, HOST_MOVES_RECOVERY };
+/* A Versus mode's end, decided in the game's frame (rules.c): none, or Tug
+   of War's lead. */
+enum { HOST_RULES_NONE, HOST_RULES_TUG };
+void host_rules_set(int kind, int n);
+int host_rules_get(int* n);
+int host_rules_outcome(void);
 void host_moves_set(int slot, int rule);
 int host_moves_get(int slot);
 

@@ -212,6 +212,22 @@ PATCHES = {
 
     if (fp->hitlag_cb) {"""),
     ],
+    # A Versus mode's end decided in the game's frame (src/host/rules.c):
+    # the match's outcome asks the host's rule after the timer, before the
+    # stocks.
+    "melee/gm/gmvs.c": [
+        ('#include "gmvs.h"\n', '#include "gmvs.h"\nint host_rules_outcome(void);\n'),
+        ("""    if (!controller.start.is_teams) {
+        ffa_outcome = gm_GetFFAOutcome();""",
+         """    {
+        MatchOutcome host_outcome = (MatchOutcome) host_rules_outcome();
+        if (host_outcome != OUTCOME_NONE) {
+            return host_outcome;
+        }
+    }
+    if (!controller.start.is_teams) {
+        ffa_outcome = gm_GetFFAOutcome();"""),
+    ],
     # The particle interpreter's one multi-byte operand: a float, copied
     # byte by byte from byte code that stays in disc order.
     "sysdolphin/baselib/particle.c": [

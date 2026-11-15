@@ -41,6 +41,19 @@ class OnlineError(RuntimeError):
     pass
 
 
+# the mode a side plays when it says none (a client from before modes)
+UNLIMITED = {"ident": "unlimited", "settings": {}}
+
+
+class ModeMismatch(OnlineError):
+    """The friend chose another game mode, or the same one set otherwise:
+    `mode` is theirs ({"ident", "settings"})."""
+
+    def __init__(self, mode):
+        super().__init__("the friend chose another mode")
+        self.mode = mode
+
+
 # ---- STUN ----------------------------------------------------------------------
 
 def stun(sock, servers=STUN_SERVERS, timeout=2.0):
@@ -184,6 +197,10 @@ class Lobby:
                 pass
 
         while time.time() < deadline:
+            if theirs is not None and theirs.get("mode", UNLIMITED) != \
+                    me.get("mode", UNLIMITED):
+                # both sides play one game: the same mode, set alike
+                raise ModeMismatch(theirs.get("mode", UNLIMITED))
             now = time.time()
             if now - last_send > 0.1:
                 last_send = now
@@ -220,12 +237,14 @@ class Lobby:
             if theirs is not None and theirs.get("heard") and \
                     settings is None and self.nonce < theirs["nonce"]:
                 # the lower nonce is port 1 and chooses the rest
+                colors = [me.get("color", 0), theirs.get("color", 0)]
+                if me["char"] == theirs["char"] and colors[0] == colors[1]:
+                    colors[1] = (colors[0] + 1) % 4   # a mirror: told apart
                 settings = dict(
-                    chars=[me["char"], theirs["char"]],
-                    colors=[me.get("color", 0), theirs.get("color", 0)],
+                    chars=[me["char"], theirs["char"]], colors=colors,
                     nicks=[me.get("nick", ""), theirs.get("nick", "")],
                     stage=stage, seed=random.getrandbits(31) | 1,
-                    delay=delay)
+                    delay=delay, mode=me.get("mode", UNLIMITED))
             if acked:
                 sock.setblocking(True)
                 return self._result(settings, heard, local=0)
@@ -243,7 +262,8 @@ class Lobby:
                     chars=settings["chars"], colors=settings["colors"],
                     nicks=settings.get("nicks", ["", ""]),
                     stage=settings["stage"], seed=settings["seed"],
-                    delay=settings["delay"])
+                    delay=settings["delay"],
+                    mode=settings.get("mode", UNLIMITED))
 
 
 # ---- friends ------------------------------------------------------------------------

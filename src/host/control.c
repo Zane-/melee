@@ -302,7 +302,7 @@ void host_fighter_json(int slot, char* out, size_t size)
              "\"air\":%d,\"percent\":%.9g,\"hitlag\":%.9g,"
              "\"hitstun\":%.9g,\"shield\":%.9g,\"gvel\":%.9g,"
              "\"kind\":%d,\"jumps\":%d,\"invuln\":%d,\"stocks\":%d,"
-             "\"hitbox\":%d,\"costume\":%d}",
+             "\"hitbox\":%d,\"costume\":%d,\"falls\":%d}",
              (int) Player_GetPlayerCharacter(slot), (int) fp->motion_id,
              fp->cur_anim_frame, fp->cur_pos.x, fp->cur_pos.y, fp->self_vel.x,
              fp->self_vel.y, fp->facing_dir, (int) fp->ground_or_air,
@@ -317,7 +317,7 @@ void host_fighter_json(int slot, char* out, size_t size)
               fp->x914[3].state != HitCapsule_Disabled)
                  ? 1
                  : 0,
-             (int) fp->costume_id);
+             (int) fp->costume_id, (int) Player_GetFalls(slot));
 }
 
 /// Every item, in the order of the game's item list.
@@ -1050,7 +1050,9 @@ static void command(char* line)
             for (i = 0; i < 4; i++) {
                 HSD_PadRumbleOn(i);
             }
-            ifStatus_802F6EA4(5, -1, -1, 0, game_end_played, NULL);
+            /* the second callback: when the graphic has played out
+               (if_802F74D0; the first is its first frame) */
+            ifStatus_802F6EA4(5, -1, -1, 0, NULL, game_end_played);
             lbAudioAx_80024D50();
             gm_SetDbPauseFlag(4);
             printf("@ ok\n");
@@ -1159,6 +1161,30 @@ static void command(char* line)
             }
 #endif
             printf("\n");
+        }
+    } else if (strcmp(cmd, "rules") == 0) {
+        /* "rules none" or "rules tug N": how a match ends besides its
+           stocks (rules.c), decided in the game's own frame; "rules":
+           which */
+        char kind[16] = "";
+        int n = 0;
+        int got = sscanf(line, "%15s %d", kind, &n);
+        if (got < 1) {
+            int g = 0;
+            int k = host_rules_get(&g);
+            if (k == HOST_RULES_TUG) {
+                printf("@ ok tug %d\n", g);
+            } else {
+                printf("@ ok none\n");
+            }
+        } else if (strcmp(kind, "none") == 0) {
+            host_rules_set(HOST_RULES_NONE, 0);
+            printf("@ ok\n");
+        } else if (strcmp(kind, "tug") == 0 && got == 2 && n > 0) {
+            host_rules_set(HOST_RULES_TUG, n);
+            printf("@ ok\n");
+        } else {
+            printf("@ error rules none | tug N\n");
         }
     } else if (strcmp(cmd, "moves") == 0) {
         /* "moves P RULE": the moves slot P may use (moves.c): all, shine

@@ -42,7 +42,7 @@ def page(title, body, paper=True):
                 esc(title), "paper" if paper else "", body))
 
 
-def over_game(grey=None):
+def over_game(board=""):
     """What goes over the game's picture in a match or a drill: the input
     display (two controllers, filled in by the game: src/host/inputs.c),
     the pause menu, the verdict banner. Each has an id so the column can be
@@ -53,13 +53,9 @@ def over_game(grey=None):
             '</div><div id="gp1" class="gpad">%s</div></div>' % (
                 pad_display("g0", 0), pad_display("g1", 1))
             if PAD_ART else "")
-    # a mode's score in the HUD's stocks: each side's first stock, without
-    # its colour, where the HUD would put it, while the side has none
-    # (`grey`: the two pictures; Client.show_score shows them)
-    # (always there, empty without a score: the column's toggle moves it)
-    pads += '<div id="gstocks" class="gstocks">%s</div>' % "".join(
-        '<img id="gs%d" class="gstock" src="%s"/>' % (i, picture(g))
-        for i, g in enumerate(grey or ()) if g)
+    # a mode's own score board over the game (`board`: board()); always
+    # there, empty without one (the column's toggle moves it)
+    pads += '<div id="gboard" class="gboard">%s</div>' % board
     return (
         pads +
         '<div id="rays" class="rays"/>'
@@ -804,7 +800,7 @@ def next_step(m):
     return "Choose opponent" if m.fighters else "Choose characters"
 
 
-def results_page(m, sides, winner, rows, time, stage):
+def results_page(m, sides, winner, rows, time, stage, online=False):
     """After a mode is won (the owner, 2026-11-14: "Let's build a more
     robust game over screen. It should have stats, etc. for both players
     ... it should be in our UI style, but it should support custom stats,
@@ -813,7 +809,7 @@ def results_page(m, sides, winner, rows, time, stage):
     (modes.MatchStats). `sides`: per port {"c": the character, "costume",
     "name", "who" (You, CPU, a model's name), "you"}; `rows`: [(section,
     [(name, (port 0's, port 1's), better)])]; `time`: the match's length;
-    `stage`: its name."""
+    `stage`: its name. `online`: a match with a friend (A goes on)."""
     w = sides[winner]
     head = art_head(w["c"], w["costume"])
     # the score at a glance: each side's stock icon, the KOs each took
@@ -889,17 +885,99 @@ def results_page(m, sides, winner, rows, time, stage):
         '<div class="rxtab"><div class="rxhead"><div class="rxlab"/>%s%s</div>'
         '%s</div>' % (col(0), col(1), table) +
         footer(m.result([s_["name"] for s_ in sides]) + ". " + time + ".",
+               [("A", "Continue")] if online else
                [("A", "Rematch"),
                 ("X", "Options" if m.fighters else "Characters"),
                 ("B", "Opponent" if m.stage else "Change stage")]))
     return page("Results", body)
 
 
-def versus_rail(c, opp, who, what, stage, lab, mode=None, grey=None):
+# ---- a mode's score board over the game ----------------------------------------
+
+ROPE_STEP = 44          # dp between the rope's nodes (style.rcss .twk*)
+
+
+def rope_classes(m):
+    """{element id: its classes} for Tug of War's rope as the score stands:
+    a node per point from port 0's goal (left) to port 1's, the knot on
+    the node of the lead (the leader's stock icon there, a knot at even),
+    the nodes it has been pulled across in the leader's colour."""
+    lead, goal = m.rope()
+    at = goal - lead                    # port 0 ahead: toward the left
+    out = {}
+    for i in range(2 * goal + 1):
+        c = {"twat", "twk%d" % i}
+        if i == 0:
+            c |= {"goal", "goal0"}
+        elif i == 2 * goal:
+            c |= {"goal", "goal1"}
+        elif i == goal:
+            c.add("mid")
+        if lead > 0 and at <= i < goal:
+            c.add("lit0")
+        if lead < 0 and goal < i <= at:
+            c.add("lit1")
+        out["twn%d" % i] = c
+    mark = {"twat", "twm", "twk%d" % at}
+    mark.add("even" if lead == 0 else "who0" if lead > 0 else "who1")
+    if m.winner is not None:
+        mark.add("won")
+    out["twmark"] = mark
+    return out
+
+
+def rope_board(m, pics):
+    """Tug of War's score over the game (the owner, 2026-11-14: "an actual
+    tug of war display that moves the stock icon along nodes to visually
+    see who is winning"): P1's stock icon at the left end, P2's at the
+    right, a node per point between; the knot moves (rope_classes; the
+    client changes its classes and it slides) to the leader's side, the
+    leader's stock icon riding it. `pics`: each port's stock icon."""
+    lead, goal = m.rope()
+    st = rope_classes(m)
+
+    def cls(ident):
+        return " ".join(sorted(st[ident]))
+
+    def end(port):
+        img = '<img src="%s"/>' % picture(pics[port]) if pics[port] else ""
+        return ('<div class="twend">%s<div class="pvp p%d twtag">P%d</div>'
+                '</div>' % (img, port + 1, port + 1))
+
+    nodes = "".join('<div id="twn%d" class="%s"><div class="twdot"/></div>'
+                    % (i, cls("twn%d" % i)) for i in range(2 * goal + 1))
+    riders = "".join('<img class="twi%d" src="%s"/>' % (p, picture(pics[p]))
+                     for p in (0, 1) if pics[p])
+    return ('<div class="twb">%s<div class="twtrack" style="width: %ddp;">'
+            '<div class="twline"/>%s<div id="twmark" class="%s"><div '
+            'class="twknot"/>%s</div></div>%s</div>' % (
+                end(0), 2 * goal * ROPE_STEP, nodes, cls("twmark"), riders,
+                end(1)))
+
+
+# a mode's `board`: (its markup, its classes as the score stands)
+BOARDS = {"rope": (rope_board, rope_classes)}
+
+
+def board(m, pics):
+    """Mode `m`'s score board over the game, or "" (the HUD's stocks)."""
+    if m is None or m.board is None:
+        return ""
+    return BOARDS[m.board][0](m, pics)
+
+
+def board_classes(m):
+    """{element id: classes} of mode `m`'s board as its score stands."""
+    if m is None or m.board is None:
+        return {}
+    return BOARDS[m.board][1](m)
+
+
+def versus_rail(c, opp, who, what, stage, lab, mode=None, board=""):
     """The column beside a match in Versus or the Lab. `mode`: (the game
     mode's name, its score in words, its settings in words) in Versus;
-    `grey`: each side's stock icon without its colour, for a mode's score
-    (over_game)."""
+    `board`: the mode's score board over the game (board()).
+    """
     head = ('<div class="top" style="background-color: %s"/>'
             '<div class="slant" style="background-color: %s"/>'
             '<div class="head" style="color: %s"><div class="tags">%s</div>'
@@ -925,7 +1003,7 @@ def versus_rail(c, opp, who, what, stage, lab, mode=None, grey=None):
                                           esc(mode[1])) if mode else ""),
             tools,
             match_hints()))
-    return page("Versus", over_game(grey) + '<div id="rail" class="rail">%s'
+    return page("Versus", over_game(board) + '<div id="rail" class="rail">%s'
                 '<div class="body">%s</div></div>' % (head, body), paper=False)
 
 
@@ -1819,8 +1897,16 @@ def tutorial_card(v):
         visual = ('<div class="cpath cnone tpic">The example could not be '
                   'recorded in this game.</div>')
     text = v.get("text", [])
-    side = "".join('<div class="ttext">%s</div>' % esc(t)
-                   for t in (text if isinstance(text, list) else [text]))
+    paras = text if isinstance(text, list) else [text]
+    side = '<div class="twords">%s</div>' % "".join(
+        '<div class="ttext">%s</div>' % esc(t) for t in paras)
+    # the words fit beside the picture (300 high): smaller as they grow
+    # (the owner, 2026-11-14: a long lesson pushed the card's head off its
+    # place and clipped "LESSON 1 OF 1")
+    n = sum(len(t) for t in paras) + (60 if v.get("pic") is not None and
+                                      not v.get("still") else 0)
+    size = "t16" if n <= 360 else "t15" if n <= 440 else "t14" if \
+        n <= 520 else "t13" if n <= 620 else "t12"
     if v.get("pic") is not None and not v.get("still"):
         side += ('<div class="th">This frame</div><div id="cecap" '
                  'class="tcap"/>')
@@ -1841,13 +1927,13 @@ def tutorial_card(v):
         '<div class="un">Tutorial</div></div><div class="ctitle" style='
         '"font-size: %ddp;">%s</div><div class="grow"/><div class="cwhat">'
         '%s</div></div>'
-        '<div class="tmain">%s<div class="tside">%s</div></div>'
+        '<div class="tmain">%s<div class="tside %s">%s</div></div>'
         '<div class="cmid">%s</div>'
         '<div class="tchips">%s</div>'
         '<div class="grow"/><div class="cfoot">%s</div></div>' % (
             size, esc(v["title"]), esc(v.get("sub", "")).replace("\n",
                                                                 "<br/>"),
-            visual, side, below, chips, "".join(
+            visual, size, side, below, chips, "".join(
                 '<div class="ckey">%s<div>%s</div></div>' % (key(b, dark=True),
                                                              esc(w))
                 for b, w in v["keys"])))

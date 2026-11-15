@@ -308,24 +308,6 @@ class Native:
                                                            height))
         return self._cmd("camera " + how)
 
-    def didraw(self, port, on=True):
-        """TM-CE's DI display for player `port` (src/host/didraw.c): while
-        the fighter is in hitstun, a blue line in the world, its launch
-        predicted frame by frame for the stick held (ASDI, DI, gravity, the
-        stage), made again every frame of hitlag and then kept for the
-        flight; and its SDI moves in yellow and orange. Off: gone."""
-        return self._cmd("didraw %d %s" % (port, "on" if on else "off"))
-
-    def didraw_line(self, port):
-        """What the DI display draws now for `port`: (the DI line's
-        vertices, the SDI path's), each a list of (x, y)."""
-        words = self._cmd("didraw %d line" % port).split()
-        k = words.index("sdi")
-        nums = [float(w) for w in words[2:k]]
-        sdi = [float(w) for w in words[k + 2:]]
-        return (list(zip(nums[0::2], nums[1::2])),
-                list(zip(sdi[0::2], sdi[1::2])))
-
     def quiet(self, on=True):
         """Frames nobody sees or hears until quiet(False): no draw pass, no
         sound, and (the window build) no pacing and the last picture kept.
@@ -397,6 +379,25 @@ class Native:
         until changed."""
         self._cmd("costume %d %d" % (port, n))
 
+    def rules(self, kind="none", n=0):
+        """How a match ends besides its stocks, decided in the game's own
+        frame (src/host/rules.c): "none", or "tug" with the lead `n` that
+        wins (port 1's falls less port 0's). The match then ends as a stock
+        match does (GAME!), and the host starts it again ("ended")."""
+        self._cmd("rules %s" % kind if kind == "none" else
+                  "rules %s %d" % (kind, n))
+
+    def game_end(self, on=True):
+        """The match ends as a stock match does when its last stock is
+        lost: GAME! and the announcer, the music let go, everything but
+        the interface standing still (the game's own end freeze). It stays
+        there; game_end(False) lets it go (before the next match)."""
+        self._cmd("gameend %d" % (1 if on else 0))
+
+    def game_ended(self):
+        """Whether GAME! has played out since game_end()."""
+        return self._cmd("gameend").split()[-1] == "1"
+
     def moves(self, port, rule="all"):
         """The moves port `port`'s fighter may use (src/host/moves.c):
         "all", "shine" (the down special and no attack: A, Z and the
@@ -416,6 +417,24 @@ class Native:
         of the game's picture, showing what the fighter reads. Needs TM-CE's
         lab.dat on the disc (tools/tmce_disc.py)."""
         return self._cmd("inputs %d" % mask)
+
+    def didraw(self, port, on=True):
+        """TM-CE's DI display for player `port` (src/host/didraw.c): while
+        the fighter is in hitstun, a blue line in the world, its launch
+        predicted frame by frame for the stick held (ASDI, DI, gravity, the
+        stage), made again every frame of hitlag and then kept for the
+        flight; and its SDI moves in yellow and orange. Off: gone."""
+        return self._cmd("didraw %d %s" % (port, "on" if on else "off"))
+
+    def didraw_line(self, port):
+        """What the DI display draws now for `port`: (the DI line's
+        vertices, the SDI path's), each a list of (x, y)."""
+        words = self._cmd("didraw %d line" % port).split()
+        k = words.index("sdi")
+        nums = [float(w) for w in words[2:k]]
+        sdi = [float(w) for w in words[k + 2:]]
+        return (list(zip(nums[0::2], nums[1::2])),
+                list(zip(sdi[0::2], sdi[1::2])))
 
     def frames_rec(self, ring, follow=15):
         """Each frame drawn from now on copied into ring `ring` (0 or 1; -1:

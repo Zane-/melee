@@ -17,8 +17,12 @@ Before code, write down (and confirm with the owner when anything is unclear):
 - what one KO does to the score, for the side that took it and the side that lost it
   (a self-destruct gives the point to the other side: the client cannot tell them apart);
 - when the match is won, and by whom;
-- what the HUD's stock icons show at the start and after each KO (each side up to 5
-  icons; nothing at the start reads as "nothing yet");
+- how its score shows: a board over the game (`screens.BOARDS`: the rope, or a new one)
+  or, for a stock match, the game's own HUD;
+- how the game ends it: a stock match at its last stock, or a rule decided in the game's
+  own frame from its counters (`src/host/rules.c`: `tug`; a new end is a new rule there,
+  in C). The client never writes a score into the game: that is what keeps every mode
+  playable online (`docs/ai/game-modes.md`, "Online");
 - what the player can set before the match (each setting's values and default);
 - whether it fixes the characters, the stage, or the moves both sides may use (`all`,
   `shine`, `recovery`; a rule the host lacks is C in `src/host/moves.c`, see the doc);
@@ -57,7 +61,12 @@ class FirstTo(Mode):
         if self.taken[1 - port] >= self.settings["goal"]:
             self.winner = 1 - port
 
-    def stocks(self):                  # the HUD: up to 5 icons each
+    def end_rule(self):                # the game ends it (src/host/rules.c:
+        return ("first", self.settings["goal"])  # a "first" rule to add)
+
+    board = "score"                    # its board (screens.BOARDS: to add)
+
+    def stocks(self):                  # the stocks each side has, if any
         return tuple(self.taken)
 
     def status(self, names):
@@ -88,7 +97,14 @@ A mode played with set characters, on a set stage, with only some moves (Shine B
 ```
 
 A stage outside the select's six also goes in `stages.OTHER` (its name) and, if the
-native build lacks it, `native.STAGES` (its id).
+native build lacks it, `native.STAGES` (its id). A stock match is `stock_match()`
+returning the stocks each: the game keeps them, shows them and ends the match.
+
+A new end rule is C in `src/host/rules.c` (read only the game's counters, e.g.
+`Player_GetFalls`; return `OUTCOME_ELIMINATION` when won), its word in the host's `rules`
+command and `modes.RULES`. A new board is a pair in `screens.BOARDS`: its markup and its
+classes as the score stands (`rope_board`, `rope_classes`; the client changes only the
+classes, so a `transition` in `style.rcss` animates them).
 
 Then add it to `MODES` where it belongs in the selector's order.
 
@@ -119,8 +135,8 @@ Then extend `tests/client/versus_modes.py` (a virtual display; run it in the bac
 `python -u`, a timeout of about twice its usual time: see CLAUDE.md): choose the mode on
 the selector, set its options, play a match against a fighter nobody plays, make KOs with
 its `ko(port)` helper (a fighter dropped below the blast zone), and check `c.game_mode`'s
-score, the HUD's stocks (`w.state()["p"][i]["stocks"]`), the end, the results screen
-(`results.rml`) and the rematch; for a mode that fixes things, that the selects are
+score, its board's classes or a stock match's stocks (`w.state()["p"][i]["stocks"]`), the
+game ending the match, the results screen (`results.rml`) and the rematch; for a mode that fixes things, that the selects are
 skipped and the moves rule is in force (`w._cmd("moves 0")`). Take pictures (`--shots
 DIR`, under `build/shots/`, never committed) of the selector, the options, the HUD and the
 results, and look at them.
@@ -135,9 +151,11 @@ different end) changes the host too: say what in that doc and in `docs/ai/native
 
 ## Limits now
 
-- Online Versus has no modes (both sides would have to agree and score alike).
+- Online, both sides must choose the same mode and settings (they are told when not).
+  Test a mode online too: `tests/client/online_modes.py`, KOs made by inputs (a fighter
+  walking off), never by commands into one game.
 - The game's CPU does not know a moves rule: it keeps choosing attacks that never come
   out. A restricted mode is played against a person or a model.
-- A KO is seen, not who caused it: a self-destruct counts as the other side's KO.
-- Every match is the endless time match: a mode's score is the client's, shown in the
-  stock row; the game's own "+1"/"−1" pop-ups still show on each KO.
+- A KO is the game's count of falls, not who caused it: a self-destruct counts as the
+  other side's KO.
+- In the endless match the game's own "SCORE +1"/"−1" pop-ups still show on each KO.

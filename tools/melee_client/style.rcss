@@ -500,15 +500,42 @@ img { display: inline-block; }
    (src/host/inputs.c fills it in) */
 .gpads { position: absolute; left: 0dp; top: 0dp; width: 960dp; padding: 14dp 16dp 0dp 0dp; box-sizing: border-box; display: flex; flex-direction: row; justify-content: flex-end; }
 .gpads.mid { left: 160dp; }
-/* a mode's score in the HUD's stocks: a side's first stock without its
-   colour where the HUD puts it (the game's 640 by 480 at 1.5), while the
-   side has none */
-.gstocks { position: absolute; left: 0dp; top: 0dp; width: 960dp; height: 720dp; }
-.gstocks.mid { left: 160dp; }
-.gstock { display: none; position: absolute; top: 544dp; width: 32dp; height: 32dp; }
-.gstock.on { display: block; }
-#gs0 { left: 40dp; }
-#gs1 { left: 268dp; }
+/* a mode's score board over the game (screens.board): Tug of War's rope,
+   P1's goal at the left, P2's at the right, a node a point; the knot slides
+   from node to node (its class changes) with the leader's stock icon */
+.gboard { position: absolute; left: 0dp; top: 14dp; width: 960dp; display: flex; flex-direction: row; justify-content: center; }
+.gboard.mid { left: 160dp; }
+.twb { display: flex; flex-direction: row; align-items: center; padding: 6dp 12dp; background-color: #12161CB8; border-radius: 10dp; }
+.twend { display: flex; flex-direction: column; align-items: center; width: 40dp; }
+.twend img { width: 30dp; height: 30dp; }
+.pvp.twtag { position: relative; width: 22dp; height: 12dp; line-height: 12dp; padding-bottom: 1dp; font-size: 9dp; opacity: 0.9; margin-top: 2dp; }
+.twtrack { position: relative; height: 44dp; margin: 0dp 12dp; }
+.twline { position: absolute; left: 0dp; right: 0dp; top: 20dp; height: 4dp; border-radius: 2dp; background-color: #C9A46A; }
+.twat { position: absolute; top: 0dp; width: 0dp; height: 44dp; }
+.twat.twk0 { left: 0dp; }
+.twat.twk1 { left: 44dp; }
+.twat.twk2 { left: 88dp; }
+.twat.twk3 { left: 132dp; }
+.twat.twk4 { left: 176dp; }
+.twat.twk5 { left: 220dp; }
+.twat.twk6 { left: 264dp; }
+.twat.twk7 { left: 308dp; }
+.twat.twk8 { left: 352dp; }
+.twat.twk9 { left: 396dp; }
+.twat.twk10 { left: 440dp; }
+.twdot { position: absolute; left: -5dp; top: 17dp; width: 10dp; height: 10dp; border-radius: 5dp; background-color: #4A5361; border: 1dp #12161C; }
+.twat.mid .twdot { left: -2dp; top: 10dp; width: 4dp; height: 24dp; border-radius: 2dp; background-color: #F3F6FA; border-width: 0dp; }
+.twat.goal .twdot { left: -9dp; top: 13dp; width: 18dp; height: 18dp; border-radius: 9dp; border: 3dp #F3F6FA; background-color: #12161C; }
+.twat.goal0 .twdot { border-color: #E5484D; }
+.twat.goal1 .twdot { border-color: #3E7BFA; }
+.twat.lit0 .twdot { background-color: #E5484D; }
+.twat.lit1 .twdot { background-color: #3E7BFA; }
+.twm { transition: left 0.4s cubic-out; }
+.twknot { display: none; position: absolute; left: -10dp; top: 12dp; width: 20dp; height: 20dp; border-radius: 10dp; background-color: #E2B563; border: 3dp #12161C; }
+.twm.even .twknot { display: block; }
+.twm img { display: none; position: absolute; left: -19dp; top: 3dp; width: 38dp; height: 38dp; }
+.twm.who0 .twi0 { display: block; }
+.twm.who1 .twi1 { display: block; }
 .gpad { display: none; position: relative; width: 150dp; height: 108dp; margin-left: 10dp; }
 .gpad.on { display: block; }
 .gpad .pv { right: 0dp; bottom: 0dp; width: 150dp; height: 108dp; }
@@ -589,12 +616,23 @@ img { display: inline-block; }
    frame, a teal head, the part's example played large, frame by frame */
 .cstrip.tut { background-color: #22B8A0; }
 .cbadge.tut { background-color: #22B8A0; width: 112dp; }
-.tmain { display: flex; flex-direction: row; padding: 18dp 24dp 0dp 24dp; }
+.tmain { display: flex; flex-direction: row; padding: 18dp 24dp 0dp 24dp; height: 300dp; flex-shrink: 0; overflow: hidden; }
+/* the card's head, grid, parts and keys keep their size, whatever the words
+   (tutorial_card sizes them to fit beside the picture) */
+.tcard .chead, .tcard .cmid, .tcard .tchips, .tcard .cfoot { flex-shrink: 0; }
 .cpic.tpic { width: 520dp; height: 300dp; }
 .cpath.tpic { width: 520dp; height: 300dp; }
-.tside { flex: 1; margin-left: 18dp; display: flex; flex-direction: column; }
+.tside { flex: 1; margin-left: 18dp; display: flex; flex-direction: column; height: 300dp; overflow: hidden; }
+/* the words take what the frame's caption leaves; cut only as a last
+   resort, the caption never */
+.twords { flex: 1; overflow: hidden; }
+.tside .th { flex-shrink: 0; }
+.tside.t15 .ttext { font-size: 15dp; margin-bottom: 9dp; }
+.tside.t14 .ttext { font-size: 14dp; margin-bottom: 8dp; }
+.tside.t13 .ttext { font-size: 13dp; line-height: 1.3em; margin-bottom: 7dp; }
+.tside.t12 .ttext { font-size: 12dp; line-height: 1.3em; margin-bottom: 6dp; }
 .th { font-family: "IBM Plex Mono"; font-style: normal; font-size: 12dp; font-weight: 600; color: #18977F; margin-bottom: 4dp; text-transform: uppercase; }
-.tcap { font-family: "Barlow Condensed"; font-weight: 700; font-size: 24dp; line-height: 1.15em; color: #12161C; height: 112dp; overflow: hidden; margin-bottom: 12dp; }
+.tcap { font-family: "Barlow Condensed"; font-weight: 700; font-size: 22dp; line-height: 1.15em; color: #12161C; height: 52dp; overflow: hidden; flex-shrink: 0; }
 .ttext { font-size: 16dp; line-height: 1.35em; color: #12161C; margin-bottom: 12dp; }
 .tcue { display: none; position: absolute; left: 0dp; right: 0dp; top: 34dp; padding: 8dp 12dp; font-family: "Barlow Condensed"; font-weight: 800; font-style: italic; font-size: 26dp; text-transform: uppercase; text-align: center; }
 .tcue.on { display: block; }

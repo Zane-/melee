@@ -76,6 +76,9 @@ class Mode:
     # only says who plays it), the stage (the stage select is skipped)
     fighters = None
     stage = None
+    # its own score display over the game (screens.BOARDS: "rope"), or
+    # None: the HUD shows the score (a stock match's own stocks)
+    board = None
 
     def __init__(self, **settings):
         self.settings = {}
@@ -115,6 +118,17 @@ class Mode:
     def scores(self):
         """Whether the mode shows a score at all (the HUD's stock row)."""
         return False
+
+    def stock_match(self):
+        """The match's stocks each (a stock match: the game keeps them, the
+        HUD shows them and the game ends it at the last), or 0: the endless
+        time match."""
+        return 0
+
+    def end_rule(self):
+        """How the game ends the match besides its stocks, decided in its
+        own frame (src/host/rules.c): ("none", 0) or ("tug", lead)."""
+        return ("none", 0)
 
     def moves(self):
         """The moves both sides may use (src/host/moves.c): "all",
@@ -165,6 +179,7 @@ class TugOfWar(Mode):
     name = "Tug of War"
     tagline = "Start even. Win by a lead of stocks."
     icon = "tug"
+    board = "rope"
     colour, ink = "#E2B563", "#12161C"
     options = (Option("lead", "Win by",
                       "How far ahead the rope has to be pulled to win: by "
@@ -222,6 +237,13 @@ class TugOfWar(Mode):
 
     def stocks(self):
         return (max(self.lead, 0), max(-self.lead, 0))
+
+    def rope(self):
+        """(port 0's lead, the lead that wins): the rope board's knot."""
+        return self.lead, self.settings["lead"]
+
+    def end_rule(self):
+        return ("tug", self.settings["lead"])
 
     def status(self, names):
         if self.winner is not None:
@@ -294,6 +316,9 @@ class ShineBattle(Mode):
     def moves(self):
         return "recovery" if self.recovery() else "shine"
 
+    def stock_match(self):
+        return self.settings["stocks"]
+
     def start(self):
         super().start()
         self.left = [self.settings["stocks"]] * 2
@@ -355,6 +380,8 @@ class ShineBattle(Mode):
 MODES = [Unlimited, TugOfWar, ShineBattle]
 BY_ID = {m.ident: m for m in MODES}
 MOVES = ("all", "shine", "recovery")
+BOARDS = (None, "rope")     # screens.BOARDS draws each
+RULES = ("none", "tug")     # src/host/rules.c
 
 
 def clock(frames):
@@ -413,24 +440,40 @@ class MatchStats:
         ]
 
 
-class KOs:
-    """KOs as the client sees them, frame by frame: a fighter entering a
-    dead state from any other. `see(fighters)` with the state's two
-    fighters returns the ports KO'd this frame."""
+class Falls:
+    """KOs from the game's own count of each player's falls (a
+    self-destruct counts too): `see(fighters)` with the state's two
+    fighters returns the ports that fell since the last look. Online, give
+    `frame` (the session frame the state is of) and `confirmed` (the last
+    frame both sides' inputs are known for, `net stats`): a fall then
+    counts only once its frame is confirmed, and one a rollback takes back
+    is never counted."""
 
     def __init__(self):
-        self.was = [None, None]
+        self.counted = [None, None]
+        self.waiting = [[], []]     # frames each uncounted fall was seen on
 
-    def see(self, fighters):
+    def see(self, fighters, frame=None, confirmed=None):
         out = []
         for port in (0, 1):
             f = fighters[port] if port < len(fighters) else None
-            state = f["state"] if f else None
-            dead = state in DEAD
-            if dead and self.was[port] is not None and \
-                    self.was[port] not in DEAD:
+            if not f:
+                continue
+            n = f.get("falls", 0)
+            if self.counted[port] is None:
+                self.counted[port] = n
+                continue
+            w = self.waiting[port]
+            have = self.counted[port] + len(w)
+            if n < have:            # a rollback took one back
+                del w[max(0, n - self.counted[port]):]
+            for _ in range(n - have):
+                w.append(frame)
+            while w and (confirmed is None or (w[0] is not None and
+                                               confirmed >= w[0])):
+                w.pop(0)
+                self.counted[port] += 1
                 out.append(port)
-            self.was[port] = state
         return out
 
 
@@ -507,6 +550,24 @@ def check(cls, icons=None, tries=300, seed=1, characters=None,
             if m.winner is not None:
                 out.append("%s(%r): won before a KO" % (cls.__name__,
                                                         kept))
+                break
+            if m.scores() and m.board is None and not m.stock_match():
+                out.append("%s(%r): keeps a score, but neither a board nor "
+                           "a stock match shows it" % (cls.__name__, kept))
+                break
+            if m.scores() and not m.stock_match() and \
+                    m.end_rule()[0] == "none":
+                out.append("%s(%r): keeps a score, but the game never ends "
+                           "the match (a stock match or a rule)" % (
+                               cls.__name__, kept))
+                break
+            if m.end_rule()[0] not in RULES:
+                out.append("%s(%r): end rule %r, not one of %s" % (
+                    cls.__name__, kept, m.end_rule(), RULES))
+                break
+            if m.board not in BOARDS:
+                out.append("%s: board %r, not one of %s" % (
+                    cls.__name__, m.board, BOARDS))
                 break
             if m.moves() not in MOVES:
                 out.append("%s(%r): moves %r, not one of %s" % (

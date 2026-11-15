@@ -592,8 +592,7 @@ class Client:
                 self.bot = None
             self.w.pad(1 - self.port)
         self.w.mask(0)
-        self.w.moves(0)
-        self.w.moves(1)
+        self.mode_rules(None)
         self.inputs_off()
         self.has_cover = False
         self.column_as_kept()
@@ -670,7 +669,7 @@ class Client:
                 self.progress.save()
         on = 1 if self.column_hidden else 0
         self.w.ui("class rail hidden %d" % on)
-        for ident in ("gpads", "gstocks", "bannerwrap", "pause", "rays",
+        for ident in ("gpads", "gboard", "bannerwrap", "pause", "rays",
                       "coach"):
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
@@ -994,6 +993,10 @@ class Client:
         when START is held."""
         if self.ended is None:
             return False
+        mode = getattr(self, "game_mode", None)
+        if mode is not None and mode.scores() and \
+                self.screen in ("versus", "online_match"):
+            return False    # mode_frame tells a won match from a quit one
         now = self.w.state().get("ended", 0)
         if now != self.ended:
             self.ended = now
@@ -1051,10 +1054,7 @@ class Client:
         elif pressed & A:
             self.versus_kind = "online" if self.vfocus == "vonline" \
                 else "local"
-            if self.versus_kind == "local":
-                self.show_modes()
-            else:
-                self.show_characters()
+            self.show_modes()
 
     # ---- versus: the game mode (modes.py) ---------------------------------
 
@@ -1119,9 +1119,9 @@ class Client:
                 self.after_mode()
 
     def mode_class(self):
-        """The Versus mode chosen (Local), or None outside it."""
-        if self.mode != "versus" or \
-                getattr(self, "versus_kind", "local") != "local":
+        """The Versus mode chosen (Local or Online), or None outside
+        Versus."""
+        if self.mode != "versus":
             return None
         return modes.BY_ID[getattr(self, "versus_mode", "unlimited")]
 
@@ -1138,7 +1138,10 @@ class Client:
         self.opp_at = next(i for i, c in enumerate(self.roster)
                            if c["id"] == theirs)
         self.who = None
-        self.show_opponent()
+        if getattr(self, "versus_kind", "local") == "online":
+            self.show_online()      # the friend plays the other side
+        else:
+            self.show_opponent()
 
     def back_to_mode(self):
         """Back to the mode's options, or the modes if it has none."""
@@ -1211,15 +1214,8 @@ class Client:
         if pressed & A:
             self.dress()
         if pressed & B:
-            if self.mode == "versus" and \
-                    getattr(self, "versus_kind", "local") == "local":
-                if modes.BY_ID[getattr(self, "versus_mode",
-                                       "unlimited")].options:
-                    self.show_mode_options()
-                else:
-                    self.show_modes()
-            elif self.mode == "versus":
-                self.show_versus_menu()
+            if self.mode == "versus":
+                self.back_to_mode()
             else:
                 self.show_main()
         elif pressed & A and self.mode == "versus" and \
@@ -1453,10 +1449,7 @@ class Client:
         # HUD's stocks (shown once the fighters are in: show_score), and
         # the moves it allows, from the first frame (src/host/moves.c)
         self.game_mode = self.make_mode(cls) if cls is not None else None
-        rule = self.game_mode.moves() if self.game_mode is not None \
-            else "all"
-        self.w.moves(0, rule)
-        self.w.moves(1, rule)
+        self.mode_rules(self.game_mode)
         if self.bot is not None:
             self.bot.close()
             self.bot = None
@@ -1469,14 +1462,10 @@ class Client:
         self.load_quietly(lambda: self.w.start(
             self.me["id"], opp["id"], stage,
             seed=random.randrange(1, 1 << 30), p2_human=key != CPU,
-            settle=False))
+            settle=False, stocks=self.game_mode.stock_match()
+            if self.game_mode is not None else 0))
         self.last = self.me
-        self.kos = modes.KOs()
-        self.score_shown = False
-        self.ends_in = None
-        self.stocks_shown = (0, 0)
-        self.grey_in = [0, 0]
-        self.match_stats = modes.MatchStats()
+        self.mode_begin()
         if self.mode == "versus":
             self.last_match = "%s against %s · %s" % (
                 self.me["name"], opp["name"], stages.name(stage))
@@ -1492,8 +1481,10 @@ class Client:
             mode=(self.game_mode.name, self.game_mode.status(self.sides()),
                   self.game_mode.summary())
             if self.game_mode is not None and self.game_mode.scores()
-            else None, grey=self.grey_stocks()),
+            else None,
+            board=screens.board(self.game_mode, self.port_stocks())),
             START | (DPAD if self.mode == "lab" else 0))
+        self.board_now = screens.board_classes(self.game_mode)
         self.w.capture(False)
 
     def sides(self):
@@ -1507,18 +1498,74 @@ class Client:
         names[self.port], names[1 - self.port] = me, opp
         return names
 
-    def grey_stocks(self):
-        """Each port's stock icon without its colour (a mode that scores
-        in stocks: its side with none), or None."""
-        if self.game_mode is None or not self.game_mode.scores():
-            return None
+    def mode_rules(self, m):
+        """Mode `m`'s rules into the game before its match (None: none):
+        the moves both sides may use, and how the game ends it besides its
+        stocks. The same on both sides of an online session."""
+        rule = m.moves() if m is not None else "all"
+        self.w.moves(0, rule)
+        self.w.moves(1, rule)
+        self.w.rules(*(m.end_rule() if m is not None else ("none", 0)))
+
+    def mode_begin(self):
+        """A match with the mode begins: its score from nothing."""
+        self.kos = modes.Falls()
+        self.score_shown = False
+        self.match_stats = modes.MatchStats()
+        self.ended_was = None
+
+    def mode_frame(self, online=False):
+        """Each frame of a match with a mode that scores: KOs from the
+        game's own count of falls (online: once both sides' inputs up to
+        them are known, so a rollback never shows one it takes back), the
+        mode's score, stats and board. The game ends the match itself (a
+        stock match's last stock, or the mode's rule: src/host/rules.c),
+        with its own GAME! (the owner, 2026-11-14: "use the stock game's
+        GAME! screen which freezes the game the moment it ends"); the host
+        then starts it again, and the results come over it. True when it
+        has gone on to them."""
+        mode = getattr(self, "game_mode", None)
+        if mode is None or not mode.scores():
+            return False
+        st = self.w.state()
+        fighters = st["p"]
+        if self.ended_was is None:
+            self.ended_was = st["ended"]
+        if st["ended"] != self.ended_was:
+            if mode.winner is None:     # quit (L+R+A+Start), not won
+                if online:
+                    self.leave_online("online", "You left the match.")
+                else:
+                    self.leave_match("back")
+            else:
+                self.show_results()
+            return True
+        if not self.score_shown and all(fighters):
+            self.show_score()           # (the HUD is there now)
+            self.score_shown = True
+        frame = confirmed = None
+        if online:
+            ns = self.w.net("stats")
+            frame, confirmed = ns["frame"] - 1, ns["confirmed"]
+        kos = self.kos.see(fighters, frame, confirmed)
+        if mode.winner is None:
+            self.match_stats.see(fighters, kos)
+            mode.tick(fighters)
+        for port in kos:
+            mode.ko(port)
+        if kos:
+            self.show_score()
+        return False
+
+    def port_stocks(self, grey=False):
+        """Each port's stock icon, in the costume it wears."""
         opp = self.roster[self.opp_at]
-        grey = [None, None]
-        grey[self.port] = art.stock(self.me["id"], self.worn(
-            self.port, self.dressed(self.me)), grey=True)
-        grey[1 - self.port] = art.stock(opp["id"], self.worn(
-            1 - self.port, self.opp_dressed(opp)), grey=True)
-        return grey
+        pics = [None, None]
+        pics[self.port] = art.stock(self.me["id"], self.worn(
+            self.port, self.dressed(self.me)), grey=grey)
+        pics[1 - self.port] = art.stock(opp["id"], self.worn(
+            1 - self.port, self.opp_dressed(opp)), grey=grey)
+        return pics
 
     def worn(self, port, chosen):
         """The costume port `port`'s fighter wears in the match (a
@@ -1527,67 +1574,32 @@ class Client:
         f = self.w.state()["p"][port]
         return f.get("costume", chosen) if f else chosen
 
-    # frames a side's colourless stock waits after its last one breaks
-    GREY_AFTER = 40
-
     def show_score(self):
-        """The mode's score: the HUD's stocks, a side with none its stock
-        without colour (after its last breaks), and in words in the
-        column."""
-        shown = self.game_mode.stocks()
-        before = getattr(self, "stocks_shown", (0, 0))
-        self.grey_in = list(getattr(self, "grey_in", [0, 0]))
-        for port, n in enumerate(shown):
-            self.w.stocks(port, n)
-            if n == 0 and before[port] > 0:
-                self.grey_in[port] = self.GREY_AFTER
-            elif n == 0 and self.grey_in[port] == 0:
-                self.w.ui("class gs%d on 1" % port)
-            if n > 0:
-                self.grey_in[port] = 0
-                self.w.ui("class gs%d on 0" % port)
-        self.stocks_shown = tuple(shown)
+        """The mode's score: in words in the column, and on its board over
+        the game (the classes that changed: a knot slides); a stock match's
+        is the game's own HUD."""
         self.w.ui("text vscore " + screens.esc(
             self.game_mode.status(self.sides())))
-
-    def grey_wait(self):
-        """Each frame: a side's colourless stock after its last broke."""
-        for port in (0, 1):
-            if getattr(self, "grey_in", [0, 0])[port] > 0:
-                self.grey_in[port] -= 1
-                if self.grey_in[port] == 0 and \
-                        self.stocks_shown[port] == 0:
-                    self.w.ui("class gs%d on 1" % port)
-
-    # frames from the winning KO to the result: the stock in the HUD first
-    GAME_SHOWN = 40
-
-    # frames the result shows over the stopped game before the results
-    RESULTS_AFTER = 90
-
-    def game_over(self):
-        """The mode says the match is won: the game stopped where it is,
-        GAME and the winner over it, then the results screen."""
-        self.w.freeze(True)
-        winner = self.game_mode.winner
-        self.w.ui("text bword Game")
-        self.w.ui("text bmsg " + screens.esc(
-            "%s wins" % self.sides()[winner]))
-        self.game_colour(winner == self.port)
-        self.w.ui("class banner on 1")
-        self.results_in = self.RESULTS_AFTER
-        self.screen = "vgame"
-
-    def on_vgame(self, pressed, moves):
-        self.results_in -= 1
-        if self.results_in <= 0 or pressed & (A | B):
-            self.show_results()
+        now = screens.board_classes(self.game_mode)
+        for ident, classes in now.items():
+            was = self.board_now.get(ident, set())
+            for c in sorted(classes - was):
+                self.w.ui("class %s %s 1" % (ident, c))
+            for c in sorted(was - classes):
+                self.w.ui("class %s %s 0" % (ident, c))
+        self.board_now = now
 
     def show_results(self):
         """The results (screens.results_page): the winner, each side's
         numbers, the mode's own first; A plays it again, X the characters,
         B the stages."""
         m = self.game_mode
+        online = getattr(self, "online", None)
+        if not online:
+            # the match the host started again, held unseen and unheard
+            # behind the results (online it runs on: both games must)
+            self.w.freeze(True)
+            self.w.quiet(True)
         opp = self.roster[self.opp_at]
         sides = [None, None]
         sides[self.port] = dict(
@@ -1596,24 +1608,23 @@ class Client:
         sides[1 - self.port] = dict(
             c=opp, costume=self.worn(1 - self.port, self.opp_dressed(opp)),
             name=self.sides()[1 - self.port],
-            who=self.players()[self.who][1])
+            who=online["them"] if online else self.players()[self.who][1])
         rows = [(m.name, m.stats()), ("The match", self.match_stats.rows())]
         stage = stages.name(self.stage_now)
         self.screen = "results"
         self.load("results", screens.results_page(
             m, sides, m.winner, rows, modes.clock(self.match_stats.frames),
-            stage))
-
-    def game_colour(self, won):
-        """The result's banner green if the player won, red if not (None:
-        neither). (Versus's column has no verdict to colour.)"""
-        for ident in ("chip", "banner"):
-            self.w.ui("class %s good %d" % (ident, 1 if won is True else 0))
-            self.w.ui("class %s bad %d" % (ident, 1 if won is False else 0))
+            stage, online=bool(online)))
 
     def on_results(self, pressed, moves):
+        if getattr(self, "online", None):
+            if pressed & (A | B):
+                self.screen = "online_match"
+                self.leave_online("online", "Match over. Play again?")
+            return
         if pressed & (A | B | X):
             self.w.freeze(False)
+            self.w.quiet(False)
         if pressed & A:
             self.fight()
         elif pressed & (B | X):
@@ -1726,7 +1737,11 @@ class Client:
                 self.settings["delay"], getattr(self, "router", None)))
         if pressed & B:
             self.close_lobby()
-            self.show_characters()
+            cls = self.mode_class()
+            if cls is not None and cls.fighters is not None:
+                self.back_to_mode()
+            else:
+                self.show_characters()
             return
         if not pressed & A or self.lobby is None:
             return
@@ -1758,12 +1773,28 @@ class Client:
             if pad & B:
                 cancelled.append(1)
                 raise online.OnlineError("cancelled")
+        # the game mode, set as this side chose it: the friend's must be
+        # the same (online.ModeMismatch)
+        m = self.make_mode(self.mode_class() or modes.Unlimited)
         try:
             met = self.lobby.meet(
                 code, dict(nick=self.nickname(), char=self.me["id"],
-                           color=0),
-                stage=STAGE_ORDER[self.stage_at],
+                           color=0, mode=dict(ident=m.ident,
+                                              settings=dict(m.settings))),
+                stage=m.stage or STAGE_ORDER[self.stage_at],
                 delay=self.settings["delay"], tick=tick)
+        except online.ModeMismatch as e:
+            theirs = modes.BY_ID.get(e.mode.get("ident"))
+            if theirs is None:
+                said = "a mode this client does not have"
+            else:
+                t = theirs(**e.mode.get("settings", {}))
+                said = theirs.name + (" (%s)" % t.summary()
+                                      if t.summary() else "")
+            self.online_say("%s chose %s. Choose the same mode and "
+                            "settings to play." % (name or "Your friend",
+                                                   said))
+            return
         except online.OnlineError as e:
             self.online_say("Cancelled." if cancelled else
                             "Not found: %s. Ask for a new code, or check "
@@ -1792,6 +1823,16 @@ class Client:
         self.w.live(self.port, "off")
         self.w.pad(0)
         self.w.pad(1)
+        # the game mode both sides agreed on (online.Lobby.meet), its rules
+        # in both games the same way before the session, the costumes
+        # told apart in a mirror
+        cls = modes.BY_ID.get(met["mode"].get("ident"), modes.Unlimited)
+        self.game_mode = cls(**met["mode"].get("settings", {}))
+        self.stage_now = met["stage"]
+        self.opp_at = characters.find(self.roster, met["chars"][other])[0]
+        self.mode_rules(self.game_mode)
+        self.w.costume(0, met["colors"][0])
+        self.w.costume(1, met["colors"][1])
         # unseen and unheard, as every load (load_quietly); both sides
         # load the same way, so the two games stay the same. The quiet
         # stretch ends before the frames ahead of the session: the music
@@ -1802,7 +1843,8 @@ class Client:
         self.w.quiet(True)
         try:
             self.w.start(met["chars"][0], met["chars"][1], met["stage"],
-                         seed=met["seed"], p2_human=True, settle=False)
+                         seed=met["seed"], p2_human=True, settle=False,
+                         stocks=self.game_mode.stock_match())
         finally:
             self.w.quiet(False)
         self.w.step(FRAMES_BEFORE_SESSION)
@@ -1813,16 +1855,23 @@ class Client:
                    met["peer"][1], met["delay"])
         self.online = dict(them=them, met=met, frames=0, said=None)
         opp = characters.find(self.roster, met["chars"][other])[1]
+        m = self.game_mode
+        self.mode_begin()
         self.screen = "online_match"
         self.playing()
         self.in_match("versus", screens.versus_rail(
-            self.me, opp, them, "online: a friend",
-            met["stage"].replace("-", " ").title(), False), START | DPAD)
+            self.me, opp, them, "online: a friend", stages.name(met["stage"]),
+            False, mode=(m.name, m.status(self.sides()), m.summary())
+            if m.scores() else None,
+            board=screens.board(m, self.port_stocks())), START | DPAD)
+        self.board_now = screens.board_classes(m)
         self.w.capture(False)
 
     def on_online_match(self, pressed, moves):
         o = self.online
         o["frames"] += 1
+        if self.mode_frame(online=True):
+            return
         if o["frames"] % 30 == 0:
             st = self.w.net("stats")
             if st["peer_left"]:
@@ -1853,6 +1902,8 @@ class Client:
         self.port = self.online_left_port
         self.w.live(self.port, self.source)
         settings.apply(self.w, self.settings)   # UCF as the player had it
+        self.mode_rules(None)
+        self.game_mode = None
         self.w.mask(0)
         self.inputs_off()
         self.has_cover = False
@@ -1887,30 +1938,8 @@ class Client:
                 pads = [None, None]
                 pads[self.port] = self.pad_now
                 self.bot.ask(self.w.state()["p"], pads)
-        mode = getattr(self, "game_mode", None)
-        if mode is not None and mode.scores():
-            fighters = self.w.state()["p"]
-            if not self.score_shown and all(fighters):
-                self.show_score()           # (the HUD is there now)
-                self.score_shown = True
-            kos = self.kos.see(fighters)
-            self.grey_wait()
-            self.match_stats.see(fighters, kos)
-            mode.tick(fighters)
-            for port in kos:
-                mode.ko(port)
-            if kos:
-                self.show_score()
-                if mode.winner is not None and self.ends_in is None:
-                    # the winning stock shown in the HUD first, then the
-                    # game stopped
-                    self.ends_in = self.GAME_SHOWN
-            if self.ends_in is not None:
-                self.ends_in -= 1
-                if self.ends_in <= 0:
-                    self.ends_in = None
-                    self.game_over()
-                    return
+        if self.mode_frame():
+            return
         if self.mode == "lab":
             f = self.w.fighter(other)
             if pressed & DOWN:

@@ -71,9 +71,43 @@ def main():
                 p[1]["stocks"] if p[1] else None)
 
     def grey():
-        """Whether each side's colourless stock shows."""
-        return tuple("on" in json.loads(w._cmd("ui look gs%d" % i))[
-            "class"].split() for i in (0, 1))
+        """Whether each side's colourless stock shows (a mode with a board
+        has none)."""
+        out = []
+        for i in (0, 1):
+            try:
+                out.append("on" in json.loads(w._cmd("ui look gs%d" % i))[
+                    "class"].split())
+            except window.NativeError:
+                out.append(False)
+        return tuple(out)
+
+    def knot():
+        """The rope's knot: (its node, whose icon rides it or "even")."""
+        cls = json.loads(w._cmd("ui look twmark"))["class"].split()
+        at = next(int(c[3:]) for c in cls if c.startswith("twk"))
+        who = "even" if "even" in cls else "who0" if "who0" in cls else \
+            "who1" if "who1" in cls else "?"
+        return at, who
+
+    def lit():
+        """The rope's nodes lit in a side's colour: (P1's, P2's)."""
+        out = [0, 0]
+        for i in range(2 * c.game_mode.settings["lead"] + 1):
+            cls = json.loads(w._cmd("ui look twn%d" % i))["class"].split()
+            out[0] += "lit0" in cls
+            out[1] += "lit1" in cls
+        return tuple(out)
+
+    def until_results(budget=400):
+        """Frames until the game has ended the match (GAME!) and the
+        results are up."""
+        for _ in range(budget):
+            if c.screen == "results":
+                break
+            frames(1)
+        check("GAME! plays out, the game ends the match, then the "
+              "results", c.screen == "results", c.screen)
 
     def to_mode(ident):
         """The selector's stick moved onto mode `ident`."""
@@ -156,57 +190,63 @@ def main():
         tap("x")                    # the stage select
         tap("x", after=20)          # Battlefield: the match
         frames(90)
-        check("the match is Tug of War won by 3, even: no stock in the HUD",
+        check("the match is Tug of War won by 3, even",
               c.screen == "versus" and c.game_mode.ident == "tug-of-war" and
               c.game_mode.settings["lead"] == 3 and c.game_mode.lead == 0 and
-              stocks() == (0, 0) and
-              c.game_mode.status(c.sides()) == "Even", str(stocks()))
-        check("even: both sides' stocks without colour, so each % is "
-              "still known", grey() == (True, True), str(grey()))
+              c.game_mode.status(c.sides()) == "Even")
+        check("the rope over the game: 7 nodes, the knot in the middle",
+              knot() == (3, "even") and lit() == (0, 0) and
+              "twn6" in open(os.path.join(c.out, "versus.rml")).read() and
+              "twn7" not in open(os.path.join(c.out, "versus.rml")).read(),
+              str(knot()))
+        check("the HUD left as the endless match's (its own stock icon by "
+              "each %): no colourless ones", grey() == (False, False),
+              "%s %s" % (stocks(), grey()))
         shot("even")
 
         ko(1)
-        check("you take a stock: Fox +1, one stock in your HUD",
-              c.game_mode.lead == 1 and stocks() == (1, 0) and
-              c.game_mode.status(c.sides()) == "Fox +1",
-              "%d %s" % (c.game_mode.lead, stocks()))
-        check("yours in colour now, theirs still without",
-              grey() == (False, True), str(grey()))
+        check("you take a stock: Fox +1, the knot a node toward you with "
+              "your stock icon on it", c.game_mode.lead == 1 and
+              knot() == (2, "who0") and lit() == (1, 0) and
+              c.game_mode.status(c.sides()) == "Fox +1", str(knot()))
         frames(30)
         shot("you-plus-one")
         ko(0)
-        check("they take one back: even, your stock gone",
-              c.game_mode.lead == 0 and stocks() == (0, 0),
-              "%d %s" % (c.game_mode.lead, stocks()))
-        check("your colourless stock waits while the last one breaks",
-              grey() == (False, True), str(grey()))
-        frames(client.Client.GREY_AFTER)
-        check("then shows", grey() == (True, True), str(grey()))
+        check("they take one back: the knot back in the middle",
+              c.game_mode.lead == 0 and knot() == (3, "even") and
+              lit() == (0, 0), str(knot()))
         frames(6)
         shot("even-again")
         ko(0)
-        check("they take another: a stock in theirs",
-              c.game_mode.lead == -1 and stocks() == (0, 1),
-              "%d %s" % (c.game_mode.lead, stocks()))
+        check("they take another: the knot a node toward them, their "
+              "icon on it", c.game_mode.lead == -1 and
+              knot() == (4, "who1") and lit() == (0, 1), str(knot()))
         frames(400)
         check("the score holds through both coming back",
-              stocks() == (0, 1) and c.screen == "versus", str(stocks()))
+              knot() == (4, "who1") and c.screen == "versus", str(knot()))
         shot("them-plus-one")
         for want in (0, 1, 2):
             ko(1)
             check("you pull it to %+d" % want, c.game_mode.lead == want and
-                  stocks() == (max(want, 0), 0) and c.screen == "versus",
-                  "%d %s" % (c.game_mode.lead, stocks()))
+                  knot()[0] == 3 - want and c.screen == "versus",
+                  "%d %s" % (c.game_mode.lead, knot()))
+        frames(30)
+        shot("you-plus-two")
         ko(1)
-        check("three ahead wins: the winning stock shows in the HUD first",
-              c.screen == "versus" and stocks() == (3, 0), str(stocks()))
-        frames(client.Client.GAME_SHOWN)
-        check("then the game stops, GAME and the winner over it",
-              c.screen == "vgame" and c.game_mode.winner == 0,
-              "%s %s" % (c.screen, stocks()))
+        check("three ahead wins: the knot on your goal", c.game_mode.winner
+              == 0 and knot() == (0, "who0") and lit() == (3, 0),
+              "%s %s" % (c.screen, knot()))
+        f0 = w.state()["p"][0]
+        frames(10)
+        f1 = w.state()["p"][0]
+        check("the game ends the match itself, as a stock match's last "
+              "stock: everything stands still for its GAME!",
+              (f0["x"], f0["y"], f0["frame"]) == (f1["x"], f1["y"],
+                                                  f1["frame"]) and
+              c.screen == "versus", c.screen)
         frames(20)
         shot("game")
-        frames(client.Client.RESULTS_AFTER)
+        until_results()
         page = open(os.path.join(c.out, "results.rml")).read()
         check("then the results: the winner, each side's numbers, the "
               "mode's own first", c.screen == "results" and
@@ -230,11 +270,9 @@ def main():
               "%s %s" % (c.screen, stocks()))
         for _ in range(3):
             ko(0)
-        frames(client.Client.GAME_SHOWN)
-        check("they win by three the same way", c.screen == "vgame" and
-              c.game_mode.winner == 1, c.screen)
-        tap("z", after=4)
-        check("B skips to the results", c.screen == "results", c.screen)
+        check("they win by three the same way", c.game_mode.winner == 1
+              and knot() == (6, "who1"), c.screen)
+        until_results()
         tap("z", after=10)
         check("B goes back to the stages", c.screen == "stages", c.screen)
         check("leaving the match gives every move back",
@@ -280,8 +318,9 @@ def main():
               "%s %s" % (c.screen, w.match_info))
         check("both sides shine only", rule(0) == "shine" and
               rule(1) == "shine", "%s %s" % (rule(0), rule(1)))
-        check("4 stocks each in the HUD from the start",
-              stocks() == (4, 4) and grey() == (False, False),
+        check("4 stocks each in the HUD from the start, and no rope",
+              stocks() == (4, 4) and grey() == (False, False) and
+              "twmark" not in open(os.path.join(c.out, "versus.rml")).read(),
               str(stocks()))
         shot("shine-start")
         ko(0)
@@ -290,10 +329,10 @@ def main():
               str(stocks()))
         for _ in range(4):
             ko(1)
-        frames(client.Client.GAME_SHOWN)
-        check("their last stock lost: you win", c.screen == "vgame" and
-              c.game_mode.winner == 0, c.screen)
-        tap("x", after=10)
+        check("their last stock lost: you win; the game's own stock match "
+              "ends", c.game_mode.winner == 0 and stocks()[1] == 0,
+              str(stocks()))
+        until_results()
         page = open(os.path.join(c.out, "results.rml")).read()
         check("the results: 3 stocks left, the shines counted",
               c.screen == "results" and "3 stocks left" in page and

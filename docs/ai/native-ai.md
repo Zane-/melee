@@ -406,6 +406,25 @@ the ground, in the air, held and out of shield by its jump, the ledge, the recov
 a level 9 CPU for a minute); `tests/client/versus_modes.py` (the results, the colourless
 stocks, a Shine Battle); `tests/client/modes_format.py`.
 
+**The rope, the game's own GAME!, and every mode online (2026-11-14).** The owner: "a more
+first-class custom score display for tug of war ... an actual tug of war display that
+moves the stock icon along nodes"; "Instead of having a banner, we should use the stock
+game's GAME! screen which freezes the game the moment it ends"; "ensure all game modes
+work with online play as well". Tug of War's score is a rope over the game
+(`screens.BOARDS`), its knot sliding node to node with the leader's stock icon; the HUD is
+the endless match's own. The game now ends every mode's match itself: Shine Battle is a
+real stock match, and Tug of War's lead is a rule in the game's frame
+(`src/host/rules.c`, asked by `gm_GetMatchOutcome` through a patch, reading the players'
+falls), which ends the match as a last stock does: the game stops, GAME! and the
+announcer, the scene's end; the host starts the match again and the client's results come
+over it. KOs are the game's count of falls (`state()`'s new "falls"). Since the client
+never writes a score into the game (the earlier `stocks P N` and the colourless stocks
+are gone from it; `gameend` stays in the host, unused), the two games of an online session
+stay one: Online now goes through the mode select, the lobby's hello carries the mode and
+its settings (both must match), both set the same rules before the session, KOs count once
+confirmed, and both reach GAME! on the same frame. `tests/client/online_modes.py`;
+`tests/client/versus_modes.py`.
+
 **The character card: behind a wall (2026-11-14).** The game's portraits end flat at the
 bottom and the right of their frame, and the card's ink edge cut across each one. The
 owner chose the canvas's "A · Card: behind a wall" ("but I also want a line in between the
