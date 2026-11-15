@@ -166,27 +166,7 @@
     "judge": [
       {
         "leaves": "turn",
-        "to": "wait"
-      },
-      {
-        "leaves": "turn",
-        "to": "jump_squat"
-      },
-      {
-        "leaves": "turn",
-        "to": "shield"
-      },
-      {
-        "leaves": "turn",
-        "to": "grab"
-      },
-      {
-        "leaves": "turn",
-        "to": "squat"
-      },
-      {
-        "leaves": "turn",
-        "to": "up_smash"
+        "not_to": "dash"
       },
       {
         "enters": "wait",
@@ -227,32 +207,10 @@
       }
     },
     "pivot": {
-      "happened": [
-        {
-          "leaves": "turn",
-          "to": "wait"
-        },
-        {
-          "leaves": "turn",
-          "to": "jump_squat"
-        },
-        {
-          "leaves": "turn",
-          "to": "shield"
-        },
-        {
-          "leaves": "turn",
-          "to": "grab"
-        },
-        {
-          "leaves": "turn",
-          "to": "squat"
-        },
-        {
-          "leaves": "turn",
-          "to": "up_smash"
-        }
-      ]
+      "happened": {
+        "leaves": "turn",
+        "not_to": "dash"
+      }
     },
     "backs": {
       "count": {
@@ -262,7 +220,7 @@
     }
   },
   "verdict": {
-    "success": "Pivot: {char} turned and stood, facing the other way."
+    "success": "Pivot: {char} turned around and stopped, facing the other way."
   },
   "checks": {
     "turned": {
@@ -284,7 +242,7 @@
     "pivot": {
       "measure": "pivot",
       "equals": true,
-      "expect": "A turn that ends with {char} standing",
+      "expect": "A turn that does not lead into a dash back",
       "words": "each turn led into a dash back",
       "headline": "Dashed back",
       "fix": "Let the stick come back under 0.8 on the frame after the turn. Held at full for 2 frames, the flick starts a dash back; one frame at full, then back toward the center, and {char} stands."
