@@ -82,6 +82,17 @@ def holds(e, f, fd):
             return f.get("opp_percent") is not None and \
                 p.get("opp_percent") is not None and \
                 f["opp_percent"] > p["opp_percent"]
+        if e in ("their_attack", "they_recover"):
+            now, was = f.get("opp_state"), p.get("opp_state")
+            if now is None or was is None:
+                return False
+            if e == "their_attack":
+                # the opponent starts an attack (format.THEIR_ATTACKS)
+                return now in F.THEIR_ATTACKS and was not in F.THEIR_ATTACKS
+            # the opponent can act again: free (sense.FREE), out of a state
+            # that is not
+            from melee_engine.sense import FREE
+            return now in FREE and was not in FREE
         return False
     if "is" in e:
         if not holds(e["is"], f, fd):
@@ -111,6 +122,12 @@ def holds(e, f, fd):
         return f["i"] == int(F.value(e["frame"], f["nums"])) - 1
     if p is None:
         return False
+    if "near" in e:
+        # the fighters come within D units of each other
+        if f.get("opp_x") is None or p.get("opp_x") is None:
+            return False
+        d = F.value(e["near"], f["nums"])
+        return abs(f["x"] - f["opp_x"]) <= d < abs(p["x"] - p["opp_x"])
     cid = fd.id
     if "enters" in e:
         return _in(f["state"], e["enters"], cid) and \
@@ -159,6 +176,8 @@ class JsonDrill(Drill):
             set(s.get("player", {})) <= {"x", "facing", "percent"}
             for s in spec["scenarios"])
         self.help = (spec["goal"], "D-Pad up: tutorial. D-Pad down: reset.")
+        # its own default reset after a judged try (Session.reset_rule)
+        self.reset = spec.get("reset")
         self.part_index = 0
         self.streak = 0
         self.v = {}
@@ -444,7 +463,9 @@ class JsonDrill(Drill):
                     p=self.v.get("last"), i=-1, nums=self.v.get("nums"),
                     gf=c.n.state().get("frame"),
                     opp_percent=c.cpu.percent if c.cpu is not None
-                    else None)
+                    else None,
+                    opp_state=c.cpu.state if c.cpu is not None else None,
+                    opp_x=c.cpu.pos[0] if c.cpu is not None else None)
 
     def _script(self, c, op):
         """The scenario's scripted opponent (`op`: its "script", "react",
@@ -475,6 +496,15 @@ class JsonDrill(Drill):
             thinker(c), c.s.cpu_port, c.s.person, op, seed=seed,
             half=abs(ledge[0]) if ledge and abs(ledge[0]) > 1 else 85.0,
             char=c.fd.id, memory=self.op_memory.get(op.get("character")))
+
+    def settle(self, c):
+        """After a judged try, until the reset (Session.settle): the
+        scripted opponent plays on (a combo on the player plays out), the
+        shield kept full in a shield drill."""
+        if self.spec.get("shield") == "infinite":
+            c.n.shield(c.s.person, 60.0)
+        if self.op_script is not None:
+            self._opponent(c)
 
     def _opponent(self, c):
         """The opponent's inputs this frame: its script's pad, or its
@@ -565,7 +595,9 @@ class JsonDrill(Drill):
                    i=len(self.v.get("rec") or ()) + 1
                    if c.phase == ATTEMPT else 0, gf=None,
                    opp_percent=r.t_percent if s.cpu_port is not None
-                   else None)
+                   else None,
+                   opp_state=r.t_state if s.cpu_port is not None else None,
+                   opp_x=r.t_x if s.cpu_port is not None else None)
         return rec
 
     def _look_ahead(self, c, f, a):
@@ -944,6 +976,8 @@ def inputs_to_refs(inputs, nums, start=REF_START):
         elif "stick" in i:
             kw["lx"], kw["ly"] = (int(round(F.value(a, nums) * 127))
                                   for a in i["stick"])
+            # [0, 0]: the stick in the middle, over an earlier input's
+            kw["still"] = kw["lx"] == 0 and kw["ly"] == 0
         elif "cstick" in i:
             kw["cx"], kw["cy"] = (int(round(F.value(a, nums) * 127))
                                   for a in i["cstick"])

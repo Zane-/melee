@@ -73,6 +73,12 @@ STATES = {
     "dair": 69, "aerial": (65, 66, 67, 68, 69),
     "aerial_landing": (70, 71, 72, 73, 74),
     "shield": (178, 179, 180, 181, 182), "grab": 212, "dash_grab": 214,
+    # a grab that caught: pulling in (CatchPull, CatchDashPull), holding
+    # (CatchWait)
+    "holding": (213, 215, 216),
+    # caught by the opponent's grab: CapturePulledHi to CaptureWaitLw (no
+    # damage: not a "hit")
+    "grabbed": tuple(range(223, 233)),
     "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),
     "roll": (233, 234), "spot_dodge": 235,
     # the shield's own (in "shield" too): stun after a hit on it,
@@ -120,11 +126,22 @@ BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
 # (Fighter_procHitlag runs before the frame's input); shot: an item more
 # than the frame before (a projectile fired: a laser)
 # connects: the opponent took damage (the player's attack landed)
+# their_attack: the opponent starts an attack (a ground attack, an aerial, a
+# grab or a dash grab: THEIR_ATTACKS); they_recover: the opponent can act
+# again (enters a state of sense.FREE from one outside it: its attack over)
 SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
-                 "hit", "hitlag_last", "hitlag_end", "shot", "connects")
+                 "hit", "hitlag_last", "hitlag_end", "shot", "connects",
+                 "their_attack", "they_recover")
+# the opponent's attacks, for their_attack: Attack11 to AttackLw4 (jab to
+# down smash, the dash attack), the aerials, Catch and CatchDash; not its
+# specials (a character's own states, numbered from 341, are not all
+# attacks)
+THEIR_ATTACKS = frozenset(tuple(range(44, 70)) + (212, 214))
 # "is": a simple event with modifiers ({"is": "airborne", "from": "shine"})
+# near: the fighters come within D units (along the stage, centre to
+# centre: the gap D or less, more the frame before)
 EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
-               "frame", "is")
+               "frame", "is", "near")
 # "after": an event that must have happened on an earlier frame of the
 # attempt (left the ground after a shine, not in the first short hop)
 # "not_to": left a state for anything but this one (a pivot: the turn left
@@ -164,7 +181,14 @@ TOP = {
     "checks": dict, "verdict": dict, "parts": list, "coach": dict,
 }
 OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str,
-            "shield": str}
+            "shield": str, "reset": dict}
+# a drill's "reset": its own default for the reset after a judged try (the
+# player's choice in Settings and the pause menu overrides it): "after"
+# "quiet" (once neither fighter has taken damage for "seconds"), "judged"
+# (at once) or "hand" (only when the player resets); without it, a drill
+# with an opponent resets after 3 quiet seconds (melee_course.engine,
+# Session.reset_rule), one without when judged
+RESET_AFTER = ("quiet", "judged", "hand")
 # a drill's "shield": "infinite": the player's shield full every frame (a
 # shield drill: it never shrinks, is never poked through, never breaks)
 SHIELDS = ("infinite",)
@@ -425,7 +449,7 @@ def _problems(spec):
             need(v in SIMPLE_EVENTS, where, "is: one of %s" %
                  ", ".join(SIMPLE_EVENTS))
         else:
-            num(v, where + ".frame")
+            num(v, where + "." + k)
         for m in ("from", "to", "not_to", "not_from"):
             if m in e:
                 state(e[m], where + "." + m)
@@ -491,6 +515,13 @@ def _problems(spec):
     if "switch" in spec:
         need(spec["switch"] in SWITCHES, "drill.switch",
              "one of %s" % ", ".join(SWITCHES))
+    if isinstance(spec.get("reset"), dict):
+        r = spec["reset"]
+        need(set(r) <= {"after", "seconds"} and
+             r.get("after", "quiet") in RESET_AFTER and
+             isinstance(r.get("seconds", 3), (int, float)) and
+             0 < r.get("seconds", 3) <= 20, "drill.reset",
+             '{"after": %s, "seconds": 1 to 20}' % "|".join(RESET_AFTER))
     if out:
         return out
     need(re.match(r"^[a-z0-9-]+$", spec["id"]) is not None, "id",

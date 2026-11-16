@@ -24,6 +24,11 @@ opponent is a script of the engine's vocabulary (`opponent-vocabulary.md`): a de
 2021 tier list's top 11, each approaching the shield held to the shine out of shield
 contract, on the front of the shield (never crossing up or overshooting), its attack drawn
 from every family it has that the frame-4 shine answers (2026-11-15).
+Neutral (2026-11-15): Fox's whiff punish (`fox-whiff-punish`): the same eleven, each
+standing until the player comes within its reach and 8 units more (seen 15 frames late),
+then one of the attacks of its own that a jump-cancelled grab punishes from where it
+misses; the attempt runs from its attack's first frame (`their_attack`) to the grab, a
+hit, or the opponent free again (`they_recover`: too late).
 
 ## Where things are
 
@@ -89,14 +94,23 @@ its proof, never written into one drill's file.
   every input ignored) and `shield_release` (GuardOff, 180: let go, 15 frames; X or Y
   there jumps, down is a spot dodge), both in `shield` too, and
   Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
-  shine_ground`. Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
+  shine_ground`; `holding` (CatchPull, CatchDashPull, CatchWait: the player's grab caught)
+  and `grabbed` (the player held by the opponent's grab, which deals no damage: not a
+  `hit`). Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
   frame shield stun's animation ends is the first a new X or Y works on (Guard reads it on
   that frame), and the record of that frame is the first that has left `shield_stun`.
 - **Events** (when something happens, frame by frame): `start`, `end`, `airborne`, `lands`,
   `apex` (the first frame not rising), `fast_fall`, `hit` (damage taken), `hitlag_last`
   (the last frozen frame, whose stick DI and ASDI read: `Fighter_procHitlag` runs before the
   frame's input), `hitlag_end`, `shot` (an item more than the frame before: a laser),
-  `connects` (the opponent took damage: the player's attack landed);
+  `connects` (the opponent took damage: the player's attack landed), `their_attack` (the
+  opponent starts a ground attack, an aerial, a grab or a dash grab: states 44 to 69, 212
+  and 214, `format.THEIR_ATTACKS`; not its specials, numbered from 341 with other states:
+  Peach's forward smash is one), `they_recover` (the opponent can act again: it enters a
+  state of `sense.FREE` out of one that is not), both read from the opponent's state in
+  the frame record (`opp_state`, live and played ahead); `{"near": D}` (the fighters come
+  within D units, centre to centre along the stage: D or less, more the frame before; D
+  may be an expression: `{"near": 16, "after": {"frame": "GO"}}`, the punish's grab);
   `{"is": SIMPLE, "from": S}` (a simple event with modifiers: left the ground out of a
   shine);
   `{"enters": S, "from": S2}`, `{"leaves": S, "to": S2}`, `{"pressed": B}`,
@@ -145,7 +159,9 @@ its proof, never written into one drill's file.
   `{"mr-game-and-watch": [...]}` (his neutral air cannot be L-cancelled). Frame 1 is the
   attempt's first; stick x
   positive is forward. A full hop's jump is held `J+2` frames (a fixed 6 is a short hop for
-  Bowser).
+  Bowser). A stick of `[0, 0]` holds the stick in the middle over an earlier input's (the
+  whiff punish's walk, held from before the attack, let go of once the dash back is over:
+  `Ref.still`).
 - **Attempt**: `start` and `judge` (events), `cancel` (events that drop it uncounted; by
   default, leaving the start's state on the ground), `limit` (frames, default 150),
   `timeout` (`judge` or `drop` at the limit), `within` (frames after the reset by which the
@@ -157,6 +173,24 @@ its proof, never written into one drill's file.
   (entered from anything but S: a SHFFL's next jump, not the jump out of the shine). In a
   drill that does not reset (`flow`) the next try starts on the frame the last was judged
   on, read against the frame before it: an event on it can start the try.
+- **Reset** (after a judged try; the owner, 2026-11-15: "only reset if no damage has been
+  done for 3 seconds ... test out follow ups from punishes and such much more
+  naturally"). In the client, a drill with an opponent plays on after the verdict, the
+  player's pad theirs and the opponent's script running (`Drill.settle`), and resets once
+  neither fighter has taken damage for 3 seconds, counted from the verdict or the last
+  damage (`Session.settle`, `reset_rule` in `tools/melee_course/engine.py`); a KO or a
+  fighter 10 units under the stage's floor resets at once, and it waits 20 seconds at
+  most. Nothing after the verdict changes it or the stats; the next try starts after the
+  reset. A drill without an opponent, or one that does not reset (`flow`), is as before.
+  A drill's own default: `"reset": {"after": "quiet" | "judged" | "hand", "seconds": N}`
+  (`format.RESET_AFTER`). The player's choice overrides it: Reset (After damage stops,
+  When judged, By hand: D-pad down or the pause menu's Restart) and Quiet time (1, 2, 3,
+  4, 5 or 8 seconds), in the drill's pause menu and in Settings, Display (the same values,
+  kept in the progress file; until chosen, the drill's own). Headless sessions (`live`
+  false: `check.py`, the actors' runs) reset when judged, as before. Proof:
+  `tests/client/whiff_punish.py` (a pummel and a throw after the punish delay the reset
+  to 3 seconds after them; with no damage it comes 3 seconds after the verdict; When
+  judged, at once), `tests/client/settings_menu.py`.
 - **Scenarios**: `stage` (`final-destination battlefield yoshis-story dream-land
   fountain-of-dreams pokemon-stadium`; one stage for a drill, its first scenario's: the
   player's `x` may be an expression, `"84-SHD"`;

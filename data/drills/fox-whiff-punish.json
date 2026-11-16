@@ -1,0 +1,1352 @@
+{
+  "id": "fox-whiff-punish",
+  "name": "Whiff punish",
+  "part": "neutral",
+  "characters": [
+    "fox"
+  ],
+  "goal": "Make an attack miss, then grab it before it can act",
+  "why": "An attack that misses leaves its user in its recovery, unable to act. Coming in to the edge of its range draws it out; out of reach as it swings, Fox dashes in and grabs before it recovers. Smashes and slow tilts leave the most time.",
+  "switch": "success",
+  "tutorial": {
+    "what": "Come in to the edge of its range. When it attacks, dash back out; once its hitbox is gone, dash in and grab: X or Y, then Z in the jump squat.",
+    "expect": "Each attack is judged when your grab or hit lands, when you are hit, or when it can act again: whether it missed, and whether the punish came in time. The opponents attack with {attacks}.",
+    "example": [
+      {
+        "stick": [
+          0.5,
+          0
+        ],
+        "frame": 20,
+        "hold": 400
+      },
+      {
+        "stick": [
+          -1,
+          0
+        ],
+        "frame": 1,
+        "hold": 6,
+        "from": "start"
+      },
+      {
+        "stick": [
+          0,
+          0
+        ],
+        "frame": 7,
+        "hold": 200,
+        "from": "start"
+      },
+      {
+        "stick": [
+          1,
+          0
+        ],
+        "frame": "GO",
+        "hold": 200,
+        "from": "start"
+      },
+      {
+        "press": "jump",
+        "frame": 1,
+        "from": {
+          "near": 16,
+          "after": {
+            "frame": "GO"
+          }
+        }
+      },
+      {
+        "press": "Z",
+        "frame": 2,
+        "from": {
+          "near": 16,
+          "after": {
+            "frame": "GO"
+          }
+        }
+      }
+    ],
+    "marks": {
+      "1": "Frame 1: its attack starts. Dash back out",
+      "7": "Frame {f}: out of its range",
+      "GO": "Frame {GO}: its hitbox is gone. Dash in"
+    },
+    "lessons": [
+      {
+        "title": "Whiff punishing",
+        "text": [
+          "An opponent attacks when it sees you come close, about a quarter of a second after you do. Stop at the edge of its range or dash back out as it starts, and the attack misses.",
+          "Its recovery follows: frames in which it cannot act. Dash in once its hitbox is gone; within reach, press X or Y, then Z in the jump squat. The jump-cancelled grab catches it before it can act."
+        ],
+        "scenario": 1,
+        "show": {
+          "example": {
+            "inputs": [
+              {
+                "stick": [
+                  0.5,
+                  0
+                ],
+                "frame": 20,
+                "hold": 400
+              },
+              {
+                "stick": [
+                  -1,
+                  0
+                ],
+                "frame": 1,
+                "hold": 6,
+                "from": "start"
+              },
+              {
+                "stick": [
+                  0,
+                  0
+                ],
+                "frame": 7,
+                "hold": 200,
+                "from": "start"
+              },
+              {
+                "stick": [
+                  1,
+                  0
+                ],
+                "frame": "GO",
+                "hold": 200,
+                "from": "start"
+              },
+              {
+                "press": "jump",
+                "frame": 1,
+                "from": {
+                  "near": 16,
+                  "after": {
+                    "frame": "GO"
+                  }
+                }
+              },
+              {
+                "press": "Z",
+                "frame": 2,
+                "from": {
+                  "near": 16,
+                  "after": {
+                    "frame": "GO"
+                  }
+                }
+              }
+            ],
+            "marks": {
+              "1": "Frame 1: its attack starts. Dash back out",
+              "7": "Frame {f}: out of its range",
+              "GO": "Frame {GO}: its hitbox is gone. Dash in"
+            },
+            "cues": [
+              {
+                "frames": [
+                  1,
+                  6
+                ],
+                "words": "Dash back out",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  7,
+                  "GO-1"
+                ],
+                "words": "Out of its range: it misses",
+                "kind": "info"
+              },
+              {
+                "frames": [
+                  "GO",
+                  "GO"
+                ],
+                "words": "Dash in",
+                "kind": "go"
+              },
+              {
+                "frames": [
+                  "GO+1",
+                  "GO+30"
+                ],
+                "words": "Within reach: X or Y, then Z",
+                "kind": "info"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "Fox",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "fox",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    40
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, down smash, dash grab"
+      }
+    },
+    {
+      "name": "Marth",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "marth",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    40
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, up smash"
+      }
+    },
+    {
+      "name": "Jigglypuff",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "jigglypuff",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    36
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, down smash, up smash, dash grab"
+      }
+    },
+    {
+      "name": "Falco",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "falco",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    44
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dtilt"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 9,
+        "attacks": "down smash, up smash, down tilt, dash grab"
+      }
+    },
+    {
+      "name": "Sheik",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "sheik",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    44
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "ftilt"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dtilt"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 9,
+        "attacks": "forward smash, up smash, forward tilt, down tilt, dash grab"
+      }
+    },
+    {
+      "name": "Captain Falcon",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "captain-falcon",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    36
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, down smash, up smash"
+      }
+    },
+    {
+      "name": "Peach",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "peach",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    28
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "utilt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "up smash, up tilt"
+      }
+    },
+    {
+      "name": "Ice Climbers",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "ice-climbers",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    32
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "utilt"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, up smash, up tilt"
+      }
+    },
+    {
+      "name": "Pikachu",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "pikachu",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    36
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, down smash, up smash, dash grab"
+      }
+    },
+    {
+      "name": "Yoshi",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "yoshi",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    32
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "grab"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, up smash, grab"
+      }
+    },
+    {
+      "name": "Samus",
+      "stage": "final-destination",
+      "player": {
+        "x": -30
+      },
+      "opponent": {
+        "character": "samus",
+        "x": 12,
+        "facing": "player",
+        "react": 15,
+        "script": [
+          {
+            "do": "hold",
+            "pad": "stand",
+            "until": {
+              "all": [
+                "approach",
+                {
+                  "distance": [
+                    0,
+                    36
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "mix": [
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "fsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "usmash"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "loop": true
+      },
+      "camera": "normal",
+      "numbers": {
+        "GO": 22,
+        "attacks": "forward smash, down smash, up smash"
+      }
+    }
+  ],
+  "attempt": {
+    "start": "their_attack",
+    "judge": [
+      "hit",
+      {
+        "enters": "grabbed"
+      },
+      "they_recover"
+    ],
+    "limit": 120,
+    "timeout": "judge",
+    "within": 600,
+    "missed": "Not counted: it did not attack. Come in to the edge of its range."
+  },
+  "measures": {
+    "was_hit": {
+      "happened": [
+        "hit",
+        {
+          "enters": "grabbed"
+        }
+      ]
+    },
+    "shielded": {
+      "happened": {
+        "enters": "shield_stun"
+      }
+    },
+    "punished": {
+      "happened": [
+        "connects",
+        {
+          "enters": "holding"
+        }
+      ]
+    },
+    "punish_frame": {
+      "frame_of": [
+        "connects",
+        {
+          "enters": "holding"
+        }
+      ]
+    }
+  },
+  "checks": {
+    "out of range": {
+      "measure": "was_hit",
+      "equals": false,
+      "expect": "Out of its range as it attacks",
+      "words": "{char} was in its range",
+      "headline": "Caught",
+      "fix": "Stop at the edge of its range, or dash back out as its attack starts. It attacks where it saw you a quarter of a second before."
+    },
+    "no shield": {
+      "measure": "shielded",
+      "equals": false,
+      "expect": "The attack misses",
+      "words": "the attack hit your shield",
+      "headline": "Shielded",
+      "fix": "Let it miss: dash back out of its range instead of shielding. Out of the shield there is less time left to punish."
+    },
+    "punished": {
+      "measure": "punished",
+      "equals": true,
+      "expect": "A grab or a hit before it can act",
+      "words": "it could act again before the punish",
+      "headline": "Too late",
+      "fix": "Dash in as soon as its hitbox is gone. Within reach, X or Y, then Z in the jump squat: the jump-cancelled grab comes out at once, sliding with the dash."
+    }
+  },
+  "verdict": {
+    "success": "Punished on frame {punish_frame} of its attack."
+  },
+  "parts": [
+    {
+      "name": "Make it miss",
+      "teach": "Walk or dash in to the edge of its range: it attacks when it sees you come close. Dash back out as it starts, and the attack misses.",
+      "example": [
+        {
+          "stick": [
+            0.5,
+            0
+          ],
+          "frame": 20,
+          "hold": 400
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 6,
+          "from": "start"
+        },
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 7,
+          "hold": 200,
+          "from": "start"
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: its attack starts. Dash back out",
+        "7": "Frame {f}: out of its range",
+        "GO": "Frame {GO}: its hitbox is gone. Dash in"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            6
+          ],
+          "words": "Dash back out",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            7,
+            "GO-1"
+          ],
+          "words": "Out of its range: it misses",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "out of range",
+        "no shield"
+      ],
+      "success": "It missed.",
+      "streak": 3,
+      "scenario": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "coach": {
+        "rows": [
+          {
+            "label": "Control stick",
+            "stick": "side",
+            "perfect": []
+          }
+        ],
+        "note": "Frame 1 is the first frame of its attack. Dash back out on it."
+      }
+    },
+    {
+      "name": "Punish the whiff",
+      "teach": "Once its hitbox is gone, dash in. Within reach, X or Y, then Z in the jump squat: a jump-cancelled grab before it can act. D-pad left and right: another opponent.",
+      "example": [
+        {
+          "stick": [
+            0.5,
+            0
+          ],
+          "frame": 20,
+          "hold": 400
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 6,
+          "from": "start"
+        },
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 7,
+          "hold": 200,
+          "from": "start"
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "GO",
+          "hold": 200,
+          "from": "start"
+        },
+        {
+          "press": "jump",
+          "frame": 1,
+          "from": {
+            "near": 16,
+            "after": {
+              "frame": "GO"
+            }
+          }
+        },
+        {
+          "press": "Z",
+          "frame": 2,
+          "from": {
+            "near": 16,
+            "after": {
+              "frame": "GO"
+            }
+          }
+        }
+      ],
+      "marks": {
+        "1": "Frame 1: its attack starts. Dash back out",
+        "7": "Frame {f}: out of its range",
+        "GO": "Frame {GO}: its hitbox is gone. Dash in"
+      },
+      "cues": [
+        {
+          "frames": [
+            1,
+            6
+          ],
+          "words": "Dash back out",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            7,
+            "GO-1"
+          ],
+          "words": "Out of its range: it misses",
+          "kind": "info"
+        },
+        {
+          "frames": [
+            "GO",
+            "GO"
+          ],
+          "words": "Dash in",
+          "kind": "go"
+        },
+        {
+          "frames": [
+            "GO+1",
+            "GO+30"
+          ],
+          "words": "Within reach: X or Y, then Z",
+          "kind": "info"
+        }
+      ],
+      "checks": [
+        "out of range",
+        "no shield",
+        "punished"
+      ],
+      "streak": 5,
+      "scenario": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "attempt": {
+        "start": "their_attack",
+        "judge": [
+          "connects",
+          {
+            "enters": "holding"
+          },
+          "hit",
+          {
+            "enters": "grabbed"
+          },
+          "they_recover"
+        ],
+        "limit": 120,
+        "timeout": "judge",
+        "within": 600,
+        "missed": "Not counted: it did not attack. Come in to the edge of its range."
+      }
+    }
+  ],
+  "mistakes": [
+    {
+      "name": "dashing in and stopping next to it",
+      "inputs": [
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": 20,
+          "hold": 6
+        }
+      ],
+      "fails": "out of range"
+    },
+    {
+      "name": "the dash in 30 frames late",
+      "inputs": [
+        {
+          "stick": [
+            0.5,
+            0
+          ],
+          "frame": 20,
+          "hold": 400
+        },
+        {
+          "stick": [
+            -1,
+            0
+          ],
+          "frame": 1,
+          "hold": 6,
+          "from": "start"
+        },
+        {
+          "stick": [
+            0,
+            0
+          ],
+          "frame": 7,
+          "hold": 200,
+          "from": "start"
+        },
+        {
+          "stick": [
+            1,
+            0
+          ],
+          "frame": "GO+30",
+          "hold": 200,
+          "from": "start"
+        },
+        {
+          "press": "jump",
+          "frame": 1,
+          "from": {
+            "near": 16,
+            "after": {
+              "frame": "GO+30"
+            }
+          }
+        },
+        {
+          "press": "Z",
+          "frame": 2,
+          "from": {
+            "near": 16,
+            "after": {
+              "frame": "GO+30"
+            }
+          }
+        }
+      ],
+      "fails": "punished"
+    }
+  ],
+  "coach": {
+    "rows": [
+      {
+        "label": "Control stick",
+        "stick": "side",
+        "perfect": []
+      },
+      {
+        "label": "Jump (X or Y)",
+        "button": "jump",
+        "perfect": []
+      },
+      {
+        "label": "Grab (Z)",
+        "button": "Z",
+        "perfect": []
+      },
+      {
+        "label": "Grab caught",
+        "state": "holding",
+        "perfect": []
+      }
+    ],
+    "note": "Frame 1 is the first frame of its attack. Dash back out, dash in once its hitbox is gone, and grab within reach."
+  }
+}

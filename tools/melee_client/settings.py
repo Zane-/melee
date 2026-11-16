@@ -29,6 +29,18 @@ COACH = (0, 2, 3, 4, 5)          # the coach's card after this many misses
 TIMING = ("lenient", "strict")
 TIMING_WORDS = {"lenient": "Lenient", "strict": "Frame-perfect"}
 DELAY_MAX = 9                    # as far as Slippi's own setting goes
+# the reset after a judged try in a drill with an opponent (the course
+# engine's RESET_*): once neither fighter has taken damage for QUIET
+# seconds, when judged, or only by hand. Kept once the player chooses ("reset",
+# "quiet"); until then each drill's own default, else after 3 quiet seconds
+RESETS = ("quiet", "judged", "hand")
+RESET_WORDS = {"quiet": "After damage stops", "judged": "When judged",
+               "hand": "By hand"}
+QUIET = (1, 2, 3, 4, 5, 8)
+
+
+def quiet_words(n):
+    return "1 second" if n == 1 else "%d seconds" % n
 FRAME_MS = 1000.0 * 1001 / 60000  # the console's 59.94 frames a second
 
 
@@ -50,6 +62,10 @@ def get(progress):
         s["coach"] = DEFAULTS["coach"]
     if s["timing"] not in TIMING:
         s["timing"] = DEFAULTS["timing"]
+    if "reset" in s and s["reset"] not in RESETS:
+        del s["reset"]
+    if "quiet" in s and s["quiet"] not in QUIET:
+        del s["quiet"]
     return s
 
 

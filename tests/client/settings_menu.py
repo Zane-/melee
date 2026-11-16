@@ -222,6 +222,27 @@ def main():
         tap("Right")
         tap("Right")
         check("and back to 3", c.settings["coach"] == 3)
+        tap("Down")
+        check("Drill reset: after damage stops, 3 seconds, unless chosen",
+              c.SUB["sdisplay"][2][c.sub_at] == "reset" and
+              "reset" not in c.settings and "quiet" not in c.settings and
+              c.reset_rule() == ("quiet", 3), str(c.reset_rule()))
+        tap("Right")
+        check("right: when judged", c.settings["reset"] == "judged")
+        tap("Right")
+        check("right: by hand", c.settings["reset"] == "hand")
+        tap("Right")
+        check("and round to after damage stops",
+              c.settings["reset"] == "quiet")
+        tap("Down")
+        tap("Right")
+        saved = json.load(open(save))["settings"]
+        check("Quiet time: right, 4 seconds, kept in the progress file",
+              c.SUB["sdisplay"][2][c.sub_at] == "quiet" and
+              c.settings["quiet"] == 4 and saved.get("quiet") == 4 and
+              saved.get("reset") == "quiet", str(saved.get("quiet")))
+        tap("Left")
+        check("left: 3 seconds", c.settings["quiet"] == 3)
         tap("z")
 
         # Online

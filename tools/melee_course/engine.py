@@ -111,15 +111,18 @@ class Ref:
     """One input of a reference script, the player's side (CourseRefInput):
     `frame` frames after mark `mark` (0 = the start of the attempt, after a
     lead of REF_LEAD neutral frames), plus `js` of the player's jump squats.
-    Stick X positive is toward the opponent (or forward, without one)."""
+    Stick X positive is toward the opponent (or forward, without one).
+    `still`: the stick held in the middle (lx, ly 0), over an earlier
+    input's."""
     __slots__ = ("mark", "frame", "hold", "lx", "ly", "cx", "cy", "buttons",
-                 "trigger", "js")
+                 "trigger", "js", "still")
 
     def __init__(self, mark, frame, hold=1, lx=0, ly=0, cx=0, cy=0,
-                 buttons=0, trigger=0, js=0):
+                 buttons=0, trigger=0, js=0, still=False):
         self.mark, self.frame, self.hold = mark, frame, hold
         self.lx, self.ly, self.cx, self.cy = lx, ly, cx, cy
         self.buttons, self.trigger, self.js = buttons, trigger, js
+        self.still = still
 
 
 REF_LEAD = 3
@@ -251,6 +254,22 @@ SWITCH_EVERY, SWITCH_ON_SUCCESS, SWITCH_MANUAL = range(3)
 SIDE_RANDOM, SIDE_LEFT, SIDE_RIGHT = range(3)
 DEMO_OFF, DEMO_ONCE, DEMO_ALWAYS = range(3)
 
+# The reset after a judged try (Session.reset_rule, settle): in a person's
+# session with an opponent in play the game plays on until neither fighter
+# has taken damage for the quiet time (RESET_QUIET: a punish's follow-ups
+# and a combo on the player play out), or resets when judged (RESET_JUDGED:
+# after the client's moment to read the verdict), or only when the player
+# asks (RESET_HAND: D-pad down, the pause menu's Restart). A KO or a fighter
+# fallen under the stage resets at once; a quiet reset waits SETTLE_CAP
+# frames at most. Headless sessions (live False: check.py, the actors'
+# runs) reset when judged, as before.
+RESET_QUIET, RESET_JUDGED, RESET_HAND = "quiet", "judged", "hand"
+RESETS = (RESET_QUIET, RESET_JUDGED, RESET_HAND)
+QUIET_SECONDS = 3
+SETTLE_CAP = 20 * 60
+KO_STATES = 13            # DeadDown to RebirthWait (ftCo_MS_*): a KO
+UNDER = -10.0             # a fighter this far under the stage's floor
+
 # ---- a deck of opponents ------------------------------------------------------------
 
 
@@ -280,6 +299,9 @@ class Drill:
     reference = None              # [Ref, ...]
     flow = False                  # a verdict does not reset the situation
     live_marks = False            # the reference uses this attempt's marks
+    # the reset after a judged try, its own default: {"after": RESET_*,
+    # "seconds": N} (None: after damage stops, 3 seconds)
+    reset = None
 
     def __init__(self):
         self.v = {}               # the drill's own state (the C drills' statics)
@@ -292,6 +314,11 @@ class Drill:
 
     def think(self, c):
         """Once a frame of the attempt."""
+
+    def settle(self, c):
+        """Once a frame after a judged try, until the reset
+        (Session.settle): the opponent's inputs, if it plays on (c._pad).
+        By default it lets go."""
 
     def build_reference(self, c):
         return self.reference
@@ -674,6 +701,12 @@ class Session:
         self.demo_pass = 0
         self.demo_count = 0
         self.flowing = False      # a flow drill carrying on from a verdict
+        # the reset after a judged try (reset_rule): the player's choice,
+        # None for the drill's own; `settling`: the last try was judged
+        # and the game plays on before the next reset
+        self.reset_after = None
+        self.reset_seconds = None
+        self.settling = False
         # a fighter is held in place (anchor); at first, as far as this
         # session knows (another drill on the same match may have held one)
         self.anchored = True
@@ -929,7 +962,7 @@ class Session:
             t = self.attempt_frame - (base + i.frame + i.js * js)
             if t < 0 or t >= hold:
                 continue
-            if i.lx or i.ly:
+            if i.lx or i.ly or i.still:
                 lx, ly = ref_axis(int(i.lx * -c.toward)), ref_axis(i.ly)
             if i.cx or i.cy:
                 cx, cy = ref_axis(int(i.cx * -c.toward)), ref_axis(i.cy)
@@ -958,6 +991,60 @@ class Session:
     def end(self, success, words):
         if self.verdict is None:
             self.verdict = (success, words)
+
+    def reset_rule(self):
+        """How the scenario resets after a judged try: (RESET_*, the quiet
+        time in frames). Without an opponent, or in a drill that does not
+        reset (flow), when judged; otherwise the player's choice
+        (reset_after, reset_seconds), else the drill's (Drill.reset), else
+        after damage stops, QUIET_SECONDS."""
+        if self.cpu_port is None or self.d.flow:
+            return RESET_JUDGED, 0
+        own = getattr(self.d, "reset", None) or {}
+        mode = self.reset_after or own.get("after") or RESET_QUIET
+        secs = self.reset_seconds or own.get("seconds") or QUIET_SECONDS
+        return mode, int(round(secs * 60))
+
+    def settle(self, each_frame=None):
+        """After a judged try, before the reset: the game plays on (the
+        player's pad theirs, the opponent's the drill's: Drill.settle) until
+        reset_rule's moment: neither fighter damaged for the quiet time,
+        counted from the verdict or the last damage, whichever is later; at
+        once on a KO or a fighter fallen UNDER the stage; SETTLE_CAP frames
+        at most. By hand, until `each_frame` raises the player's reset.
+        Nothing here is judged or counted. Returns why it ended."""
+        mode, quiet = self.reset_rule()
+        if mode == RESET_JUDGED or (mode == RESET_HAND and
+                                    each_frame is None):
+            return mode
+        n, c, d = self.n, self.c, self.d
+        calm = frame = 0
+        last = None
+        while True:
+            st = n.state()
+            mine, theirs = st["p"][self.person], st["p"][self.cpu_port]
+            if mine is None or theirs is None:
+                return "gone"
+            now = (mine["percent"], theirs["percent"])
+            if last is not None and (now[0] > last[0] or now[1] > last[1]):
+                calm = 0
+            last = now
+            if any(f["state"] <= KO_STATES or f["y"] < UNDER
+                   for f in (mine, theirs)):
+                return "out"
+            if mode == RESET_QUIET and calm >= quiet:
+                return "quiet"
+            if mode == RESET_QUIET and frame >= SETTLE_CAP:
+                return "cap"
+            c.me, c.cpu = Fighter(mine), Fighter(theirs)
+            if each_frame is not None:
+                each_frame(n, -1)
+            c._pad = dict(buttons=0, lx=0, ly=0, cx=0, cy=0, lt=0, rt=0)
+            d.settle(c)
+            self._set_pad(self.cpu_port, c._pad)
+            n.step()
+            calm += 1
+            frame += 1
 
     def _reset(self, attempt_seed, scenario=None):
         c, d = self.c, self.d
@@ -1053,6 +1140,11 @@ class Session:
         if d.flow and self.flowing and not demo_pass:
             c.phase = c.timer = 0
         else:
+            # the last try's game played on first (settle); a
+            # demonstration, a coach's or a tutorial's, resets at once
+            settle, self.settling = self.settling and not demo_pass, False
+            if settle:
+                self.settle(each_frame)
             self._reset(seed, scenario)
             self.flowing = d.flow
             n.step()                  # the frame the placement takes
@@ -1183,4 +1275,9 @@ class Session:
             self.flowing = True
         elif not d.flow or success is None or demo_pass:
             self.flowing = False
+        # a person's counted try: the game plays on before the next reset
+        # (settle), the verdict given now
+        self.settling = success is not None and not demo_pass and \
+            self.live and self.reset_rule()[0] != RESET_JUDGED
+        out["settles"] = self.settling
         return out

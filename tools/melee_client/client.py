@@ -755,6 +755,56 @@ class Client:
         """The timing a drill holds the player to (settings.TIMING)."""
         return settings.TIMING_WORDS[self.settings.get("timing", "lenient")]
 
+    def reset_rule(self):
+        """The reset after a judged try in a drill with an opponent, as it
+        is now: (settings.RESETS, seconds). In a drill, its session's rule
+        (the player's choice, else the drill's own); elsewhere the player's
+        choice, else after 3 quiet seconds."""
+        s = self.session
+        if isinstance(s, course_engine.Session) and s.cpu_port is not None \
+                and not s.d.flow:
+            mode, frames = s.reset_rule()
+            return mode, frames // 60
+        return (self.settings.get("reset", "quiet"),
+                self.settings.get("quiet", course_engine.QUIET_SECONDS))
+
+    def reset_change(self, ident, step):
+        """Left or right on Reset or Quiet time: the player's choice, kept,
+        and given to the drill's session."""
+        mode, secs = self.reset_rule()
+        if ident in ("rmode", "reset"):
+            i = settings.RESETS.index(mode)
+            self.settings["reset"] = settings.RESETS[
+                (i + step) % len(settings.RESETS)]
+        else:
+            i = settings.QUIET.index(secs) if secs in settings.QUIET \
+                else settings.QUIET.index(course_engine.QUIET_SECONDS)
+            self.settings["quiet"] = settings.QUIET[
+                (i + step) % len(settings.QUIET)]
+        self.progress.save()
+        self.reset_now()
+
+    def reset_now(self):
+        """The player's reset (settings "reset", "quiet") given to the
+        drill's session; None where they have not chosen."""
+        s = self.session
+        if isinstance(s, course_engine.Session):
+            s.reset_after = self.settings.get("reset")
+            s.reset_seconds = self.settings.get("quiet")
+
+    def reset_rows(self, icons=False):
+        """Reset and Quiet time, as the pause menu (icons) and Settings show
+        them."""
+        mode, secs = self.reset_rule()
+        if icons:
+            return [("rmode", "Reset", settings.RESET_WORDS[mode], "restart"),
+                    ("rquiet", "Quiet time", settings.quiet_words(secs),
+                     "options")]
+        return [("reset", "Drill reset", "After a try, with an opponent.",
+                 settings.RESET_WORDS[mode], "#F5BE1B"),
+                ("quiet", "Quiet time", "No damage, then the reset.",
+                 settings.quiet_words(secs), "#F5BE1B")]
+
     def pause_tabs(self, kind):
         """The pause menu's tabs for a `kind` of match ("drill", "versus",
         "online")."""
@@ -804,6 +854,8 @@ class Client:
             if s.cpu_port is not None:
                 rows.append(("side", "CPU side", ("Random", "Left", "Right")[
                     s.common[course_engine.OPT_SIDE]], "side"))
+            if s.cpu_port is not None and not s.d.flow:
+                rows += self.reset_rows(icons=True)
             if s.d.stages:
                 rows.append(("stage", "Stage", s.d.stage.replace(
                     "-", " ").title(), "stage"))
@@ -866,6 +918,9 @@ class Client:
                 self.w.delay(n)
             except Exception:
                 pass
+            return True, False
+        if ident in ("rmode", "rquiet"):
+            self.reset_change(ident, step)
             return True, False
         if ident.startswith("opt"):
             i = int(ident[3:])
@@ -3152,6 +3207,7 @@ class Client:
             seed=random.randrange(1, 1 << 30), dpad=False, reuse=True,
             also=self.course_opponents())
         self.session = session
+        self.reset_now()            # (Settings: Drill reset, Quiet time)
         self.drill_stages = drill.stages
         self.wait_released()
         self.screen = "drill"
@@ -3236,7 +3292,9 @@ class Client:
             # 2026-11-13: D-pad up in the shield drop drill, "Hits" in
             # shield pressure)
             try:
-                for _ in range(0 if drill.flow else 45):
+                # (a try the game plays on from: Session.settle, before
+                # the next try's reset)
+                for _ in range(0 if drill.flow or session.settling else 45):
                     self.drill_frame(self.w, -1)
                     self.w.step()
             except Abandon as a:
@@ -4492,7 +4550,8 @@ class Client:
     # them, as Controls
     SUB = {"ssound": ("Sound", "#F0643C", ("music", "effects", "menus")),
            "sdisplay": ("Display", "#F5BE1B",
-                        ("window", "size", "sidebar", "inputs", "coach")),
+                        ("window", "size", "sidebar", "inputs", "coach",
+                         "reset", "quiet")),
            "sonline": ("Online", "#22B8A0",
                        ("nick", "port", "friends", "router"))}
 
@@ -4550,7 +4609,7 @@ class Client:
                      s["inputs"].title(), "#F5BE1B"),
                     ("coach", "Coach", "Its card, after misses in a row.",
                      "After %d misses" % s["coach"] if s["coach"] else "Off",
-                     "#F5BE1B")]
+                     "#F5BE1B")] + self.reset_rows()
             panel = screens.display_panel(s["sidebar"], full, s["size"])
             desc = ("TM-CE's input display: whose buttons and sticks are "
                     "drawn over the game in drills and matches."
@@ -4559,6 +4618,15 @@ class Client:
                     "misses in a row." if ident == "coach" else
                     "The sidebar can also be hidden in a match: hold "
                     "START for three seconds.")
+            if ident == "reset":
+                desc = ("In a drill with an opponent, after a try is judged: "
+                        "the scenario resets once neither fighter has taken "
+                        "damage for the quiet time, at once, or only on "
+                        "D-pad down or Restart in the pause menu.")
+            elif ident == "quiet":
+                desc = ("How long neither fighter takes damage before the "
+                        "scenario resets, with Drill reset on After damage "
+                        "stops.")
             hints = [("D-SIDE", "Change"), ("B", "Back")]
         else:
             fr = online.friends(self.progress.data)
@@ -4647,6 +4715,9 @@ class Client:
                 i = settings.INPUTS.index(s["inputs"])
                 s["inputs"] = settings.INPUTS[(i + (step or 1)) %
                                               len(settings.INPUTS)]
+                changed = True
+            elif ident in ("reset", "quiet"):
+                self.reset_change(ident, step or 1)
                 changed = True
             else:
                 i = settings.COACH.index(s["coach"])
