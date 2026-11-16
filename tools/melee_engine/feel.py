@@ -39,7 +39,11 @@ it was for, the frame the line really started on, the line, the contact
 it predicted and when, and what really happened (on the shield, a hit,
 beaten, a miss), and for a miss whether the player's input changed after
 the decision (a real change) or not (a wrong prediction); and how the
-line moved (frames running or turning round in a run, past the player). `--trace`: each
+line moved (frames running or turning round in a run, past the player); where it met
+the shield (`_geometry`: the move's family, the side the line started on, the
+gap at the contact along it, negative from behind, the opponent past the player
+at any frame up to the frame a frame-4 shine out of shield hits or up to the
+line's end, a contact on the player's back). `--trace`: each
 decision's predicted frames too (played ahead in the fork after it chose),
 compared with the live ones: the first frame they differ and in which
 fighter.
@@ -173,9 +177,9 @@ def _predict(n, port, target, raws):
     """The frames `raws` (PORT's pads from now) lead to, the target holding
     its pad: [(a_state, a_x, a_y, t_state, t_x, t_hitlag, t_percent)]."""
     from melee_actor.ahead import compress, look
-    # (a lookahead takes 16 segments at most: the frames they cover)
+    # (a lookahead takes 48 segments at most: the frames they cover)
     plan = compress([B.raw_pad(r) for r in raws] + [B.raw_pad(NONE)] * 20)
-    out = look(n, port, target, plan[:16], stop=0)
+    out = look(n, port, target, plan[:48], stop=0)
     return [(r.a_state, round(r.a_x, 3), round(r.a_y, 3), r.t_state,
              round(r.t_x, 3), r.t_hitlag, r.t_percent) for r in out.rows]
 
@@ -330,6 +334,8 @@ def outcomes(opp, port_me=0):
             elif way != side:
                 crossed = True
     rec.update(ran=ran, turned=turned, crossed=crossed)
+    rec["family"] = B.family(rec["line"])
+    rec.update(_geometry(frames, opp.committed, real, real_at))
     # the player's input from the decision to the predicted contact: as
     # assumed (held) or changed
     if g is not None:
@@ -347,6 +353,77 @@ def outcomes(opp, port_me=0):
             rec["diverged"] = _diverged(g["trace"], frames, g["asked"])
     out.append(rec)
     return out, used
+
+
+def _geometry(frames, committed, real, real_at, within=4):
+    """Where a commitment met the player, from the frames' records (record
+    k: the game after frame k - 1): `side` the way the player was from the
+    opponent at the commitment; `gap` the distance at the contact along it
+    (negative: the opponent past the player, a hit from behind); `answer_k`
+    the record after the frame a frame-`within` answer out of shield hits
+    (the first frame out of shield stun, the frame after which the player
+    is first seen in the shield again with no hitlag, counted as 1; a
+    contact not on the shield: the contact's); `done_k` the record its
+    move was over by (it hit in the air and has landed, or it is on the
+    ground in a free state: opponent.NEUTRAL); `crossed_answer`,
+    `crossed_window` and `crossed_end` the first record (from the
+    commitment) the opponent was past the player, to answer_k, to the
+    later of answer_k and done_k (what the engine's front= checks) and to
+    the line's end (its last committed frame), in the air or not (None:
+    never); `back` the contact on the player's back (they faced away from
+    the opponent)."""
+    from melee_engine.opponent import NEUTRAL
+    c0 = frames.get(committed)
+    if c0 is None or c0["me"] is None or c0["them"] is None:
+        return {}
+    side = 1 if c0["them"]["x"] >= c0["me"]["x"] else -1
+    out = dict(side=side)
+    last = max(frames)
+    end_k = committed
+    while end_k + 1 <= last and frames.get(end_k + 1) is not None and \
+            frames[end_k + 1]["mode"] == "committed":
+        end_k += 1
+    end_k += 1
+    answer_k = done_k = None
+    if real_at is not None:
+        r = frames.get(real_at)
+        if r is not None and r["me"] is not None and r["them"] is not None:
+            out["gap"] = round((r["them"]["x"] - r["me"]["x"]) * side, 2)
+            out["above"] = round(r["me"]["y"] - r["them"]["y"], 2)
+            out["back"] = r["them"]["facing"] == side
+        answer_k = real_at
+        if real == "shield":
+            for k in range(real_at + 1, min(last, real_at + 80) + 1):
+                q = frames.get(k)
+                if q is not None and q["them"] is not None and \
+                        q["them"]["state"] in (178, 179) and \
+                        q["them"]["hitlag"] <= 0:
+                    answer_k = k + within - 1
+                    break
+        r = frames.get(real_at)
+        flew = r is not None and r["me"] is not None and r["me"]["air"]
+        for k in range(real_at + 1, min(last, real_at + 80) + 1):
+            q = frames.get(k)
+            if q is not None and q["me"] is not None and \
+                    not q["me"]["air"] and (flew or
+                                            q["me"]["state"] in NEUTRAL):
+                done_k = k
+                break
+    out["answer_k"], out["done_k"] = answer_k, done_k
+
+    def first_past(upto):
+        for k in range(committed + 1, min(upto, last) + 1):
+            q = frames.get(k)
+            if q is None or q["me"] is None or q["them"] is None:
+                continue
+            if (q["them"]["x"] - q["me"]["x"]) * side < 0:
+                return k - committed
+        return None
+    out["crossed_answer"] = first_past(answer_k) \
+        if answer_k is not None else None
+    out["crossed_window"] = first_past(max(answer_k or 0, done_k or end_k))
+    out["crossed_end"] = first_past(max(end_k, answer_k or 0))
+    return out
 
 
 def _diverged(trace, frames, asked):
@@ -536,6 +613,11 @@ def summary(r):
     early = [c for c in cs if c["real"] in ("shield", "hit") and
              c.get("predicted_at") is not None and
              c["real_at"] != c["predicted_at"]]
+    met = [c for c in cs if c["real"] in ("shield", "hit", "grab")]
+    gaps = sorted(c["gap"] for c in met if c.get("gap") is not None)
+    fams = {}
+    for c in cs:
+        fams[c.get("family")] = fams.get(c.get("family"), 0) + 1
     tries = [w for ok, w in r["results"] if not w.startswith("Not counted")
              and not w.startswith("Nothing happened")]
     won = sum(1 for ok, w in r["results"] if ok)
@@ -551,6 +633,18 @@ def summary(r):
                     for d in r["decisions"]),
                 wrong=len(wrong), changed=len(changed), cut=len(cut),
                 late=late, asked=asked, swaps=swaps,
+                behind=sum(1 for c in met if (c.get("gap") or 0) < 0),
+                past_answer=sum(1 for c in met
+                                if c.get("crossed_answer") is not None),
+                past_window=sum(1 for c in met
+                                if c.get("crossed_window") is not None),
+                past_end=sum(1 for c in met
+                             if c.get("crossed_end") is not None),
+                back=sum(1 for c in met if c.get("back")),
+                gap=(gaps[0], gaps[len(gaps) // 2], gaps[-1]) if gaps
+                else None,
+                families=dict(sorted(fams.items(), key=lambda kv: -kv[1])),
+                lines=len(set(c.get("line") for c in cs)),
                 off=(min(offs), max(offs)) if offs else None,
                 contact_off=sorted(set(c["real_at"] - c["predicted_at"]
                                        for c in early)))
@@ -631,6 +725,15 @@ def main():
                               r["frames"], sm["dropped"], sm["aborts"],
                               sm["broken"], sm["running"], sm["turned"],
                               sm["crossed"], time.time() - t0), flush=True)
+                    print("      front: from behind %d, past the player by "
+                          "the answer %d, by its landing or end and the "
+                          "answer %d, by the line's end %d, on the "
+                          "player's back %d, gap at contact (min, median, "
+                          "max) %s; families %s; distinct lines %d" % (
+                              sm["behind"], sm["past_answer"],
+                              sm["past_window"], sm["past_end"],
+                              sm["back"], sm["gap"],
+                              sm["families"], sm["lines"]), flush=True)
                     for c in r["commits"]:
                         if c["real"] not in ("shield", "hit", "grab") or \
                                 args.verbose:

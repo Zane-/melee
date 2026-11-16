@@ -39,6 +39,7 @@ Added for drills to name (built 2026-11-15, 26 macros; `engine macros` lists the
 | `dash_dance` | a dash out and one back in, 8 frames each (the reversal a turn and a dash back), let go | movement; not out of a run |
 | `crouch` | the stick held down 8 frames: a crouch | on a platform a stick smashed down drops through it (for every character: 3 frames of crouch, then through), so there the stick goes to -30 (out of the dead zone, short of a crouch) for 6 frames first: a crouch that stays on the platform |
 | `platform_drop` | the stick smashed down from the middle on a platform: 3 frames of crouch, then through (Pass); the move ends on the first frame in the air, where the air's moves (aerials, `waveland_*`) follow | offered only on a platform (`mpColl_IsOnPlatform`). Pass now counts as able to act (its interrupt allows every air option) |
+| `sh_nair_out` `sh_fair_out` `sh_bair_out` `sh_uair_out` `sh_dair_out` | a short hop with the stick held away from the target from the jump on, the aerial on the first airborne frame as the other short hops': a spaced aerial, which hits the front of a shield and drifts back where a dash in and a short hop drifting in or not carry the fighter through it (Marth's nair, fair and dair crossed from every spacing) | offered on the ground; "sh_" names them too (as "dash_" names `dash_grab`). Against a shielding Fox from 15 to 35 units, `front=4` dropping none: Marth's nair, fair, dair and uair, Samus's nair, fair and uair, all five of Pikachu's, Falcon's nair, fair, dair and uair at 15. A spaced aerial is often safe from the frame-4 shine out of shield (Marth's are) |
 | `waveland_in`, `waveland_out`, `waveland` | in the air above a floor: waits for the fall, then an air dodge down and in, out (`100, -80`, as `wavedash_in`) or straight down on the last frame before the fall would land by itself (the floor below the ECB from `mpCheckFloor`, the platform dropped through not counted): it lands in its landing lag (LandingFallSpecial, 10 frames), often on the dodge's own frame | offered in the air with a floor within 40 units below. Slides on Battlefield's platform: 13.7 (Peach) to 18.4 (Marth) units in or out, 0 straight |
 | regrabs | `grab`, `dash_grab`, `jc_grab`, `pivot_grab` after a throw: the ground moves are offered once the thrower can act out of its throw | a chain grab is a script loop (below) |
 
@@ -126,7 +127,7 @@ frames ahead, as `Footsies` is) or a decision the engine searches in a fork, as
 | `footsies` `range` | dash dances turned inside each character's initial dash, pivots, let-go dashes, walks in, crouches, standing, wavedashes in and out, a shield now and then, never a run turned around (the body: `footwork.py`), keeping to a band: `"outside"` (just out of the player's range), `"edge"` (at the edge of its own), or `[LO, HI]`. Built: `"outside"` looks at each segment it plans before playing it, and every 4 frames: the player's range over 16 frames (12 and the 4 between looks) as it plans to move; one that would take it in is dropped for a retreat (the body's: a dash away and a pivot, the dash it is in turned, or a wavedash out; never closer, back to the band, facing the player again). Its band follows the reach found (up to the closest a rejected plan came, sinking slowly while none is), kept for the next behaviour (`ctx.memory`). `"edge"`: a first version, the same with its own range |
 | `hold` `pad` | stands, shields, crouches (`"stand"`, `"shield"`, `"crouch"`) |
 | `retreat` | moves out of the player's range and stays there (built: `"outside"` with 12 units more) |
-| `approach` `moves` `lands` | commits to one of `moves` (by name prefix) that the engine finds lands (`"hit"`, `"shield"`, `"any"`), from wherever it is; with a contract (below) only one the player can answer. Built: `EngineOpponent` with the contract `behave.Commit`: the timing scan, the stick held K frames (still, toward, walking toward) then one of `moves`, on a shielding player as shielding on, any other as stopping; `body` (footsies closing in, or stand, shield, crouch) until then, `wait` [LO, HI] frames before it may |
+| `approach` `moves` `lands` | commits to one of `moves` (by name prefix) that the engine finds lands (`"hit"`, `"shield"`, `"any"`), from wherever it is; with a contract (below) only one the player can answer. Built: `EngineOpponent` with the contract `behave.Commit`: the timing scan, the stick held K frames (still, toward, walking toward) then one of `moves`, on a shielding player as shielding on, any other as stopping; `body` (footsies closing in, or stand, shield, crouch) until then, `wait` [LO, HI] frames before it may. `front` (true by default when `lands` is "shield"; `false` for a drill that wants cross-ups): only a line whose fighter stays on the player's side it came from, from its start until its move is over (it can act again, or it hit in the air and has landed) and the frame the contract's answer out of the shield hits, whichever is later: the front of the shield, no cross-up, no attack sliding or drifting through (the engine's `front=`, `within` its frames). `pick` ("variety" by default; "best"): the attack's families (nair, fair, ftilt, fsmash, dash_attack, side_b...: `behave.family`, the last move without its hop, drift or pivot) drawn into a queue at random, by `weights` ({FAMILY: W}, 1 each by default) divided by one more than the times each was attacked with in the last 8, the last two it attacked with at its end (all of it kept from one attempt to the next by the drill; an attempt replayed with its seed starts from the same memory); each look searches the next 3 of the queue, their moves alone, and commits to the first of them, in the queue's order, one of whose two best lines (the softmax) the contract answers; while patient (90 frames) a family it attacked with twice in the last 8 waits (a dash attack, answered from anywhere, was otherwise most of them); a family that lands and is not answered is drawn later and later (halved each time, to a sixteenth) until it is answered once. "best": one of the best lines of all by the softmax over their scores, in which a forward smash's damage or a dash attack's reach wins |
 | `move` `name` | plays one named move exactly (a scripted moment) |
 | `punish` | plays to win from here until the player can act again: the best combo the engine finds (built: each move two deep, for damage, a kill and hitstun left, one of the best by a softmax; `moves` limits the first) |
 | `pressure` | attacks the shield with options that are safe on it, until the shield breaks or the player acts (a first version: each option's safety is the player's out-of-shield grab, up smash, shine and up-B searched as its stun ends; none safe, a dash back) |
@@ -172,7 +173,11 @@ no sooner than `react` frames after the commitment and before the option lands. 
 answer is searched with the opponent letting go after its line, as it plays it. Up to four
 of the best lines are looked at each time; the first answered is committed to, and the
 player's answer is kept with it (`Approach.answer`: the frame asked at, its pads), as the
-check and the demonstration play it. The line is kept while the player does what the
+check and the demonstration play it. On a shield the line is also on its front (`front`,
+the default): the opponent never past the player before its move is over and the
+answer would hit, the frames after the line's end played letting go, as it plays them; a
+line that would cross up or overshoot is not one of those looked at. The line is kept
+while the player does what the
 decision assumed (a shield held: the game it foresaw is then the game played); when they
 do something else, seen after the opponent's reaction time, it reacts: a line not begun is
 dropped, one begun is checked again and kept, replaced by another answered line, or given
@@ -185,6 +190,35 @@ a drill's examples and mistakes against the same opponent, and the coach's demon
 plays what the check found.
 
 ## Status
+
+- 2026-11-15: an approach on the shield hits its front, and attacks with every family
+  it has. The owner, playing fox-shine-oos: "the CPU often overshoots on the shield hit
+  which is very very hard to punish with shine OoS, we need to make sure that the front
+  of the shield is hit!", and "sheik just repeatedly fsmashes, should throw in tilts,
+  fair, nair, etc. so it feels like a random attack". Measured (`feel.py`, the drill's
+  part 3 against a shielding stand-in, 40 attempts a character headless and 20 live in
+  the window build): no contact was from behind before either (1 of 440), but the
+  opponent passed the player before the frame a frame-4 shine out of shield hits in 59 of
+  440 commitments headless (31 of 218 live), and before its own landing or end in 138
+  (70 live; headless Falcon 17 of 40, Pikachu 20, Peach 18): aerials drifting through,
+  dash attacks sliding past. The family committed to was most often a dash attack, 20 to
+  48% of the time headless (Marth live 55%), with 4 to 11 families a character. Now: the engine's `front=N`
+  (`melee-engine.md`), `approach`'s `front` (the default on a shield), the short hops
+  drifting out (spaced aerials), and `pick: "variety"` (the default), the deck's scripts
+  one approach each naming every attack, from footsies out of reach or close in. After:
+  never past the player before its landing or end and the shine's frame, headless 0 of 440,
+  live 0 of 218; landed 440 of 440 and 218 of 218; the shine out of shield still answers
+  every one (the frame-4 stand-in won 220 of 220 headless); 5 to 10 families a character
+  (Peach 5: the frame-4 shine answers only her jab, dash attack, forward and back air on
+  the front of the shield, and a down tilt now and then), the most common at most 22%
+  headless but Peach's dash attack (38%), live at most 30% but Jigglypuff's (35%) and
+  Peach's (42%) dash attack. The
+  cost: live, the commitment comes later (median 47 to 172 frames from the approach's
+  start, 37 to 64 before) while a family used twice in the last 8 waits for the others.
+  Families lost to `front` (the frame-4 shine answers them only from behind or through
+  the shield, from every spacing tried): Marth's nair, fair and dair; Falcon's forward
+  smash, bair, uair and down-B; Peach's nair; Pikachu's side-B; Yoshi's uair and dair;
+  Samus's fair and uair. `melee-engine.md`, "The front of the shield", has the numbers.
 
 - 2026-11-15: an approach's committed attacks land on a shielding player live: 218 of 218
   across the deck (90% before), headless 220 of 220, every contact on the frame foreseen

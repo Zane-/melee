@@ -62,7 +62,10 @@
 #include <sysdolphin/baselib/gobj.h>
 
 #define AHEAD_MAX 180 /* frames one lookahead may play */
-#define SEGS 16
+/* pads (segments) one lookahead takes: a body's dash dances and a
+   line's L-cancel pulses made more than 16 (behave.stun_over); 48 of them
+   fit in the command loop's 2,048 characters with room */
+#define SEGS 48
 #define NO_GAP 999.0F
 
 typedef struct Seg {
@@ -265,7 +268,7 @@ const char* host_ahead_begin(const char* line)
         }
         line += used;
         if (n <= 0 || ahead.nsegs == SEGS) {
-            return "each pad is held 1 frame or more, 16 pads at most";
+            return "each pad is held 1 frame or more, 48 pads at most";
         }
         Seg* s = &ahead.segs[ahead.nsegs++];
         s->frames = n;

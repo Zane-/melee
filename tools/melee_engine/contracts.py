@@ -25,14 +25,23 @@ def searched(n, port, target, their, horizon, **kw):
         player(n, None)
 
 
-def lands(n, port, target, raws, their, kinds=("hit", "shield")):
+def lands(n, port, target, raws, their, kinds=("hit", "shield"), front=0):
     """What PORT's plan (raw pads from now) meets, the target doing
-    `their`: the contact ("hit", "shield", "grab", "beaten" or None)."""
+    `their`: the contact ("hit", "shield", "grab", "beaten" or None).
+    `front`: the engine's front=N, the plan followed to the frame an
+    answer out of the shield N frames long hits: "crossed" if PORT was
+    past the target by then."""
     if not raws:
         return None
     preroll(n, raws)
-    r = searched(n, port, target, their, len(raws) + 1, eval=1, stop=1)
-    return r.lines[0].contact if r.lines else None
+    kw = dict(front=front) if front else {}
+    r = searched(n, port, target, their, len(raws) + 1, eval=1, stop=1,
+                 **kw)
+    if not r.lines:
+        return None
+    if front and r.lines[0].cross:
+        return "crossed"
+    return r.lines[0].contact
 
 
 class Answer:

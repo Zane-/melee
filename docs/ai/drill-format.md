@@ -22,7 +22,8 @@ angles, ledge stall, double laser), each passing `check.py`; the owner's QA is n
 Punish (2026-11-15): Fox's shine out of shield (`fox-shine-oos`), the first drill whose
 opponent is a script of the engine's vocabulary (`opponent-vocabulary.md`): a deck of the
 2021 tier list's top 11, each approaching the shield held to the shine out of shield
-contract.
+contract, on the front of the shield (never crossing up or overshooting), its attack drawn
+from every family it has that the frame-4 shine answers (2026-11-15).
 
 ## Where things are
 

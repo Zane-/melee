@@ -164,6 +164,10 @@ class JsonDrill(Drill):
         self.v = {}
         self.op_refs = []
         self.op_script = None   # a scripted opponent (melee_engine/script.py)
+        # what each opponent's approaches learnt (its last attacks'
+        # families, what each family came to), from one attempt to the next
+        # (its approach draws another: behave.Commit, "variety")
+        self.op_memory = {}
 
     # ---- the drill's numbers -------------------------------------------------------
 
@@ -449,6 +453,7 @@ class JsonDrill(Drill):
         check.py's every case play the same opponent), its decisions made
         where the session's thinker makes them (forked copies of the window
         build while a person plays, the game itself headless)."""
+        old = self.op_script
         if self.op_script is not None:
             self.op_script.stop()
             self.op_script = None
@@ -457,11 +462,19 @@ class JsonDrill(Drill):
         from melee_course.react import thinker
         from melee_engine.script import Opponent
         ledge = c.ledge_pos()
+        seed = c.rng.getrandbits(32)
+        if old is not None and old.seed != seed:
+            # what it attacked with, for the next attempt (one with the same
+            # seed, a demonstration's second pass, replays the first: the
+            # same memory, the same choices)
+            m = old.ctx.memory
+            self.op_memory[old.spec.get("character")] = dict(
+                families=m.get("families", [])[-8:],
+                tried=m.get("tried", {}))
         self.op_script = Opponent(
-            thinker(c), c.s.cpu_port, c.s.person, op,
-            seed=c.rng.getrandbits(32),
+            thinker(c), c.s.cpu_port, c.s.person, op, seed=seed,
             half=abs(ledge[0]) if ledge and abs(ledge[0]) > 1 else 85.0,
-            char=c.fd.id)
+            char=c.fd.id, memory=self.op_memory.get(op.get("character")))
 
     def _opponent(self, c):
         """The opponent's inputs this frame: its script's pad, or its

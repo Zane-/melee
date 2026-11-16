@@ -33,12 +33,16 @@
  * the target (a grab is worth something before its throw), and the goal
  * terms a drill asks for (contact, on the shield, a spacing).
  *
- * The reply: "@ ok MS TRIALS FRAMES NLINES" and then, per line, best first,
+ * The reply: "@ ok MS TRIALS FRAMES NLINES CROSSED" (CROSSED: lines front=
+ * dropped) and then, per line, best first,
  * "@ line VALUE DMG TAKEN KO CONTACT CONTACT_FRAME ADV POS DIST LEN FIRST
- * AIR STATE NAMES PADS": FIRST the frames of the first move (to where the
- * fighter can act again), AIR 1 if the target was in the air at the first
- * contact, STATE PORT's action state then (what hit: an up smash, a dash
- * attack),
+ * AIR STATE SIDE CROSS NAMES PADS": FIRST the frames of the first move (to
+ * where the fighter can act again), AIR 1 if the target was in the air at
+ * the first contact, STATE PORT's action state then (what hit: an up
+ * smash, a dash attack), SIDE the way the target was at the line's start
+ * (1 to PORT's right, -1 to its left), CROSS the first frame (from the
+ * line's start, 1 its first) PORT was past the target (0: never; with
+ * front=, in the frames it checks),
  * NAMES the macros joined by "+", PADS the frames as "N BUTTONS LX LY CX CY
  * L R" segments joined by ",". Then "@ end". KEY=VALUE: the score's
  * weights (dmg taken ko pos adv contact shield hit held close dist),
@@ -67,7 +71,20 @@
  * the target or is near the ledge (a held dash stays a dash: no run turned
  * round past the player), enough=N stops
  * the scan once N lines connect (an answer exists: enough=1), counting only
- * contacts made in one of PORT's action states want=S,S... if given. eval=1 scores
+ * contacts made in one of PORT's action states want=S,S... if given.
+ * front=N keeps a line only if PORT stays on the side of the target it
+ * started from (never past it) from the line's start through its first
+ * contact and on until its move is over (it hit in the air and has
+ * landed, or on the ground it can act again) and the frame an answer
+ * pressed on the target's first frame out of shield stun would hit, N
+ * frames counting that one as 1 (a frame-4 shine out of shield: front=4),
+ * whichever is later; the frames past the line's end played with PORT
+ * letting go, as a committed line ends: an attack on the front of the
+ * shield, its fighter never crossing up or overshooting before the answer
+ * and its own landing or end. With eval=1 the plan is followed as far and
+ * its CROSS reported; in the macro tree a line that crossed in its own
+ * frames is dropped.
+ * eval=1 scores
  * the pre-roll ("engine preroll") alone as one line, "plan": what a plan
  * does against the target's inputs as given (the lookahead's question,
  * with "engine player").
@@ -220,6 +237,9 @@ enum {
     M_CROUCH, M_PLATFORM_DROP,
     /* in the air: an air dodge onto the floor below (in, out, straight) */
     M_WAVELAND_IN, M_WAVELAND_OUT, M_WAVELAND,
+    /* short hops drifting out: 5 aerials (a spaced aerial) */
+    M_SH_OUT_FIRST,
+    M_SH_OUT_LAST = M_SH_OUT_FIRST + 4,
     M_COUNT
 };
 
@@ -283,6 +303,10 @@ static void name_macros(void)
     for (int i = 0; i < (int) (sizeof later / sizeof *later); i++) {
         snprintf(macro_names[M_DASH_GRAB + i], 24, "%s", later[i]);
     }
+    for (int a = 0; a < 5; a++) {
+        snprintf(macro_names[M_SH_OUT_FIRST + a], 24, "sh_%s_out",
+                 AERIAL_NAME[a]);
+    }
 }
 
 /* ---- the search's state (not the game's) -------------------------------- */
@@ -296,6 +320,8 @@ typedef struct Line {
     float dmg, taken, adv, pos, dist;
     int ko, contact, contact_at, contact_air, contact_state, len;
     int first_len; /* frames of the first move, to its branch point */
+    int side;  /* the target to PORT's right (1) or left (-1) at the start */
+    int cross; /* the first frame PORT was past the target (0: never) */
     char names[NAMES_MAX];
     HostPad pads[HORIZON_MAX];
 } Line;
@@ -364,6 +390,19 @@ static struct {
     /* want=S,S...: only a contact with PORT in one of these action states
        counts toward enough (what a drill counts as its answer) */
     int want[16], nwant;
+    /* front=N: a line only if PORT stays on its side of the target
+       (front_ok); the side at the line's start (0: none yet); by t the
+       first frame PORT was past the target (from the line's start, 0:
+       never), the frame the target first came out of shield stun after
+       the contact and the frame PORT's move was over (both from the root,
+       0: not yet), PORT in the air at the contact; lines dropped for it */
+    int front;
+    float front_side;
+    int cross_at[HORIZON_MAX + 1];
+    int free_at[HORIZON_MAX + 1];
+    int done_at[HORIZON_MAX + 1];
+    unsigned char me_air[HORIZON_MAX + 1];
+    int crossed;
     ucontext_t game, co;
     char* stack;
     struct timespec t0;
@@ -650,6 +689,8 @@ static Line score(void)
     l.contact_at = eng.contact_at[eng.t];
     l.contact_air = eng.contact_air[eng.t];
     l.contact_state = eng.contact_state[eng.t];
+    l.side = eng.front_side < 0.0F ? -1 : 1;
+    l.cross = eng.cross_at[eng.t];
     if (a == NULL || t == NULL) {
         l.value = -1e6F;
         return l;
@@ -715,10 +756,19 @@ static int play(HostPad pad)
     eng.contact_state[eng.t] = eng.contact_state[eng.t - 1];
     eng.ia_state[eng.t] = eng.ia_state[eng.t - 1];
     eng.ia_own[eng.t] = eng.ia_own[eng.t - 1];
+    eng.cross_at[eng.t] = eng.cross_at[eng.t - 1];
+    eng.free_at[eng.t] = eng.free_at[eng.t - 1];
+    eng.done_at[eng.t] = eng.done_at[eng.t - 1];
+    eng.me_air[eng.t] = eng.me_air[eng.t - 1];
     if (a == NULL || t == NULL) {
         return 0;
     }
     follow_interrupt(a);
+    if (eng.cross_at[eng.t] == 0 && eng.front_side != 0.0F &&
+        (t->cur_pos.x - a->cur_pos.x) * eng.front_side < 0.0F)
+    {
+        eng.cross_at[eng.t] = eng.t - eng.base; /* past the target */
+    }
     if (eng.contact_kind[eng.t] == 0) {
         int m = (int) t->motion_id;
         if (t->dmg.x1830_percent > eng.pct_t) {
@@ -741,6 +791,24 @@ static int play(HostPad pad)
     if (eng.contact_at[eng.t] == eng.t && eng.contact_kind[eng.t] != 0) {
         eng.contact_air[eng.t] = airborne(t);
         eng.contact_state[eng.t] = (int) a->motion_id;
+        eng.me_air[eng.t] = (unsigned char) airborne(a);
+    }
+    if (eng.contact_kind[eng.t] != 0 && eng.done_at[eng.t] == 0 &&
+        eng.t > eng.contact_at[eng.t] &&
+        (eng.me_air[eng.t] ? !airborne(a) : can_act(a)))
+    {
+        /* its move over: it hit in the air and has landed (able to act in
+           the air, it still falls: Pikachu's up air over the player), or on
+           the ground it can act */
+        eng.done_at[eng.t] = eng.t;
+    }
+    if (eng.contact_kind[eng.t] == 2 && eng.free_at[eng.t] == 0 &&
+        eng.t > eng.contact_at[eng.t] && t->dmg.x195c_hitlag_frames <= 0 &&
+        ((int) t->motion_id == MS_GUARD || (int) t->motion_id == MS_GUARD_ON))
+    {
+        /* shield stun over: this frame's input was read in the shield
+           (stun_over, behave.py), the first an answer can be pressed on */
+        eng.free_at[eng.t] = eng.t;
     }
     if (eng.stop_contact && eng.contact_kind[eng.t] != 0) {
         return 0; /* the line is decided */
@@ -1118,6 +1186,9 @@ static int run_macro(int m)
     if (m >= M_FH_FIRST && m <= M_FH_LAST) {
         return hop(m - M_FH_FIRST, 1, 1);
     }
+    if (m >= M_SH_OUT_FIRST && m <= M_SH_OUT_LAST) {
+        return hop(m - M_SH_OUT_FIRST, -1, 0); /* drifting away */
+    }
     if (m >= M_AIR_FIRST && m <= M_AIR_LAST) {
         int k = m - M_AIR_FIRST, d = 1 - k % 3;
         Fighter* fp = fighter_of(eng.port);
@@ -1482,6 +1553,9 @@ static int moves_here(int* out)
             if (mpColl_IsOnPlatform(&a->coll_data)) {
                 out[n++] = M_PLATFORM_DROP;
             }
+            for (int i = M_SH_OUT_FIRST; i <= M_SH_OUT_LAST; i++) {
+                out[n++] = i;
+            }
         }
     }
     return n;
@@ -1637,6 +1711,10 @@ static void keep_as(Line* l, const int* key, const char* name)
 static void keep(Line* l)
 {
     int key[DEPTH_MAX];
+    if (eng.front > 0 && l->cross != 0) {
+        eng.crossed++; /* past the target in its own frames (front=) */
+        return;
+    }
     for (int i = 0; i < DEPTH_MAX; i++) {
         key[i] = i < eng.split && i < eng.nnames ? eng.names[i] : -1;
     }
@@ -1832,6 +1910,71 @@ static int hold_strayed(float side)
            fabsf(a->cur_pos.x) > stage_half() - HOLD_EDGE;
 }
 
+/* front=N: frames after the contact a line is followed at most (a hit
+   into tumble, a grab, a move whose end never comes) */
+#define FRONT_MOST 60
+
+/// front=N: the last frame front= checks (as eng.t counts them), once it
+/// is known and has been played: the later of the frame PORT's move was
+/// over (done_at) and the frame the target's answer would hit (its first
+/// frame out of shield stun + N - 1; a contact not on a shield: none); 0
+/// before.
+static int front_end(void)
+{
+    int t = eng.t, w = eng.done_at[t];
+    if (w == 0) {
+        return 0;
+    }
+    if (eng.contact_kind[t] == 2) {
+        if (eng.free_at[t] == 0) {
+            return 0;
+        }
+        if (eng.free_at[t] + eng.front - 1 > w) {
+            w = eng.free_at[t] + eng.front - 1;
+        }
+    }
+    return t >= w ? w : 0;
+}
+
+/// front=N: has PORT stayed on the side of the target its line started
+/// from (eng.front_side), from the line's start through its first contact
+/// and on to front_end: its move over (it hit in the air and has landed,
+/// or on the ground it can act again) and the frame an answer pressed on
+/// the target's first frame out of shield stun would hit (eng.front
+/// frames, that one counted as 1: a frame-4 shine out of shield,
+/// front=4), whichever is later? The frames past the line's end are
+/// played with PORT letting go,
+/// as a committed line ends (`rest` first: a plan's own pads after its
+/// contact, eval=1); they are not the line's, and its caller goes back to
+/// its branch point after. 1 with no front= or no contact.
+static int front_ok(const HostPad* rest, int nrest)
+{
+    int stop = eng.stop_contact, trial = eng.trial_end;
+    int horizon = eng.horizon, w;
+    if (eng.front <= 0 || eng.contact_kind[eng.t] == 0) {
+        return 1;
+    }
+    eng.stop_contact = 0;
+    eng.trial_end = 0;
+    eng.horizon = HORIZON_MAX;
+    for (int i = 0; front_end() == 0 && eng.cross_at[eng.t] == 0 &&
+                    eng.t < eng.contact_at[eng.t] + FRONT_MOST;
+         i++)
+    {
+        if (!play(i < nrest ? rest[i] : neutral())) {
+            break;
+        }
+    }
+    w = front_end();
+    if (w == 0) {
+        w = eng.t; /* not over by FRONT_MOST, or past the target first */
+    }
+    eng.stop_contact = stop;
+    eng.trial_end = trial;
+    eng.horizon = horizon;
+    return eng.cross_at[eng.t] == 0 || eng.base + eng.cross_at[eng.t] > w;
+}
+
 static void scan(void)
 {
     int firsts[M_COUNT], nf = 0, root = eng.marks, t_root = eng.t;
@@ -1915,6 +2058,13 @@ static void scan(void)
                         eng.trial_end = 0;
                         eng.trials++;
                         l = score();
+                        if (!front_ok(NULL, 0)) {
+                            eng.crossed++; /* crossed up, overshot */
+                            continue;
+                        }
+                        if (eng.front > 0) {
+                            l.cross = 0; /* (any later: past what it checks) */
+                        }
                         if (l.contact == 1 || l.contact == 2 || l.contact == 4) {
                             int counts = eng.nwant == 0;
                             for (int w = 0; w < eng.nwant; w++) {
@@ -1961,13 +2111,16 @@ static void reply(void)
         }
         order[j] = i;
     }
-    printf("@ ok %.3f %d %ld %d\n", ms, eng.trials, eng.spent, n);
+    printf("@ ok %.3f %d %ld %d %d\n", ms, eng.trials, eng.spent, n,
+           eng.crossed);
     for (int r = 0; r < n; r++) {
         Line* l = &eng.lines[order[r]];
-        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %d %d %d %s ",
+        printf("@ line %.3f %.2f %.2f %d %d %d %.2f %.2f %.2f %d %d %d %d %d "
+               "%d %s ",
                l->value, l->dmg, l->taken, l->ko, l->contact, l->contact_at,
                l->adv, l->pos, l->dist, l->len, l->first_len,
-               l->contact_air, l->contact_state, l->names);
+               l->contact_air, l->contact_state, l->side, l->cross,
+               l->names);
         for (int i = 0; i < l->len;) {
             int j = i;
             while (j < l->len &&
@@ -2001,22 +2154,28 @@ static void search_main(void)
     eng.contact_kind[0] = 0;
     eng.contact_air[0] = 0;
     eng.contact_state[0] = 0;
+    eng.cross_at[0] = 0;
+    eng.free_at[0] = 0;
+    eng.done_at[0] = 0;
+    eng.me_air[0] = 0;
     follow_interrupt(a);
     eng.marks = 0;
     eng.base = 0;
+    eng.front_side = toward(); /* a plan's (eval=1) side: from the root */
     mark(); /* the root: 1 */
     eng.from_root = 1;
     if (eng.npreroll > 0) {
         /* PORT's move still playing out first; the branching starts where
            it ends */
-        int ok = 1;
-        for (int i = 0; i < eng.npreroll && ok; i++) {
+        int ok = 1, i, np = eng.npreroll;
+        for (i = 0; i < np && ok; i++) {
             ok = play(eng.preroll[i]);
         }
         eng.npreroll = 0;
         if (eng.eval) {
             /* a plan, scored as it is (against the target's inputs as
-               given): "plan" */
+               given): "plan"; with front=, followed on (its own pads, then
+               letting go) to see whether it stays on its side */
             int key[DEPTH_MAX];
             Line l;
             eng.base = 0;
@@ -2024,8 +2183,19 @@ static void search_main(void)
             l = score();
             memset(key, -1, sizeof key);
             keep_as(&l, key, "plan");
+            if (eng.front > 0) {
+                int ok_front = front_ok(eng.preroll + i, np - i);
+                eng.lines[eng.nlines - 1].cross =
+                    ok_front ? 0 : eng.cross_at[eng.t];
+            }
         } else if (ok) {
+            /* the line starts here: its side from here */
             eng.base = eng.t;
+            eng.front_side = toward();
+            eng.cross_at[eng.t] = 0;
+            eng.free_at[eng.t] = 0;
+            eng.done_at[eng.t] = 0;
+            eng.me_air[eng.t] = 0;
             mark();
             if (eng.scan_step > 0) {
                 scan();
@@ -2064,8 +2234,8 @@ static float parse_weight(const char* line, const char* key, float def)
 /// "KEY=PREFIX,PREFIX...": the macros whose names start with one of them
 /// into `allowed`; with no KEY, all of them but the opponent vocabulary's
 /// (M_PIVOT_FIRST on: pivots, dash and jump-cancelled grabs, the dash
-/// dance, crouch, platform drop, wavelands), which come in when a prefix
-/// names them. A search with no moves= or then= keeps the action set it
+/// dance, crouch, platform drop, wavelands, short hops drifting out), which
+/// come in when a prefix names them. A search with no moves= or then= keeps the action set it
 /// had (22 more moves on the ground would take half again as long to rank
 /// at every branch point, and leave a budgeted search its depth no more).
 static void parse_moves(const char* line, const char* key,
@@ -2166,6 +2336,12 @@ const char* host_engine_begin(const char* line)
     eng.trial = (int) parse_weight(line, "trial", 0.0F);
     eng.enough = (int) parse_weight(line, "enough", 0.0F);
     eng.norun = (int) parse_weight(line, "norun", 0.0F);
+    /* "front=4": a line only if PORT stays on its side of the target
+       until its move is over and a frame-4 answer out of the shield hits
+       (front_ok) */
+    eng.front = (int) parse_weight(line, "front", 0.0F);
+    eng.crossed = 0;
+    eng.front_side = 0.0F;
     eng.nwant = 0;
     {
         const char* w = strstr(line, " want=");

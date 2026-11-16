@@ -177,8 +177,9 @@ class Opponent:
     behaviour on now; `over`: the script has ended (no loop)."""
 
     def __init__(self, think, port, target, spec, seed=0, half=85.0,
-                 char=None, react=None, temperature=6.0):
+                 char=None, react=None, temperature=6.0, memory=None):
         self.spec = spec
+        self.seed, self.char = seed, char
         self.steps = spec["script"]
         self.loop = bool(spec.get("loop", False))
         react = spec.get("react", S.REACT) if react is None else react
@@ -189,6 +190,13 @@ class Opponent:
             self.sense.wants |= S.uses(c)
         self.ctx = B.Ctx(think, port, target, self.sense, rng=self.rng,
                          react=react, half=half, temperature=temperature)
+        # what its approaches learnt (behave.Approach: the families it
+        # attacked with, what each came to), from the attempts before
+        # (`memory`, the drill's)
+        memory = memory or {}
+        self.ctx.memory["families"] = list(memory.get("families", []))
+        self.ctx.memory["tried"] = {f: list(v) for f, v in
+                                    memory.get("tried", {}).items()}
         self.frame = -1
         self.cur = None           # the behaviour on now
         self.cur_spec = None

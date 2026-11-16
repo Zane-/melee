@@ -14,6 +14,12 @@ condition holds and stops; times; if/else; loop. Then, Fox the player
 - `until: "approach"` fires when the stand-in dashes in, `react` frames
   after, not sooner;
 - approach with lands "shield" meets a shielding player's shield;
+- and on its front: never past the player from the commitment until
+  its move is over (landed, or free on the ground) and the frame a
+  frame-4 shine out of shield hits (`front`, the default on a shield),
+  for four of the characters whose lines crossed most before it; drawn
+  for variety (`pick`): five families or more, the same twice in a row
+  at most twice in 12;
 - a contract, answer oos_down_b: it commits only to what a frame-4 shine out
   of shield answers, proved by playing the answer it found;
 - punish lands damage on a player in landing lag;
@@ -236,6 +242,106 @@ def approach_shield(n):
                                     "" if hit else " MISSED"))
     check("approach lands shield: the line meets a shielding player's shield "
           "(three characters, two seeds)", ok, "; ".join(out))
+
+
+FRONT_MOVES = ("jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,"
+               "sh_nair,sh_fair,sh_bair,sh_uair,sh_dair")
+
+
+def front_of_shield(n):
+    from melee_engine.behave import family
+    from melee_engine.drill import Here
+    from melee_engine.opponent import NEUTRAL
+    out, crossed, landed, total, repeats, fams = [], 0, 0, 0, 0, set()
+    later = 0                  # past the player after that, by its end
+    for ch in ("captain-falcon", "pikachu", "yoshi", "marth"):
+        restart(n, "fox", ch)
+        for seed in range(3):
+            place(n, -20, 20)
+            # (the shield kept full by the game, as the drill keeps it: two
+            # approaches held against would break it)
+            n.shield(0, 60.0, keep=True)
+            put(n, 0, SHIELD)
+            n.step(10)
+            # two approaches, a footsies between: the second draws another
+            # family than the first
+            ap = {"do": "approach", "moves": FRONT_MOVES, "lands": "shield",
+                  "contract": {"answer": "oos_down_b", "within": 4}}
+            opp = Opponent(Here(n), 1, 0, dict(react=15, script=[
+                ap, {"do": "footsies", "range": [28, 42], "for": 30}, ap,
+                {"do": "hold", "pad": "stand", "for": 60}]), seed=seed,
+                half=FD_HALF)
+            seen, watch = [], {}
+
+            def until(f, st):
+                if opp.cur is not None and opp.cur not in seen and \
+                        opp.cur_spec.get("do") == "approach":
+                    seen.append(opp.cur)
+                me, them = st["p"][1], st["p"][0]
+                for b in seen:
+                    if b.opp.committed is None and id(b) not in watch:
+                        continue
+                    w = watch.setdefault(id(b), dict(
+                        side=1 if them["x"] >= me["x"] else -1, gaps=[],
+                        hit=False, air=False, free=None, done=None,
+                        end=None))
+                    if w["end"] is not None and len(w["gaps"]) >= w["end"]:
+                        continue
+                    w["gaps"].append((them["x"] - me["x"]) * w["side"])
+                    if them["hitlag"] > 0 and them["state"] in S.SHIELDING:
+                        if not w["hit"]:
+                            w["air"] = bool(me["air"])
+                        w["hit"] = True
+                    elif w["hit"] and w["free"] is None and \
+                            them["state"] in (178, 179):
+                        w["free"] = len(w["gaps"])   # out of its stun
+                    if w["hit"] and w["done"] is None and \
+                            them["hitlag"] <= 0 and not me["air"] and \
+                            (w["air"] or me["state"] in NEUTRAL):
+                        w["done"] = len(w["gaps"])   # its move over
+                    if w["end"] is None and (b.done or len(w["gaps"]) > 120) \
+                            and (w["free"] is not None or
+                                 len(w["gaps"]) > 120):
+                        # (followed to the line's end too)
+                        w["end"] = max(len(w["gaps"]), (w["free"] or 0) + 3)
+                return len(watch) == 2 and all(
+                    w["end"] is not None and len(w["gaps"]) >= w["end"]
+                    for w in watch.values())
+            drive(n, opp, lambda f, st: SHIELD, 900, until=until,
+                  what="two approaches and their frames")
+            n.shield(0, 60.0, keep=False)
+            names = []
+            for b in seen:
+                o, w = b.opp, watch.get(id(b))
+                total += 1
+                if o.line is None or w is None:
+                    out.append("%s/%d nothing" % (ch, seed))
+                    continue
+                # what front promises: to the later of its move's end and
+                # the frame the shine pressed on the first frame out of the
+                # stun hits
+                upto = max(w["done"] or w["end"], (w["free"] or 0) + 3)
+                past = [i for i, g in enumerate(w["gaps"][:upto]) if g < 0]
+                crossed += bool(past)
+                later += not past and any(g < 0 for g in w["gaps"])
+                landed += w["hit"]
+                names.append(family(o.line.names))
+                fams.add(names[-1])
+                out.append("%s/%d %s%s" % (
+                    ch, seed, o.line.names,
+                    " PAST THE PLAYER at +%d" % (past[0] + 1) if past
+                    else ""))
+            repeats += len(names) == 2 and names[0] == names[1]
+    check("approach on a shield, front: the opponent never past the player "
+          "from its commitment until its move is over and the frame a "
+          "frame-4 shine out of shield hits; every approach lands on the "
+          "shield; for variety, %d families, the same twice in a row at "
+          "most twice in 12" % len(fams),
+          crossed == 0 and landed == total and total == 24 and
+          repeats <= 2 and len(fams) >= 5,
+          "%d of %d past the player (%d after, by the line's end), %d "
+          "landed, %d repeats; %s" % (crossed, total, later, landed,
+                                      repeats, "; ".join(out)))
 
 
 def contract(n):
@@ -462,8 +568,9 @@ def main():
     interpreter()
     with Native() as n:
         restart(n, "fox", "marth")
-        for test in (footsies, until_approach, approach_shield, contract,
-                     punish, chain_grab, same_seed, forks, pivots):
+        for test in (footsies, until_approach, approach_shield,
+                     front_of_shield, contract, punish, chain_grab,
+                     same_seed, forks, pivots):
             t = time.time()
             test(n)
             print("      (%s: %.0f s)" % (test.__name__, time.time() - t),

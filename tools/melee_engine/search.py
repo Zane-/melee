@@ -24,10 +24,21 @@ CONTACT = {0: None, 1: "hit", 2: "shield", 3: "beaten", 4: "grab"}
 class Line:
     __slots__ = ("value", "dmg", "taken", "ko", "contact", "contact_at",
                  "contact_air", "contact_state", "adv", "pos", "dist", "len",
-                 "first_len", "names", "segments")
+                 "first_len", "side", "cross", "names", "segments")
 
     def __init__(self, text):
-        v = text.split(" ", 14)
+        v = text.split(" ", 13)
+        rest = v[13] if len(v) > 13 else ""
+        w = rest.split(" ", 1)
+        if w[0].lstrip("-").isdigit():
+            # SIDE (the target to its right, 1, or left, -1, at the line's
+            # start) and CROSS (the first frame it was past the target, 0
+            # never); a game built before them has neither
+            side, cross, rest = rest.split(" ", 2)
+            self.side, self.cross = int(side), int(cross)
+        else:
+            self.side, self.cross = 0, 0
+        v = v[:13] + rest.split(" ", 1)
         self.value, self.dmg, self.taken = float(v[0]), float(v[1]), \
             float(v[2])
         self.ko, self.contact, self.contact_at = int(v[3]), \
@@ -78,6 +89,8 @@ class Result:
     def __init__(self, head, lines):
         w = head.split()
         self.ms, self.trials, self.frames = float(w[1]), int(w[2]), int(w[3])
+        # the lines front= dropped (crossed up, overshot)
+        self.crossed = int(w[5]) if len(w) > 5 else 0
         self.lines = lines
 
     @property

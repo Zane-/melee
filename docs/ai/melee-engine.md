@@ -274,7 +274,7 @@ What the engine gained for it (`src/host/engine.c`):
 | `jump_in`, `jump`, `jump_out` | full hops with no aerial yet: the air's moves follow |
 | `then=PREFIX,...` | the moves after the first, so a line is made of the drill's moves only |
 | `split=N` | the best line for each of the first N moves, not just the first (up to 64) |
-| The timing scan, `scan=STEP` | lines [FIRST] + a hold (`hold=`: the stick in, none, out, walking in or out, `ff_` with a fast fall) for K frames + LAST, every K tried. The branch point moves forward along the hold one frame at a time, its rollback records merged into one (`host_rb_merge`), so every timing costs about one playout. The macro tree, stepping 6 frames at a time, found landing full hops for Falcon's nair only with a fast fall, and none for his dair or Peach's fair; the scan finds dozens. `stop=1` ends a line at its first contact, `trial=N` follows LAST N frames, `near=D` presses only within D units, `from=K` only after K frames, `enough=N` stops after N lines connect, counting only contacts in PORT's states `want=S,...` (what the drill counts) |
+| The timing scan, `scan=STEP` | lines [FIRST] + a hold (`hold=`: the stick in, none, out, walking in or out, `ff_` with a fast fall) for K frames + LAST, every K tried. The branch point moves forward along the hold one frame at a time, its rollback records merged into one (`host_rb_merge`), so every timing costs about one playout. The macro tree, stepping 6 frames at a time, found landing full hops for Falcon's nair only with a fast fall, and none for his dair or Peach's fair; the scan finds dozens. `stop=1` ends a line at its first contact, `trial=N` follows LAST N frames, `near=D` presses only within D units, `from=K` only after K frames, `enough=N` stops after N lines connect, counting only contacts in PORT's states `want=S,...` (what the drill counts), `norun=1` ends a hold on the ground where it would run, pass the target or reach the ledge, `front=N` keeps only a line whose PORT stays on its side of the target from the line's start until its move is over (it can act, or it hit in the air and has landed) and the frame an answer pressed on the target's first frame out of shield stun hits (N frames: a frame-4 shine out of shield is `front=4`), whichever is later, the frames past the line's end played letting go (each line's SIDE and CROSS; "@ ok"'s last number the lines dropped) |
 | `eval=1` | the pre-roll scored as one line ("plan"): a lookahead that honours `engine player` |
 | Each line's AIR and STATE | the target in the air at the first contact, and what PORT was doing (an up smash, not a dash attack) |
 
@@ -384,6 +384,70 @@ contact (the attack already pressed), one line cut short by the drill's reset; h
 251 of 258, the same kinds. A line cut short is one that had not landed when the drill's
 part 3 reset (`within`: 300 frames from the reset); the slowest approaches commit some
 220 frames into it (typically 40), before and after.
+
+**The front of the shield (2026-11-15).** The owner, after the fixes above: "the CPU
+often overshoots on the shield hit which is very very hard to punish with shine OoS".
+`feel.py` now records where each commitment met the shield: the side it started on, the
+gap at the contact along it, and the first frame the opponent was past the player up to
+the frame a frame-4 shine out of shield hits (the first frame out of shield stun + 3), up
+to its own landing or end and that frame, and up to its line's end; and the family of its
+attack. Before, contacts were from the front (1 of 440 from behind), but the attacker
+passed through; and a dash attack, which reaches and is answered from anywhere, was most
+of what it committed to (the drill's part 3 against a shielding stand-in, 40 attempts a
+character headless, 20 live in the window build on a virtual display; "after" is the
+front of the shield, the drift-out short hops, the variety pick and the deck's new
+scripts together):
+
+| | Fox | Marth | Puff | Falco | Sheik | Falcon | Peach | ICs | Pika | Yoshi | Samus | All |
+|-|-|-|-|-|-|-|-|-|-|-|-|-|
+| past the player by the frame a frame-4 shine hits, before, headless; live | 2; 1 | 0; 2 | 4; 5 | 0; 0 | 2; 1 | 12; 5 | 3; 4 | 10; 5 | 11; 3 | 10; 4 | 5; 1 | 59 of 440; 31 of 218 |
+| past the player by its landing or end, before, headless; live | 11; 5 | 10; 3 | 15; 10 | 6; 3 | 5; 5 | 17; 9 | 18; 8 | 12; 7 | 20; 6 | 15; 9 | 9; 5 | 138 of 440; 70 of 218 |
+| after, headless; live | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0; 0 | 0 of 440; 0 of 218 |
+| landed, after, headless; live | 40/40; 20/20 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 19/19 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 20/20 | 40/40; 19/19 | 440 of 440; 218 of 218 |
+| families, before → after, headless | 9 → 10 | 8 → 9 | 7 → 9 | 8 → 10 | 8 → 8 | 8 → 9 | 4 → 5 | 9 → 6 | 11 → 8 | 8 → 9 | 8 → 6 |  |
+| the most common, before → after, headless | dash attack 30% → uair 18% | dash attack 45% → dash attack 18% | dash attack 30% → dash attack 20% | fsmash 20% → bair 18% | dash attack 30% → nair 20% | dash attack 28% → fair 20% | dash attack 38% → dash attack 38% | dash attack 20% → fair 20% | dash attack 22% → nair 22% | dash attack 28% → fair 18% | dash attack 48% → dash attack 22% |  |
+| families, before → after, live | 7 → 9 | 8 → 6 | 8 → 6 | 6 → 10 | 6 → 6 | 6 → 8 | 4 → 5 | 8 → 6 | 9 → 10 | 6 → 6 | 6 → 6 |  |
+| the most common, before → after, live | dash attack 30% → nair 20% | dash attack 55% → dash attack 30% | dash attack 30% → dash attack 35% | fsmash 35% → dair 20% | dash attack 32% → dair 20% | dash attack 35% → dair 25% | dash attack 42% → dash attack 42% | nair 35% → fair 25% | dsmash 25% → dair 20% | dash attack 30% → dash attack 30% | dash attack 35% → fsmash 26% |  |
+| distinct lines, before → after, headless (40 attempts) | 32 → 37 | 26 → 34 | 29 → 34 | 34 → 38 | 32 → 34 | 30 → 33 | 23 → 24 | 29 → 35 | 32 → 39 | 31 → 35 | 26 → 33 |  |
+| frames to the commitment (median), before → after, live | 49 → 47 | 38 → 152 | 50 → 86 | 48 → 48 | 37 → 74 | 49 → 85 | 40 → 172 | 38 → 51 | 54 → 61 | 42 → 147 | 64 → 111 |  |
+
+Families that land on the front of the shield and are answered by the frame-4 shine,
+from a shielding Fox 8 to 38 units away (each family's lines searched alone, with and
+without `front=4`): every one of Fox's, Jigglypuff's, Falco's, Sheik's and the Ice
+Climbers' that the shine answers at all survives it, some at fewer spacings; lost to it
+(answered only through the shield or from behind): Marth's nair, fair and dair (spaced,
+drifting out, they are safe from the shine), Falcon's forward smash, bair, uair and
+down-B, Peach's nair, Pikachu's side-B, Yoshi's uair and dair, Samus's fair and uair.
+Not answered by a frame-4 shine from any of those spacings, front or not (the attacker
+acts first, or a second hit meets the shield in the answer's frames): most up and down
+smashes, Fox's up and down tilts, Peach's tilts, forward smash, uair and dair, Samus's
+nair, bair and dair; from a moving start a few come out all the same (Fox's up and down
+tilts, Peach's down tilt).
+
+The cause: nothing in a line said where its fighter goes after the contact. A short hop
+drifting in, or one out of a dash with no drift, carries an aerial through the shield (a
+dash attack slides past); the frame-4 shine, a sphere, still hits it, so the contract
+answered it. The timing scan's `front=N` (`engine.c`, `front_ok`): a line counts only if
+PORT never passes the target from the line's start until its move is over and the
+answer's frame, the frames after the line's end played letting go as the opponent plays
+them; `Commit` asks for it with `within`'s frames, and checks it again when the player
+moves (`contracts.lands(front=)`). The short hops drifting out (`sh_X_out`) add the
+spaced aerial. The deck picks for variety (`opponent-vocabulary.md`, `approach`): the
+families drawn into a queue, three searched a look, one used twice in the last 8 waiting
+while the opponent is patient. On a shield the contract also wants one hit in the
+answer's frames (`behave.stun_over(clear=)`: Yoshi's two-hit back air told a jump three
+frames late that the shield was hit again, where check.py's mistake is judged late). And a
+lookahead takes 48 pads, not 16 (`ahead.c`): live, a body's dash dances in the pre-roll
+and a line's L-cancel pulses made more, and the decision failed ("16 pads at most": 106
+of 750 decisions before, 587 of 1,476 with the variety pick, each one waited for again).
+The cost: live, the commitment comes later for some (Marth's median 38 to 152 frames,
+Peach's 40 to 172, Yoshi's 42 to 147): a family used twice waits for the others, each
+look a decision in a fork; `Commit.CAP` (2 of the last 8), `PER_LOOK` (3) and the
+patience (`EngineOpponent.PATIENCE`, 90 frames) set it. Tried first and dropped: one
+family a look (even headless; live, Peach waited 180 frames and 7 of 20 attempts saw no
+attack), every move a look with the family drawn among those found (the scan stops at
+`enough` with what it finds first: Sheik's tilts never, Peach's dash attack 80%), three a
+look with no cap (Jigglypuff's dash attack 70% live).
 
 Not yet: the other drills on the engine (E5: wavedash back, shine out of shield, then the
 rest, each with its contract); the slippi-ai body and model of the player in the drills;

@@ -57,8 +57,39 @@ PIVOTS = ("jab", "ftilt", "fsmash", "utilt", "usmash", "dtilt", "dsmash",
 PLANNED = tuple("pivot_%s%s" % (a, long) for a in PIVOTS
                 for long in ("", "_long")) + (
     "dash_grab", "jc_grab", "jc_usmash", "boost_grab", "dash_dance",
-    "crouch", "platform_drop", "waveland_in", "waveland_out", "waveland")
+    "crouch", "platform_drop", "waveland_in", "waveland_out", "waveland") + \
+    tuple("sh_%s_out" % a for a in ("nair", "fair", "bair", "uair", "dair"))
 THROWS = ("fthrow", "bthrow", "uthrow", "dthrow")
+
+
+def family(names):
+    """The attack a line ends with, as a person names it: the line's last
+    move without its hop, drift, pivot or jump cancel ("hold_in:3+sh_nair_in"
+    and "nair_out" are "nair", "pivot_fsmash_long" "fsmash", a dash or boost
+    grab "grab", "dash_attack" itself)."""
+    m = names.split("+")[-1] if names else ""
+    for pre in ("sh_", "fh_", "pivot_", "jc_"):
+        if m.startswith(pre):
+            m = m[len(pre):]
+    for suf in ("_in", "_out", "_long"):
+        if m.endswith(suf):
+            m = m[:-len(suf)]
+    return "grab" if m in ("dash_grab", "boost_grab") else m
+
+
+def families(prefixes):
+    """The families a "moves" list names, in its order, each with the
+    macros it names in it (today's and the scope's): {"nair": "sh_nair_in,
+    sh_nair", "dash_attack": "dash_attack", ...}."""
+    out = {}
+    names = MACROS + PLANNED
+    for p in prefixes.split(","):
+        for m in names:
+            if p and m.startswith(p):
+                f = family(m)
+                if m not in out.setdefault(f, []):
+                    out[f].append(m)
+    return {f: ",".join(ms) for f, ms in out.items()}
 
 
 def unknown_moves(prefixes):
@@ -317,14 +348,16 @@ def raw_pad(raw):
     return raw_to_pad(raw)
 
 
-def stun_over(n, port, target, raws, most=40):
+def stun_over(n, port, target, raws, most=40, clear=0):
     """Where `port` plays `raws` against a shielding `target` (holding its
     pad), the first frame (counted from now, 1 the first) the target can
     act out of the shield after the first hit on it; None if none hits
     it. On that frame shield stun's animation ends into the shield and the
     frame's input is read there (Fighter_procAnim runs before
     Fighter_procInput): an answer holds the shield the frames before it
-    and is pressed on it."""
+    and is pressed on it. `clear`: None too if the shield, still held, is
+    hit again in the `clear` frames from that one (a multi-hit attack's
+    next hit: an answer pressed late would meet it in the shield)."""
     from melee_actor.ahead import compress, look
     plan = compress([raw_pad(r) for r in raws]) + [(most, raw_pad(NONE))]
     out = look(n, port, target, plan, stop=0)
@@ -335,6 +368,9 @@ def stun_over(n, port, target, raws, most=40):
                 hit = i
             continue
         if row.t_state in (S.GUARD, S.GUARD_ON) and row.t_hitlag <= 0:
+            if any(r.t_hitlag > 0 and r.t_state in S.SHIELDING
+                   for r in out.rows[i + 1:i + clear]):
+                return None
             return i + 1
         if row.t_state not in S.SHIELDING:
             return None
@@ -351,14 +387,41 @@ class Commit(Contract):
     frames of the contact, is committed to: searched from their side
     (contracts.Answer) before it commits, a shielding player out of the
     shield as soon as its stun is over, any other no sooner than their
-    reaction time after the commitment."""
+    reaction time after the commitment. `front`: only a line that stays on
+    the side of the player it came from (the engine's front=: through its
+    move's end and the frame the answer would hit, `within`'s frames out of
+    the shield; never a cross-up or an attack that overshoots through the
+    shield).
+
+    `pick`: "variety" draws the families into a queue (by `weights` and
+    what each came to, the last `AVOID` in `recent`, the families attacked
+    with, at its end: the script's memory, kept from one attempt to the
+    next), each look searching the next `PER_LOOK` of them, their moves
+    alone; in the queue's order, two lines of each by the softmax, the
+    first answered taken; not patient (`wide`), every move, the families
+    that land in a drawn order. "best": one of the best lines of every
+    move by the softmax over their scores."""
 
     sees_commitments = False
+    AVOID = 2             # the last families attacked with: drawn last
+    PER_LOOK = 3          # families a look searches
+    SHARE = 8             # the attacks a family's share is counted over
+    CAP = 2               # times in them after which it waits, if patient
 
     def __init__(self, moves, kinds=LANDS["any"], answer=None, within=15,
-                 near=50, trial=30):
+                 near=50, trial=30, front=False, pick="best", recent=None,
+                 weights=None, tried=None):
         self.moves = moves
         self.kinds = kinds
+        self.front = within if front else 0
+        self.pick = pick
+        self.groups = families(moves)
+        self.recent = recent if recent is not None else []
+        self.weights = dict(weights or {})
+        # each family's [answered, looks it landed unanswered], kept as
+        # `recent` is: a family never answered is drawn less and less
+        self.tried = tried if tried is not None else {}
+        self.queue = []           # the families the next looks search
         self.answer = None
         if answer:
             self.answer = Answer(answer, holds="none,walk_out,out,walk_in",
@@ -386,14 +449,78 @@ class Commit(Contract):
             return tuple(my_pad)
         return NONE
 
-    def search(self, n, port, target, pre, their, holds, enough=6):
+    def _avoid(self):
+        """The families drawn last: the last one or two attacked with
+        (fewer when the list has few)."""
+        k = min(self.AVOID, len(self.groups) - 1)
+        return set(self.recent[-k:]) if k > 0 else set()
+
+    def _weight(self, f):
+        """A family's draw weight: the step's (1 by default), divided by
+        one more than the times it was attacked with in the last 8 (a dash
+        attack, which lands from anywhere, would come out most: it is
+        searched later), and halved for each look it landed and was not
+        answered (to a sixteenth) until it has been answered once (an up
+        tilt the frame-4 shine never answers is seldom searched first
+        again; Peach's forward air, answered from 12 to 20 units,
+        stays)."""
+        answered, unanswered = self.tried.get(f, (0, 0))
+        w = float(self.weights.get(f, 1.0)) / (
+            1 + self.recent[-self.SHARE:].count(f))
+        return w if answered > 0 else w * 0.5 ** min(unanswered, 4)
+
+    def _note(self, f, answered):
+        t = self.tried.setdefault(f, [0, 0])
+        t[0 if answered else 1] += 1
+
+    def _order(self, choices, rng):
+        """`choices` in the order they are tried: drawn one by one by
+        weight, the last attacked with after all the others."""
+        avoid = self._avoid()
+        out = []
+        for part in ([f for f in choices if f not in avoid],
+                     [f for f in choices if f in avoid]):
+            while part:
+                f = rng.choices(part, weights=[self._weight(x)
+                                               for x in part])[0]
+                out.append(f)
+                part.remove(f)
+        return out
+
+    def _capped(self, f):
+        """Attacked with CAP times in the last SHARE: while patient, not
+        searched (a dash attack, which lands and is answered from
+        anywhere, would otherwise be most of them)."""
+        return self.recent[-self.SHARE:].count(f) >= self.CAP
+
+    def _next(self, rng, wide=False):
+        """The families this look searches: the next `PER_LOOK` of the
+        queue, drawn again (`_order`) when it runs short; patient, without
+        the capped ones (unless every one is)."""
+        live = [f for f in self.groups if self.weights.get(f, 1.0) > 0]
+        if not wide:
+            live = [f for f in live if not self._capped(f)] or live
+            self.queue = [f for f in self.queue if f in live]
+        if len(self.queue) < self.PER_LOOK or \
+                (wide and any(f not in self.queue for f in live)):
+            self.queue += [f for f in self._order(live, rng)
+                           if f not in self.queue]
+        out, self.queue = self.queue[:self.PER_LOOK], \
+            self.queue[self.PER_LOOK:]
+        return out
+
+    def search(self, n, port, target, pre, their, holds, enough=6,
+               then=None):
         if pre:
             preroll(n, pre)
         # (norun: a held dash stays a dash, never a run turned round past
         # the player or to the ledge: engine.c)
-        r = searched(n, port, target, their, len(pre) + 50, then=self.moves,
+        # (front: only a line on the front of the shield, engine.c)
+        kw = dict(front=self.front) if self.front else {}
+        r = searched(n, port, target, their, len(pre) + 50,
+                     then=then or self.moves,
                      scan=2, hold=holds, contact=40, trial=self.trial,
-                     near=self.near, enough=enough, norun=1)
+                     near=self.near, enough=enough, norun=1, **kw)
         return [l for l in r.lines if l.contact in self.kinds and
                 l.taken == 0], r
 
@@ -401,6 +528,9 @@ class Commit(Contract):
 
     def find(self, n, port, target, pre, my_pad, rng, wide=False,
              temperature=6.0, reaction=15):
+        if self.pick == "variety" and len(self.groups) > 1:
+            return self._find_variety(n, port, target, pre, my_pad, rng,
+                                      wide, temperature, reaction)
         # (standing still and pressing later lands only close in: from
         # further it is a scan of every frame for nothing)
         close = distance(n.state(), port, target) <= 30
@@ -434,6 +564,62 @@ class Commit(Contract):
                             answer_line=got[1])
         return dict(ok=False, why="no answer", ms=ms, line=line)
 
+    def _find_variety(self, n, port, target, pre, my_pad, rng, wide,
+                      temperature, reaction):
+        """find, the families first: the next `PER_LOOK` of the queue
+        searched, their moves alone, in the queue's order (patient, the
+        capped left out); in each, two of its lines by the softmax, the
+        first the contract answers taken (TRIES + 2 looked at in all). The
+        holds as find's: one kind a look drawn, every kind once not patient
+        (a look searching three families with every hold took 750 ms in a
+        fork of the game). (Every move a look, the families drawn among
+        those found, was quick, but the scan finds lines in its own order
+        and stops at `enough`: a dash attack from far is found first,
+        Sheik's tilts, a walk in away, never.)"""
+        close = distance(n.state(), port, target) <= 30
+        if wide:
+            holds = "none,in,walk_in" if close else "in,walk_in"
+        else:
+            holds = rng.choice(("in", "none", "walk_in", "in,none")
+                               if close else ("in", "walk_in", "in,walk_in"))
+        their = self._their(my_pad, len(pre))
+        fams = self._next(rng, wide)
+        found, r = self.search(n, port, target, pre, their, holds,
+                               then=",".join(self.groups[f] for f in fams))
+        ms = r.ms
+        by = {}
+        for l in found:
+            by.setdefault(family(l.names), []).append(l)
+        order = [f for f in fams if by.get(f)]
+        if not order:
+            return dict(ok=False, why="lands nowhere", ms=ms)
+        tries, line = 0, None
+        for f in order:
+            left = list(by[f][:12])
+            for _ in range(min(2, len(left))):
+                if tries >= self.TRIES + 2:
+                    break
+                line = pick(left, temperature, rng)
+                left.remove(line)
+                tries += 1
+                if self.answer is None:
+                    got = (None, None)
+                else:
+                    got, ams = self._answered(n, port, target, pre, my_pad,
+                                              line, reaction)
+                    ms += ams
+                    if got is None:
+                        self._note(f, False)
+                        continue
+                self._note(f, True)
+                out = dict(ok=True, line=line, pads=line.raw(),
+                           press=press_at(line), ms=ms, answer=got[0],
+                           family=f)
+                if got[1] is not None:
+                    out["answer_line"] = got[1]
+                return out
+        return dict(ok=False, why="no answer", ms=ms, line=line)
+
     def _answered(self, n, port, target, pre, my_pad, line, reaction):
         """The player's answer to `line` ((raw pads from the frame asked
         at, its line), ms), or (None, ms)."""
@@ -442,9 +628,11 @@ class Commit(Contract):
             # out of the shield the moment its stun is over: the shield
             # held the frames before the first it can act on, the answer
             # pressed on it, hitting by frame `within` counting it as 1 (a
-            # frame-4 shine out of shield is within 4)
+            # frame-4 shine out of shield is within 4); the shield not hit
+            # again in those frames (a late answer is then judged late, not
+            # hit again: the drill's "one hit")
             self.answer.holds = "none"
-            first = stun_over(n, port, target, raws)
+            first = stun_over(n, port, target, raws, clear=self.within)
             if first is None:
                 return None, 0.0
             wait = first - 1
@@ -478,12 +666,23 @@ class Commit(Contract):
     def retrack(self, n, port, target, remaining, my_pad, lead, rng,
                 temperature=6.0, reaction=15):
         their = self._their(my_pad, lead + 6)
-        if lands(n, port, target, remaining, their) in self.kinds:
+        if lands(n, port, target, remaining, their,
+                 front=self.front) in self.kinds:
             return dict(outcome="lands")
         pre = remaining[:lead]
+        # (picking for variety: the attack it was making, if it still
+        # lands; else any)
+        o = self.owner
+        fam = family(o.line.names) if self.pick == "variety" and \
+            o is not None and o.line is not None else None
+        then = self.groups.get(fam) if fam else None
         found, r = self.search(n, port, target, pre, their,
-                               "none,in,walk_in,out", enough=3)
+                               "none,in,walk_in,out", enough=3, then=then)
         ms = r.ms
+        if then is not None and not found:
+            found, r = self.search(n, port, target, pre, their,
+                                   "none,in,walk_in,out", enough=3)
+            ms += r.ms
         if self.answer is not None:
             # only a line the player can answer (as when it committed)
             left, line = list(found[:12]), None
@@ -508,8 +707,15 @@ class Approach(Behaviour):
     """Commits to one of `moves` that the engine finds lands (`lands`: hit,
     shield, any) from wherever it is, its body (`body`: footsies closing in,
     or stand, shield, crouch) moving until then; with a `contract` {"answer":
-    MOVE_PREFIXES, "within": N}, only to one the player can answer. Over when
-    the line has played and the opponent can act again. drill.EngineOpponent
+    MOVE_PREFIXES, "within": N}, only to one the player can answer. `pick` (by
+    default "variety"): the attack's family drawn among those that land,
+    the last one or two it attacked with last (`weights`: {FAMILY: W}, 1
+    each by default); "best": one of the best lines of all. Over when
+    the line has played and the opponent can act again. `front` (by
+    default when it lands on the shield): only lines on the front of it,
+    the opponent never past the player before its move is over and their
+    answer would hit.
+    drill.EngineOpponent
     does the work: `committed`, `answer` ((frame asked, the player's raw
     pads from it): the answer the check found), `line`."""
     name = "approach"
@@ -517,10 +723,19 @@ class Approach(Behaviour):
     def __init__(self, ctx, spec):
         super().__init__(ctx, spec)
         con = spec.get("contract") or {}
-        self.contract = Commit(spec["moves"],
-                               LANDS[spec.get("lands", "any")],
+        lands_on = spec.get("lands", "any")
+        # the families attacked with, the script's (and, through the
+        # drill, the attempts before)
+        self.recent = ctx.memory.setdefault("families", [])
+        tried = ctx.memory.setdefault("tried", {})
+        self.contract = Commit(spec["moves"], LANDS[lands_on],
                                answer=con.get("answer"),
-                               within=con.get("within", 15))
+                               within=con.get("within", 15),
+                               front=spec.get("front", lands_on == "shield"),
+                               pick=spec.get("pick", "variety"),
+                               recent=self.recent,
+                               weights=spec.get("weights"), tried=tried)
+        self.noted = None         # the commitment its family was kept for
         body = spec.get("body", "footsies")
         if body == "footsies":
             body = Body(ctx.port, ctx.target, band=(12.0, 30.0),
@@ -545,6 +760,11 @@ class Approach(Behaviour):
 
     def step(self, st):
         raw = self.opp.pad(st, their=self.ctx.their)
+        o = self.opp
+        if o.committed is not None and o.committed != self.noted and \
+                o.line is not None:
+            self.noted = o.committed
+            self.recent.append(family(o.line.names))
         if self.opp.mode == "done":
             self.done = True
         return raw
@@ -962,6 +1182,12 @@ PARAMS = {
     "approach": {
         "moves": (_moves, "engine moves by name prefix, comma separated"),
         "lands": (lambda v: v in LANDS, "hit, shield or any"),
+        "front": (lambda v: isinstance(v, bool), "true or false"),
+        "pick": (lambda v: v in ("variety", "best"), "variety or best"),
+        "weights": (lambda v: isinstance(v, dict) and all(
+            isinstance(k, str) and isinstance(w, (int, float)) and w >= 0
+            for k, w in v.items()), "{FAMILY: WEIGHT}, e.g. "
+            '{"fsmash": 0.5}'),
         "contract": (lambda v: isinstance(v, dict) and
                      set(v) <= {"answer", "within"} and _moves(
                          v.get("answer", "")) and
