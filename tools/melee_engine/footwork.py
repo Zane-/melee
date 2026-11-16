@@ -490,6 +490,22 @@ class Footsies:
     TRIES = 9           # candidate phrases drawn each time one is planned
     LEDGE = 12.0        # units from the stage's end it keeps out of
     CLOSE = 7.0         # units from the target it never comes inside
+    # the band kept all through a phrase: a frame more than SLACK units
+    # out of it counts against the phrase; one more than DEEP units inside
+    # its low end refuses it (from inside, one coming closer still)
+    SLACK = 3.0
+    DEEP = 4.5
+    # the target's place as the body keeps its distance from it: its x
+    # eased (EASE of the way each frame), so that a dash dance in place is
+    # not chased leg by leg; played on, the plan is dropped and made again
+    # from where the fighter is when the eased target has come more than
+    # INSIDE units inside the band (or gone OUTSIDE beyond it), or the
+    # target itself LUNGE units inside, at most every AGAIN frames
+    EASE = 0.12
+    INSIDE = 1.5
+    OUTSIDE = 3.0
+    LUNGE = 6.0
+    AGAIN = 4
 
     def __init__(self, port, target, band=(35.0, 60.0), rng=None,
                  half=70.0, crouch=True, char=None):
@@ -513,6 +529,14 @@ class Footsies:
         self.rejected = 0
         self.errs = []           # the model's x against the game's, a frame
         self.them_v = 0.0        # the target's speed when last planned
+        self.replans = 0         # plans dropped for the band
+        self.since = 0           # frames since the last
+        self.tx = None           # the target's x, eased
+        self.seen_last = NONE    # the pad sent last
+        # the band kept through each phrase and the target eased (a
+        # footsies body with a band: behave.Footsies sets it)
+        self.keep = False
+        self.tv = 0.0            # and its speed, eased
 
     # -- the character -----------------------------------------------------
 
@@ -556,7 +580,12 @@ class Footsies:
         them = st["p"][self.target]
         self.them_v = 0.0 if them.get("air") else \
             (them.get("gvel", them.get("vx", 0.0)) or 0.0)
-        pads, kind = self._phrase(w, them["x"])
+        # (the eased target: a dash dance in place is not chased, its
+        # speed not taken for where it goes)
+        eased = self.keep and self.tx is not None
+        if eased:
+            self.them_v = self.tv
+        pads, kind = self._phrase(w, self.tx if eased else them["x"])
         self._append(w, pads, kind)
         return len(pads)
 
@@ -611,6 +640,31 @@ class Footsies:
                 # state the model has wrong): planned again from here
                 self.queue, self.expect, self.end = [], [], None
                 self.resyncs += 1
+            self.since += 1
+            them = st["p"][self.target]
+            if them is not None:
+                if self.tx is not None:
+                    self.tv += ((them["x"] - self.tx) * self.EASE -
+                                self.tv) * self.EASE
+                self.tx = them["x"] if self.tx is None else \
+                    self.tx + (them["x"] - self.tx) * self.EASE
+            soon = self.queue[:self.c["squat"] + 2]
+            if self.keep and self.queue and them is not None and \
+                    self.since >= self.AGAIN and \
+                    real in ("stand", "dash", "turn", "squat") and \
+                    not jumps(self.seen_last) and \
+                    not any(jumps(r) or guards(r) for r in soon):
+                # (never in a wavedash under way: its air dodge would come
+                # late, a jump)
+                # the target came in (or went off) while the plan played:
+                # planned again from here, where the band is now
+                d = abs(self.tx - me["x"])
+                lo, hi = self.band
+                if d < lo - self.INSIDE or d > hi + self.OUTSIDE or \
+                        abs(them["x"] - me["x"]) < lo - self.LUNGE:
+                    self.queue, self.expect, self.end = [], [], None
+                    self.replans += 1
+                    self.since = 0
         if not self.queue:
             self.extend(st)
         raw = self.queue.pop(0) if self.queue else NONE
@@ -618,6 +672,7 @@ class Footsies:
         if not self.queue:
             self.end = None
         self.seen.sent(raw)
+        self.seen_last = raw
         self.moved += raw[1] != 0
         self.last_lx = raw[1]
         return raw
@@ -741,6 +796,11 @@ class Footsies:
                 lo, hi = 2, D + 1        # a dash back, or out of a smash
                 #                          turn: from its 2nd
             hi = min(hi, lo + 10)
+            # a leg no longer than the band is wide and its slack (at the
+            # dash's first speed): a dance stays about it
+            band = self.band[1] - self.band[0] + 2 * self.SLACK
+            if self.keep:
+                hi = max(lo, min(hi, int(band / max(c["vinit"], 0.5))))
             if style == "tight":
                 k = rng.randint(lo, min(hi, lo + 2))
             elif style == "wide":
@@ -980,17 +1040,24 @@ class Footsies:
         d0 = abs(them_x - w.x)
         close = min(self.CLOSE, d0 - 2.0)
         # the target goes on as it moves, slowing (a guess: it will not
-        # keep on for long)
+        # keep on for long; a dash dance turns within a few frames)
         v = max(-1.5, min(1.5, self.them_v)) * 0.7
+        lo, hi = self.band
 
         def tx(i):
-            return them_x + v * min(i, 15)
+            return them_x + v * min(i, 8 if self.keep else 15)
+        out = 0
         for i, x in enumerate(xs):
             if abs(x) > limit and abs(x) > abs(w.x):
                 return None
-            if (tx(i) - x) * side < close:
+            gap = (tx(i) - x) * side
+            if gap < close:
                 return None
-        lo, hi = self.band
+            if self.keep and i >= 2 and \
+                    gap < min(lo - self.DEEP, d0 - 1.0):
+                return None           # deep inside the band on its way
+            if gap < lo - self.SLACK or gap > hi + self.SLACK:
+                out += 1
         d = abs(tx(len(xs)) - coast.x)
         if away:
             # a retreat never comes closer than it is, and backs off to the
@@ -998,7 +1065,8 @@ class Footsies:
             if any((them_x - x) * side < d0 - 1.0 for x in xs) or d <= d0:
                 return None
         miss = max(0.0, lo - d, d - hi)
-        score = -miss / 4.0
+        score = -miss / 2.0 - 6.0 * out / max(len(xs), 1) if self.keep \
+            else -miss / 4.0
         if lo <= d <= hi:
             score -= abs(d - (lo + hi) / 2.0) / max(hi - lo, 1.0) * 0.5
         if end.facing * sign(them_x - end.x) > 0:

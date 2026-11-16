@@ -69,6 +69,7 @@ SHIELD = (0x20, 0, 0, 0, 0, 0, 255)
 TOP = ("fox", "marth", "jigglypuff", "falco", "sheik", "captain-falcon",
        "peach", "ice-climbers", "pikachu", "yoshi", "samus")
 FD_HALF = 85.5657
+RANGE = (28.0, 42.0)        # the footsies body's band (--range)
 
 # ---- what a frame's state counts as ------------------------------------------
 
@@ -203,6 +204,12 @@ def measure(rows, char, band_of=None):
     inband = sum(1 for r, d in zip(rows, dist)
                  if r["band"] is not None and
                  r["band"][0] <= d <= r["band"][1])
+    # within 3 units of the band, and the closest inside its low end
+    near = sum(1 for r, d in zip(rows, dist)
+               if r["band"] is not None and
+               r["band"][0] - 3.0 <= d <= r["band"][1] + 3.0)
+    under = [r["band"][0] - d for r, d in zip(rows, dist)
+             if r["band"] is not None]
     facing = sum(1 for r in rows
                  if r["facing"] * (r["them_x"] - r["x"]) > 0)
     lag = counts["turn_run"] + counts["run_brake"] + counts["run"]
@@ -215,6 +222,9 @@ def measure(rows, char, band_of=None):
                legs_distinct=len(set(legs)),
                legs_range=(min(legs), max(legs)) if legs else None,
                inband_pct=100.0 * inband / max(n, 1),
+               near_pct=100.0 * near / max(n, 1),
+               dist_min=min(dist) if dist else 0.0,
+               under_most=max(under) if under else 0.0,
                facing_pct=100.0 * facing / max(n, 1),
                dist_mean=statistics.mean(dist) if dist else 0.0,
                dist_sd=statistics.pstdev(dist) if len(dist) > 1 else 0.0)
@@ -226,7 +236,9 @@ def measure(rows, char, band_of=None):
 class Standin:
     """The player's pad each frame. move: walks and dashes in and out about
     where it started (within 25 units of it), at random lengths; a dash is
-    let go of before it is a run."""
+    let go of before it is a run. dance: a dash dance in place about where
+    it started, each leg turned inside the initial dash (3 to 6 frames,
+    two more toward where it started once 6 units off it): it never runs."""
 
     def __init__(self, kind, rng, home=-20.0):
         self.kind, self.rng, self.home = kind, rng, home
@@ -237,6 +249,15 @@ class Standin:
             return NONE
         if self.kind == "shield":
             return SHIELD
+        if self.kind == "dance" and not self.queue:
+            off = st["p"][0]["x"] - self.home
+            way = -getattr(self, "way", -1)
+            self.way = way
+            n = self.rng.randint(3, 6) if hasattr(self, "legs") else 5
+            self.legs = True
+            if off * way < -6:
+                n += 2
+            self.queue = [(0, 127 * way, 0, 0, 0, 0, 0)] * n
         if not self.queue:
             me = st["p"][0]
             off = me["x"] - self.home
@@ -405,7 +426,8 @@ def make_body(kind, n, char, seed):
         return DirectBody(F(1, 0, band=(12.0, 30.0), rng=rng, half=FD_HALF))
     if kind in ("footsies", "old-footsies", "outside", "old-outside"):
         spec = {"do": "footsies",
-                "range": "outside" if kind.endswith("outside") else [28, 42]}
+                "range": "outside" if kind.endswith("outside") else
+                list(RANGE)}
         return ScriptBody(n, spec, seed, char, behave=_old_behave()
                           if kind.startswith("old-") else None)
     if kind == "model":
@@ -500,7 +522,8 @@ def row_text(char, body, standin, m):
             "walk %4.1f%% crouch %4.1f%% wd %4.1f%% shield %4.1f%% "
             "jump %4.1f%% | backs %3d (%.1f/s) dances %3d legs %4.1f+-%3.1f "
             "%s x%d | ran %2d ignored %2d | band %4.1f%% facing %4.1f%% "
-            "d %4.1f+-%4.1f teeter %d" % (
+            "d %4.1f+-%4.1f teeter %d | near %4.1f%% closest %4.1f "
+            "under %4.1f" % (
                 char, body, standin, m["lag_pct"], c["turn_run"],
                 c["run_brake"], c["run"], pct("dash"), pct("dd_turn"),
                 pct("pivot"), pct("wait"), pct("walk"), pct("crouch"),
@@ -509,7 +532,8 @@ def row_text(char, body, standin, m):
                 m["legs_mean"], m["legs_sd"],
                 "%d-%d" % tuple(lr) if lr else "-", m["legs_distinct"],
                 m["ran"], m["ignored"], m["inband_pct"], m["facing_pct"],
-                m["dist_mean"], m["dist_sd"], c["teeter"]))
+                m["dist_mean"], m["dist_sd"], c["teeter"], m["near_pct"],
+                m["dist_min"], m["under_most"]))
 
 
 # ---- calibration -------------------------------------------------------------
@@ -635,9 +659,13 @@ def main():
     ap.add_argument("--json")
     ap.add_argument("--trace", help="a directory for each run's frames")
     ap.add_argument("--calibrate", action="store_true")
+    ap.add_argument("--range", default="28,42",
+                    help="the footsies body's band, LO,HI units")
     ap.add_argument("--write", action="store_true")
     a = ap.parse_args()
     chars = ALL if a.chars == "all" else a.chars.split(",")
+    global RANGE
+    RANGE = tuple(float(v) for v in a.range.split(","))
     if a.calibrate:
         return 1 if do_calibrate(chars, a.write) and not a.write else 0
     from native import Native

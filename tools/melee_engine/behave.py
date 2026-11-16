@@ -221,6 +221,7 @@ class Footsies(Behaviour):
         band = tuple(r) if self.mode == "band" else (30.0, 45.0)
         self.body = Body(ctx.port, ctx.target, band=band, rng=self.rng,
                          half=ctx.half)
+        self.body.keep = self.mode == "band"
         if self.mode == "outside":
             ctx.sense.wants.add("guard")
         elif self.mode == "edge":
@@ -871,13 +872,20 @@ class Move(Driven):
         self.finished = True
         port, target, name = self.ctx.port, self.ctx.target, \
             self.spec["name"]
+        me, them = st["p"][port], st["p"][target]
+        if me is not None and them is not None and \
+                me["facing"] * (them["x"] - me["x"]) < 0 and \
+                name in PIVOTS and not me.get("air"):
+            # facing away (footsies' leg out): the attack out of a pivot
+            name = "pivot_" + name
 
         def fn(n):
             if pre:
                 preroll(n, pre)
             r = search(n, port, target, horizon=len(pre) + 90, budget=0,
                        depth=1, moves=name, lcancel=1)
-            exact = [l for l in r.lines if l.names == name] or r.lines[:1]
+            exact = [l for l in r.lines if l.names == name or
+                     l.names.startswith(name + "_")] or r.lines[:1]
             return dict(pads=exact[0].raw() if exact else None, ms=r.ms,
                         line=exact[0].names if exact else None)
         return fn
