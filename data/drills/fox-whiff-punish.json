@@ -198,8 +198,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              38,
+              50
+            ],
             "until": {
               "all": [
                 "approach",
@@ -219,7 +222,7 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "fsmash"
+                    "name": "usmash"
                   }
                 ]
               },
@@ -228,16 +231,7 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "dsmash"
-                  }
-                ]
-              },
-              {
-                "weight": 1,
-                "steps": [
-                  {
-                    "do": "move",
-                    "name": "dash_grab"
+                    "name": "grab"
                   }
                 ]
               }
@@ -248,8 +242,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
-        "attacks": "forward smash, down smash, dash grab"
+        "GO": 13,
+        "attacks": "up smash, grab"
       }
     },
     {
@@ -265,8 +259,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              38,
+              50
+            ],
             "until": {
               "all": [
                 "approach",
@@ -298,6 +295,15 @@
                     "name": "usmash"
                   }
                 ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "utilt"
+                  }
+                ]
               }
             ]
           }
@@ -306,8 +312,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
-        "attacks": "forward smash, up smash"
+        "GO": 17,
+        "attacks": "forward smash, up smash, up tilt"
       }
     },
     {
@@ -475,8 +481,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              42,
+              54
+            ],
             "until": {
               "all": [
                 "approach",
@@ -496,7 +505,7 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "fsmash"
+                    "name": "dsmash"
                   }
                 ]
               },
@@ -506,24 +515,6 @@
                   {
                     "do": "move",
                     "name": "usmash"
-                  }
-                ]
-              },
-              {
-                "weight": 1,
-                "steps": [
-                  {
-                    "do": "move",
-                    "name": "ftilt"
-                  }
-                ]
-              },
-              {
-                "weight": 1,
-                "steps": [
-                  {
-                    "do": "move",
-                    "name": "dtilt"
                   }
                 ]
               },
@@ -543,8 +534,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 9,
-        "attacks": "forward smash, up smash, forward tilt, down tilt, dash grab"
+        "GO": 17,
+        "attacks": "down smash, up smash, dash grab"
       }
     },
     {
@@ -560,8 +551,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              34,
+              46
+            ],
             "until": {
               "all": [
                 "approach",
@@ -590,7 +584,7 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "dsmash"
+                    "name": "usmash"
                   }
                 ]
               },
@@ -599,7 +593,16 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "usmash"
+                    "name": "utilt"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
                   }
                 ]
               }
@@ -610,8 +613,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
-        "attacks": "forward smash, down smash, up smash"
+        "GO": 17,
+        "attacks": "forward smash, up smash, up tilt, dash grab"
       }
     },
     {
@@ -627,8 +630,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              26,
+              38
+            ],
             "until": {
               "all": [
                 "approach",
@@ -648,7 +654,25 @@
                 "steps": [
                   {
                     "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
                     "name": "usmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "ftilt"
                   }
                 ]
               },
@@ -660,6 +684,15 @@
                     "name": "utilt"
                   }
                 ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "dash_grab"
+                  }
+                ]
               }
             ]
           }
@@ -668,8 +701,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
-        "attacks": "up smash, up tilt"
+        "GO": 17,
+        "attacks": "down smash, up smash, forward tilt, up tilt, dash grab"
       }
     },
     {
@@ -752,8 +785,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              34,
+              46
+            ],
             "until": {
               "all": [
                 "approach",
@@ -811,7 +847,7 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
+        "GO": 17,
         "attacks": "forward smash, down smash, up smash, dash grab"
       }
     },
@@ -828,8 +864,11 @@
         "react": 15,
         "script": [
           {
-            "do": "hold",
-            "pad": "stand",
+            "do": "footsies",
+            "range": [
+              30,
+              42
+            ],
             "until": {
               "all": [
                 "approach",
@@ -858,6 +897,15 @@
                 "steps": [
                   {
                     "do": "move",
+                    "name": "dsmash"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
                     "name": "usmash"
                   }
                 ]
@@ -867,7 +915,16 @@
                 "steps": [
                   {
                     "do": "move",
-                    "name": "grab"
+                    "name": "ftilt"
+                  }
+                ]
+              },
+              {
+                "weight": 1,
+                "steps": [
+                  {
+                    "do": "move",
+                    "name": "utilt"
                   }
                 ]
               }
@@ -878,8 +935,8 @@
       },
       "camera": "normal",
       "numbers": {
-        "GO": 22,
-        "attacks": "forward smash, up smash, grab"
+        "GO": 13,
+        "attacks": "forward smash, down smash, up smash, forward tilt, up tilt"
       }
     },
     {
@@ -1249,15 +1306,15 @@
   ],
   "mistakes": [
     {
-      "name": "dashing in and stopping next to it",
+      "name": "walking in and on into it",
       "inputs": [
         {
           "stick": [
-            1,
+            0.75,
             0
           ],
           "frame": 20,
-          "hold": 6
+          "hold": 400
         }
       ],
       "fails": "out of range"

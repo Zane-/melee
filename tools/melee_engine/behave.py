@@ -891,6 +891,12 @@ class Move(Driven):
         return fn
 
     def step(self, st):
+        me, them = st["p"][self.ctx.port], st["p"][self.ctx.target]
+        if not self.finished and self.pending is None and \
+                not self.queue and self.frame < 40 and me is not None and \
+                them is not None and me["state"] == 20 and \
+                me["facing"] * (them["x"] - me["x"]) > 0:
+            return NONE           # a dash toward: let go of first
         raw = self.drive(st)
         if self.finished and self.pending is None and not self.queue:
             self.done = True
