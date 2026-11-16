@@ -186,6 +186,29 @@ never comes, and then spins until its timeout. So:
 - If output stops moving, stop the test (`TaskStop`, or kill its process group) and find
   the loop; do not wait out the timeout.
 
+## Waiting on background work: never wait for a notice that cannot come
+
+The owner, 2026-11-15, after a helper agent sat idle for an hour, "waiting on its own
+background work" that had already finished: "Add some rules to ensure this doesn't happen
+again". A completion notice comes only for work the tool itself started in the background.
+So, for every session and every helper agent:
+
+- Start background work only with the Bash tool's `run_in_background`. Never detach inside a
+  command (`&`, `nohup`, `setsid`, `disown`, a `( ... ) &` subshell): such a process sends no
+  notice, and whoever waits for one waits for ever.
+- Never end a turn "waiting on background work" without proof it is still running: check
+  its process (`pgrep -f`, `ps`), and if nothing of yours is running, read its output files
+  now and go on.
+- Prefer a wait you can see end: a foreground command with a timeout (at most 600 s), or a
+  bounded loop on the output, `timeout 900 bash -c 'until grep -q DONE LOG; do sleep 5;
+  done'`, run in the background and read when it ends. A script that runs several steps
+  writes a last line (`ALLDONE`) to wait for.
+- A helper's final verification (its last test runs before reporting) runs where it can
+  see it end, as above, never as detached work it then waits on.
+- Whoever delegates checks on a quiet helper: no process of its own and no new file in its
+  scratch directory for 15 minutes means it is stuck. Message it to read its outputs and
+  report, rather than waiting for its notice.
+
 ## Verification status
 
 Be honest in reports about which of these you actually ran:
