@@ -107,6 +107,7 @@ enum { ROUTE_AIR, ROUTE_LEDGE, ROUTE_STAGE, ROUTE_HIT, ROUTE_LOST };
 #define RS_CAPTURE_LAST 232
 #define RS_CLIFF_CATCH 252
 #define RS_CLIFF_WAIT 253
+#define RS_CLIFF_LAST 263 /* CliffJumpQuick2: the ledge's own states */
 /* pads (segments) one lookahead takes: a body's dash dances and a
    line's L-cancel pulses made more than 16 (behave.stun_over); 48 of them
    fit in the command loop's 2,048 characters with room */
@@ -151,6 +152,10 @@ static struct {
     /* "routep": PORT's place frame by frame, in the reply too */
     int with_path;
     float path_x[ROUTE_MAX], path_y[ROUTE_MAX];
+    unsigned char path_i[ROUTE_MAX]; /* intangible or invincible then */
+    /* PORT has been off the ledge on this route (it began there: a route
+       from the ledge ends on the ledge only once it has left it) */
+    int off_ledge;
     /* "hitboxes": PORT's active hitboxes frame by frame, as the reply */
     char hb[32768];
     int hb_len;
@@ -516,7 +521,9 @@ static int ground_free(Fighter* fp)
 
 /// "route ..." read at a frame boundary (control.c), as host_ahead_begin.
 /// `path`: "routep", the reply ends with "|" and PORT's place after each
-/// frame, "X Y" joined by ";".
+/// frame and whether it could be hit there, "X Y I" (I: 1 intangible or
+/// invincible) joined by ";". A route that begins on the ledge (a getup, a
+/// drop and a jump back on) ends on the ledge only once it has left it.
 const char* host_route_begin(const char* line, int path)
 {
     int used = 0, horizon = 0, total = 0, ttotal = 0;
@@ -583,6 +590,8 @@ const char* host_route_begin(const char* line, int path)
                    host_ledge_at(1, &ahead.ledge_x[1], &ahead.ledge_y[1]) >= 0;
     ahead.ledge_d = NO_GAP;
     ahead.ledge_at = 0;
+    ahead.off_ledge = !((int) a->motion_id >= RS_CLIFF_CATCH &&
+                        (int) a->motion_id <= RS_CLIFF_LAST);
     ahead.taken = 0.0F;
     ahead.route = 1;
     ahead.active = 1;
@@ -613,6 +622,11 @@ static int route_note(void)
     if (ahead.played < ROUTE_MAX) {
         ahead.path_x[ahead.played] = a->cur_pos.x;
         ahead.path_y[ahead.played] = a->cur_pos.y;
+        ahead.path_i[ahead.played] =
+            (unsigned char) (a->x1988 != 0 || a->x198C != 0);
+    }
+    if (!(m >= RS_CLIFF_CATCH && m <= RS_CLIFF_LAST)) {
+        ahead.off_ledge = 1;
     }
     ahead.end_state = m;
     ahead.end_air = (int) a->ground_or_air;
@@ -658,7 +672,9 @@ static int route_note(void)
                (m >= RS_CAPTURE_FIRST && m <= RS_CAPTURE_LAST))
     {
         end = ROUTE_HIT;
-    } else if (m == RS_CLIFF_CATCH || m == RS_CLIFF_WAIT) {
+    } else if ((m == RS_CLIFF_CATCH || m == RS_CLIFF_WAIT) &&
+               ahead.off_ledge)
+    {
         end = ROUTE_LEDGE;
     } else if (a->ground_or_air == GA_Ground) {
         if (ahead.land_at == 0) {
@@ -700,8 +716,8 @@ static void route_reply(void)
         int k = ahead.played < ROUTE_MAX ? ahead.played : ROUTE_MAX;
         printf(" |");
         for (int i = 0; i < k; i++) {
-            printf("%s%.1f %.1f", i ? ";" : "", ahead.path_x[i],
-                   ahead.path_y[i]);
+            printf("%s%.1f %.1f %d", i ? ";" : "", ahead.path_x[i],
+                   ahead.path_y[i], (int) ahead.path_i[i]);
         }
     }
     printf("\n");

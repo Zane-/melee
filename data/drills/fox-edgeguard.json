@@ -5,16 +5,16 @@
  "characters": [
   "fox"
  ],
- "goal": "Keep an opponent knocked off the stage from getting back",
- "why": "An opponent off the stage has two places to go, the ledge and the stage, and only its jump and its specials to get there. Each way back can be covered: the ledge taken first, a hit on the way, a punish on the landing. Covering the way it chose, too late for it to choose another, takes a stock at percents where a hit on the stage would not.",
+ "goal": "Keep an opponent knocked off the stage from getting back onto it",
+ "why": "An opponent off the stage has to get back onto it, with only its jump and its specials, by the ledge or straight onto the stage. Each way can be covered: the ledge taken first, a hit on the way, a punish on the landing or on the way up from the ledge. Kept off the stage, it loses its stock at percents where a hit on the stage would not take it.",
  "switch": "success",
  "reset": {
   "after": "quiet",
   "seconds": 1
  },
  "tutorial": {
-  "what": "The opponent is knocked off the stage and recovers. Take its stock before it hangs from the ledge or stands on the stage again.",
-  "expect": "Each try is judged when the opponent loses its stock, catches the ledge, or is back on the stage and free to act, or when Fox is lost. It picks its way back from where it is, and takes another when it sees what you commit to, its reaction time after you do.",
+  "what": "The opponent is knocked off the stage and has one aim: to stand on it again. Take its stock first.",
+  "expect": "A try runs until the opponent loses its stock, or stands on the stage again, free to act, or Fox is lost. The ledge is not the end: from it the opponent still has to get up past you, and a hit sends it out to start again. It picks its way from where it is, stalls and waits, and takes another way when it sees what you commit to, its reaction time after you do.",
   "example": [
    {
     "press": "jump",
@@ -41,10 +41,10 @@
   },
   "lessons": [
    {
-    "title": "Two ways back",
+    "title": "Back to the stage",
     "text": [
-     "A fighter off the stage comes back to the ledge or to the stage itself, with its double jump, if it is left, and its specials. Most specials leave it helpless: once one has started, where it ends is decided.",
-     "An edgeguard covers where it ends: the ledge taken before it arrives, a hit on its way, a punish on its landing's lag."
+     "A fighter off the stage has to stand on it again. It comes straight onto the stage or by the ledge, with its double jump, if it is left, and its specials. Most specials leave it helpless: once one has started, where it ends is decided.",
+     "An edgeguard covers where it ends: the ledge taken first, a hit on its way, a punish on its landing. From the ledge it must still get up past you."
     ],
     "scenario": 1,
     "show": {
@@ -146,9 +146,9 @@
     }
    },
    {
-    "title": "It reacts",
+    "title": "It reacts, and it waits",
     "text": [
-     "The opponent sees what you commit to (a jump, a drop from the stage, an attack, the ledge taken) its reaction time later, and takes another way back if it still has one: a Fire Fox still charging is aimed above the ledge you took.",
+     "The opponent sees what you commit to (a jump, a drop from the stage, an attack, the ledge taken) its reaction time later, and takes another way if it still has one: a Fire Fox still charging is aimed above the ledge you took. It also stalls to come later than you expect: the shine, Marth's side special, Pound, a late up special.",
      "Commit once it cannot change: its special has started, its jump is gone. CPU reaction, in the pause menu, sets how fast it sees you."
     ],
     "scenario": 1,
@@ -723,16 +723,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -870,16 +861,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1017,16 +999,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1164,16 +1137,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1311,16 +1275,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1458,16 +1413,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1605,16 +1551,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1752,16 +1689,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -1899,16 +1827,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -2046,16 +1965,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -2193,16 +2103,7 @@
       "do": "hold",
       "pad": "stand",
       "until": {
-       "all": [
-        {
-         "me": "offstage"
-        },
-        {
-         "not": {
-          "me": "on_ledge"
-         }
-        }
-       ]
+       "me": "offstage"
       }
      }
     ],
@@ -2245,13 +2146,12 @@
   "start": "start",
   "judge": [
    "they_die",
-   "they_ledge",
    "they_return",
    {
     "enters": "dead"
    }
   ],
-  "limit": 900,
+  "limit": 1500,
   "timeout": "judge"
  },
  "measures": {
@@ -2276,6 +2176,9 @@
   },
   "hits": {
    "count": "connects"
+  },
+  "ledges": {
+   "count": "they_ledge"
   }
  },
  "checks": {
@@ -2293,15 +2196,15 @@
    "expect": "It does not catch the ledge",
    "words": "it caught the ledge",
    "headline": "It reached the ledge",
-   "fix": "Take the ledge before it gets there: back to the ledge, X or Y, then an air dodge down and back on frame {J+1}. Or hit it away before it arrives: a back air or a shine off the stage."
+   "fix": "Take the ledge before it gets there: back to the ledge, X or Y, then an air dodge down and back on frame {J+1}."
   },
   "off the stage": {
    "measure": "landed",
    "equals": false,
-   "expect": "It does not land on the stage and act",
-   "words": "it landed on the stage and could act again",
-   "headline": "It landed on the stage",
-   "fix": "A landing out of a special has lag. Be where it lands and hit it before it can act; from the ledge, stand up or drop and jump back on as it comes down."
+   "expect": "It does not stand on the stage again",
+   "words": "it stood on the stage again, free to act",
+   "headline": "It got back",
+   "fix": "Cover where its way ends. Onto the stage: be where it lands and hit it in its landing's lag. To the ledge: take the ledge as its special starts, or hit it as it comes up from the ledge. A hit that does not take the stock sends it out again."
   },
   "took the ledge": {
    "measure": "hogged",
@@ -2317,7 +2220,7 @@
    "expect": "Its stock taken",
    "words": "it was still alive",
    "headline": "Out of time",
-   "fix": "Cover where its way back ends: the ledge before it catches it, or its landing on the stage."
+   "fix": "Do not let it wait you out: go to it. A hit off the stage at its percent, or the ledge taken as it comes, takes the stock."
   }
  },
  "verdict": {
@@ -2406,11 +2309,24 @@
     8,
     9,
     10
-   ]
+   ],
+   "attempt": {
+    "start": "start",
+    "judge": [
+     "they_die",
+     "they_ledge",
+     "they_return",
+     {
+      "enters": "dead"
+     }
+    ],
+    "limit": 900,
+    "timeout": "judge"
+   }
   },
   {
    "name": "Edgeguard",
-   "teach": "It picks its way back and changes it when it sees what you commit to. Take its stock: the ledge taken late, a back air or a shine off the stage, a punish on its landing. D-pad left and right: another opponent.",
+   "teach": "It will not stop until it stands on the stage: by the air, by the ledge, after every hit. It stalls, waits and takes another way when it sees what you commit to. Keep it off the stage until its stock is gone. D-pad left and right: another opponent.",
    "example": [
     {
      "press": "jump",
@@ -2471,7 +2387,6 @@
    ],
    "checks": [
     "alive",
-    "off the ledge",
     "off the stage",
     "the stock"
    ],

@@ -1,5 +1,5 @@
-"""Recovering: the opponent knocked off the stage finds its way back, as
-well as the game allows, against what the player is doing about it
+"""Recovering: the opponent knocked off the stage gets back onto it, by any
+means its character has, against what the player is doing about it
 (docs/ai/melee-engine.md, "Recovering"; opponent-vocabulary.md, `recover`).
 
 The owner, 2026-11-17: an edgeguard drill is "a big test of the engine
@@ -8,34 +8,49 @@ edgeguard. For example for fox, if it is firefox angling, and right before
 the angle is locked in the player starts to drop and go for a bair to
 cover the ledge, the CPU could change angle to go high. This should have
 options for reaction time of the engine so the player can essentially
-choose their own difficulty."
+choose their own difficulty." And after playing the first version, which
+stopped at the ledge: "the CPU should still attempt to recover after a
+ledge grab or aerial that knocks them down. They should try to make it
+back to the stage by any means necessary, this needs to be a cat and mouse
+drill where the player has to adapt to a CPU whos instructions are to get
+back to the stage (with mixups and options like shine stalling, pound,
+late up B, side b stalling for marth, etc). We want realism here and a
+reactive CPU".
 
-How it thinks. A way back (a route) is the controller, frame by frame,
-from now until the fighter hangs from the ledge or stands on the stage:
-drift, a jump, a special at an angle, drift again. The game itself says
-what a route comes to: it is played ahead and undone ("route",
+Its one instruction: stand on the stage again, free to act. Until then it
+never stops: off the stage it flies a way back; on the ledge it gets up,
+rolls, attacks, jumps, or drops and comes back on (a jump, an air dodge
+onto the stage, its special, the ledge again); knocked down on the stage
+it gets up or rolls; hit, it starts again from where the hit left it.
+
+How it thinks. A route is the controller, frame by frame, from now until
+the fighter hangs from the ledge or stands on the stage. The game itself
+says what a route comes to: it is played ahead and undone ("route",
 src/host/ahead.c), against the player going on with what they are doing
 (their pad a few frames more, then let go: an attack begun plays out, a
-ledge held stays held), and ends caught on the ledge, landed and free,
-hit, or lost. Each time it decides, the opponent plays ahead the routes
-its character has from where it is (`TOOLS`: the jumps it has left, its
-specials, their angles and timings), scores them (the ledge or the stage
-reached; a landing's lag near the player; how close the player's
-hitboxes came; how long it flew with nothing left to change), and takes
-one of the best by a softmax, the kinds of route it used lately drawn
-less (never the same recovery twice). Where nothing reaches, the routes
-that came nearest the ledge are tried again a frame or two earlier and
-later.
+ledge held stays held), and ends on the ledge, on the stage and free, hit,
+or lost. Each time it decides, the opponent plays ahead the routes its
+character has from where it is (`TOOLS`: its jumps, its specials at their
+angles and timings, sooner or later; a stall first, the shine, Dancing
+Blade, Pound, a bomb, the float, and then the rest), scores them (the
+stage, the ledge; a landing's lag within the player's reach; how close
+their hitboxes came; how long it flew with nothing left to change; the
+ledge taken again and again), and takes one of the best by a softmax, the
+kinds of route it used lately drawn less: never the same recovery twice.
+Where nothing reaches, the routes that came nearest the ledge are played
+again at every timing a few frames either side.
 
 What the player could do (`threats`). A route that ends well against a
 player who does nothing more may still pass through where they can
 strike. So each decision also plays the player ahead, alone, through the
 attacks they have from where they are (in the air: each aerial and the
-down special, now and a few frames on; on the ground: the smashes and
-tilts), and keeps where their hitboxes were, frame by frame. A route that
-crosses one at its frame is exposed to it; the more of them, the less
-the route is worth. A player who has dropped below the ledge threatens
-the ledge and no longer the stage above: the opponent goes high.
+down special, now and some frames on; on the ground: the smashes and the
+down special), and keeps where their hitboxes were, frame by frame. A
+route whose body is there at that frame, and can be hit, is exposed to
+it; the more of them, the less the route is worth. A player who has
+dropped below the ledge threatens the ledge and no longer the stage above:
+the opponent goes high. One who jumped out early threatens now and not in
+a second: it stalls, and comes later.
 
 How it adapts. While it flies it checks its route again every few frames,
 and decides again when the route no longer ends well or another is much
@@ -52,6 +67,7 @@ import math
 import os
 import random
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "melee_native"))
@@ -67,7 +83,8 @@ REBIRTH = (11, 12, 13)
 TUMBLE = 38
 SPECIAL_FALL = (35, 36, 37)
 DAMAGE = tuple(range(75, 92))
-LEDGE = (252, 253)
+DOWN = tuple(range(183, 199))     # lying down, its getups
+LEDGE = (252, 253)                # CliffCatch, CliffWait
 LEDGE_ALL = tuple(range(252, 264))
 # on the ground and free to act
 STANDING = frozenset((14, 15, 16, 17, 18, 20, 21, 39, 40, 41, 178, 179))
@@ -83,8 +100,8 @@ def _words(segs):
 def route(n, port, target, plan, their=None, horizon=240, path=False):
     """`plan` ([(frames, raw pad)]) played ahead for `port` and undone,
     `target` playing `their` (None: holding its pad): a native.Route
-    (`path`: with its `path`, the fighter's (x, y) after each frame). Any
-    game answers it: the match, or a fork of it."""
+    (`path`: with its `path`, the fighter's (x, y, intangible) after each
+    frame). Any game answers it: the match, or a fork of it."""
     state = n.state()
     text = "%s %d %d %d %s" % ("routep" if path else "route", port, target,
                                horizon, _words(plan))
@@ -182,31 +199,41 @@ class Tool:
     (aimed from where the fighter is `lock` frames after the press) for
     `lock` + 6 frames. `button`: B, or R (an air dodge). `again`: B pressed
     again `again` frames after the first (Fox's and Falco's side special
-    shortened), a variant each. `mash`: B pressed every other frame for
+    shortened), a variant each. `held`: B kept held that many frames (the
+    shine, held), a variant each. `mash`: B pressed every other frame for
     that many frames (the Ice Climbers' side special rises with it).
     `helpless`: nothing can follow it (the fighter falls helpless after:
-    the frames flown after it count against a route). `two`: (frames,
-    angles): a second direction held from `frames` after the first is read
-    (Pikachu's). `hold_for`: frames the stick is held after an unsteered
-    press."""
+    the frames flown after it count against a route). `stall`: it holds
+    the fighter up or back and something follows it (the shine, Dancing
+    Blade's first swing, Pound, a bomb): a route may begin with one.
+    `jump_after`: the double jump is back after it (Captain Falcon's down
+    special). `two`: (frames, angles): a second direction held from
+    `frames` after the first is read (Pikachu's). `hold_for`: frames the
+    stick is held after an unsteered press."""
 
     def __init__(self, name, press, steer=None, lock=0, angles=(),
-                 drift=((1.0, 0.0),), button=B, again=(), mash=0,
-                 helpless=True, hold_for=40, two=None):
+                 drift=((1.0, 0.0),), button=B, again=(), held=(), mash=0,
+                 helpless=True, stall=False, jump_after=False, hold_for=40,
+                 two=None):
         self.name, self.press, self.steer = name, press, steer
         self.lock, self.angles, self.drift = lock, tuple(angles), \
             tuple(drift)
         self.button, self.again, self.mash = button, tuple(again), mash
-        self.helpless, self.hold_for, self.two = helpless, hold_for, two
+        self.held = tuple(held)
+        self.helpless, self.stall = helpless and not stall, stall
+        self.jump_after, self.hold_for, self.two = jump_after, hold_for, two
 
 
 SWEEP = (-60, -40, -20, 0, 20, 40, 60, 75, 90)
 UP_B = (0.0, 1.0)
 SIDE_B = (1.0, 0.0)
 DOWN_B = (0.0, -1.0)
-IN, HALF = (1.0, 0.0), (0.4, 0.0)
+IN, HALF, STILL = (1.0, 0.0), (0.4, 0.0), (0.0, 0.0)
 AIRDODGE = Tool("airdodge", (0.0, 0.0), steer="angle", lock=0,
-                angles=(0, 30, 60, 90), button=R, hold_for=2)
+                angles=(0, 30, 60, 90, -30), button=R, hold_for=2)
+# the shine in the air: it stops the fall for as long as B is held, and a
+# jump comes out of it
+SHINE = dict(drift=(STILL, IN), held=(0, 10, 22), stall=True, hold_for=4)
 
 # The specials each character recovers with (data/characters/*.md,
 # "Recovery"). What a route may be is `candidates` below; what it comes to,
@@ -214,26 +241,30 @@ AIRDODGE = Tool("airdodge", (0.0, 0.0), steer="angle", lock=0,
 TOOLS = {
     # Fire Fox, Fire Bird: 42 frames of charge, the angle read on the 43rd
     # (data/drills/fox-firefox-angles.json); Illusion, Phantasm: B again on
-    # one of its travel frames shortens it (fox-shorten.json)
+    # one of its travel frames shortens it (fox-shorten.json); the shine
+    # stalls
     "fox": [Tool("up_b", UP_B, steer="angle", lock=43, angles=SWEEP),
-            Tool("side_b", SIDE_B, again=(0, 20, 21, 22, 23))],
+            Tool("side_b", SIDE_B, again=(0, 20, 21, 22, 23)),
+            Tool("down_b", DOWN_B, **SHINE)],
     "falco": [Tool("up_b", UP_B, steer="angle", lock=43, angles=SWEEP),
-              Tool("side_b", SIDE_B, again=(0, 16, 17, 18, 19))],
-    # Dolphin Slash; the side special's first swing once: it slows the fall
+              Tool("side_b", SIDE_B, again=(0, 16, 17, 18, 19)),
+              Tool("down_b", DOWN_B, **SHINE)],
+    # Dolphin Slash; the side special's first swing: it slows the fall
     "marth": [Tool("up_b", UP_B, drift=(IN, HALF)),
-              Tool("side_b", SIDE_B, hold_for=24, helpless=False)],
+              Tool("side_b", SIDE_B, hold_for=24, stall=True)],
     # Vanish: the direction held before she disappears
     "sheik": [Tool("up_b", UP_B, steer="angle", lock=36,
                    angles=(-45, 0, 45, 90, 20, 70))],
     # Falcon Dive; the down special in the air gives the jump back
     "captain-falcon": [Tool("up_b", UP_B, drift=(IN, HALF)),
-                       Tool("down_b", DOWN_B, helpless=False)],
-    # the parasol; the float is a jump held (`FLOATS`)
+                       Tool("down_b", DOWN_B, stall=True, jump_after=True,
+                            hold_for=50)],
+    # the parasol; Peach Bomber; the float is a jump held (`FLOATS`)
     "peach": [Tool("up_b", UP_B),
-              Tool("side_b", SIDE_B, helpless=False)],
+              Tool("side_b", SIDE_B, stall=True, hold_for=50)],
     # Pound, the stick up after it: it rises, and nothing is lost
     "jigglypuff": [Tool("side_b", SIDE_B, drift=((0.3, 1.0), (1.0, 0.3)),
-                        helpless=False)],
+                        stall=True, hold_for=44)],
     # Belay; Squall Hammer, B mashed to rise
     "ice-climbers": [Tool("up_b", UP_B), Tool("side_b", SIDE_B, mash=44)],
     # Quick Attack: a direction before the first warp, another during it
@@ -244,7 +275,7 @@ TOOLS = {
     "yoshi": [],
     # Screw Attack; a bomb stalls her fall
     "samus": [Tool("up_b", UP_B),
-              Tool("down_b", DOWN_B, hold_for=30, helpless=False)],
+              Tool("down_b", DOWN_B, hold_for=50, stall=True)],
 }
 # jumps in the air (1 unless named)
 JUMPS = {"jigglypuff": 5, "kirby": 5}
@@ -253,6 +284,7 @@ JUMPS = {"jigglypuff": 5, "kirby": 5}
 OWN_FIRST = {"jigglypuff": 346, "kirby": 351}
 # Peach floats: the jump button held in the air, the stick toward the stage
 FLOATS = ("peach",)
+TOOL_NAMES = ("jump", "float", "up_b", "side_b", "down_b", "airdodge")
 
 
 def tools_of(char):
@@ -266,33 +298,57 @@ def air_jumps(char):
 
 # ---- where the fighter is -------------------------------------------------------
 
+def phase_of(me, char=None):
+    """Where a recovery stands: "lost" (the stock gone), "stage" (standing
+    on it, free: over), "ledge" (hanging), "down" (lying on the stage),
+    "ground" (on it and not free yet: a landing's lag, a getup under way),
+    "air"."""
+    s = me["state"]
+    if s <= DEAD_LAST or s in REBIRTH:
+        return "lost"
+    if s in LEDGE:
+        return "ledge"
+    if not me["air"]:
+        if s in STANDING:
+            return "stage"
+        return "down" if s in DOWN else "ground"
+    return "air"
+
+
 class View:
     """The recovering fighter, as a decision sees it: `side` of the stage
     it is off (1 right, -1 left), `inward` the stick's x toward the stage,
     the ledge on its side, how far out and how high it is from it, the
-    jumps it has left, the frames until it can act (`wait`: hitstun)."""
+    jumps it has left, the frames until it can act (`wait`: hitstun), its
+    `phase`, the times it has caught the ledge on this recovery
+    (`grabs`)."""
 
-    def __init__(self, me, them, both, char):
+    def __init__(self, me, them, both, char, grabs=0):
         self.me, self.them, self.char = me, them, char
         left, right = both
         self.side = 1 if me["x"] >= 0 else -1
         self.inward = -self.side
         self.ledge = right if self.side > 0 else left
+        self.half = abs(self.ledge[0])
         self.out = (me["x"] - self.ledge[0]) * self.side    # past the ledge
         self.up = me["y"] - self.ledge[1]                   # above it
         self.jumps = max(0, air_jumps(char) + 1 - int(me["jumps"]))
         hs = int(me.get("hitstun") or 0)
         self.wait = max(0, hs - 1) if me["state"] in DAMAGE else 0
         self.state = me["state"]
+        self.phase = phase_of(me, char)
         self.helpless = me["state"] in SPECIAL_FALL
-        self.special = me["state"] >= OWN_FIRST.get(char, 341)
+        self.special = me["air"] and \
+            me["state"] >= OWN_FIRST.get(char, 341)
+        self.tumbling = me["state"] in DAMAGE or me["state"] == TUMBLE
+        self.grabs = grabs
 
 
 # ---- the routes a decision considers ---------------------------------------------
 
 def _tool_steps(tool, how):
     """A tool's steps for one way of using it (`how`: angle, drift, again,
-    second): its press, what is held through it."""
+    held, second): its press, what is held through it."""
     out = []
     sx, sy = tool.press
     if tool.steer == "angle":
@@ -316,6 +372,8 @@ def _tool_steps(tool, how):
     if tool.mash:
         out.append(mash(tool.mash, B, dx, dy))
         return out
+    if how.get("held"):
+        out.append(hold(how["held"], dx, dy, B))
     again = how.get("again", 0)
     if again:
         out.append(hold(again - 2, dx, dy))
@@ -333,8 +391,8 @@ def _hows(tool, aimed=()):
             out += [dict(angle=a, second=b) for a in tool.angles[:4]
                     for b in seconds if abs(a - b) >= 40]
         return out
-    return [dict(drift=d, again=g) for d in tool.drift
-            for g in (tool.again or (0,))]
+    return [dict(drift=d, again=g, held=h) for d in tool.drift
+            for g in (tool.again or (0,)) for h in (tool.held or (0,))]
 
 
 def _how_words(how):
@@ -347,6 +405,8 @@ def _how_words(how):
         out.append("then %g" % how["second"])
     if how.get("again"):
         out.append("B again on %d" % how["again"])
+    if how.get("held"):
+        out.append("held %d" % how["held"])
     if how.get("drift") not in (None, IN):
         out.append("stick %g, %g" % how["drift"])
     return (" " + ", ".join(out)) if out else ""
@@ -354,19 +414,22 @@ def _how_words(how):
 
 class Candidate:
     """A route to try: `build(k, g)` its steps for a wait of `k` frames
-    and a gap of `g` (jump to special), `k`, `g` its own; `label` for a
-    person; `kind` what it is made of ("jump", "up_b", "jump+up_b");
-    `commit(k, g)`: the frame from which nothing more can be changed (None:
-    it keeps its options); `jump`: it uses the double jump."""
+    and a gap of `g` (before its last tool), `k`, `g` its own; `label` for
+    a person; `kind` what it is made of ("jump", "up_b", "jump+up_b",
+    "down_b+up_b", "ledge getup"); `commit(k, g)`: the frame from which
+    nothing more can be changed (None: it keeps its options); `jump`: it
+    uses the double jump; `tool`, `how`: a steered special still to be
+    aimed (`how` None)."""
     __slots__ = ("build", "k", "g", "label", "kind", "tool", "how", "segs",
-                 "res", "score", "commit", "jump", "exposed")
+                 "res", "score", "commit", "jump", "exposed", "lead")
 
     def __init__(self, build, k, g, label, kind, tool=None, how=None,
-                 commit=None, jump=False):
+                 commit=None, jump=False, lead=None):
         self.build, self.k, self.g = build, k, g
         self.label, self.kind = label, kind
         self.tool, self.how = tool, how
         self.commit, self.jump = commit, jump
+        self.lead = lead          # steps before the steered tool's press
         self.segs = self.res = None
         self.score = 0.0
         self.exposed = 0.0
@@ -378,7 +441,7 @@ class Candidate:
     def moved(self, k, g):
         """The same route at another timing."""
         c = Candidate(self.build, k, g, self.label, self.kind, self.tool,
-                      self.how, self.commit, self.jump)
+                      self.how, self.commit, self.jump, self.lead)
         c.label = "%s (%+d, %+d)" % (self.label, k - self.k,
                                      (g or 0) - (self.g or 0))
         return c
@@ -387,54 +450,66 @@ class Candidate:
 DRIFT_END = hold(400, 1.0, 0.0)
 WAITS = (0, 4, 9, 15, 22, 30, 40, 52, 66, 82)
 GAPS = (0, 3, 7, 12, 18, 25, 33, 42)
+STALL_GAPS = (2, 8, 16, 26)
 
 
-def _with_tool(v, tool, how, jump):
-    """A candidate's builder: a wait `k`, the jump and a gap `g` if `jump`,
-    the tool used `how`, the drift to the end."""
-    wait = v.wait
+def _route_of(first, tool, how, jump, stall=None, stall_how=None,
+              stall_jump=False):
+    """A candidate's builder: `first` (the steps before it: hitstun waited
+    out, a ledge let go of), a wait `k`; a stall and what is held through
+    it, if any; the jump if `jump`, and a gap `g`; the tool used `how`
+    (None: left to the decision, a steered special's angle); the drift to
+    the end."""
+    def before(k, g):
+        steps = list(first) + [hold(k, 1.0, 0.0)]
+        if stall is not None:
+            steps += _tool_steps(stall, stall_how)
+            if stall_jump:
+                steps += [press(X, 1.0, 0.0)]
+            steps += [hold(g, 1.0, 0.0)]
+        elif jump:
+            steps += [press(X, 1.0, 0.0), hold(g, 1.0, 0.0)]
+        return steps
 
     def build(k, g):
-        steps = [hold(wait + k, 1.0, 0.0)]
-        if jump:
-            steps += [press(X, 1.0, 0.0), hold(g, 1.0, 0.0)]
-        if how is not None:
+        steps = before(k, g)
+        if tool is not None and how is not None:
             steps += _tool_steps(tool, how)
+        if tool is None or how is not None:
             steps.append(DRIFT_END)
         return steps
 
     def commit(k, g):
-        if not tool.helpless:
+        if tool is None or not tool.helpless:
             return None
-        at = wait + k + ((1 + g) if jump else 0) + 1
+        at = sum(s[1] for s in before(k, g)) + 1
         if tool.steer == "angle" and tool.button == B:
             at += tool.lock
         return at
     return build, commit
 
 
-TOOL_NAMES = ("jump", "float", "up_b", "side_b", "down_b", "airdodge")
-
-
-def candidates(v, rng, budget=48, tools=None):
-    """The routes a decision plays ahead from where the fighter is (after
-    its hitstun): about `budget` of them, the ones that act at once always
-    among them. A steered special's candidate has no angle yet (`how`
-    None): the decision aims it from where the fighter is when the angle
-    is read. `tools`: the only ones its routes may use (`TOOL_NAMES`,
-    comma separated: "jump": it comes back with its jump and its drift
-    alone); None: all it has."""
+def air_candidates(v, rng, tools=None, first=(), tag=""):
+    """The routes from the air (after its hitstun): the drift; its jumps,
+    now or later; each special now or later, after a jump or without; a
+    stall, then a jump, a special or the drift. The ones that act at once
+    come first: they are never left out. A steered special's candidate has
+    no angle yet (`how` None): the decision aims it from where the fighter
+    is when the angle is read. `tools`: the only ones its routes may use
+    (`TOOL_NAMES`, comma separated); None: all it has. `first`: steps
+    before every route (a ledge let go of), `tag` before every kind."""
     out = []
-    wait = v.wait
+    first = list(first) + ([hold(v.wait, 1.0, 0.0)] if v.wait else [])
     allowed = None if tools is None else set(tools.split(","))
 
     def ok(name):
         return allowed is None or name in allowed
-    tools = [t for t in tools_of(v.char) if ok(t.name)]
+    have = [t for t in tools_of(v.char) if ok(t.name)]
 
     def plain(steps_of, k, label, kind, jump=False):
-        out.append(Candidate(lambda k_, g_: [hold(wait + k_, 1.0, 0.0)] +
-                             steps_of(), k, None, label, kind, jump=jump))
+        out.append(Candidate(
+            lambda k_, g_: first + [hold(k_, 1.0, 0.0)] + steps_of(), k,
+            None, label, tag + kind, jump=jump))
 
     if v.helpless:
         # nothing left but the drift (and a fast fall)
@@ -456,10 +531,23 @@ def candidates(v, rng, budget=48, tools=None):
         for k in (1, 2, 3, 4) if allowed is None else ():
             plain(lambda: [press(B, 1.0, 0.0), DRIFT_END], k,
                   "B again in %d" % k, "steer")
+        if v.jumps > 0 and ok("jump"):
+            # (out of the shine, a jump)
+            for k in (1, 6, 14):
+                plain(lambda: [press(X, 1.0, 0.0), DRIFT_END], k,
+                      "jump in %d" % k, "steer", jump=True)
         return out
     # the drifts alone (a launch that leaves it above the stage)
     for d, name in ((1.0, "in"), (0.5, "half in")):
         plain(lambda d=d: [hold(400, d, 0.0)], 0, "drift " + name, "drift")
+    if v.tumbling and v.out < 0 and v.up < 60 and v.me.get("vy", 0) <= 0:
+        # over the stage and coming down in its tumble: a tech as it lands
+        # (in place, in, out), pressed within 20 frames of the floor
+        for k in (0, 8, 16, 26):
+            for sx, name in ((0.0, "in place"), (1.0, "in"), (-1.0, "out")):
+                plain(lambda sx=sx: [press(R, sx, 0.0), hold(12, sx, 0.0),
+                                     hold(60, 0.0, 0.0)], k,
+                      "tech %s after %d" % (name, k), "tech")
     # jumps: now or later, then the drift
     if v.jumps > 0 and ok("jump"):
         for k in WAITS[:6]:
@@ -480,51 +568,169 @@ def candidates(v, rng, budget=48, tools=None):
         for k in (0, 8, 18):
             plain(lambda: [press(X, 0.0, -1.0), hold(150, 1.0, 0.0, X),
                            DRIFT_END], k, "float after %d" % k, "float")
-    # each special: now or later; after a jump, sooner or later
+    # each special: now or later; after a jump, sooner or later; after a
+    # stall
     plans = []
-    for tool in tools:
+    stalls = [t for t in have if t.stall]
+    for tool in have:
         for k in WAITS:
-            plans.append((tool, k, None))
+            plans.append((tool, k, None, None))
         if v.jumps > 0 and ok("jump"):
             for k in WAITS[:4]:
                 for g in GAPS:
-                    plans.append((tool, k, g))
-    rng.shuffle(plans)
-    # those that act at once first: they are never left out
-    plans.sort(key=lambda p: (p[1] > 0, p[2] is not None and p[2] > 0))
-    for tool, k, g in plans:
+                    plans.append((tool, k, g, None))
+        for s in stalls:
+            if s is tool:
+                continue
+            for k in WAITS[:5]:
+                for g in STALL_GAPS:
+                    plans.append((tool, k, g, s))
+    for s in stalls:
+        # a stall, then the jump (its own: the shine's, Falcon's back) or
+        # the drift
+        for k in WAITS[:5]:
+            for g in STALL_GAPS:
+                plans.append((None, k, g, s))
+    # Those that act at once are always there (each special now, and a
+    # jump and the special: what is needed when there is no time); the
+    # rest are drawn evenly from all of it, later timings and stalls with
+    # the others, as far as the decision's budget goes. (In their order by
+    # time the ones that act at once took the whole budget, and nothing
+    # was ever flown late.) An air dodge leaves it helpless: drawn a third
+    # as often, and at once only where there is nothing else.
+    only = len(have) == 1
+    now = [p for p in plans if p[3] is None and p[1] == 0 and
+           p[2] in (None, 0) and not p[0].stall and
+           (p[0] is not AIRDODGE or only)]
+    rest = [p for p in plans if p not in now and
+            (p[0] is not AIRDODGE or only or rng.random() < 0.35)]
+    rng.shuffle(rest)
+    # (a stall is a mixup it should always have to hand: three of them
+    # before the rest)
+    some = [p for p in rest if p[3] is not None][:3]
+    rest = some + [p for p in rest if p not in some]
+    for tool, k, g, stall in now + rest:
+        if stall is not None:
+            shows = _hows(stall)
+            show = shows[rng.randrange(len(shows))]
+            # (out of a stall the jump: its own, or the one it gives back)
+            sj = (v.jumps > 0 or stall.jump_after) and ok("jump") and \
+                (tool is None or rng.random() < 0.4)
+            if tool is None and not sj:
+                continue
+            kind = stall.name + ("+jump" if sj else "") + \
+                ("+" + tool.name if tool is not None else "")
+            label = "%s%s after %d%s, %s %d later" % (
+                stall.name, _how_words(show), k, ", a jump" if sj else "",
+                tool.name if tool is not None else "the drift", g)
+            hows = [None] if tool is None or tool.steer == "angle" \
+                else _hows(tool)
+            for how in hows:
+                build, commit = _route_of(first, tool, how, sj, stall, show,
+                                          sj)
+                out.append(Candidate(build, k, g, label + _how_words(how),
+                                     tag + kind, tool, how, commit, sj))
+            continue
         jump = g is not None
         kind = ("jump+" if jump else "") + tool.name
         label = "jump after %d, %s %d later" % (k, tool.name, g) if jump \
             else "%s after %d" % (tool.name, k)
         if tool.steer == "angle":
-            build, commit = _with_tool(v, tool, None, jump)
-            out.append(Candidate(build, k, g, label, kind, tool, None,
+            build, commit = _route_of(first, tool, None, jump)
+            out.append(Candidate(build, k, g, label, tag + kind, tool, None,
                                  commit, jump))
             continue
-        for how in _hows(tool):
-            build, commit = _with_tool(v, tool, how, jump)
-            out.append(Candidate(build, k, g, label + _how_words(how), kind,
-                                 tool, how, commit, jump))
+        # (at once: every way of using it; drawn: one of them)
+        hows = _hows(tool)
+        for how in hows if k == 0 else [hows[rng.randrange(len(hows))]]:
+            build, commit = _route_of(first, tool, how, jump)
+            out.append(Candidate(build, k, g, label + _how_words(how),
+                                 tag + kind, tool, how, commit, jump))
     return out
 
 
-# ---- what the player could do -----------------------------------------------------
+LEDGE_WAITS = (0, 5, 11, 18, 27, 38)
 
-AERIALS = (("nair", (A, 0, 0, 0, 0)), ("fair", (0, 0, 0, 1, 0)),
-           ("bair", (0, 0, 0, -1, 0)), ("uair", (0, 0, 0, 0, 1)),
-           ("dair", (0, 0, 0, 0, -1)), ("down_b", (B, 0, -1, 0, 0)))
-GROUND = (("dsmash", (0, 0, 0, 0, -1)), ("fsmash", (0, 0, 0, 1, 0)),
-          ("usmash", (0, 0, 0, 0, 1)), ("down_b", (B, 0, -1, 0, 0)))
-THREAT_FRAMES = 44
-REACH = 9.0               # a body's half width, about
 
+def ledge_candidates(v, rng, tools=None):
+    """The routes from the ledge, each after a wait: up onto the stage
+    (the stick toward it), a roll (the shield), an attack (A), a jump; or
+    let go (the stick down) and then what the air has: a jump back on, an
+    air dodge onto the stage, a special, the ledge again."""
+    out = []
+
+    def direct(steps_of, k, label, kind):
+        out.append(Candidate(lambda k_, g_: [hold(k_, 0.0, 0.0)] +
+                             steps_of(), k, None, label, "ledge " + kind))
+    for k in LEDGE_WAITS:
+        direct(lambda: [press(0, 1.0, 0.0), hold(150, 0.0, 0.0)], k,
+               "up onto the stage after %d" % k, "getup")
+        direct(lambda: [press(R, 0.0, 0.0), hold(150, 0.0, 0.0)], k,
+               "ledge roll after %d" % k, "roll")
+        direct(lambda: [press(A, 0.0, 0.0), hold(150, 0.0, 0.0)], k,
+               "ledge attack after %d" % k, "attack")
+        direct(lambda: [press(X, 0.0, 0.0), hold(200, 1.0, 0.0)], k,
+               "ledge jump after %d" % k, "jump")
+    # let go, and back: as from the air just under the ledge, the jump
+    # restored. An air dodge onto the stage right after the jump is the
+    # ledgedash
+    w = View(dict(v.me, state=29, air=1, jumps=1, hitstun=0), v.them,
+             ((-v.half, v.ledge[1]), (v.half, v.ledge[1])), v.char, v.grabs)
+    w.side, w.inward, w.ledge = v.side, v.inward, v.ledge
+    for k in LEDGE_WAITS[:4]:
+        first = [hold(k, 0.0, 0.0), press(0, 0.0, -1.0)]
+        for g in (1, 2, 3, 5):
+            for a in (-30, -12, 0):
+                ax, ay = angle_stick(a)
+                out.append(Candidate(
+                    lambda k_, g_, first=first, ax=ax, ay=ay: first + [
+                        hold(k_, 0.0, 0.0), press(X, 1.0, 0.0),
+                        hold(g_, 1.0, 0.0), press(R, ax, ay),
+                        hold(2, ax, ay), hold(120, 0.0, 0.0)],
+                    0, g, "let go after %d, a jump, an air dodge at %g %d "
+                    "later" % (k, a, g), "ledge drop+jump+airdodge",
+                    jump=True))
+        if k in LEDGE_WAITS[:2]:
+            more = air_candidates(w, rng, tools, first=first,
+                                  tag="ledge drop+")
+            # (few of them: the ones that act soon)
+            out += [c for c in more if c.k <= 9 and (c.g is None or
+                                                     c.g <= 12)][:14]
+    return out
+
+
+def down_candidates(v, rng):
+    """Lying on the stage: up, an attack, a roll in or out, each after a
+    wait."""
+    out = []
+    for k in (0, 4, 10, 18, 30):
+        for steps, name in (([press(0, 0.0, 1.0)], "up"),
+                            ([press(A, 0.0, 0.0)], "attack"),
+                            ([press(0, 1.0, 0.0)], "roll in"),
+                            ([press(0, -1.0, 0.0)], "roll out")):
+            out.append(Candidate(
+                lambda k_, g_, steps=steps: [hold(k_, 0.0, 0.0)] + steps +
+                [hold(120, 0.0, 0.0)], k, None,
+                "getup %s after %d" % (name, k), "getup " + name))
+    return out
+
+
+def candidates(v, rng, tools=None):
+    """The routes a decision plays ahead from where the fighter is."""
+    if v.phase == "ledge":
+        return ledge_candidates(v, rng, tools)
+    if v.phase == "down":
+        return down_candidates(v, rng)
+    return air_candidates(v, rng, tools)
+
+
+# ---- side by side -----------------------------------------------------------------
 
 class Team:
     """Games to play routes ahead in, side by side: `workers` forked copies
     of `n` (itself the match, or already a fork of it: fork.Fork), each
     answering in a thread of its own. `map(fn, items)`: fn(game, item) for
-    each, in order. A decision plays some fifty routes of a hundred frames
+    each, in order. A decision plays some sixty routes of a hundred frames
     and more; one after the other they take a third of a second, too long
     for an opponent that reacts in a quarter. A game that cannot fork
     plays them one after the other in itself."""
@@ -587,6 +793,17 @@ def workers_for(n):
         return 6
 
 
+# ---- what the player could do -----------------------------------------------------
+
+AERIALS = (("nair", (A, 0, 0, 0, 0)), ("fair", (0, 0, 0, 1, 0)),
+           ("bair", (0, 0, 0, -1, 0)), ("uair", (0, 0, 0, 0, 1)),
+           ("dair", (0, 0, 0, 0, -1)), ("down_b", (B, 0, -1, 0, 0)))
+GROUND = (("dsmash", (0, 0, 0, 0, -1)), ("fsmash", (0, 0, 0, 1, 0)),
+          ("usmash", (0, 0, 0, 0, 1)), ("down_b", (B, 0, -1, 0, 0)))
+THREAT_FRAMES = 44
+REACH = 9.0               # a body's half width, about
+
+
 def threats(team, target, their, k0):
     """Where the player (`target`) could strike in the next frames, from
     where they are: each attack they have now (in the air the aerials and
@@ -603,8 +820,11 @@ def threats(team, target, their, k0):
     if s in LEDGE_ALL or s in DAMAGE or s <= DEAD_LAST:
         return [], 0.0
     facing = 1 if them["facing"] >= 0 else -1
-    moves = AERIALS if (them["air"] or s == 24) else GROUND
-    delays = (0, 5, 10, 16, 24) if them["air"] or s == 24 else (0, 8)
+    flying = bool(them["air"]) or s == 24
+    moves = AERIALS if flying else GROUND
+    # (on the ground they can wait and strike whenever it arrives: each
+    # attack once, and where it reaches guarded from then on, `guard`)
+    delays = (0, 5, 10, 16, 24) if flying else (0,)
     held = tuple(their[0][1]) if their and their[0][0] > 1 else NONE
     asks = []
     for name, (b, lx, ly, cx, cy) in moves:
@@ -634,24 +854,61 @@ def threats(team, target, their, k0):
                 (float(v[i]), float(v[i + 1]), float(v[i + 2]))
                 for i in range(1, len(v) - 2, 3)]
         if boxes:
-            out.append((name, d, boxes))
+            out.append((name, d, boxes, None if flying else guard(boxes)))
     return out, ms
+
+
+def guard(boxes):
+    """Where an attack reaches, whenever it is thrown: its hitboxes of
+    every frame as a few circles ((x, y, r), one for each 3 units), the
+    box around them, and its first frame out. A player standing there
+    covers it for as long as they stand."""
+    cells = {}
+    for bs in boxes.values():
+        for x, y, r in bs:
+            key = (round(x / 3.0), round(y / 3.0))
+            if key not in cells or cells[key][2] < r:
+                cells[key] = (x, y, r)
+    circles = list(cells.values())
+    pad = REACH + max(c[2] for c in circles)
+    box = (min(c[0] for c in circles) - pad, max(c[0] for c in circles) + pad,
+           min(c[1] for c in circles) - pad, max(c[1] for c in circles) + pad)
+    return circles, box, min(boxes)
 
 
 def exposure(path, field, start=0):
     """How exposed a route is to what the player could do: the share of the
     player's attacks (`field`, from `threats`) one of whose hitboxes the
-    route's body passes through at its frame. `path`: the route's (x, y)
-    frame by frame, its frame 1 `start` frames from now."""
+    route's body is in at its frame, where it can be hit (not intangible).
+    `path`: the route's (x, y, intangible) frame by frame from now; its
+    first `start` frames are not counted (hitstun, the pre-roll: no route
+    can do otherwise there)."""
     if not field or not path:
         return 0.0, []
     hit = []
-    for name, d, boxes in field:
+    for name, d, boxes, zone in field:
+        if zone is not None:
+            # a player on the ground: where the attack reaches, at any
+            # frame from its first one out
+            circles, (x0, x1, y0, y1), first = zone
+            for i in range(max(start, first - 1), len(path)):
+                x, y = path[i][0], path[i][1] + 6.0
+                if x < x0 or x > x1 or y < y0 or y > y1 or \
+                        (len(path[i]) > 2 and path[i][2]):
+                    continue
+                if any((x - bx) ** 2 + (y - by) ** 2 <= (r + REACH) ** 2
+                       for bx, by, r in circles):
+                    hit.append((name, d))
+                    break
+            continue
         for f, bs in boxes.items():
-            i = f - 1 - start
-            if not 0 <= i < len(path):
+            i = f - 1
+            # (not while it cannot act: every route flies those frames)
+            if not start <= i < len(path):
                 continue
-            x, y = path[i]
+            x, y = path[i][0], path[i][1]
+            if len(path[i]) > 2 and path[i][2]:
+                continue
             if any((x - bx) ** 2 + (y + 6.0 - by) ** 2 <=
                    (r + REACH) ** 2 for bx, by, r in bs):
                 hit.append((name, d))
@@ -662,6 +919,8 @@ def exposure(path, field, start=0):
 # ---- what a route is worth --------------------------------------------------------
 
 GOOD = ("ledge", "stage")
+STAGE, HANG = 100.0, 80.0     # standing on the stage; hanging from the ledge
+AGAIN = 30.0                  # less for each time the ledge was caught before
 
 
 def exposed_cost(share):
@@ -673,10 +932,12 @@ def exposed_cost(share):
 
 
 def score(res, v, c=None, pre=0, goal=None):
-    """A route's worth: the ledge or the stage reached and how safely,
-    against being hit or lost. `res`: a native.Route; `c`: its candidate
-    (how long it flies with nothing left to change, the jump kept);
-    `goal`: "ledge" or "stage" if only that end counts."""
+    """A route's worth. The stage, standing and free, is what it is for;
+    the ledge is on the way there (less each time it is caught again: it
+    does not hang there for ever); hit is bad, lost worst. `res`: a
+    native.Route; `c`: its candidate (how long it flies with nothing left
+    to change, the jump kept, how exposed); `goal`: "ledge" or "stage" if
+    only that end counts."""
     lx, ly = v.ledge
     if res.end == "lost":
         # (the nearer the ledge it came, the less bad: for the refinement)
@@ -690,7 +951,8 @@ def score(res, v, c=None, pre=0, goal=None):
         # it only goes there: any other end is as bad as none (it tries
         # for its goal to the last, and falls)
         return -340.0
-    s = 100.0
+    s = STAGE if res.end == "stage" else \
+        max(20.0, HANG - AGAIN * v.grabs)
     # the player's hitboxes came close: a route they nearly covered
     if res.gap < 12.0:
         s -= (12.0 - max(res.gap, 0.0)) * 2.0
@@ -700,16 +962,18 @@ def score(res, v, c=None, pre=0, goal=None):
         if at is not None:
             tail = res.frame - pre - at
             s -= min(40.0, 0.35 * max(0, tail - 25))
-        if not c.jump and v.jumps > 0:
+        if not c.jump and v.jumps > 0 and v.phase == "air":
             s += 4.0          # the jump kept
         s -= exposed_cost(c.exposed)
     if res.end == "ledge":
-        return s + 6.0
-    # on the stage: its landing's lag beside the player is a punish
+        return s
+    # on the stage: its lag within the player's reach is a punish (they
+    # run about 1.6 units a frame, and reach 15)
     lag = max(0, (res.free or res.frame) - res.land) if res.land else 0
-    d = abs(res.x - res.tx)
-    close = max(0.0, min(1.0, (70.0 - d) / 45.0))
-    return s - max(0, lag - 3) * 2.2 * close
+    reach = 15.0 + 1.6 * max(0, lag - 3)
+    d = abs(res.x - res.tx) + abs(res.ty - v.ledge[1]) * 0.5
+    close = max(0.0, min(1.0, (reach - d) / 20.0 + 0.5)) if lag > 3 else 0.0
+    return s - 70.0 * close
 
 
 def kind_of(c, res, v):
@@ -729,36 +993,37 @@ def expect(pad, k=3):
     return [(k, pad), (1, NONE)] if k > 0 and pad != NONE else [(1, NONE)]
 
 
-ANGLES = 8                # the angles a steered special is tried at
+ANGLES = 6                # the angles a steered special is tried at
 
 
-def decide(n, port, target, pre, their, rng, char=None, budget=48,
+def decide(n, port, target, pre, their, rng, char=None, budget=64,
            temperature=8.0, recent=(), current=None, horizon=420,
            margin=30.0, keep=12.0, goal=None, predict=True, workers=None,
-           tools=None):
+           tools=None, grabs=0):
     """The route to take from the frame `len(pre)` frames on (`pre`: the
     pads until then). `their`: the player's pads from now ([(frames, raw)]).
     `current`: the pads of the route now flown, from that frame on (kept
     unless another is worth `keep` more). `goal`: "ledge" or "stage": only
     routes that end there count. `tools`: the only tools its routes may
-    use (`candidates`). `predict`: what the player could do counts against
-    a route (`threats`). `workers`: the copies of the game
-    the routes are played in, side by side (`Team`). Returns a dict: pads
-    (raw pads from that frame), label, kind, end, score, ms (the frames
-    played, summed), wall (how long it took), tried, good (routes that end
-    well), exposed, and `routes`: every route tried (label, kind, end,
-    score, frame, exposed), for a person to read."""
+    use (`air_candidates`). `predict`: what the player could do counts
+    against a route (`threats`). `workers`: the copies of the game the
+    routes are played in, side by side (`Team`). `grabs`: the times it has
+    caught the ledge on this recovery. Returns a dict: pads (raw pads from
+    that frame), label, kind, end, score, phase, ms (the frames played,
+    summed), wall (how long it took), tried, good (routes that end well),
+    exposed, and `routes`: every route tried (label, kind, end, score,
+    frame, exposed), for a person to read."""
     st = n.state()
     me, them = st["p"][port], st["p"][target]
     if me is None or them is None:
         return None
     char = char or NAMES.get(me.get("ckind"))
-    v = View(me, them, ledges(n), char)
+    v = View(me, them, ledges(n), char, grabs)
     pre_segs = segments(pre)
     npre = len(pre)
     ms = 0.0
-    import time
     t0 = time.time()
+    done, cur = [], None
     team = Team(n, workers_for(n) if workers is None else workers)
     try:
         field = []
@@ -783,7 +1048,7 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
                 c.res = r
                 ms += r.ms
                 if field and r.end in GOOD:
-                    c.exposed, _ = exposure(r.path, field)
+                    c.exposed, _ = exposure(r.path, field, npre + v.wait)
                 c.score = score(r, v, c, npre, goal)
             return cs
 
@@ -793,7 +1058,7 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
         # as many as the budget pays for: a route one, a steered special
         # its probe and its angles
         cands, spent = [], 0
-        for c in candidates(v, rng, budget, tools):
+        for c in candidates(v, rng, tools):
             if spent >= budget:
                 break
             steered = c.tool is not None and c.tool.steer == "angle" and \
@@ -821,7 +1086,7 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
                 if r.end in ("hit", "lost"):
                     continue
                 dx = (r.x - v.ledge[0]) * v.side
-                for off in (-14.0, -7.0, 0.0, 8.0, 18.0, 40.0):
+                for off in (-10.0, 0.0, 10.0, 28.0):
                     dy = v.ledge[1] + off - r.y
                     aimed.append(round(math.degrees(math.atan2(
                         dy, max(dx, 0.0) + 1e-3)), 1))
@@ -829,16 +1094,20 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
             rng.shuffle(hows)
             hows.sort(key=lambda h: h["angle"] not in aimed)
             for how in hows[:ANGLES]:
-                build, commit = _with_tool(v, c.tool, how, c.jump)
+                def build(k, g, lead=c, how=how):
+                    return lead.build(k, g) + _tool_steps(lead.tool, how) + \
+                        [DRIFT_END]
                 plain.append(Candidate(
                     build, c.k, c.g, c.label + _how_words(how), c.kind,
-                    c.tool, how, commit, c.jump))
+                    c.tool, how, c.commit, c.jump))
         done = weigh(plain)
-        if not any(c.res.end in GOOD and c.score > 0 for c in done):
+        if v.phase == "air" and not any(c.res.end in GOOD and c.score > 0
+                                        for c in done):
             # nothing reaches: the routes that came nearest the ledge,
             # some frames earlier and later
             near = sorted((c for c in done
-                           if c.kind not in ("drift", "steer")),
+                           if not c.kind.endswith(("drift", "steer",
+                                                   "tech"))),
                           key=lambda c: c.res.ledge)[:4]
             more = []
             for c in near:
@@ -849,7 +1118,6 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
                          if k >= 0 and (g is None or g >= 0)]
             done += weigh(more)
         # the route now flown, among them
-        cur = None
         if current:
             cur = Candidate(None, 0, None, "as planned",
                             current.get("kind", "?"))
@@ -857,7 +1125,8 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
             cur.res = play(n, (cur.segs, horizon))
             ms += cur.res.ms
             if field and cur.res.end in GOOD:
-                cur.exposed, _ = exposure(cur.res.path, field)
+                cur.exposed, _ = exposure(cur.res.path, field,
+                                          npre + v.wait)
             cur.score = score(cur.res, v, None, npre, goal) - \
                 exposed_cost(cur.exposed) + keep
     finally:
@@ -865,7 +1134,8 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
     wall = (time.time() - t0) * 1000.0
     pool = done + ([cur] if cur is not None else [])
     if not pool:
-        return dict(pads=None, ms=ms, wall=wall, tried=0, good=0, routes=[])
+        return dict(pads=None, ms=ms, wall=wall, tried=0, good=0, routes=[],
+                    phase=v.phase)
     best = max(c.score for c in pool)
     good = [c for c in pool if c.score >= best - margin and c.score > 0]
     routes = [(c.label, c.kind, c.res.end, round(c.score, 1), c.res.frame,
@@ -899,10 +1169,11 @@ def decide(n, port, target, pre, their, rng, char=None, budget=48,
                 frame=choice.res.frame, ms=ms, wall=wall, tried=len(pool),
                 good=len(good), routes=routes, kept=choice is cur,
                 gap=choice.res.gap, exposed=choice.exposed,
-                threats=len(field))
+                threats=len(field), phase=v.phase)
 
 
-def check(n, port, target, pads, their, char=None, horizon=420, goal=None):
+def check(n, port, target, pads, their, char=None, horizon=420, goal=None,
+          grabs=0):
     """What the route now flown (`pads` from now) comes to: dict(end,
     score, frame, ms)."""
     st = n.state()
@@ -910,10 +1181,19 @@ def check(n, port, target, pads, their, char=None, horizon=420, goal=None):
     if me is None or them is None or not pads:
         return None
     char = char or NAMES.get(me.get("ckind"))
-    v = View(me, them, ledges(n), char)
-    r = route(n, port, target, segments(pads), their, horizon)
-    return dict(end=r.end, score=score(r, v, None, 0, goal), frame=r.frame,
-                ms=r.ms, gap=r.gap)
+    v = View(me, them, ledges(n), char, grabs)
+    # (a player on the ground guards where they stand: four lookaheads;
+    # one in the air is the decisions' to weigh, when it sees them commit)
+    field = []
+    if not (them["air"] or them["state"] == 24):
+        field, _ = threats(Team(n, 0), target, their,
+                           their[0][0] if their else 0)
+    r = route(n, port, target, segments(pads), their, horizon,
+              path=bool(field))
+    s = score(r, v, None, 0, goal)
+    if field and r.end in GOOD:
+        s -= exposed_cost(exposure(r.path, field, v.wait)[0])
+    return dict(end=r.end, score=s, frame=r.frame, ms=r.ms, gap=r.gap)
 
 
 # ---- the player, as the opponent sees them ----------------------------------------
@@ -948,28 +1228,33 @@ def commitment(p):
 
 class Pilot:
     """The recovering fighter's controller, one pad a frame (`pad(st,
-    their)`), until it is back (`done`: on the ledge, standing on the
-    stage, or lost; `ended` says which).
+    their)`), until it stands on the stage again, free to act, or has lost
+    its stock (`done`; `ended`: "stage" or "lost"). Off the stage, on the
+    ledge, knocked down, hit again: it goes on from wherever it is.
 
     It decides where its decisions are made (`think`: the game itself
     headless, forked copies of it while a person plays), each for a frame
     `lead` frames on, the pads until then as the decision's pre-roll: a
-    route when it has none (`decide`), the route checked again every
-    `every` frames (`check`), another decided when the check says it no
-    longer ends well, and when the player has committed to something new
-    `react` frames ago. `goal`: "ledge" or "stage": it only goes there (an
+    route when it has none (`decide`: from the air, from the ledge, from
+    the floor), the route checked again every `every` frames (`check`),
+    another decided when the check says it no longer ends well, and when
+    the player has committed to something new `react` frames ago. A hit,
+    the ledge caught and a knockdown end the route it was on.
+
+    `goal`: "ledge": it only goes there, and is over once it hangs (an
     example's opponent, that does the one thing the example answers);
     `tools`: the only ones its routes use ("jump": its jump and drift).
     `adapt` False: it flies the route it first chose, whatever the player
     does. `predict` False: only what the player is doing counts, not what
     they could do. `log`: what it decided, [(frame, words)]; `decisions`:
-    each one's record, for a test."""
+    each one's record, for a test; `via`: the kinds of route it flew, in
+    order; `grabs`: the times it caught the ledge."""
 
     DROP = 25.0               # a route worth this much less is decided again
     RETRY = 8                 # frames between looks while nothing is good
 
     def __init__(self, think, port, target, rng=None, react=15, half=85.0,
-                 memory=None, every=4, budget=48, temperature=8.0,
+                 memory=None, every=4, budget=64, temperature=8.0,
                  char=None, goal=None, adapt=True, predict=True, tools=None):
         self.think, self.port, self.target = think, port, target
         self.rng = rng or random.Random(0)
@@ -991,6 +1276,9 @@ class Pilot:
         self.cls = None           # the player's commitment, as last seen
         self.unseen = None        # the frame of the oldest one not seen yet
         self.percent = None
+        self.state = None         # its action state the frame before
+        self.grabs = 0
+        self.via = []
         self.done = False
         self.ended = None
         self.tag = 0
@@ -1012,7 +1300,8 @@ class Pilot:
         self.tag += 1
         tag = ("recover", id(self), self.tag)
         self.pending = dict(tag=tag, kind=kind, asked=self.frame,
-                            at=self.frame + lead, pre=list(pre))
+                            at=self.frame + lead, pre=list(pre),
+                            plan=self.plan_at if self.plan else None)
         self.think.submit(tag, fn, kind)
 
     def _rest(self, lead=0):
@@ -1036,12 +1325,13 @@ class Pilot:
         budget, temp = self.budget, self.temperature
         recent = list(self.memory["recent"][-6:])
         goal, predict, tools = self.goal, self.predict, self.tools
+        grabs = self.grabs
 
         def fn(n):
             return decide(n, port, target, pre, seg, rng, char=char,
                           budget=budget, temperature=temp, recent=recent,
                           current=current, goal=goal, predict=predict,
-                          tools=tools)
+                          tools=tools, grabs=grabs)
         self._ask("recover", fn, lead, pre)
 
     def _check(self, their, lead):
@@ -1049,10 +1339,31 @@ class Pilot:
             self.goal
         pads = self._rest(0)
         seg = self._their(their)
+        grabs = self.grabs
 
         def fn(n):
-            return check(n, port, target, pads, seg, char=char, goal=goal)
+            return check(n, port, target, pads, seg, char=char, goal=goal,
+                         grabs=grabs)
         self._ask("recover-check", fn, lead, [])
+
+    def _drop(self, why=None):
+        """The route it was on is over (a hit, the ledge caught, knocked
+        down): what was being decided for it is dropped with it."""
+        if self.info and why != "hit":
+            self._flown()
+        self.plan, self.info, self.need = [], None, True
+        self.retry_at = 0
+        self.stop()
+        if why:
+            self.log.append((self.frame, why))
+
+    def _flown(self):
+        """The route it was on has been flown: its kind, for variety."""
+        kind = (self.info or {}).get("kind")
+        if kind and (not self.via or self.via[-1] != kind):
+            self.via.append(kind)
+            self.memory["recent"].append(kind)
+            del self.memory["recent"][:-8]
 
     # -- what comes back -------------------------------------------------------
 
@@ -1067,10 +1378,15 @@ class Pilot:
             return
         self.ms += got.get("ms", 0.0)
         self.wall += got.get("wall", got.get("ms", 0.0))
+        # (asked about a route that is no longer the one flown: a hit or
+        # the ledge ended it since. Nothing of it is used)
+        stale = p["plan"] != (self.plan_at if self.plan else None)
         if p["kind"] == "recover-check":
+            if stale or self.info is None:
+                return
             good = got["end"] in GOOD
-            was = self.info["score"] if self.info else 0.0
-            if (not good and (self.info or {}).get("end") in GOOD) or \
+            was = self.info["score"]
+            if (not good and self.info.get("end") in GOOD) or \
                     got["score"] < was - self.DROP:
                 self.need = True
                 self.log.append((self.frame, "check: %s %.0f (was %.0f)" % (
@@ -1083,7 +1399,7 @@ class Pilot:
         # (the pads until its frame were its pre-roll: those played since
         # it was asked must be the ones it was made with)
         played = self.played[p["asked"]:self.frame]
-        if list(played) != list(p["pre"][:len(played)]):
+        if stale or list(played) != list(p["pre"][:len(played)]):
             self.need = True
             return
         if not got.get("pads"):
@@ -1096,13 +1412,13 @@ class Pilot:
         self.decisions.append(dict(
             {k: v for k, v in got.items() if k not in drop},
             asked=p["asked"], at=p["at"]))
-        if got.get("kept"):
+        if got.get("kept") and self.info is not None:
             self.info["score"] = got["score"]
             self.info["end"] = got["end"]
             if got["end"] in GOOD:
                 self.log.append((self.frame, "kept: %s -> %s" % (
                     self.info.get("label"), got["end"])))
-        else:
+        elif not got.get("kept"):
             self.plan = list(p["pre"]) + list(got["pads"])
             self.plan_at = p["asked"]
             self.info = dict(kind=got["kind"], score=got["score"],
@@ -1112,23 +1428,15 @@ class Pilot:
                                 got["good"], got["tried"],
                                 ", exposed %.2f" % got["exposed"]
                                 if got.get("exposed") else "")))
+        else:
+            self.need = True
+            return
         self.need = got["end"] not in GOOD
         if self.need:
             self.retry_at = self.frame + self.RETRY
         self.checked = self.frame
 
     # -- each frame ------------------------------------------------------------
-
-    def _state(self, me):
-        """Where the recovery stands: None while it goes on."""
-        s = me["state"]
-        if s <= DEAD_LAST or s in REBIRTH:
-            return "lost"
-        if s in LEDGE:
-            return "ledge"
-        if not me["air"] and s in STANDING:
-            return "stage"
-        return None
 
     def pad(self, st, their=None):
         """This frame's raw pad (call once a frame, before it is played).
@@ -1138,23 +1446,28 @@ class Pilot:
         if me is None or them is None or self.done:
             self.played.append(NONE)
             return NONE
+        phase = phase_of(me, self.char)
         inward = -1 if me["x"] >= 0 else 1
-        self._idle = NONE if me["state"] in DAMAGE else \
-            (0, 127 * inward, 0, 0, 0, 0, 0)
-        end = self._state(me)
-        if end is not None:
-            self.done, self.ended = True, end
-            if self.info and end != "lost":
-                self.memory["recent"].append(self.info.get("kind", "?"))
-                del self.memory["recent"][:-8]
+        self._idle = (0, 127 * inward, 0, 0, 0, 0, 0) \
+            if phase == "air" and me["state"] not in DAMAGE else NONE
+        if phase in ("lost", "stage") or \
+                (phase == "ledge" and self.goal == "ledge"):
+            self.done, self.ended = True, phase
+            self._flown()
             self.stop()
             self.played.append(NONE)
             return NONE
-        # hit again: what was planned is over
+        # what ends the route it was on: a hit, the ledge caught, knocked
+        # down on the stage
+        s, was = me["state"], self.state
+        self.state = s
         if self.percent is not None and me["percent"] > self.percent:
-            self.plan, self.info, self.need = [], None, True
-            self.retry_at = 0
-            self.log.append((self.frame, "hit: %.0f%%" % me["percent"]))
+            self._drop("hit: %.0f%%" % me["percent"])
+        elif s == LEDGE[0] and was != LEDGE[0]:
+            self.grabs += 1
+            self._drop("the ledge")
+        elif s in DOWN and was is not None and was not in DOWN:
+            self._drop("knocked down")
         self.percent = me["percent"]
         # the player's commitment: seen `react` frames after it began
         cls = commitment(them)
@@ -1163,7 +1476,7 @@ class Pilot:
                 self.unseen = self.frame
             self.cls = cls
         self._collect()
-        if self.pending is None:
+        if self.pending is None and phase != "ground":
             have = bool(self._rest(0))
             lead = self.think.lead_for("recover")
             due = self.unseen is not None and \

@@ -1169,14 +1169,16 @@ class ChainGrab(Driven):
 # ---- off the stage ----------------------------------------------------------
 
 class Recover(Behaviour):
-    """Off the stage, the way back that the game says works against what
-    the player is doing: the routes its character has (jumps, specials,
-    their angles and timings) played ahead, one of the best taken, checked
-    again as it flies and changed when the player commits to covering it,
-    seen `react` frames late (recover.py). Over when it hangs from the
-    ledge, stands on the stage, or is lost (`ended`); at once if it stands
-    on the stage already. `budget`: routes a decision plays ahead. `to`
-    ("ledge", "stage"): it only goes there (an example's opponent, which
+    """Back onto the stage by any means, against what the player is doing:
+    off the stage the routes its character has (jumps, specials at their
+    angles and timings, a stall first) played ahead, one of the best
+    taken, checked again as it flies and changed when the player commits
+    to covering it, seen `react` frames late; on the ledge a getup, a
+    roll, an attack, a jump, or a drop and back on; knocked down, a getup;
+    hit, again from where it is (recover.py). Over when it stands on the
+    stage, free to act, or is lost (`ended`); at once if it stands there
+    already. `budget`: routes a decision plays ahead. `to` "ledge": it
+    only goes there and is over once it hangs (an example's opponent, which
     does the one thing the example answers). `tools`: the only ones its
     routes use, comma separated (jump, float, up_b, side_b, down_b,
     airdodge; "jump": it comes back with its jump and its drift alone, no
@@ -1193,17 +1195,37 @@ class Recover(Behaviour):
             ctx.think, ctx.port, ctx.target,
             rng=random.Random(self.rng.random()), react=ctx.react,
             half=ctx.half, memory=ctx.memory.setdefault("recover", {}),
-            budget=int(spec.get("budget", 48)),
+            budget=int(spec.get("budget", 64)),
             temperature=ctx.temperature + 2.0, goal=spec.get("to"),
             tools=spec.get("tools"),
             adapt=spec.get("adapt", True), predict=spec.get("predict", True))
+        self.errors = 0
 
     @property
     def ended(self):
         return self.pilot.ended
 
     def step(self, st):
-        raw = self.pilot.pad(st, self.ctx.their)
+        try:
+            raw = self.pilot.pad(st, self.ctx.their)
+        except Exception:
+            # A fault in its thinking never takes the game a person is
+            # playing down with it (2026-11-17: a stale answer once did):
+            # it is said, the route it was on is dropped, and it decides
+            # again from where it is. (A headless run raises: a test sees
+            # it.)
+            import sys
+            import traceback
+            self.errors += 1
+            if not hasattr(self.ctx.think, "realtime") or self.errors > 20:
+                raise
+            traceback.print_exc(file=sys.stderr)
+            p = self.pilot
+            p.stop()
+            p.plan, p.info, p.need = [], None, True
+            if len(p.played) <= p.frame:
+                p.played.append(NONE)
+            raw = NONE
         self.done = self.pilot.done
         self.log = self.pilot.log
         return raw

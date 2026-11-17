@@ -30,10 +30,11 @@ then one of the attacks of its own that a jump-cancelled grab punishes from wher
 misses; the attempt runs from its attack's first frame (`their_attack`) to the grab, a
 hit, or the opponent free again (`they_recover`: too late).
 Punish (2026-11-17): Fox's edgeguard (`fox-edgeguard`): the same eleven, each knocked off
-the stage by a hit drawn for the attempt (`launch`) and recovering by the engine's
-`recover` (`melee-engine.md`, "Recovering"): its routes played ahead in the game, one of
-the best taken, another when it sees what the player commits to, its reaction time after
-they do. The reaction time is the player's to set (CPU reaction, in the pause menu and
+the stage by a hit drawn for the attempt (`launch`) and getting back onto it by the
+engine's `recover` (`melee-engine.md`, "Recovering"): its routes played ahead in the
+game, one of the best taken, another when it sees what the player commits to, its
+reaction time after they do; by the ledge and up from it, after every hit, with stalls
+and late timings. A try runs until its stock is gone or it stands on the stage again. The reaction time is the player's to set (CPU reaction, in the pause menu and
 Settings), for this and every drill whose opponent is a script.
 
 ## Where things are
@@ -407,9 +408,10 @@ example, its frame-perfect example and every mistake judged as it in each scenar
 deck. `fox-shine-oos`: 45 of 45 cases, the eleven opponents' scripts each meeting the
 frame-perfect example and the late jump, in 30 seconds.
 
-`fox-edgeguard`: 36 of 36 cases in 40 seconds: both parts' example (the ledge taken by a
+`fox-edgeguard`: 36 of 36 cases in 50 seconds: both parts' example (the ledge taken by a
 wavedash back off the edge) against each of the eleven opponents' example script, and
-standing still failing on "It reached the ledge". What its opponent does against a
+standing still failing on "It reached the ledge" (the first part's own `attempt`, which
+ends at the ledge; the edgeguard's ends only on the stock, the stage, or Fox lost). What its opponent does against a
 person (it gets back when nothing is done, changes its route when it sees a commitment,
 later with a longer reaction time) is `tests/engine/recover.py`'s and
 `tools/melee_engine/recoveries.py`'s to show.

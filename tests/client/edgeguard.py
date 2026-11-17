@@ -9,12 +9,16 @@ lessons, then the first part's card. A stand-in plays:
 1. part 1, the ledge taken (a jump, an air dodge down and back on the
    first frame in the air: the keyboard's diagonal): the opponent, back
    with its jump alone, falls past: a success;
-2. part 2, standing still: the opponent that thinks gets back: a failure
-   that says how (the ledge caught, or landed on the stage);
+2. part 2, standing still: the opponent that thinks does not stop at
+   the ledge: it stands on the stage again, and only then is the try
+   judged ("It got back");
 3. part 2 again, at the console's pace (the opponent thinking in forked
    copies of the game, no frame waiting for it): its decisions come in
    time;
-4. D-pad right: another opponent of the deck, swapped in.
+4. at that pace, down smashes at the edge whenever it comes near: hit or
+   not, it goes on and the game with it (2026-11-17: a hit on it once
+   took the client down), until its stock or the stage;
+5. D-pad right: another opponent of the deck, swapped in.
 
 The pause menu's CPU reaction says the drill's own 15 frames, and a change
 of it is the next attempt's opponent's. Input delay 0.
@@ -36,7 +40,7 @@ import window  # noqa: E402
 from pausekeys import Chooser  # noqa: E402
 
 DRILL = "fox-edgeguard"
-KEYS = ("c", "x", "z", "s", "d", "h", "f", "t", "g", "Down", "Left",
+KEYS = ("c", "x", "z", "s", "d", "h", "f", "t", "g", "k", "Down", "Left",
         "Right", "Up", "Shift_L", "Return")
 SQUAT = 3                    # Fox's jump squat
 GO = 24                      # the frame of a try the stand-in jumps on
@@ -71,6 +75,8 @@ class Player:
         self.leaving = None
         self.skipped = []
         self.pilots = []              # each try's opponent, as it ended
+        self.errors = []              # faults in its thinking, each try
+        self.smashes = []
         self.names = []               # the scenario each try was played in
         self.reacts = []
         self.rows = None
@@ -156,7 +162,7 @@ class Player:
             if self.rows is None:
                 self.rows = [r for r in c.pause_rows("drill")
                              if r[0] == "react"]
-            self.w.pace(kind == "paced")
+            self.w.pace(kind in ("paced", "smash"))
             self.t = dict(kind=kind, n=0)
             self.names.append(c.session.d.scenario()["name"])
             self.reacts.append(c.session.d.op_script.ctx.react
@@ -173,6 +179,7 @@ class Player:
         pilot = self.opponent()
         if pilot is not None:
             t["pilot"] = pilot
+            t["errors"] = self.c.session.d.op_script.cur.errors
         me = game.fighter(0)
         out = "Right" if me.pos[0] > 0 else "Left"
         if os.environ.get("TRACE") and t["kind"] == "hog" and t["n"] < 45:
@@ -197,6 +204,20 @@ class Player:
                 t["hung"] = t["n"]
                 print("   on the ledge after %d frames" % t["n"],
                       file=sys.stderr, flush=True)
+        elif t["kind"] == "smash":
+            # a down smash (the C-stick down) whenever it is near
+            op = game.fighter(1)
+            near = abs(op.pos[0] - me.pos[0]) < 28 and \
+                abs(op.pos[1] - me.pos[1]) < 30
+            if near and me.state in (14, 15, 16, 17, 18) and \
+                    t["n"] > GO and not t.get("held"):
+                game.key("k")
+                t["held"] = 3
+                t["smashes"] = t.get("smashes", 0) + 1
+            elif t.get("held"):
+                t["held"] -= 1
+                if not t["held"]:
+                    game.key("k", False)
         elif t["kind"] == "turn" and self.turned is None:
             if t["n"] == 6:
                 self.turned = [c.session.d.scenario()["name"], None]
@@ -207,6 +228,8 @@ class Player:
         """A try was judged."""
         t = self.t or {}
         self.pilots.append(t.get("pilot"))
+        self.errors.append(t.get("errors", 0))
+        self.smashes.append(t.get("smashes", 0))
         t["result"] = result
 
 
@@ -263,7 +286,7 @@ def main():
               part == "Punish" and
               c.drills()[c.row[c.part]]["id"] == DRILL, str(part))
 
-        tries = ["hog", "stand", "paced", "turn"]
+        tries = ["hog", "stand", "paced", "smash", "turn"]
         p = Player(c, w, tries, args.shots)
         told = []
         show, say = c.show_result, c.banner_say
@@ -312,19 +335,19 @@ def main():
               len(told) >= 1 and told[0]["success"] and
               told[0].get("part") == "Take the ledge",
               words[0] if words else "")
-        check("part 2, standing still: it gets back, and the verdict says "
-              "how", len(told) >= 2 and not told[1]["success"] and
+        check("part 2, standing still: judged only once it stands on the "
+              "stage again", len(told) >= 2 and not told[1]["success"] and
               told[1].get("part") == "Edgeguard" and
-              (words[1].startswith("It reached the ledge") or
-               words[1].startswith("It landed on the stage")),
+              words[1].startswith("It got back"),
               words[1] if len(words) > 1 else "")
         pl = p.pilots[1] if len(p.pilots) > 1 else None
-        check("its recovery was decided by the engine, checked as it flew",
+        check("its way back was decided by the engine, to the stage",
               pl is not None and len(pl.decisions) >= 1 and
-              pl.ended in ("ledge", "stage"),
-              "%s decisions, ended %s" % (
+              pl.ended == "stage",
+              "%s decisions, ended %s by %s" % (
                   len(pl.decisions) if pl else None,
-                  pl.ended if pl else None))
+                  pl.ended if pl else None,
+                  " / ".join(pl.via) if pl else None))
         rows = p.rows or []
         check("the pause menu's CPU reaction: the drill's own 15 frames",
               [r[2] for r in rows] == ["15 frames"], str(rows))
@@ -337,18 +360,30 @@ def main():
         check("at the console's pace it thinks in forks: a route decided, "
               "in time, and it gets back",
               pl is not None and len(pl.decisions) >= 1 and
-              pl.ended in ("ledge", "stage") and
-              pl.late <= len(pl.decisions),
-              "%d decisions, %d late, %s ms each, ended %s" % (
+              pl.ended == "stage" and pl.late <= len(pl.decisions),
+              "%d decisions, %d late, %s ms each, ended %s by %s" % (
                   len(pl.decisions) if pl else 0, pl.late if pl else 0,
                   ", ".join("%.0f" % x for x in took),
-                  pl.ended if pl else None))
+                  pl.ended if pl else None,
+                  " / ".join(pl.via) if pl else None))
+        pl = p.pilots[3] if len(p.pilots) > 3 else None
+        check("down smashes at the edge, at the console's pace: the try "
+              "goes on to its stock or the stage, nothing wrong in its "
+              "thinking", len(told) >= 4 and pl is not None and
+              pl.ended in ("stage", "lost") and
+              not any(p.errors) and
+              (told[3]["success"] or words[3].startswith("It got back")),
+              "%s; %d down smashes, it took %s; ended %s; errors %s" % (
+                  words[3] if len(words) > 3 else "",
+                  p.smashes[3] if len(p.smashes) > 3 else 0,
+                  [w for _, w in pl.log if w.startswith("hit")] if pl
+                  else None, pl.ended if pl else None, p.errors))
         check("D-pad right: another opponent of the deck, and the try "
               "against it judged", p.turned is not None and
-              p.turned[1] not in (None, p.turned[0]) and len(told) >= 4 and
-              told[3].get("scenario") == p.turned[1],
+              p.turned[1] not in (None, p.turned[0]) and len(told) >= 5 and
+              told[4].get("scenario") == p.turned[1],
               "%s; judged against %s" % (
-                  p.turned, told[3].get("scenario") if len(told) > 3
+                  p.turned, told[4].get("scenario") if len(told) > 4
                   else None))
         check("every try judged", len(told) >= len(tries) - 1,
               "%d of %d; skipped %s" % (len(told), len(tries), p.skipped))

@@ -220,7 +220,11 @@ def recover_once(n, char, kind, side, seed, standin="stand", react=15,
         hasattr(opp.cur, "pilot") else None
     me = n.state()["p"][1]
     out = dict(end=end or "timeout", frames=f, drawn=drawn,
-               kind=pilot.info.get("kind") if pilot and pilot.info else None,
+               # the kinds of route it flew, in order (the air's, then the
+               # ledge's if it went by it)
+               kind=" / ".join(pilot.via) if pilot and pilot.via else None,
+               via=list(pilot.via) if pilot else [],
+               grabs=pilot.grabs if pilot else 0,
                log=list(pilot.log) if pilot else [],
                hit=(me["percent"] - start) if me else 0.0,
                ms=pilot.wall if pilot else 0.0,
