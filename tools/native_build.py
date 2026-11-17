@@ -250,6 +250,25 @@ PATCHES = {
     if (!controller.start.is_teams) {
         ffa_outcome = gm_GetFFAOutcome();"""),
     ],
+    # The scene loop's per-frame function, kept in a global too and called
+    # through it. A forked game on Windows is another process, loaded with
+    # the game's state at its own first frame boundary: in the scene loop of
+    # the boot scene, whose `on_frame` (a parameter, on the stack) is not
+    # the match's. The global is among the game's statics, so the load
+    # brings the right one. (On Linux a fork copies the stack too; the
+    # value is the same there either way.)
+    "melee/gm/gmscene.c": [
+        ("void gm_801A4D34(void (*on_frame)(void), UNUSED GameSceneInfo* info)\n"
+         "{\n",
+         "void (*host_scene_on_frame)(void);\n"
+         "void gm_801A4D34(void (*on_frame)(void), UNUSED GameSceneInfo* info)\n"
+         "{\n"
+         "    host_scene_on_frame = on_frame;\n"),
+        ("                if (lb_80019A30(0) && on_frame != NULL) {\n"
+         "                    on_frame();\n",
+         "                if (lb_80019A30(0) && host_scene_on_frame != NULL) {\n"
+         "                    host_scene_on_frame();\n"),
+    ],
     # The particle interpreter's one multi-byte operand: a float, copied
     # byte by byte from byte code that stays in disc order.
     "sysdolphin/baselib/particle.c": [
@@ -638,14 +657,50 @@ def game_state_script():
     return script
 
 
+def gather_win32(objs, libs):
+    """Windows: the game's statics into one block, as game_state_script
+    does with ELF. The PE linker places sections named `.data$NAME` inside
+    .data, sorted by NAME: the same objects' .data and .bss become
+    `.data$gs1` and `.data$gs2` (renamed copies, made with objcopy), and
+    src/host/win32/compat.c puts __game_state_start in `.data$gs0` and
+    __game_state_end in `.data$gs9`. (.bss joins .data so that the block is
+    one: it then takes room in the executable, a few MB of zeros.)"""
+    host = [f"/host/{name}.o" for name in GAME_STATE_HOST]
+    dirs = ["/host/vanilla/", "/host/patched/", "/host/tm/", "/host/sdk/"]
+
+    def gathered(path):
+        p = Path(path).as_posix()
+        return (any(d in p for d in dirs) or p.endswith("/host/stubs_gen.o")
+                or any(p.endswith(h) for h in host))
+
+    out_dir = OBJ / "gstate"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    def renamed(path):
+        path = Path(path)
+        dest = out_dir / (path.parent.name + "_" + path.name)
+        if not dest.exists() or dest.stat().st_mtime < path.stat().st_mtime:
+            r = run(["objcopy",
+                     "--rename-section", ".data=.data$gs1",
+                     "--rename-section",
+                     ".bss=.data$gs2,alloc,load,contents,data",
+                     path, dest], capture_output=True, text=True)
+            if r.returncode:
+                sys.exit(f"objcopy {path}: {r.stderr.strip()}")
+        return dest
+
+    return ([renamed(o) if gathered(o) else o for o in objs],
+            [renamed(lib) for lib in libs])
+
+
 def link(objs, out, capture=False):
     libs = [OUT / "libmelee.a", OUT / "dat-readers/libdat_melee.a",
             OUT / "dat-readers/libdat_native.a"]
     if WIN32:
+        objs, libs = gather_win32(objs, libs)
         # The arena sits at the console's addresses, above 2 GB: a 32-bit
         # Windows program reaches them only when large address aware.
-        # The game's statics are not gathered into one section there (the
-        # linker script is ELF's); see state.c.
+        # The game's statics are gathered by section names (gather_win32).
         # --disable-dynamicbase: loaded at a fixed address, as -no-pie on
         # Linux (no ASLR), so addresses in a crash report or a snapshot
         # are the same every run.
@@ -780,6 +835,12 @@ def main():
         # 0 at its first OSReport). Not weak, they link normally, and what is
         # really missing becomes a stub as on Linux.
         flags.append("-DDECL_WEAK=")
+        # MinGW lays bitfields out as MSVC does by default, not as gcc does
+        # on Linux: a struct of mixed-type bitfields came out 12 bytes, not
+        # 4. The game's structs (the fighter's flags at 0x2218, and the
+        # PPC_LAYOUT ones read straight from the disc) must have the Linux
+        # build's layout, which tools and tests read by offset.
+        flags.append("-mno-ms-bitfields")
     if args.window:
         WINDOW = True
         OUT = ROOT / "build" / "native-window"

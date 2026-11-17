@@ -79,13 +79,15 @@ in `src/host/win32/`, Winsock, and these link options:
 | Linux | Windows | Effect |
 |-|-|-|
 | `mmap`, `mprotect` | `VirtualAlloc`, `VirtualProtect` (`compat.c`) | none |
-| `ucontext` coroutines (`engine.c`'s search) | fibers (`compat.c`) | none intended; not yet exercised |
+| `ucontext` coroutines (`engine.c`'s search) | fibers (`compat.c`) | none (`tests/native/engine.py` 18 of 18) |
 | sockets (`net.c`) | Winsock, in `net.c` behind `_WIN32` | none |
 | `sigaction` crash handler (`main.c`) | unhandled-exception filter (`compat.c`); prints the faulting instruction and callers for `addr2line` | none |
 | stdout line-buffered | unbuffered (Windows' C library has no line buffering) | none for readers of lines |
-| `fork()` snapshots (`control.c`), engine forks (`engine.c`) | `fork()` fails (`posix.h`) | **`snap`/`restore` and `engine fork` answer with an error** |
-| linker script gathering the game's statics (`state.c`) | none: the region is empty (`compat.c`) | **in-process snapshots miss the statics; rollback is off** |
-| `/proc/self/pagemap` dirty-page tracking (`rollback.c`) | none | **netplay does not start** |
+| `fork()` snapshots (`control.c`) | the whole state copied into a page-file section, outside the 32-bit address space (`compat.c` blobs) | none for the game's state; the host's own side goes on, as with `load` |
+| `engine fork` (`engine.c`) | `engine fork-state` + another process of the program, `--fork-child NAME`, loaded at its first frame boundary (`tools/melee_engine/fork.py`) | none |
+| linker script gathering the game's statics | `.data$gs*` section names, sorted by the PE linker (`native_build.py` `gather_win32`) | none |
+| `/proc/self/pagemap` soft-dirty (`rollback.c`) | `MEM_WRITE_WATCH` / `GetWriteWatch` on the fixed mappings; the statics compared page by page with the mirror | none |
+| `-mms-bitfields` (MinGW's default) | `-mno-ms-bitfields` | the Linux build's struct layout |
 | `/dev/bus/usb` GameCube adapter (`gcadapter.c`) | WinUSB (`win32/winusb_adapter.c`), window build only; needs Zadig's WinUSB driver, as Dolphin does | the same reader, decoding and rumble; played with a Lossless adapter (Wii U mode) and a PhobGCC, 2026-11-17 |
 
 ## Status
@@ -183,12 +185,46 @@ the disc as on Linux) and exit cleanly. On Windows:
 - `window.py`: the `.exe`; `Window(real=False)` (tests, `--devices`) opens
   an ordinary window, silent, with its own shader cache, since there is no
   Xvfb; `leftovers()` finds none (the job object ends a driver's games).
-- **Not on Windows yet:** stage previews and Sheik's portraits (drawn on a
-  virtual display and photographed with `window.shot`; the panels keep the
-  name logos and her emblem), the tests that press keys or take pictures
-  (`key()`, `shot()`, `close_window()`), snapshots
-  (and so TM-CE-style instant resets), netplay, the trained-model opponent
-  (`opponents.py` still uses `select()` on a pipe and `os.killpg`).
+## Snapshots, rollback and the engine (branch `port/windows-snapshots`)
 
-Next, in order: the picture, sound and input checked by a person; snapshots without `fork()` (copies of the state inside the process,
-once the statics are gathered); rollback; the adapter over WinUSB.
+- **The statics** are gathered by section name (above). The block is about
+  1.1 MB; `tests/native/state.py` 8 of 8.
+- **Snapshots** (`snap`, `restore`, `drop`): each is the game's whole state
+  (some 70 MB) in a page-file section of its own, mapped only while it is
+  written or read, so many fit beside a 32-bit process.
+- **Rollback** (`rollback.c`): Windows' write watching in place of
+  soft-dirty. `tests/native/rollback.py` 6 of 6, `tests/native/netplay.py`
+  11 of 11 (with lag, loss and jitter: no desync).
+- **The game heap and audio RAM at fixed addresses** (`host.h`:
+  `0x90000000`, `0xA0000000`), so that a forked game, another process, sees
+  the same pointers. The scene loop's `on_frame` is kept in a global too
+  (`native_build.py`, gmscene.c's patch): the child loads the state inside
+  the boot scene's loop. The disc's file table (`dvd.c`) stays the child's
+  own; audio RAM is copied up to the highest address the game reached.
+  `tests/native/engine.py` 18 of 18.
+- **Two bugs found on the way, both fixed:**
+  - MinGW's default bitfield layout (`-mms-bitfields`) gave the game's
+    structs another layout than on Linux (`engine.py`'s jab check read the
+    fighter's flag at `0x2218` as 0).
+  - `dvd.c`'s file table left four fields as the C heap held them, so a
+    `.dat` file could be taken for words and byte-swapped (`EfMnData.dat`,
+    only in some environments). Not Windows' alone: Linux happened to get
+    zeroed memory. Found with the reads and parses `dvd.c` and `archive.c`
+    now remember and print when an archive does not parse;
+    `MELEE_WATCH_FILE=NAME` reports what writes over a file once read
+    (`compat.c`; it makes the page read-only, so a later read into the same
+    page fails: for debugging only).
+
+## Not done on Windows yet
+
+- **The window build with this branch's flags**, and in it: the client
+  checked again, Sheik's portraits and the stage previews (`window.shot` now
+  photographs the game's window: `tools/melee_native/win32ui.py`), the
+  tests that press keys or close the window (`key()`, `close_window()`).
+- **The trained-model opponent:** `opponents.py` is ported (reader thread,
+  job object, `venv\Scripts\python.exe`) but untried: it needs a slippi-ai
+  checkout with its models.
+- **Rumble:** the shared code, untried with a controller.
+- `tests/native/env.py` counts games with `pgrep`; `tests/native/place.py`'s
+  "same placement after another past" compares the fall counter, which
+  random play can raise.

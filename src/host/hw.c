@@ -8,6 +8,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <sys/mman.h> /* audio RAM at a fixed address (src/host/win32) */
+#endif
 
 #include <dolphin/ar.h>
 #include <dolphin/card.h>
@@ -20,6 +23,11 @@
 
 static uint8_t* aram;
 static uint32_t aram_next = HOST_ARAM_BASE;
+/// The end of the highest audio RAM ever reached. The game keeps a heap of
+/// its own in audio RAM (lbmemory.c), past what ARAlloc hands out, so
+/// aram_next does not say how much is in use; this does (a forked game on
+/// Windows is given this much: engine.c).
+static uint32_t aram_high;
 
 /// Which file each block of audio RAM was filled from: animation files sit
 /// here and are fetched back one archive at a time.
@@ -34,12 +42,43 @@ static int aram_origin_next;
 static uint8_t* aram_at(uint32_t addr, uint32_t length)
 {
     if (aram == NULL) {
+#ifdef _WIN32
+        /* At a fixed address on Windows, as the game heap (gameheap.c): a
+           forked game there is another process loaded with this one's
+           state, `aram` among it (engine.c). */
+        aram = mmap((void*) HOST_ARAM_HOST_ADDR, HOST_ARAM_SIZE,
+                    PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
+        if (aram == MAP_FAILED) {
+            host_fatal("cannot map audio RAM at %p",
+                       (void*) HOST_ARAM_HOST_ADDR);
+        }
+#else
         aram = calloc(1, HOST_ARAM_SIZE);
+#endif
     }
     if (addr > HOST_ARAM_SIZE || length > HOST_ARAM_SIZE - addr) {
         host_fatal("audio RAM access out of range: %x + %x", addr, length);
     }
+    if (addr + length > aram_high) {
+        aram_high = addr + length;
+    }
     return aram + addr;
+}
+
+/// Audio RAM mapped now, if it is not yet (a forked game on Windows, before
+/// the state that points at it is loaded: engine.c).
+void host_aram_ensure(void)
+{
+    (void) aram_at(0, 0);
+}
+
+/// Audio RAM as it stands: where it is and how much of it is in use (what
+/// a forked game on Windows is given: engine.c). NULL if untouched.
+void host_aram_extent(uint8_t** base, uint32_t* used)
+{
+    *base = aram;
+    *used = aram == NULL ? 0 : aram_high;
 }
 
 /// The disc file audio RAM at `addr` was last filled from, or -1: the

@@ -512,6 +512,152 @@ static const char* engine_fork(const char* line)
     return "";
 }
 
+#ifdef _WIN32
+/* Windows has no fork(): a forked game is another process of this program
+   (`--fork-child NAME`, main.c), started by whoever drives the game
+   (tools/melee_engine/fork.py) and loaded at its own first frame boundary
+   with this game's state, which "engine fork-state" leaves in a named
+   section of the page file. The game heap and audio RAM are at the same
+   fixed addresses in every process (host.h), the code and the statics too
+   (no ASLR), so the state means the same there. The child then behaves as
+   the Linux one: it stands at that frame, thinks, plays no frame for
+   real, draws nothing, and leaves when its input closes. */
+void* host_win32_blob_new_named(const char* name, size_t size);
+void* host_win32_blob_open(const char* name);
+void* host_win32_blob_map(void* blob, size_t size);
+void host_win32_blob_unmap(void* view);
+void host_win32_blob_free(void* blob);
+void host_aram_extent(uint8_t** base, uint32_t* used);
+void host_aram_ensure(void);
+void host_dvd_keep(void* out);
+void host_dvd_put_back(const void* in);
+unsigned long host_win32_pid(void);
+
+const char* host_fork_child_name; ///< `--fork-child NAME` (main.c)
+
+#define FORK_MAGIC 0x4B524F46u /* "FORK" */
+typedef struct ForkHeader {
+    uint32_t magic;
+    uint32_t state_size;
+    uint32_t heap_length;
+    uint32_t aram_used;
+} ForkHeader;
+
+static struct {
+    void* blob;
+    char name[64];
+} fork_states[FORKS_MAX];
+static unsigned fork_counter;
+
+/// "engine fork-state": this game's state into a new named section; "@ ok
+/// NAME". It is kept until "engine fork-release NAME", or until FORKS_MAX
+/// newer ones have been made.
+static const char* engine_fork_state(void)
+{
+    static char reply[96];
+    size_t state_size = host_state_size();
+    uint8_t* aram;
+    uint32_t aram_used;
+    size_t total;
+    uint8_t* view;
+    ForkHeader* head;
+    int slot = (int) (fork_counter % FORKS_MAX);
+
+    if (fork_child) {
+        return "a forked game does not fork";
+    }
+    if (fork_states[slot].blob != NULL) {
+        host_win32_blob_free(fork_states[slot].blob);
+        fork_states[slot].blob = NULL;
+    }
+    host_aram_extent(&aram, &aram_used);
+    total = sizeof(ForkHeader) + state_size + aram_used;
+    snprintf(fork_states[slot].name, sizeof fork_states[slot].name,
+             "Local\\melee-fork-%lu-%u", host_win32_pid(), fork_counter++);
+    fork_states[slot].blob =
+        host_win32_blob_new_named(fork_states[slot].name, total);
+    if (fork_states[slot].blob == NULL) {
+        return "no memory for a forked game's state";
+    }
+    view = host_win32_blob_map(fork_states[slot].blob, total);
+    if (view == NULL) {
+        return "cannot map a forked game's state";
+    }
+    head = (ForkHeader*) view;
+    head->magic = FORK_MAGIC;
+    head->state_size = (uint32_t) state_size;
+    head->heap_length = host_state_copy_out(view + sizeof *head);
+    head->aram_used = aram_used;
+    if (aram_used != 0) {
+        memcpy(view + sizeof *head + state_size, aram, aram_used);
+    }
+    host_win32_blob_unmap(view);
+    snprintf(reply, sizeof reply, "@ ok %s\n", fork_states[slot].name);
+    fputs(reply, stdout);
+    return "";
+}
+
+static const char* engine_fork_release(const char* line)
+{
+    char name[64] = "";
+    sscanf(line, "%63s", name);
+    for (int i = 0; i < FORKS_MAX; i++) {
+        if (fork_states[i].blob != NULL &&
+            strcmp(fork_states[i].name, name) == 0)
+        {
+            host_win32_blob_free(fork_states[i].blob);
+            fork_states[i].blob = NULL;
+        }
+    }
+    return NULL;
+}
+
+/// In a forked game (`--fork-child NAME`), at its first frame boundary:
+/// the parent's state, then "@ ok fork". (control.c)
+void host_engine_fork_child_load(void)
+{
+    void* blob = host_win32_blob_open(host_fork_child_name);
+    const uint8_t* view;
+    const ForkHeader* head;
+    uint8_t* aram;
+    uint32_t aram_used;
+
+    if (blob == NULL) {
+        host_fatal("forked game: no state named %s", host_fork_child_name);
+    }
+    view = host_win32_blob_map(blob, 0); /* the whole section */
+    if (view == NULL) {
+        host_fatal("forked game: cannot map %s", host_fork_child_name);
+    }
+    head = (const ForkHeader*) view;
+    if (head->magic != FORK_MAGIC ||
+        head->state_size != host_state_size_for(head->heap_length))
+    {
+        host_fatal("forked game: %s is not this program's state",
+                   host_fork_child_name);
+    }
+    host_aram_ensure(); /* mapped here before `aram` is overwritten */
+    {
+        /* the disc's table of files is this process's own (dvd.c) */
+        uint8_t table[64];
+        host_dvd_keep(table);
+        host_state_copy_in(view + sizeof *head, head->heap_length);
+        host_dvd_put_back(table);
+    }
+    host_aram_extent(&aram, &aram_used);
+    if (head->aram_used != 0) {
+        memcpy(aram, view + sizeof *head + head->state_size,
+               head->aram_used);
+    }
+    host_win32_blob_unmap((void*) view);
+    host_win32_blob_free(blob);
+    fork_child = 1;
+    host.draw = 0; /* nothing to draw into: no window was made */
+    printf("@ ok fork\n");
+    fflush(stdout);
+}
+#endif /* _WIN32 */
+
 void host_engine_note_scene_end(void)
 {
     eng.scene_end = 1;
@@ -2492,6 +2638,14 @@ const char* host_engine_command(const char* line)
     if (strcmp(what, "fork") == 0) {
         return engine_fork(line);
     }
+#ifdef _WIN32
+    if (strcmp(what, "fork-state") == 0) {
+        return engine_fork_state();
+    }
+    if (strcmp(what, "fork-release") == 0) {
+        return engine_fork_release(line);
+    }
+#endif
     if (strcmp(what, "macros") == 0) {
         if (macro_names[0][0] == 0) {
             name_macros();

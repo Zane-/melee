@@ -334,6 +334,11 @@ class Window(Native):
     def key(self, name, down=True):
         """Press or release a key on the virtual display, by its X name
         ("Right", "x", "Return", "Shift_L"). For tests."""
+        if WIN32:
+            # in the game's own window (no virtual display: win32ui.py)
+            import win32ui
+            win32ui.key(self.p.pid, name, down)
+            return
         if self.display is None:
             raise NativeError("key() is for the virtual display only")
         if self._xlib is None:
@@ -370,6 +375,9 @@ class Window(Native):
         """Ask the game's window to close, as a desktop does when its close
         button is pressed (a WM_DELETE_WINDOW message): for tests, on the
         virtual display. Returns the number of windows asked."""
+        if WIN32:
+            import win32ui
+            return win32ui.close(self.p.pid)
         if self.display is None:
             raise NativeError("close_window() is for the virtual display only")
 
@@ -432,6 +440,10 @@ class Window(Native):
 
     def shot(self, path):
         """Save what is on the virtual screen as a picture."""
+        if WIN32:
+            # the game's own window, as the GPU drew it (win32ui.py)
+            import win32ui
+            return win32ui.shot(self.p.pid, path, self.window)
         if self.display is None:
             raise NativeError("shot() is for the virtual display only")
         path = Path(path)

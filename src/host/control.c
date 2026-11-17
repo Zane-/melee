@@ -99,6 +99,100 @@ int host_control_enabled;
 
 #define MAX_SNAPS 256
 
+#ifdef _WIN32
+/* Windows has no fork(): a snapshot is the game's whole state (state.c)
+   copied into a section of the page file (compat.c), outside the 32-bit
+   address space, and a restore copies it back here, at the frame boundary
+   as everything in this file runs. The game's state is what comes back;
+   the host's own side (this protocol, the window, the pads' sources) goes
+   on, as with "load". */
+void* host_win32_blob_new(size_t size);
+void* host_win32_blob_map(void* blob, size_t size);
+void host_win32_blob_unmap(void* view);
+void host_win32_blob_free(void* blob);
+
+static struct Snap {
+    void* blob;
+    size_t size;
+    uint32_t heap_length;
+    uint32_t frame;
+    int alive;
+}* snaps;
+
+static void snaps_init(void)
+{
+    snaps = calloc(MAX_SNAPS, sizeof *snaps);
+    if (snaps == NULL) {
+        host_fatal("cannot allocate the snapshot table");
+    }
+}
+
+/// Take a snapshot: its id, or -1 (none left, or no memory).
+static int snap_take(int* id_out)
+{
+    int id;
+    size_t size = host_state_size();
+    uint8_t* view;
+
+    for (id = 0; id < MAX_SNAPS && snaps[id].alive; id++) {
+    }
+    if (id == MAX_SNAPS) {
+        return -1;
+    }
+    *id_out = id;
+    snaps[id].blob = host_win32_blob_new(size);
+    if (snaps[id].blob == NULL) {
+        return -1;
+    }
+    view = host_win32_blob_map(snaps[id].blob, size);
+    if (view == NULL) {
+        host_win32_blob_free(snaps[id].blob);
+        return -1;
+    }
+    snaps[id].heap_length = host_state_copy_out(view);
+    host_win32_blob_unmap(view);
+    snaps[id].size = size;
+    snaps[id].frame = host.frame;
+    snaps[id].alive = 1;
+    return id;
+}
+
+/// Bring a snapshot back: 0, or -1 if there is no such snapshot.
+static int snap_restore(int id)
+{
+    const uint8_t* view;
+
+    if (id < 0 || id >= MAX_SNAPS || !snaps[id].alive) {
+        return -1;
+    }
+    view = host_win32_blob_map(snaps[id].blob, snaps[id].size);
+    if (view == NULL) {
+        return -1;
+    }
+    host_state_copy_in(view, snaps[id].heap_length);
+    host_win32_blob_unmap((void*) view);
+    return 0;
+}
+
+static void snap_drop(int id)
+{
+    if (id >= 0 && id < MAX_SNAPS && snaps[id].alive) {
+        host_win32_blob_free(snaps[id].blob);
+        snaps[id].alive = 0;
+    }
+}
+
+static void snap_drop_all(void)
+{
+    if (snaps == NULL) {
+        return;
+    }
+    for (int id = 0; id < MAX_SNAPS; id++) {
+        snap_drop(id);
+    }
+}
+#else
+
 /// Which process holds each snapshot. Shared by every process of a session,
 /// whichever of them is running the game at the moment.
 static struct Snap {
@@ -199,6 +293,7 @@ static void snap_drop_all(void)
         }
     }
 }
+#endif /* _WIN32 */
 
 /* --- reading commands -------------------------------------------------------- */
 
@@ -491,6 +586,14 @@ static void command(char* line)
     } else if (strcmp(cmd, "restore") == 0) {
         int id = -1;
         sscanf(line, "%d", &id);
+#ifdef _WIN32
+        if (in_len != 0 || snap_restore(id) != 0) {
+            printf("@ error no such snapshot\n");
+        } else {
+            /* as the sleeper's copy answers on Linux */
+            printf("@ restored %d frame %u\n", id, host.frame);
+        }
+#else
         if (id < 0 || id >= MAX_SNAPS || !snaps[id].alive || in_len != 0 ||
             kill(snaps[id].pid, SIGUSR1) != 0)
         {
@@ -500,13 +603,18 @@ static void command(char* line)
             fflush(stdout);
             _exit(0);
         }
+#endif
     } else if (strcmp(cmd, "drop") == 0) {
         int id = -1;
         sscanf(line, "%d", &id);
+#ifdef _WIN32
+        snap_drop(id);
+#else
         if (id >= 0 && id < MAX_SNAPS && snaps[id].alive) {
             kill(snaps[id].pid, SIGUSR2);
             snaps[id].alive = 0;
         }
+#endif
         printf("@ ok\n");
     } else if (strcmp(cmd, "ledge") == 0) {
         /* "ledge [right]": where the stage's left (or right) ledge is
@@ -1404,6 +1512,13 @@ void host_control_frame(void)
     if (snaps == NULL) {
         snaps_init();
     }
+#ifdef _WIN32
+    if (host_fork_child_name != NULL && !host_engine_forked()) {
+        /* a forked game's first frame boundary: the parent's state, and
+           "@ ok fork" for the first reply (engine.c) */
+        host_engine_fork_child_load();
+    } else
+#endif
     if (reply_state) {
         reply_state = 0;
         print_state();

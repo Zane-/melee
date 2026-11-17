@@ -36,12 +36,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from native import die_with_parent  # noqa: E402
+from native import WIN32, die_with_parent  # noqa: E402
 import characters  # noqa: E402
 
 SLIPPI_AI = Path(os.environ.get(
     "SLIPPI_AI", os.path.expanduser("~/Games/Melee/slippi-ai")))
-PYTHON = SLIPPI_AI / "venv" / "bin" / "python"
+# (a Windows virtual environment keeps its Python in Scripts\)
+PYTHON = SLIPPI_AI / "venv" / ("Scripts/python.exe" if WIN32
+                               else "bin/python")
 MODELS = SLIPPI_AI / "deployed_models"
 CATALOG = ROOT / "data" / "models" / "slippi-ai.json"
 # slippi-ai's character names (in model names and training settings) ->
@@ -207,11 +209,38 @@ class Bot:
         self.delay = 0
         self.asked = self.answered = 0
         self._buf = b""
-        self.p = subprocess.Popen(
-            [str(PYTHON), str(ROOT / "tools/melee_actor/policy_server.py")],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL, start_new_session=True,
-            preexec_fn=die_with_parent)
+        self._chunks = None
+        server = [str(PYTHON), str(ROOT / "tools/melee_actor/policy_server.py")]
+        if WIN32:
+            # no select() on pipes, no process groups: a reader thread, and
+            # a job object that ends the model with this process
+            import queue
+            import threading
+            from native import die_with_parent_win32
+            self.p = subprocess.Popen(
+                server, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            die_with_parent_win32(self.p.pid)
+            self._chunks = queue.Queue()
+            fd = self.p.stdout.fileno()
+
+            def read():
+                while True:
+                    try:
+                        chunk = os.read(fd, 65536)
+                    except OSError:
+                        chunk = b""
+                    self._chunks.put(chunk)
+                    if not chunk:
+                        return
+
+            threading.Thread(target=read, daemon=True).start()
+        else:
+            self.p = subprocess.Popen(
+                server, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL, start_new_session=True,
+                preexec_fn=die_with_parent)
         self._send(dict(load=model, port=port, opponent=opponent,
                         stage=stage))
 
@@ -226,9 +255,17 @@ class Bot:
         """One line from the process if there is one within `wait`."""
         fd = self.p.stdout.fileno()
         while b"\n" not in self._buf:
-            if not select.select([fd], [], [], wait)[0]:
-                return None
-            chunk = os.read(fd, 65536)
+            if self._chunks is not None:
+                import queue
+                try:
+                    chunk = self._chunks.get(timeout=wait) if wait > 0 \
+                        else self._chunks.get_nowait()
+                except queue.Empty:
+                    return None
+            else:
+                if not select.select([fd], [], [], wait)[0]:
+                    return None
+                chunk = os.read(fd, 65536)
             if not chunk:
                 self.loaded, self.error = False, "the model's process ended"
                 return None
@@ -285,8 +322,11 @@ class Bot:
 
     def close(self):
         try:
-            os.killpg(self.p.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
+            if WIN32:
+                self.p.kill()
+            else:
+                os.killpg(self.p.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError, OSError):
             pass
         try:
             self.p.wait(timeout=5)

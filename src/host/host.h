@@ -25,6 +25,14 @@
 /// animations (tools/native_build.py, lbmemory.c's patch).
 #define HOST_ARAM_SIZE 0x4000000u
 #define HOST_ARAM_BASE 0x4000u
+#ifdef _WIN32
+/// Windows: where the game heap and audio RAM are reserved, the same in
+/// every process of the program, so that a forked game (another process
+/// loaded with the game's state, engine.c) sees the same pointers. Above
+/// the arena; the process is large address aware (tools/native_build.py).
+#define HOST_GAME_HEAP_BASE 0x90000000u
+#define HOST_ARAM_HOST_ADDR 0xA0000000u
+#endif
 
 typedef struct HostPad {
     uint16_t buttons;
@@ -304,6 +312,15 @@ size_t host_state_size(void);
 void host_state_sizes(size_t* arena, size_t* statics, size_t* heap);
 int host_state_save(int slot);
 int host_state_load(int slot);
+uint32_t host_state_copy_out(uint8_t* dst);
+void host_state_copy_in(const uint8_t* src, uint32_t heap_length);
+size_t host_state_size_for(uint32_t heap_length);
+#ifdef _WIN32
+/// A forked game on Windows (engine.c): `--fork-child NAME` (main.c), and
+/// the state it is loaded with at its first frame boundary (control.c).
+extern const char* host_fork_child_name;
+void host_engine_fork_child_load(void);
+#endif
 int host_state_dump(const char* path);
 long host_state_frame(int slot);
 uint64_t host_state_hash(void);

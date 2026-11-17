@@ -42,6 +42,11 @@ class Fork:
         self.log = []
         self._state = None
         self._pending = b""
+        self._chunks = None
+        self.p = None
+        if sys.platform == "win32":
+            self._start_win32(n)
+            return
         base = "/dev/shm" if os.path.isdir("/dev/shm") else None
         self._dir = tempfile.mkdtemp(prefix="melee-fork-", dir=base)
         inp, out = (os.path.join(self._dir, x) for x in ("in", "out"))
@@ -64,8 +69,67 @@ class Fork:
             shutil.rmtree(self._dir, ignore_errors=True)
         self.frame = None
 
+    def _start_win32(self, n):
+        """Windows has no fork(): the game leaves its state in a named
+        section ("engine fork-state"), and the copy is this program again,
+        started with `--fork-child NAME`, which loads it at its first frame
+        boundary and answers "ok fork" (src/host/engine.c). Its stdin and
+        stdout are the pipe, as for Native."""
+        import queue
+        import subprocess
+        from native import die_with_parent_win32
+
+        name = n._cmd("engine fork-state").split()[1]
+        self.p = subprocess.Popen(
+            [str(n.exe), "--disc", str(n.disc), "--fork-child", name],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        die_with_parent_win32(self.p.pid)
+        self.pid = self.p.pid
+        self._w = None
+        self._r = self.p.stdout.fileno()
+        self._chunks = queue.Queue()
+
+        def read():
+            while True:
+                try:
+                    chunk = os.read(self._r, 65536)
+                except OSError:
+                    chunk = b""
+                self._chunks.put(chunk)
+                if not chunk:
+                    return
+
+        threading.Thread(target=read, daemon=True).start()
+        try:
+            first = self._reply()
+            if first != "ok fork":
+                raise NativeError("a forked game said " + first)
+        except Exception:
+            self.close()
+            raise
+        finally:
+            # loaded (or failed): the section is no longer needed
+            try:
+                n._cmd("engine fork-release " + name)
+            except NativeError:
+                pass
+        self.frame = None
+
     def _line(self):
         while b"\n" not in self._pending:
+            if self._chunks is not None:
+                import queue
+                try:
+                    chunk = self._chunks.get(timeout=self.timeout)
+                except queue.Empty:
+                    raise NativeError("no reply from a forked game in %g s"
+                                      % self.timeout)
+                if not chunk:
+                    return ""
+                self._pending += chunk
+                continue
             if not select.select([self._r], [], [], self.timeout)[0]:
                 raise NativeError("no reply from a forked game in %g s"
                                   % self.timeout)
@@ -88,7 +152,11 @@ class Fork:
 
     def _cmd(self, text):
         self._state = None
-        os.write(self._w, (text + "\n").encode())
+        if self.p is not None:
+            self.p.stdin.write((text + "\n").encode())
+            self.p.stdin.flush()
+        else:
+            os.write(self._w, (text + "\n").encode())
         reply = self._reply()
         if reply.startswith("error"):
             raise NativeError(reply)
@@ -103,6 +171,18 @@ class Fork:
         return Fighter(self.state()["p"][i])
 
     def close(self):
+        if self.p is not None:
+            # its input closes: a forked game leaves (control.c)
+            try:
+                self.p.stdin.close()
+            except OSError:
+                pass
+            try:
+                self.p.wait(timeout=5)
+            except Exception:
+                self.p.kill()
+            self.p = None
+            return
         for fd in ("_w", "_r"):
             v = getattr(self, fd, None)
             if v is not None:

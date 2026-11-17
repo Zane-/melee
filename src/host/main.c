@@ -206,6 +206,12 @@ int main(int argc, char** argv)
             match_at = 30;
         } else if (strcmp(argv[i], "--trace") == 0 && i + 1 < argc) {
             trace_every = (uint32_t) strtoul(argv[++i], NULL, 0);
+#ifdef _WIN32
+        } else if (strcmp(argv[i], "--fork-child") == 0 && i + 1 < argc) {
+            /* a forked game (engine.c): no window, commands on stdin */
+            host_fork_child_name = argv[++i];
+            host_control_enabled = 1;
+#endif
         } else {
             usage();
         }
@@ -246,8 +252,13 @@ int main(int argc, char** argv)
     host_memory_init();
     host_disc_init(disc);
 #ifdef HOST_WINDOW
-    host.draw = 1;
-    host_window_init();
+#ifdef _WIN32
+    if (host_fork_child_name == NULL)
+#endif
+    {
+        host.draw = 1;
+        host_window_init();
+    }
 #endif
     game_main();
     host_log("the game's main returned");
