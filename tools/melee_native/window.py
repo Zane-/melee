@@ -159,12 +159,20 @@ class Window(Native):
     @staticmethod
     def _windows_offscreen(state_dir):
         import tempfile
-        # one per driver process: the client's art jobs (art.py, stages.py)
-        # run games of their own beside a test's, and two games sharing
-        # Aurora's shader cache found its database locked
-        state = Path(state_dir or os.environ.get("CLAUDE_JOB_DIR")
-                     or tempfile.gettempdir()) / (
-            "melee-window-state-%d" % os.getpid())
+        if state_dir is not None:
+            # a test's own: laid out as on Linux (_virtual_display), where
+            # the test looks for what the game keeps (tests/client/
+            # fullscreen.py reads aurora/fullscreen there)
+            state = Path(state_dir) / "tmp" / "melee-window-xdg"
+        else:
+            # one per game: the client's art jobs (art.py, stages.py) run
+            # games of their own beside a test's, an online test runs two
+            # from one process, and two games sharing Aurora's shader cache
+            # found its database locked
+            Window._made = getattr(Window, "_made", 0) + 1
+            state = Path(os.environ.get("CLAUDE_JOB_DIR")
+                         or tempfile.gettempdir()) / (
+                "melee-window-state-%d-%d" % (os.getpid(), Window._made))
         state.mkdir(parents=True, exist_ok=True)
         return dict(os.environ, SDL_AUDIO_DRIVER="dummy",
                     MELEE_STATE_DIR=str(state / "aurora"))
@@ -339,8 +347,15 @@ class Window(Native):
         """Press or release a key on the virtual display, by its X name
         ("Right", "x", "Return", "Shift_L"). For tests."""
         if WIN32:
-            # in the game's own window (no virtual display: win32ui.py)
+            # Held for the keyboard port by the game itself ("vkey"):
+            # posted keys do not reach SDL's state for all keys there (left
+            # Shift, the light push, is checked against the physical
+            # keyboard). Also posted to the game's window (win32ui.py),
+            # for what the window handles itself (F11).
             import win32ui
+            sdl = win32ui.SDL_NAMES.get(name, name.upper()
+                                        if len(name) == 1 else name)
+            self._cmd("vkey %d %s" % (1 if down else 0, sdl))
             win32ui.key(self.p.pid, name, down)
             return
         if self.display is None:

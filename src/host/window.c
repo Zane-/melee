@@ -762,6 +762,22 @@ static void read_gamepad(SDL_Gamepad* g, HostPad* p)
 /// The keyboard as a controller. Arrows: the stick (with left shift, a
 /// light push). I J K L: the C stick. X: A. Z: B. C and V: Y and X.
 /// A and S: L and R. D: Z. Return: Start. T F G H: the D-pad.
+/// Keys a driver holds down by the control protocol ("vkey NAME 1|0":
+/// control.c), as well as the keyboard: tests on Windows, where a key
+/// posted to the window does not reach SDL's state for every key (left
+/// Shift, the light push, is checked against the physical keyboard).
+static bool vkeys[SDL_SCANCODE_COUNT];
+
+const char* host_window_vkey(const char* name, int down)
+{
+    SDL_Scancode sc = SDL_GetScancodeFromName(name);
+    if (sc == SDL_SCANCODE_UNKNOWN) {
+        return "no such key";
+    }
+    vkeys[sc] = down != 0;
+    return NULL;
+}
+
 static void read_keyboard(HostPad* p)
 {
     static const struct {
@@ -782,8 +798,14 @@ static void read_keyboard(HostPad* p)
         { SDL_SCANCODE_H, PAD_BUTTON_RIGHT },
     };
     int count = 0;
-    const bool* k = SDL_GetKeyboardState(&count);
-    int push = k[SDL_SCANCODE_LSHIFT] ? 40 : 100;
+    const bool* sdl = SDL_GetKeyboardState(&count);
+    bool k[SDL_SCANCODE_COUNT];
+    int push;
+
+    for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
+        k[i] = (i < count && sdl[i]) || vkeys[i];
+    }
+    push = k[SDL_SCANCODE_LSHIFT] ? 40 : 100;
 
     p->buttons = 0;
     for (size_t i = 0; i < sizeof keys / sizeof keys[0]; i++) {

@@ -238,6 +238,27 @@ A GameCube controller on the adapter wins over the keyboard for a port
 whose source is `auto`, as tests' windows are: a controller touched during
 a client test moves the menu too. Unplug it, or leave it alone, for tests.
 
+### The client tests on Windows (2026-11-17)
+
+Keys reach the game by the control protocol as well as the window
+(`vkey 1|0 NAME`, `window.c`): a posted left Shift (the light push) never
+reached SDL's state there, so a stand-in dashed where it meant to walk.
+Each test game has its own Aurora state directory.
+
+| Passing | |
+|-|-|
+| all checks | close 5, course 22, coach 10, menu 20, modes_format 20, online_lobby 8, online_modes 9, rules 14, settings_menu 55, shine_oos 11, short_hop 16, sound 12, versus_select 14, whiff_punish 13 |
+| skipped, as on Linux (their drills not rebuilt yet) | between, loading, pausekeys |
+
+| Not all passing | Why |
+|-|-|
+| controls 6 of 8, fullscreen 17 of 18, online 9 of 10 | checks that measure the window's picture (`window.shot` from the screen): not yet as exact as X's virtual display |
+| versus_modes 44 of 45 | each Fox's stock icon in its costume: not looked into |
+| stage_select 17 of 25, portraits | the stages' and Sheik's pictures, which the client draws on its first runs, were not there yet |
+| input_display | the controller is made from a drawing that is not in the repository (`padart.py`); without it `toggle_column` ended the client: fixed, it now skips the controller |
+| versus | needs a slippi-ai checkout with its models |
+| vselkeys | not a test: keys for other tests |
+
 ## Not done on Windows yet
 
 - **The trained-model opponent:** `opponents.py` is ported (reader thread,

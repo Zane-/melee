@@ -1166,6 +1166,23 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "vkey") == 0) {
+        /* "vkey 1|0 NAME": a key held down (or let go) for the keyboard
+           port, by SDL's name for it ("Left Shift", "Right", "X"):
+           window.c, for tests on Windows */
+#ifdef HOST_WINDOW
+        int down = 0, at = 0;
+        const char* why;
+        sscanf(line, " %d %n", &down, &at);
+        why = at > 0 ? host_window_vkey(line + at, down) : "vkey 1|0 NAME";
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "live") == 0 || strcmp(cmd, "pace") == 0) {
 #ifdef HOST_WINDOW
         if (cmd[0] == 'l') {

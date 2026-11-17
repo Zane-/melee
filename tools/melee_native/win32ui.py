@@ -45,6 +45,12 @@ VK = {"Return": 0x0D, "Escape": 0x1B, "space": 0x20, "BackSpace": 0x08,
       "Control_R": 0xA3, "Alt_L": 0xA4, "Home": 0x24, "End": 0x23,
       "Prior": 0x21, "Next": 0x22, "Delete": 0x2E, "Insert": 0x2D,
       **{"F%d" % n: 0x6F + n for n in range(1, 13)}}
+# X key names -> SDL's names for them (the game's "vkey" command); a letter
+# or digit is its upper-case self, others the same in both
+SDL_NAMES = {"Shift_L": "Left Shift", "Shift_R": "Right Shift",
+             "Control_L": "Left Ctrl", "Control_R": "Right Ctrl",
+             "Alt_L": "Left Alt", "space": "Space", "BackSpace": "Backspace",
+             "Prior": "PageUp", "Next": "PageDown"}
 # keys Windows marks "extended" (bit 24 of lParam)
 EXTENDED = {0x25, 0x26, 0x27, 0x28, 0x24, 0x23, 0x21, 0x22, 0x2E, 0x2D,
             0xA3}
@@ -148,8 +154,15 @@ def shot(pid, path, size=None):
         user32.ReleaseDC(None, screen)
         user32.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_KEEP)
     img = Image.frombuffer("RGB", (w, h), buf.raw, "raw", "BGRX", 0, 1)
-    if size is not None:
-        img = img.crop((0, 0, min(size[0], w), min(size[1], h)))
+    if size is not None and (w, h) != tuple(size):
+        if abs(w * size[1] - h * size[0]) <= max(w, h) // 50:
+            # the same picture at the display's scale (a 1280x720 window is
+            # 3840x2160 screen pixels at 300%): brought to the size asked,
+            # as a test measures it (on Linux the virtual screen is
+            # unscaled and the window is cut from its corner)
+            img = img.resize(tuple(size), Image.LANCZOS)
+        else:
+            img = img.crop((0, 0, min(size[0], w), min(size[1], h)))
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path)

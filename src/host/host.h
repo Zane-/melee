@@ -207,6 +207,7 @@ void host_window_forget(const void* data, size_t size);
 /// The window build only (window.c): a port played by a person, and
 /// running at the console's speed instead of as fast as it goes.
 const char* host_window_live(int port, const char* source);
+const char* host_window_vkey(const char* name, int down);
 void host_window_pace(int on);
 void host_window_quiet(int on);
 int host_window_drawable(void);
