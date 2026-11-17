@@ -109,7 +109,46 @@ in `src/host/win32/`, Winsock, and these link options:
   (`robocopy orig\GALE01 build\disc /E`; a link would let tools that write
   there change the clean extraction).
 
-Next, in order: the window build (Aurora on
-Windows, `tools/aurora32/build.sh` has a Linux-only script); the Python
-client; snapshots without `fork()` (copies of the state inside the process,
+## The window build (graphics and sound)
+
+```powershell
+$env:PATH = "C:\msys64\mingw32\bin;$env:ProgramFiles\Git\cmd;$env:PATH"
+python tools\aurora32\build_windows.py       # Aurora, Dawn, SDL3, RmlUi: build\aurora32\build
+python tools\native_build.py --window        # build\native-window\melee_native.exe (+ its DLLs)
+build\native-window\melee_native.exe --disc build/disc --match 2,9,32 --frames 600
+```
+
+`build_windows.py` is `build.sh`'s counterpart (also needs `pacman -S patch`):
+the same two Aurora patches and Dawn patch, and for MinGW:
+
+- Dawn with **Vulkan only** (`DAWN_ENABLE_D3D11/D3D12=OFF`,
+  `DAWN_USE_WINDOWS_UI=OFF`): its Direct3D code needs headers MinGW lacks
+  (`DXProgrammableCapture.h`, WRL). Vulkan comes with the graphics driver,
+  and is what Linux uses.
+- `abseil-0001-mingw-o-nonblock.patch`: MinGW has no `O_NONBLOCK`.
+- `aurora-0003-mingw-comsuppw.patch`: `comsuppw` is MSVC's library.
+- Only the libraries the game links are built: Aurora's example wants a
+  `WinMain` under MinGW.
+
+What the window build needed on Windows:
+
+- **16-byte-aligned `operator new`** (`src/host/win32/aligned_new.cpp`):
+  32-bit MinGW's `malloc` aligns to 8, gcc assumed 16, and Aurora's
+  `std::deque<RenderPass>` was zeroed with `movaps` into 8-aligned memory: an
+  access violation "at 0xFFFFFFFF" on the third frame. (That address is how
+  Windows reports a misaligned SSE access.)
+- **`aurora_shutdown()` at exit** (`window.c`, Windows only): left to the C++
+  statics, the device went first and Aurora aborted (exit status 3).
+- **The DLLs beside the executable** (`native_build.py`, `copy_dlls`): Dawn
+  and SDL3 are DLLs, and RmlUi's image and compression libraries are MSYS2's.
+- SQLite's header from Aurora's copy; `gcadapter.c`'s USB reading is
+  Linux-only (no GameCube adapter on Windows yet; keyboard and SDL
+  controllers are the window's own).
+
+Verified 2026-11-17: `--match 2,9,32 --frames 600` runs in a window on
+Vulkan (RTX 5090) and exits 0. Not yet checked: what the picture looks
+like, sound, input, the Python client on top.
+
+Next, in order: the picture, sound and input checked by eye and ear; the
+Python client (`tools/melee_client/client.py`); snapshots without `fork()` (copies of the state inside the process,
 once the statics are gathered); rollback; the adapter over WinUSB.

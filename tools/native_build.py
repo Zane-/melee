@@ -595,13 +595,16 @@ def aurora_libs():
     if not ninja.exists():
         sys.exit(f"missing {ninja}: run tools/aurora32/build.sh")
     text = ninja.read_text()
-    at = text.index("build examples/simple:")
+    # (examples/simple.exe on Windows)
+    at = re.search(r"build examples/simple(\.exe)?:", text).start()
     line = re.search(r"^  LINK_LIBRARIES = (.*)$", text[at:], re.M).group(1)
     libs = []
     for item in line.split():
         if item.endswith("libaurora_main.a"):
             continue
+        # absolute (also C:/... on Windows), a flag, or relative to the build
         libs.append(item if item.startswith(("/", "-"))
+                    or re.match(r"^[A-Za-z]:[/\\]", item)
                     else str(AURORA32 / item))
     return libs
 
@@ -664,6 +667,33 @@ def link(objs, out, capture=False):
     if "native-asan" in str(OUT):
         cmd.append("-fsanitize=address")
     return run(cmd, capture_output=True, text=True)
+
+
+def copy_dlls(exe):
+    """Windows: put the DLLs the program needs beside it (Dawn and SDL3 are
+    built as DLLs, and RmlUi's image and compression libraries are MSYS2's),
+    following each DLL's own imports. System DLLs (found in neither place)
+    are left to Windows."""
+    gcc_bin = Path(subprocess.run(["where", "gcc"], capture_output=True,
+                                  text=True).stdout.split("\n")[0]).parent
+    found = {p.name.lower(): p for p in AURORA32.rglob("*.dll")}
+    todo, done = [exe], set()
+    while todo:
+        r = run(["objdump", "-p", todo.pop()], capture_output=True,
+                text=True)
+        for name in re.findall(r"DLL Name: (\S+)", r.stdout):
+            key = name.lower()
+            if key in done:
+                continue
+            done.add(key)
+            src = found.get(key) or (gcc_bin / name if (gcc_bin / name)
+                                     .exists() else None)
+            if src is None:
+                continue  # a system DLL
+            dest = exe.parent / name
+            if not dest.exists() or dest.stat().st_mtime < src.stat().st_mtime:
+                dest.write_bytes(src.read_bytes())
+            todo.append(dest)
 
 
 def write_stubs(names, path):
@@ -823,6 +853,10 @@ def main():
             # is an int), and the SDL that Aurora was built with.
             extra = [f for f in common if f != "-Dbool=int"] + [
                 f"-I{AURORA32}/_deps/sdl-src/include"]
+            if WIN32:
+                # SQLite's header: Aurora's own copy, the one linked (Linux
+                # has the system's)
+                extra += [f"-I{AURORA32}/_deps/sqlite3-src"] + WIN32_HOST
         jobs.append((src, OBJ / (src.stem + ".o"), extra))
     if WINDOW:
         # The client's interface: C++, against RmlUi and the patched Aurora
@@ -833,6 +867,12 @@ def main():
             f"-I{AURORA32.parent}/aurora-src/include",
             f"-I{AURORA32}/_deps/rmlui-src/Include",
             f"-I{AURORA32}/_deps/sdl-src/include"]))
+        if WIN32:
+            # 16-byte-aligned operator new (msvcrt's malloc gives 8): see
+            # the file
+            jobs.append((ROOT / "src/host/win32/aligned_new.cpp",
+                         OBJ / "aligned_new.o",
+                         ["-m32", "-std=c++20", "-O2", "-w"]))
     for name in AURORA_C:
         jobs.append((AURORA / "lib/dolphin/mtx" / name,
                      OBJ / "aurora" / (name + ".o"),
@@ -883,6 +923,8 @@ def main():
     if r.returncode:
         sys.exit("\n".join(r.stderr.splitlines()[-30:]))
     (OUT / "melee_headless.trial").unlink(missing_ok=True)
+    if WIN32 and WINDOW:
+        copy_dlls(exe.with_suffix(".exe"))
     (OBJ / "stubs.json").write_text(json.dumps(
         {"functions": [n for n, _ in funcs],
          "objects": [n for n, _ in objects]}, indent=1))

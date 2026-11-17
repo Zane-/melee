@@ -191,6 +191,14 @@ int swapcontext(ucontext_t* oucp, const ucontext_t* ucp)
     return 0;
 }
 
+/* --- the executable's own path (window.c, in place of /proc/self/exe) -- */
+
+int host_win32_exe_path(char* out, int size)
+{
+    DWORD n = GetModuleFileNameA(NULL, out, (DWORD) size);
+    return n == 0 || n >= (DWORD) size ? -1 : (int) n;
+}
+
 /* --- stdout and stderr in binary mode (main.c) -------------------------- */
 
 void host_win32_binary_output(void)

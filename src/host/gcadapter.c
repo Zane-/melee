@@ -30,17 +30,19 @@
 
 #include "host.h"
 
-#include <dirent.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <linux/usbdevice_fs.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <time.h>
+#ifndef _WIN32
+#include <dirent.h>
+#include <fcntl.h>
+#include <linux/usbdevice_fs.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
+#endif
 
 #include <dolphin/pad.h>
 
@@ -89,6 +91,24 @@ static void say(const char* fmt, const char* detail)
     pthread_mutex_unlock(&lock);
 }
 
+#ifdef _WIN32
+/* Windows: the adapter is not read yet. Dolphin reads it there through
+   WinUSB (libusb), once Zadig has given the device that driver; until this
+   does the same, the reader only says so. Decoding, rumble bookkeeping and
+   the status below are shared with Linux. */
+static void motors_send(int fd)
+{
+    (void) fd; /* never called: no device is opened (open_fd stays -1) */
+}
+
+static void* reader(void* arg)
+{
+    (void) arg;
+    say("not read on Windows yet (keyboard and SDL controllers work)%s",
+        "");
+    return NULL;
+}
+#else
 static int read_number(const char* dir, const char* name, int base)
 {
     char path[320], text[32] = "";
@@ -228,6 +248,7 @@ static void* reader(void* arg)
     }
     return NULL;
 }
+#endif /* _WIN32 */
 
 /// For MELEE_TIMING: reports read, failed reads and openings so far, and
 /// how old the newest report is now (ms; -1 if there is none).
