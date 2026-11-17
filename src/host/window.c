@@ -29,6 +29,12 @@
 /* From the patch tools/aurora32/build.sh applies (this file is compiled
    against Aurora's own headers, as ui.cpp is). */
 void aurora_set_present_hold(bool value);
+/* tools/aurora32/aurora-0004-frame-capture.patch */
+void aurora_capture_enable(bool on);
+int aurora_capture_read(void (*sink)(const unsigned char* rgba,
+                                     unsigned width, unsigned height,
+                                     unsigned stride, void* ctx),
+                        void* ctx);
 
 static int in_frame;
 static int started;
@@ -329,6 +335,9 @@ void host_window_init(void)
     /* after Aurora's own exit work is registered, so this runs before it */
     atexit(on_exit_begun);
     sdl_window = info.window;
+    if (getenv("MELEE_CAPTURE") != NULL) {
+        aurora_capture_enable(true); /* "frameshot": tests' pictures */
+    }
     if (fullscreen_asked) {
         SDL_HideCursor();
     }
@@ -767,6 +776,40 @@ static void read_gamepad(SDL_Gamepad* g, HostPad* p)
 /// posted to the window does not reach SDL's state for every key (left
 /// Shift, the light push, is checked against the physical keyboard).
 static bool vkeys[SDL_SCANCODE_COUNT];
+
+/* --- the frame shown, read back (tests: window.shot on Windows) ----------
+   With MELEE_CAPTURE set, Aurora copies every frame shown into a buffer
+   (aurora_capture_enable); "frameshot PATH" (control.c) writes the last one
+   to PATH as a binary PPM. Nothing is played to take it. */
+static void frameshot_sink(const unsigned char* rgba, unsigned width,
+                           unsigned height, unsigned stride, void* ctx)
+{
+    FILE* f = ctx;
+    fprintf(f, "P6\n%u %u\n255\n", width, height);
+    for (unsigned y = 0; y < height; y++) {
+        const unsigned char* row = rgba + (size_t) y * stride;
+        for (unsigned x = 0; x < width; x++) {
+            fwrite(row + x * 4, 1, 3, f);
+        }
+    }
+}
+
+const char* host_window_frameshot(const char* path)
+{
+    FILE* f;
+    int r;
+
+    if (!started) {
+        return "no window";
+    }
+    f = fopen(path, "wb");
+    if (f == NULL) {
+        return "cannot write there";
+    }
+    r = aurora_capture_read(frameshot_sink, f);
+    fclose(f);
+    return r == 0 ? NULL : "no frame captured (MELEE_CAPTURE not set?)";
+}
 
 const char* host_window_vkey(const char* name, int down)
 {

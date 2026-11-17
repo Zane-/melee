@@ -73,6 +73,12 @@ def main():
     # MinGW only: comsuppw is a library of MSVC's.
     apply_patch(SRC, HERE / "aurora-0003-mingw-comsuppw.patch",
                 "cmake/aurora_core.cmake", "if (MSVC)")
+    # The frame shown, read back for tests' pictures (aurora_capture_read;
+    # the host's "frameshot"): on Windows there is no virtual display to
+    # photograph, and a copy of the screen does not reliably hold the
+    # latest frame of a window the GPU presents.
+    apply_patch(SRC, HERE / "aurora-0004-frame-capture.patch",
+                "include/aurora/aurora.h", "aurora_capture_enable")
 
     configure = [
         "cmake", "-S", SRC, "-B", OUT / "build", "-G", "Ninja",

@@ -1,0 +1,162 @@
+--- a/lib/aurora.cpp
++++ b/lib/aurora.cpp
+@@ -27,6 +27,10 @@
+ #include <SDL3/SDL_filesystem.h>
+ #include <magic_enum.hpp>
+ 
++#include <atomic>
++#include <mutex>
++#include <vector>
++
+ #include "system_info.hpp"
+ #include "tracy/Tracy.hpp"
+ 
+@@ -97,6 +101,17 @@
+ // aurora_set_present_hold: frames are made but none is shown
+ bool g_presentHold = false;
+ 
++// aurora_capture_enable / aurora_capture_read: every frame shown copied into
++// a buffer the host maps between frames. The lock is held from the copy's
++// encoding to its submission, and while the buffer is mapped, so that the
++// two never meet.
++std::mutex g_captureMutex;
++std::atomic_bool g_captureOn{false};
++wgpu::Buffer g_captureBuffer;
++uint32_t g_captureWidth = 0, g_captureHeight = 0, g_captureStride = 0;
++wgpu::TextureFormat g_captureFormat = wgpu::TextureFormat::Undefined;
++bool g_captureValid = false;
++
+ AuroraInfo initialize(int argc, char* argv[], const AuroraConfig& config) noexcept {
+   g_config = config;
+   Log.info("Aurora initializing");
+@@ -382,6 +397,39 @@
+     } else if (!hold) {
+       Log.info("Skipping present; window not presentable");
+     }
++    // aurora_capture_enable: the frame shown, copied for aurora_capture_read
++    std::unique_lock<std::mutex> captureLock;
++    if (canPresent && g_captureOn.load()) {
++      captureLock = std::unique_lock<std::mutex>(g_captureMutex);
++      const uint32_t width = currentTexture.GetWidth();
++      const uint32_t height = currentTexture.GetHeight();
++      const uint32_t stride = AURORA_ALIGN(width * 4, 256);
++      if (!g_captureBuffer || g_captureWidth != width || g_captureHeight != height) {
++        const wgpu::BufferDescriptor descriptor{
++            .label = "Frame capture",
++            .usage = wgpu::BufferUsage::MapRead | wgpu::BufferUsage::CopyDst,
++            .size = static_cast<uint64_t>(stride) * height,
++        };
++        g_captureBuffer = g_device.CreateBuffer(&descriptor);
++        g_captureWidth = width;
++        g_captureHeight = height;
++        g_captureStride = stride;
++      }
++      g_captureFormat = currentTexture.GetFormat();
++      const wgpu::TexelCopyTextureInfo src{.texture = currentTexture};
++      const wgpu::TexelCopyBufferInfo dst{
++          .layout =
++              wgpu::TexelCopyBufferLayout{
++                  .offset = 0,
++                  .bytesPerRow = stride,
++                  .rowsPerImage = height,
++              },
++          .buffer = g_captureBuffer,
++      };
++      const wgpu::Extent3D extent{.width = width, .height = height, .depthOrArrayLayers = 1};
++      encoder.CopyTextureToBuffer(&src, &dst, &extent);
++      g_captureValid = true;
++    }
+     webgpu::gpu_prof::frame_end(encoder);
+     const wgpu::CommandBufferDescriptor cmdBufDescriptor{.label = "Redraw command buffer"};
+     const auto buffer = encoder.Finish(&cmdBufDescriptor);
+@@ -389,6 +437,9 @@
+       ZoneScopedN("Queue Submit");
+       g_queue.Submit(1, &buffer);
+     }
++    if (captureLock.owns_lock()) {
++      captureLock.unlock();
++    }
+     webgpu::gpu_prof::after_submit();
+     if (canPresent && g_surface) {
+       ZoneScopedN("Present");
+@@ -499,6 +550,43 @@
+ #endif
+ }
+ void aurora_set_present_hold(bool value) { aurora::g_presentHold = value; }
++void aurora_capture_enable(bool on) {
++  std::lock_guard<std::mutex> lock(aurora::g_captureMutex);
++  aurora::g_captureOn = on;
++  aurora::g_captureValid = false;
++}
++int aurora_capture_read(void (*sink)(const unsigned char*, unsigned, unsigned, unsigned, void*), void* ctx) {
++  using namespace aurora;
++  std::lock_guard<std::mutex> lock(g_captureMutex);
++  if (!g_captureOn || !g_captureValid || !g_captureBuffer) {
++    return -1;
++  }
++  const uint64_t size = static_cast<uint64_t>(g_captureStride) * g_captureHeight;
++  bool mapped = false;
++  const auto future = g_captureBuffer.MapAsync(
++      wgpu::MapMode::Read, 0, size, wgpu::CallbackMode::WaitAnyOnly,
++      [&mapped](wgpu::MapAsyncStatus status, wgpu::StringView) { mapped = status == wgpu::MapAsyncStatus::Success; });
++  if (webgpu::g_instance.WaitAny(future, 5000000000) != wgpu::WaitStatus::Success || !mapped) {
++    return -1;
++  }
++  const auto* data = static_cast<const unsigned char*>(g_captureBuffer.GetConstMappedRange(0, size));
++  const bool bgra = g_captureFormat == wgpu::TextureFormat::BGRA8Unorm ||
++                    g_captureFormat == wgpu::TextureFormat::BGRA8UnormSrgb;
++  std::vector<unsigned char> rgba(static_cast<size_t>(g_captureWidth) * 4 * g_captureHeight);
++  for (uint32_t y = 0; y < g_captureHeight; ++y) {
++    const unsigned char* row = data + static_cast<size_t>(y) * g_captureStride;
++    unsigned char* out = rgba.data() + static_cast<size_t>(y) * g_captureWidth * 4;
++    for (uint32_t x = 0; x < g_captureWidth; ++x) {
++      out[x * 4 + 0] = row[x * 4 + (bgra ? 2 : 0)];
++      out[x * 4 + 1] = row[x * 4 + 1];
++      out[x * 4 + 2] = row[x * 4 + (bgra ? 0 : 2)];
++      out[x * 4 + 3] = 255;
++    }
++  }
++  g_captureBuffer.Unmap();
++  sink(rgba.data(), g_captureWidth, g_captureHeight, g_captureWidth * 4, ctx);
++  return 0;
++}
+ void aurora_set_game_centered(bool value) {
+ #if AURORA_ENABLE_RMLUI
+   aurora::rmlui::set_game_centered(value);
+--- a/lib/webgpu/gpu.cpp
++++ b/lib/webgpu/gpu.cpp
+@@ -1033,7 +1033,8 @@
+       .surfaceConfiguration =
+           wgpu::SurfaceConfiguration{
+               .format = surfaceFormat,
+-              .usage = wgpu::TextureUsage::RenderAttachment,
++              // CopySrc: aurora_capture_read copies the frame shown
++              .usage = wgpu::TextureUsage::RenderAttachment | wgpu::TextureUsage::CopySrc,
+               .width = size.native_fb_width,
+               .height = size.native_fb_height,
+               .presentMode = presentMode,
+--- a/include/aurora/aurora.h
++++ b/include/aurora/aurora.h
+@@ -158,6 +158,22 @@
+  * real time for a moment, whose frames would flash by).
+  */
+ void aurora_set_present_hold(bool value);
++/**
++ * While on, every frame shown is also copied, as shown (the game and the
++ * RmlUi layer over it), into a buffer the host can read between frames with
++ * aurora_capture_read: exact pictures of the window for tests, where a copy
++ * of the screen may not hold the latest frame.
++ */
++void aurora_capture_enable(bool on);
++/**
++ * The last frame shown, given to `sink` as rows of 8-bit RGBA, top first
++ * (`stride` bytes apart). Waits for the GPU. 0 if there was one, -1 if
++ * capture is off or no frame has been shown since it was turned on.
++ */
++int aurora_capture_read(void (*sink)(const unsigned char* rgba,
++                                     unsigned width, unsigned height,
++                                     unsigned stride, void* ctx),
++                        void* ctx);
+ 
+ AuroraBackend aurora_get_backend();
+ const AuroraBackend* aurora_get_available_backends(size_t* count);

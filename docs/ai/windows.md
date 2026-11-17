@@ -238,6 +238,19 @@ A GameCube controller on the adapter wins over the keyboard for a port
 whose source is `auto`, as tests' windows are: a controller touched during
 a client test moves the menu too. Unplug it, or leave it alone, for tests.
 
+### Pictures: the game reads its own frame back
+
+A copy of the screen did not reliably hold the game's latest frame (a
+window the GPU presents can be shown by a hardware overlay a screen copy
+does not see): the checks that measure the window's picture passed or not
+from run to run. `tools/aurora32/aurora-0004-frame-capture.patch` lets the
+swapchain be copied from and, while `aurora_capture_enable` is on, copies
+every frame shown into a buffer; `aurora_capture_read` maps it between
+frames. The host turns it on when `MELEE_CAPTURE` is set (test windows on
+Windows: `window.py`) and answers `frameshot PATH` with the last frame as a
+PPM; `window.shot` uses it, and copies the screen only when the game has
+none. Nothing is played to take a picture.
+
 ### The client tests on Windows (2026-11-17)
 
 Keys reach the game by the control protocol as well as the window
@@ -247,12 +260,11 @@ Each test game has its own Aurora state directory.
 
 | Passing | |
 |-|-|
-| all checks | close 5, course 22, coach 10, menu 20, modes_format 20, online_lobby 8, online_modes 9, rules 14, settings_menu 55, shine_oos 11, short_hop 16, sound 12, versus_modes 45, versus_select 14, whiff_punish 13 |
+| all checks | close 5, controls 8, course 22, coach 10, fullscreen 18, menu 20, modes_format 20, online 10, online_lobby 8, online_modes 9, rules 14, settings_menu 55, shine_oos 11, short_hop 16, sound 12, versus_modes 45, versus_select 14, whiff_punish 13 |
 | skipped, as on Linux (their drills not rebuilt yet) | between, loading, pausekeys |
 
 | Not all passing | Why |
 |-|-|
-| controls 6 of 8, fullscreen 16 to 17 of 18, online 9 of 10 | checks that measure the window's picture. `window.shot` copies the screen, which does not reliably hold the game's latest frame on Windows (a GPU-presented window can be shown by a hardware overlay that a screen copy does not see; the counts move between runs). Making the window always on top did not help. The fix would be the game reading its own frame back (Aurora has no such readback yet) |
 | stage_select 17 of 25, portraits | the stages' and Sheik's pictures, which the client draws on its first runs, were not there yet |
 | input_display | the controller is made from a drawing that is not in the repository (`padart.py`); without it `toggle_column` ended the client: fixed, it now skips the controller |
 | versus | needs a slippi-ai checkout with its models |

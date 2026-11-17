@@ -1166,6 +1166,22 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "frameshot") == 0) {
+        /* "frameshot PATH": the last frame shown, as a PPM (window.c;
+           needs MELEE_CAPTURE) */
+#ifdef HOST_WINDOW
+        char path[1024] = "";
+        const char* why;
+        sscanf(line, " %1023[^\n]", path);
+        why = path[0] ? host_window_frameshot(path) : "frameshot PATH";
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "vkey") == 0) {
         /* "vkey 1|0 NAME": a key held down (or let go) for the keyboard
            port, by SDL's name for it ("Left Shift", "Right", "X"):

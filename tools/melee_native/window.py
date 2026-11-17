@@ -174,7 +174,9 @@ class Window(Native):
                          or tempfile.gettempdir()) / (
                 "melee-window-state-%d-%d" % (os.getpid(), Window._made))
         state.mkdir(parents=True, exist_ok=True)
-        return dict(os.environ, SDL_AUDIO_DRIVER="dummy",
+        # MELEE_CAPTURE: the game keeps a copy of each frame shown, which
+        # shot() reads back exactly ("frameshot")
+        return dict(os.environ, SDL_AUDIO_DRIVER="dummy", MELEE_CAPTURE="1",
                     MELEE_STATE_DIR=str(state / "aurora"))
 
     def _virtual_display(self, size, state_dir):
@@ -460,9 +462,31 @@ class Window(Native):
     def shot(self, path):
         """Save what is on the virtual screen as a picture."""
         if WIN32:
-            # the game's own window, as the GPU drew it (win32ui.py)
-            import win32ui
-            return win32ui.shot(self.p.pid, path, self.window)
+            # The frame the game last showed, read back from the GPU by the
+            # game itself ("frameshot", window.c): exact, and nothing is
+            # played to take it. A copy of the screen (win32ui.py) when the
+            # game has none (MELEE_CAPTURE not set: a window on the desktop).
+            path = Path(path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            raw = path.with_name(path.stem + ".frame.ppm")
+            try:
+                self._cmd("frameshot %s" % raw)
+            except NativeError:
+                import win32ui
+                return win32ui.shot(self.p.pid, path, self.window)
+            from PIL import Image
+            img = Image.open(raw)
+            img.load()
+            raw.unlink()
+            if img.size != tuple(self.window):
+                if abs(img.size[0] * self.window[1] -
+                       img.size[1] * self.window[0]) <= max(img.size) // 50:
+                    img = img.resize(tuple(self.window), Image.LANCZOS)
+                else:
+                    img = img.crop((0, 0, min(self.window[0], img.size[0]),
+                                    min(self.window[1], img.size[1])))
+            img.save(path)
+            return path
         if self.display is None:
             raise NativeError("shot() is for the virtual display only")
         path = Path(path)
