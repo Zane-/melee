@@ -41,7 +41,10 @@ target_compile_options(melee PRIVATE
 
 add_custom_command(
     OUTPUT melee.elf
+    # -m: on a Windows host, ld.lld picks its MinGW (COFF) driver unless
+    # told the emulation
     COMMAND "${CMAKE_LINKER}"
+        -m elf32ppc
         --whole-archive "$<TARGET_FILE:melee>" --no-whole-archive
         --unresolved-symbols=ignore-all
         --allow-multiple-definition

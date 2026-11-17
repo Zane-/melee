@@ -37,15 +37,46 @@
  */
 #include "host.h"
 
-#include <arpa/inet.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+/* Winsock: the same calls, with its own start-up, close and non-blocking
+   switch. */
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#define close_socket closesocket
+static int sockets_ready(void)
+{
+    static int ready;
+    WSADATA wsa;
+    if (!ready) {
+        ready = WSAStartup(MAKEWORD(2, 2), &wsa) == 0;
+    }
+    return ready;
+}
+static void set_nonblocking(int fd)
+{
+    u_long on = 1;
+    ioctlsocket((SOCKET) fd, FIONBIO, &on);
+}
+#else
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#define close_socket close
+static int sockets_ready(void)
+{
+    return 1;
+}
+static void set_nonblocking(int fd)
+{
+    fcntl(fd, F_SETFL, O_NONBLOCK);
+}
+#endif
 
 void host_fighter_json(int slot, char* out, size_t size);
 int host_rng_callers(void** out, int max);
@@ -167,7 +198,8 @@ static uint32_t sim_rand(void)
 
 static void send_now(const Packet* p, int length)
 {
-    if (sendto(net.fd, p, (size_t) length, 0, (struct sockaddr*) &net.peer,
+    if (sendto(net.fd, (const char*) p, (size_t) length, 0,
+               (struct sockaddr*) &net.peer,
                sizeof net.peer) == length)
     {
         net.sent++;
@@ -305,7 +337,7 @@ static void receive(void)
 {
     Packet p;
     for (;;) {
-        ssize_t got = recv(net.fd, &p, sizeof p, 0);
+        ssize_t got = recv(net.fd, (char*) &p, sizeof p, 0);
         if (got < 0) {
             break;
         }
@@ -368,7 +400,10 @@ const char* host_net_start(int local, int bind_port, const char* peer_ip,
         return "the local port is 0 or 1";
     }
     memset(&net, 0, sizeof net);
-    net.fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (!sockets_ready()) {
+        return "no sockets (WSAStartup failed)";
+    }
+    net.fd = (int) socket(AF_INET, SOCK_DGRAM, 0);
     if (net.fd < 0) {
         return "no socket";
     }
@@ -377,20 +412,20 @@ const char* host_net_start(int local, int bind_port, const char* peer_ip,
     me.sin_port = htons((uint16_t) bind_port);
     me.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(net.fd, (struct sockaddr*) &me, sizeof me) < 0) {
-        close(net.fd);
+        close_socket(net.fd);
         return "cannot bind that UDP port";
     }
-    fcntl(net.fd, F_SETFL, O_NONBLOCK);
+    set_nonblocking(net.fd);
     memset(&net.peer, 0, sizeof net.peer);
     net.peer.sin_family = AF_INET;
     net.peer.sin_port = htons((uint16_t) peer_port);
     if (inet_pton(AF_INET, peer_ip, &net.peer.sin_addr) != 1) {
-        close(net.fd);
+        close_socket(net.fd);
         return "not an IPv4 address";
     }
     why = host_rb_start();
     if (why != NULL) {
-        close(net.fd);
+        close_socket(net.fd);
         return why;
     }
     net.local = local;
@@ -429,7 +464,7 @@ void host_net_stop(void)
         p.type = PKT_BYE;
         send_now(&p, (int) offsetof(Packet, pads));
     }
-    close(net.fd);
+    close_socket(net.fd);
     net.active = 0;
     host_rb_stop();
     host.draw = 1;
