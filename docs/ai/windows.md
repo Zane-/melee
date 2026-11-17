@@ -149,6 +149,28 @@ Verified 2026-11-17: `--match 2,9,32 --frames 600` runs in a window on
 Vulkan (RTX 5090) and exits 0. Not yet checked: what the picture looks
 like, sound, input, the Python client on top.
 
-Next, in order: the picture, sound and input checked by eye and ear; the
-Python client (`tools/melee_client/client.py`); snapshots without `fork()` (copies of the state inside the process,
+## The client
+
+```powershell
+.venv\Scripts\pip install numpy pillow
+.venv\Scripts\python tools\melee_client\client.py      # F11: fullscreen
+```
+
+Verified 2026-11-17: `client.py --devices` and `client.py --windowed
+--frames 600` run (the first-time art, 425 files in `build\ui`, comes off
+the disc as on Linux) and exit cleanly. On Windows:
+
+- `client.py` restarts itself in Python's UTF-8 mode (the data files are
+  UTF-8), as `native_build.py` does.
+- `window.py`: the `.exe`; `Window(real=False)` (tests, `--devices`) opens
+  an ordinary window, silent, with its own shader cache, since there is no
+  Xvfb; `leftovers()` finds none (the job object ends a driver's games).
+- **Not on Windows yet:** stage previews and Sheik's portraits (drawn on a
+  virtual display and photographed with `window.shot`; the panels keep the
+  name logos and her emblem), the tests that press keys or take pictures
+  (`key()`, `shot()`, `close_window()`), the GameCube adapter, snapshots
+  (and so TM-CE-style instant resets), netplay, the trained-model opponent
+  (`opponents.py` still uses `select()` on a pipe and `os.killpg`).
+
+Next, in order: the picture, sound and input checked by a person; snapshots without `fork()` (copies of the state inside the process,
 once the statics are gathered); rollback; the adapter over WinUSB.

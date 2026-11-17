@@ -566,6 +566,11 @@ def render_sheik_later(root=ART):
     Popen to poll, or None if she is drawn already."""
     if not sheik_missing(root):
         return None
+    if sys.platform == "win32":
+        # She is drawn on a virtual display and photographed from it
+        # (window.shot), which Windows does not have yet: her place keeps
+        # her emblem (docs/ai/windows.md).
+        return None
     return subprocess.Popen(
         [sys.executable, str(Path(__file__).resolve()), "--sheik",
          "--root", str(root)],

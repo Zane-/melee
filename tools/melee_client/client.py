@@ -36,6 +36,13 @@ import sys
 import time
 from pathlib import Path
 
+if sys.platform == "win32" and not sys.flags.utf8_mode \
+        and __name__ == "__main__":
+    # The data files are UTF-8 (data/characters/*.md and others); Windows'
+    # default codec is not. UTF-8 mode makes every read use it
+    # (docs/ai/windows.md).
+    sys.exit(subprocess.call([sys.executable, "-X", "utf8", *sys.argv]))
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
