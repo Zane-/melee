@@ -271,12 +271,15 @@ def main():
         # -- the owner's example: Fire Fox, the angle changed ----------------
         restart(n, "fox", "fox")
         n.start("fox", "fox", "final-destination", 1)
-        fast, slow = [], []
-        for seed in (1, 2, 3, 4, 5, 6):
+        fast, slow, others = [], [], 0
+        for seed in range(1, 31):
+            if len(fast) >= 3:
+                break
             pilot, go, lock, hit = firefox(n, 3, seed)
             first = pilot.decisions[0] if pilot.decisions else {}
             if first.get("end") != "ledge" or go is None:
-                continue        # (it went for the stage from the start)
+                others += 1     # (it went another way from the start)
+                continue
             changed = [d for d in pilot.decisions
                        if go <= d["asked"] < lock and not d.get("kept")]
             fast.append(dict(changed=changed, ended=pilot.ended, hit=hit,
@@ -285,17 +288,20 @@ def main():
             changed = [d for d in pilot.decisions
                        if go is not None and go <= d["asked"] < lock]
             slow.append(dict(changed=changed, ended=pilot.ended, hit=hit))
-        check("Fire Fox aimed at the ledge, the player standing at the "
-              "edge; they jump off the stage to cover it 13 frames before "
-              "the angle is read", len(fast) >= 3 and
+        check("Fire Fox aimed at the ledge with the player standing at the "
+              "edge (now the less likely choice: they could take the "
+              "ledge); they jump off the stage to cover it 13 frames "
+              "before the angle is read", len(fast) >= 2 and
+              others > len(fast) and
               all(x["lock"] - x["go"] == 12 for x in fast),
-              "; ".join("seed %d: jump %s, read %s" % (
-                  x["seed"], x["go"], x["lock"]) for x in fast))
+              "%d other ways first; %s" % (others, "; ".join(
+                  "seed %d: jump %s, read %s" % (x["seed"], x["go"],
+                                                 x["lock"]) for x in fast)))
         went = [x for x in fast if x["changed"] and
                 x["changed"][0]["end"] == "stage"]
         check("reacting in 3 frames: the stick is aimed onto the stage "
               "before the angle is read (within 5 frames of the jump), and "
-              "it lands there unhit", len(went) >= 2 and
+              "it lands there unhit", len(went) >= 1 and
               all(x["changed"][0]["asked"] - x["go"] <= 5 and
                   x["ended"] == "stage" and x["hit"] == 0 for x in went),
               "; ".join("%s after %s, ended %s, %.0f%%" % (
@@ -303,7 +309,7 @@ def main():
                   x["changed"][0]["asked"] - x["go"] if x["changed"]
                   else "-", x["ended"], x["hit"]) for x in fast))
         check("reacting in 30: nothing is decided before the angle is "
-              "read", len(slow) >= 3 and
+              "read", len(slow) >= 2 and
               all(not x["changed"] for x in slow),
               "; ".join("%d decisions, ended %s, %.0f%%" % (
                   len(x["changed"]), x["ended"], x["hit"]) for x in slow))
@@ -341,6 +347,98 @@ def main():
               "not used), it goes on from where the hit left it",
               all(h[2] and h[1] in ("stage", "lost") for h in hits) and
               sum(h[1] == "stage" for h in hits) >= 4, str(hits))
+
+        # -- a ledge the player holds, or can take ---------------------------
+        restart(n, "fox", "fox")
+        n.start("fox", "fox", "final-destination", 1)
+
+        def at(px=None, hang=False, out=62.0, up=18.0, seed=3, hung=40,
+               **kw):
+            """One decision for Fox falling `out` past the right ledge and
+            `up` above it, the player standing at `px` or hanging."""
+            n.clean()
+            n.seed(seed)
+            put(n, 0, NONE)
+            put(n, 1, NONE)
+            if hang:
+                # (hanging long enough that they can be hit)
+                n.place(1, 0.0, 0.0, 1, False, 60.0)
+                n.ledge(0, 0.0, "right")
+                n.step(hung)
+            else:
+                n.place(0, px, 0.0, -1, False, 0.0)
+            n.place(1, half + out, up, -1, True, 60.0)
+            n.step()
+            return RC.decide(n, 1, 0, [], [(1, NONE)], random.Random(seed),
+                             **kw)
+
+        def best(d, last, end):
+            """The best score among a decision's routes that came down to
+            `last` and ended at `end`."""
+            got = [r[3] for r in d["routes"] if r[2] == end and
+                   RC.route_key("%s>%s" % (r[1], end)) ==
+                   "%s>%s" % (last, end)]
+            return max(got) if got else None
+        held = [at(hang=True, seed=s) for s in (1, 2, 3, 4)]
+        check("the player hangs from the ledge: Fox, with the stage in "
+              "reach, does not fly at the ledge", all(
+                  d["end"] == "stage" for d in held),
+              "; ".join("%s -> %s" % (d["label"], d["end"]) for d in held))
+        far, ready = at(px=0.0), at(px=half - 12.0)
+        a, b = best(far, "up_b", "ledge"), best(ready, "up_b", "ledge")
+        check("the player stands where they can take the ledge: Fire Fox "
+              "at it, seen 60 frames before it arrives, is worth 30 less",
+              a is not None and b is not None and b <= a - 25,
+              "Fire Fox to the ledge %s with them far, %s with them near"
+              % (a, b))
+        lost = [("side_b>ledge", "lost")] * 2
+        fresh, burnt = at(px=0.0), at(px=0.0, outcomes=lost)
+        a, b = best(fresh, "side_b", "ledge"), best(burnt, "side_b", "ledge")
+        check("Illusion to the ledge got it killed twice lately: it is "
+              "worth 50 less, and something else is flown",
+              a is not None and b is not None and abs(a - 50 - b) < 1e-6
+              and RC.route_key(burnt["kind"]) != "side_b>ledge",
+              "%s before, %s after; flown: %s" % (a, b, burnt["kind"]))
+        only = at(hang=True, hung=3, out=58.0, up=-7.0, tools="side_b")
+        free = at(px=0.0, out=58.0, up=-7.0, tools="side_b")
+        check("only the ledge in reach (Illusion, from under the stage's "
+              "level) and the player just on it, not to be hit: it does "
+              "not fly at it as it would at a free one: it waits for them "
+              "to leave, or comes once they can be hit off it",
+              free["end"] == "ledge" and
+              (only["label"].startswith("waits for the ledge") or
+               (only["end"] == "ledge" and
+                only["frame"] >= free["frame"] + 3)),
+              "free: %s -> %s on %d; held: %s -> %s on %d" % (
+                  free["label"], free["end"], free["frame"], only["label"],
+                  only["end"], only["frame"]))
+
+        # -- the drill's tries: no two alike ---------------------------------
+        from melee_course import engine as CE
+        from melee_drills import format as F
+        from melee_drills.drill import JsonDrill
+        drill = JsonDrill(F.load("fox-edgeguard"))
+        drill.set_part(1)
+        with Native() as game:
+            s = CE.Session(drill, game, character="fox", live=False, seed=7,
+                           dpad=False)
+            tries = []
+            for _ in range(6):
+                r = s.run()
+                d = drill.launched
+                tries.append((d["name"], d["percent"], d["side"],
+                              d["stand"], d["facing"], r["run"]))
+            demo = (s.run(demo=True)["run"], s.run(demo=True)["run"])
+        check("six tries of a session: each its own number, start, damage "
+              "and place (the client gave every try the same)",
+              [t[5] for t in tries] == list(range(6)) and
+              len({t[1] for t in tries}) >= 5 and
+              len({t[3] for t in tries}) >= 5 and
+              len({t[0] for t in tries}) >= 3,
+              "; ".join("%s %d%% side %+d, player %.0f in facing the %s" %
+                        t[:5] for t in tries))
+        check("a demonstration takes the last try's number",
+              demo == (5, 5), str(demo))
 
         # -- the drill's first part: to the ledge, its jump alone -------------
         restart(n, "fox", "marth")

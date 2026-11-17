@@ -197,6 +197,12 @@ class Opponent:
         self.ctx.memory["families"] = list(memory.get("families", []))
         self.ctx.memory["tried"] = {f: list(v) for f, v in
                                     memory.get("tried", {}).items()}
+        # and what its other behaviours keep (recover: the kinds of route
+        # it flew, what they came to)
+        import copy
+        for k, v in memory.items():
+            if k not in ("families", "tried"):
+                self.ctx.memory[k] = copy.deepcopy(v)
         self.frame = -1
         self.cur = None           # the behaviour on now
         self.cur_spec = None

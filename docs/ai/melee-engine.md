@@ -535,6 +535,28 @@ and from getting up into them; one who has jumped off the stage threatens the le
 and not the stage above them, and not in a second: it goes high, or stalls and comes
 later.
 
+**A ledge the player holds, or can take** (`recover.View`, `score`). The owner, after
+the rework: "things still need to be smarter, for example fox will sideb to ledge even if
+the player is on it". A ledge the player hangs from is theirs: a route that ends on it
+got there by hitting them off it, and is worth 40 less (they have every ledge option
+before that); with the stage in reach it goes to the stage (4 of 4 seeds). With only the
+ledge in reach and the player just on it, not to be hit, it comes a few frames later,
+once they can be, or, when nothing reaches at all, flies the route that would reach if
+they let go and that acts last: it waits as long as the game allows and decides again
+on the way. A player standing within 60 units of the ledge, free, can take it: 38 frames
+after they see where it is going (their reaction, 15, and a wavedash back off the edge,
+23; more from further in). A special to the ledge that takes longer than that from its
+first frame, Fire Fox's 60, is worth 30 less; a quick Illusion is not.
+
+**What it remembers** (`memory["outcomes"]`, `route_key`). What each route came to (it
+stood on the stage, it was hit, it was lost), the last ten, kept from one attempt to the
+next: a kind of route (its last tool and its end: "side_b>ledge") that got it hit or
+killed among the last eight is worth 25 less for each time, three at most, so what the
+player has found an answer to is flown less, and comes back once other routes have
+worked. (An
+opponent's memory was only its approaches' until now: `script.Opponent` and
+`JsonDrill.op_memory` keep all of it.)
+
 **Reacting** (`recover.Pilot`). The route is checked again every 4 frames and decided
 again when it no longer ends well or is worth 25 less. What the player commits to
 (`recover.commitment`: the ground left, a double jump, an attack, a special, the shield,
@@ -545,7 +567,10 @@ knockdown end the route it was on, and what was being decided for it is dropped 
 first version used such an answer after a hit and took the client down; a fault in its
 thinking is now said and survived while a person plays, `behave.Recover.step`). `react`
 is the scenario's (15), or the player's: CPU reaction, 30 to 3 frames, in the pause menu
-and Settings.
+and Settings. A decision made with a route in hand is smaller (two fifths of the routes,
+a copy of the game for every 8) so that it comes back in time, and one that comes back
+a few frames after its frame is still used if what was played meanwhile is what its
+route begins with (a route that waits, as most do).
 
 **Side by side** (`recover.Team`). Sixty routes one after the other take a third of a
 second, too long for an opponent that reacts in a quarter. A decision forks the game it
@@ -553,44 +578,65 @@ is made in six times (`engine fork`: a forked game may now fork too, so the game
 watches still pays for one fork) and plays its routes in those copies, each answering in
 a thread. Headless a recovery's thinking, checks and all, takes 250 to 600 ms over its
 150 to 270 frames; live, in forks of the window build on a virtual display, a decision
-took 264 to 280 ms, 1 of 3 back after its frame and asked again
-(`tests/client/edgeguard.py`).
+took 235 to 326 ms, 1 of 3 back after its frame (`tests/client/edgeguard.py`; that rig
+draws in software beside it: on a desktop whose GPU draws, the cores are free).
 
-`tests/engine/recover.py` (22 of 22, headless): the launch's state, hitstun and tumble; a
+`tests/engine/recover.py` (28 of 28, headless): the launch's state, hitstun and tumble; a
 route played ahead says where it ends, leaves the game as it was, and played for real
 ends there on that frame; one begun on the ledge gets up onto the stage, intangible on
-the way; Fox, Marth, Sheik and Jigglypuff stand on the stage again from six launches each
-by more than one kind of route, 14 of the 24 by the ledge and up from it; in ten
-recoveries each Fox stalls with the shine, Marth with Dancing Blade, Jigglypuff with
-Pound; the same seed, the same route; hanging from the ledge it gets onto the stage with
-the player far away and with them at the edge; knocked out again on its way (its answers
-at once, and 6 frames late as a fork's) it goes on from where the hit left it; the first
-part's opponent (`to` "ledge", `tools` "jump") falls past a ledge held; and the owner's
-example, six seeds: Fox, 62 units out and 18 up, with the player standing at the edge,
-charges Fire Fox at the ledge in five of them; 30 frames into the charge (13 before the
-angle is read) the player jumps off the stage and back airs.
+the way; Fox, Marth, Sheik and Jigglypuff stand on the stage again from six starts each
+by more than one kind of route, some by the ledge and up from it; in ten recoveries each
+Fox stalls with the shine, Marth with Dancing Blade, Jigglypuff with Pound; the same
+seed, the same route; hanging from the ledge it gets onto the stage with the player far
+away and with them at the edge; knocked out again on its way (its answers at once, and 6
+frames late as a fork's) it goes on from where the hit left it; the ledge held, taken or
+within the player's reach, and what it remembers, as above; six tries of a session each
+with its own start, damage and place; the first part's opponent (`to` "ledge", `tools`
+"jump") falls past a ledge held; and the owner's example. Fox, 62 units out and 18 up,
+with the player standing at the edge: of sixteen seeds he charges Fire Fox at the ledge
+in three (they could take it: the less likely choice now); 30 frames into the charge (13
+before the angle is read) the player jumps off the stage and back airs.
 
 | Reaction | What Fox does |
 |-|-|
-| 3 frames | in three of the five, 4 frames after the jump the stick is aimed onto the stage (40 or 60 degrees up) and he lands there unhit; in two he keeps the ledge, and gets back |
+| 3 frames | in all three, 4 frames after the jump the stick is aimed onto the stage (40 or 60 degrees up) and he lands there unhit |
 | 30 frames | nothing is decided before the angle is read |
 
-`tools/melee_engine/recoveries.py` (the drill's launches, TM-CE's weak, normal, hard and
-shallow, either ledge, headless; "back": standing on the stage again):
+`tools/melee_engine/recoveries.py` (the drill's own starts, read from its file; either
+ledge, headless; "back": standing on the stage again):
 
 | The player | Back |
 |-|-|
-| does nothing, the eleven characters, 16 recoveries each | 176 of 176 |
-| takes the ledge late (a wavedash back as the opponent comes within 75 units) and holds it, six characters (Fox, Marth, Sheik, Falco, Captain Falcon, Pikachu), normal and shallow launches, 48 recoveries: reaction 30, 15, 3 | 18, 23, 28 |
-| jumps off and back airs the ledge: 30, 15, 3 | 42, 42, 41 |
-| stands at the edge and down smashes: 30, 15, 3 | 46, 46, 46 |
-| takes the ledge at once and holds it: 30, 15, 3 | 47, 47, 46 |
+| does nothing, the eleven characters, each of the ten starts twice | 218 of 220: both losses Yoshi without his double jump, a start now left out for him |
+| takes the ledge late (a wavedash back as the opponent comes within 75 units) and holds it, six characters (Fox, Marth, Sheik, Falco, Captain Falcon, Pikachu), normal and shallow starts, 48 recoveries: reaction 30, 15, 3 | 25, 31, 32 |
+| jumps off and back airs the ledge: 30, 15, 3 | 43, 45, 47 |
+| stands at the edge and down smashes: 30, 15, 3 | 41, 42, 43 |
+| takes the ledge at once and holds it: 30, 15, 3 | 47, 47, 48 |
 
-(The stand-ins are crude: each does one thing and does not aim or follow up. A ledge
-taken early is no edgeguard against a special with a hitbox: once the 30 frames of
+(The stand-ins are crude: each does one thing and does not aim or follow up, and they
+start where they were written for, 15 units in with their back to the ledge, not where
+the drill draws the player. What it remembers, against the late ledge: Fox, Marth and
+Falco, ten recoveries each from a normal and a shallow start, 37 of 60 back, and 30 with
+each recovery forgotten (`--forget`); Fox 9 of 20 against 5: from a normal start 9 of
+his 10 go by Illusion to the ledge when he forgets, 4 when he remembers. The late ledge
+still beats Fox more often than not: from a shallow start little but Fire Fox to the
+ledge reaches, and the ledge taken after the angle is read is the right answer to it. A
+ledge taken early is no edgeguard against a special with a hitbox: once the 30 frames of
 intangibility are over, Fire Fox, Dolphin Slash, Vanish, Quick Attack and Screw Attack
 hit Fox off the ledge and take it, which the opponent finds by playing it. The drill's
 first part has the opponent come back with its jump alone for that reason.)
+
+**Every try its own** (`melee_course.engine.Session.run`). The owner, of the drill in
+the client: "it still feels like rigid scripts ... it is always the same percent and
+always the same starting position". The client never numbered its tries, so every try
+of a session drew the same random numbers: the same launch, the same side, the same
+choices of the opponent (for every drill with a scripted opponent, not this one alone).
+Tries are now numbered as they come; a demonstration takes the last try's number, and
+the coach's replays the number of the try they show. And the drill draws more
+(`drill-format.md`, `launch`): where the opponent is hit from and where the player
+stands and faces, with its damage, each time; ten starts: TM-CE's four strengths, one
+with the double jump gone, hit low off the edge, already off the stage with its jump or
+without, coming down from above, hanging from the ledge.
 
 Not yet: a model of the player beyond "goes on, then lets go", the attacks they have in
 the air and the space they guard on the ground (a run to the ledge, a ledge dropped and

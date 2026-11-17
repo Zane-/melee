@@ -216,8 +216,15 @@ OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
 # the ledge and above the stage (8 and 6). Off the left or the right ledge
 # as the runtime draws the side (the pause menu's CPU side); the player
 # stands "inland" units in from that ledge
+# "inland" and "y" may be [LO, HI] too, and "inland" below 0 (hit when
+# already past the ledge: an opponent off the stage); "hang": true: it
+# starts hanging from the ledge instead (no knockback); "player": where the
+# player stands for this hit ({"inland", "facing"}), over the scenario's.
+# The player's "inland" may be [LO, HI], their "facing" "stage" (their
+# back to the ledge), "ledge" or "either" (drawn)
 LAUNCH_KEYS = ("name", "knockback", "angle", "percent", "jump", "weight",
-               "inland", "y")
+               "inland", "y", "hang", "player")
+STAND_FACING = ("stage", "ledge", "either")
 # an opponent's "example": what it does in a demonstration (an example, a
 # mistake, the coach's replay) in place of its "script" and "launch": an
 # example's inputs are frames, and an opponent that thinks would answer
@@ -315,6 +322,34 @@ def value(x, nums):
     names.update(_FUNCS)
     return eval(compile(tree, "<drill>", "eval"), {"__builtins__": {}},
                 names)
+
+
+def draw_launch(rng, hits, player=None):
+    """One of an opponent's "launch" hits drawn by weight, and its numbers
+    drawn from their ranges (LAUNCH_KEYS), with `rng`: {"name", "hang",
+    "knockback", "angle", "percent", "jump", "inland", "y" (where it is hit
+    from), "stand", "facing" (where the player stands, in from the ledge,
+    and whether their back is to it: "stage", or "ledge")}. `player`: the
+    scenario's (its "inland" and "facing", which a hit's own go over)."""
+    def draw(v, default):
+        if v is None:
+            return float(default)
+        return rng.uniform(v[0], v[1]) if isinstance(v, list) else float(v)
+    h = rng.choices(hits, weights=[float(x.get("weight", 1))
+                                   for x in hits])[0]
+    pl = dict(player or {})
+    pl.update(h.get("player", {}))
+    facing = pl.get("facing", "stage")
+    if facing == "either":
+        facing = rng.choice(("stage", "ledge"))
+    return dict(name=h.get("name"), hang=bool(h.get("hang")),
+                knockback=round(draw(h.get("knockback"), 0), 1),
+                angle=int(round(draw(h.get("angle"), 45))),
+                percent=int(round(draw(h.get("percent"), 0))),
+                jump=bool(h.get("jump", True)),
+                inland=round(draw(h.get("inland"), 8), 1),
+                y=round(draw(h.get("y"), 6), 1),
+                stand=round(draw(pl.get("inland"), 20), 1), facing=facing)
 
 
 def text(t, nums, **more):
@@ -649,19 +684,31 @@ def _problems(spec):
             if not need(isinstance(h, dict), hw, "{knockback, angle, "
                         "percent, ...}"):
                 continue
-            need(span(h.get("knockback"), 1, 400), hw,
-                 "knockback: a number or [LO, HI], 1 to 400")
-            need(span(h.get("angle"), 0, 180), hw,
-                 "angle: degrees above level, a number or [LO, HI]")
+            need(isinstance(h.get("hang", False), bool), hw,
+                 "hang: true or false")
+            if not h.get("hang"):
+                need(span(h.get("knockback"), 1, 400), hw,
+                     "knockback: a number or [LO, HI], 1 to 400")
+                need(span(h.get("angle"), 0, 180), hw,
+                     "angle: degrees above level, a number or [LO, HI]")
             need(span(h.get("percent", 0), 0, 999), hw,
                  "percent: a number or [LO, HI]")
             need(isinstance(h.get("jump", True), bool), hw,
                  "jump: true or false")
             need(isinstance(h.get("weight", 1), (int, float)) and
                  h.get("weight", 1) > 0, hw, "weight: above 0")
-            for key in ("inland", "y"):
-                need(isinstance(h.get(key, 0), (int, float)), hw,
-                     key + ": a number")
+            need(span(h.get("inland", 8), -150, 80), hw,
+                 "inland: units in from the ledge (below 0: past it), a "
+                 "number or [LO, HI]")
+            need(span(h.get("y", 6), -80, 150), hw,
+                 "y: units above the stage, a number or [LO, HI]")
+            hp = h.get("player", {})
+            if need(isinstance(hp, dict) and set(hp) <= {"inland", "facing"},
+                    hw, "player: {inland, facing}"):
+                need(span(hp.get("inland", 20), 0, 150), hw,
+                     "player.inland: units, a number or [LO, HI]")
+                need(hp.get("facing", "stage") in STAND_FACING, hw,
+                     "player.facing: stage, ledge or either")
             if "name" in h:
                 need(isinstance(h["name"], str), hw, "name: words")
             extra = set(h) - set(LAUNCH_KEYS)
@@ -699,14 +746,17 @@ def _problems(spec):
                      "player.inland: with an opponent's launch")
             else:
                 need("x" in pl, w, 'player: {"x": number}')
-            for k in ("x", "y", "above", "percent", "inland"):
+            for k in ("x", "y", "above", "percent"):
                 if k in pl:
                     num(pl[k], "%s.player.%s" % (w, k))
+            if "inland" in pl:
+                need(span(pl["inland"], 0, 150), w,
+                     "player.inland: units, a number or [LO, HI]")
             if "facing" in pl:
-                need(pl["facing"] in (("stage", "ledge") if "inland" in pl
+                need(pl["facing"] in (STAND_FACING if "inland" in pl
                                       else ("left", "right")), w,
-                     "player.facing: left or right (with inland: stage or "
-                     "ledge)")
+                     "player.facing: left or right (with inland: stage, "
+                     "ledge or either)")
             extra = set(pl) - set(PLAYER_KEYS)
             need(not extra, w, "player: unknown %s" % ", ".join(sorted(extra)))
         op = sc.get("opponent", "none")

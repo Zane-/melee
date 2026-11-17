@@ -341,8 +341,13 @@ class JsonDrill(Drill):
             side = 1 if c.side >= 0 else -1
             ledge = c.ledge_pos()
             half = abs(ledge[0]) if ledge else 85.0
-            px = side * (half - float(F.value(pl.get("inland", 20), nums)))
-            facing = side if pl.get("facing") == "ledge" else -side
+            # the hit drawn for this attempt, and where the player stands
+            # for it (the attempt's random numbers: the same seed, the same
+            # start)
+            drawn = self.launched = dict(
+                F.draw_launch(c.rng, launch, pl), side=side)
+            px = side * (half - drawn["stand"])
+            facing = side if drawn["facing"] == "ledge" else -side
         if pl.get("ledge"):
             c.place_on_ledge(pct, "right" if pl["ledge"] == "right" else
                              "left")
@@ -364,7 +369,7 @@ class JsonDrill(Drill):
             # side already)
             c.toward = -1.0 if facing > 0 else 1.0
         if launch:
-            self._launch(c, launch, side, half)
+            self._launch(c, drawn, side, half)
             self.op_refs = []
             self.op_toward = -side
             self._script(c, op if "script" in op else None)
@@ -398,33 +403,22 @@ class JsonDrill(Drill):
                                     ())) if c.is_demo else []
         self.predicted = {}
 
-    def _launch(self, c, hits, side, half):
-        """The opponent knocked off the stage's `side` by one of `hits`
-        (format.LAUNCH_KEYS), drawn by weight, its knockback, angle and
-        damage drawn from their ranges with the attempt's random numbers
-        (the same seed, the same launch). `launched`: what was drawn."""
+    def _launch(self, c, drawn, side, half):
+        """The opponent knocked off the stage's `side` by the hit drawn
+        for the attempt (format.draw_launch): the game's own launch from
+        where it was hit; or, a hit that says so, hanging from the
+        ledge."""
         from melee_engine.recover import air_jumps
-        rng = c.rng
-
-        def draw(v, default=0.0):
-            if v is None:
-                return default
-            return rng.uniform(v[0], v[1]) if isinstance(v, list) else \
-                float(v)
-        h = rng.choices(hits, weights=[float(x.get("weight", 1))
-                                       for x in hits])[0]
-        kb, angle = draw(h["knockback"]), draw(h["angle"])
-        percent = round(draw(h.get("percent"), 0.0))
-        cpu = c.s.cpu_char
-        jumps = 1 if h.get("jump", True) else air_jumps(cpu) + 1
-        self.launched = dict(name=h.get("name"), knockback=round(kb, 1),
-                             angle=int(round(angle)), percent=percent,
-                             side=side, jump=h.get("jump", True))
-        if c.s.cpu_port is not None:
-            c.n.launch(c.s.cpu_port,
-                       side * (half - float(h.get("inland", 8))),
-                       float(h.get("y", 6)), percent, kb, angle, side,
-                       jumps)
+        if c.s.cpu_port is None:
+            return
+        if drawn["hang"]:
+            c.n.ledge(c.s.cpu_port, drawn["percent"],
+                      "right" if side > 0 else "left")
+            return
+        jumps = 1 if drawn["jump"] else air_jumps(c.s.cpu_char) + 1
+        c.n.launch(c.s.cpu_port, side * (half - drawn["inland"]),
+                   drawn["y"], drawn["percent"], drawn["knockback"],
+                   drawn["angle"], side, jumps)
 
     launched = None     # the opponent's launch this attempt (_launch)
     filming = False     # the client recording the tutorial's examples
@@ -568,7 +562,7 @@ class JsonDrill(Drill):
             # same memory, the same choices)
             m = old.ctx.memory
             self.op_memory[old.spec.get("character")] = dict(
-                families=m.get("families", [])[-8:],
+                m, families=m.get("families", [])[-8:],
                 tried=m.get("tried", {}))
         self.op_script = Opponent(
             thinker(c), c.s.cpu_port, c.s.person, op, seed=seed,

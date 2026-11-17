@@ -282,7 +282,13 @@ its proof, never written into one drill's file.
   attempt knocked off the stage by one of a list of hits, drawn by `"weight"` with the
   attempt's random numbers: `{"name", "knockback": N or [LO, HI], "angle": degrees above
   level, "percent": its damage, "jump": false if its double jump is gone, "inland": 8,
-  "y": 6}` (where it is hit from). The game's own launch (`launch`, `src/host/setup.c`:
+  "y": 6}` (where it is hit from: units in from the ledge and above the stage, each a
+  number or [LO, HI]; "inland" below 0: hit when already past the ledge, an opponent
+  off the stage), or `{"hang": true, "percent"}` (it starts hanging from the ledge);
+  `"player": {"inland", "facing"}`: where the player stands for this hit, over the
+  scenario's. The player's `"inland"` may be [LO, HI] too, their `"facing"` "stage"
+  (their back to the ledge), "ledge" or "either" (drawn). `format.draw_launch` draws
+  one. The game's own launch (`launch`, `src/host/setup.c`:
   the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
   off the left or the right ledge as the runtime draws the side (the pause menu's CPU
   side: Random, Left, Right). `JsonDrill.launched` is what was drawn.
@@ -407,6 +413,11 @@ A part whose scenarios are a deck of opponents (each scenario another opponent) 
 example, its frame-perfect example and every mistake judged as it in each scenario of the
 deck. `fox-shine-oos`: 45 of 45 cases, the eleven opponents' scripts each meeting the
 frame-perfect example and the late jump, in 30 seconds.
+
+A session's tries are numbered as they come, and each draws its own random numbers
+(its launch, its side, its opponent's choices): `Session.run`'s `run`. The client gave
+none until 2026-11-17, and every try of a session drew the same. A demonstration takes
+the last try's number; `check.py`'s cases, all demonstrations, all draw number 0's.
 
 `fox-edgeguard`: 36 of 36 cases in 50 seconds: both parts' example (the ledge taken by a
 wavedash back off the edge) against each of the eleven opponents' example script, and

@@ -135,9 +135,10 @@ def main():
         # (the drills were wiped 2026-11-14 and come back one at a time in
         # the drill format, docs/ai/drill-format.md: the course lists them
         # all, and the ones written in it play)
-        check("the course lists its 58 drills, and every one written in the "
+        check("the course lists its 59 drills, and every one written in the "
               "drill format plays here",
-              len(every) == 58 and "universal-short-hop" in playable and
+              len(every) == 59 and "universal-short-hop" in playable and
+              "fox-edgeguard" in playable and
               all(d in c.here for d in fmt.ids() if d in every),
               "%d of %d playable: %s" % (len(playable), len(every),
                                          ", ".join(playable)))

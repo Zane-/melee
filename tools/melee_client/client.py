@@ -3950,7 +3950,8 @@ class Client:
         self.w.quiet(True)
         try:
             out = session.run(each_frame=each, demo=True,
-                              scenario=result["scenario_index"])
+                              scenario=result["scenario_index"],
+                              run=result.get("run"))
             if st["drawn"]:
                 session.set_player_pad()
                 self.w.step(coach.AFTER)    # how it ended
@@ -4365,7 +4366,7 @@ class Client:
         try:
             self.replay_result = session.run(
                 each_frame=each, demo=mode == "target",
-                scenario=result["scenario_index"])
+                scenario=result["scenario_index"], run=result.get("run"))
             if self.replay_now is not None:
                 self.replay_now["paused"] = True
         except Leave as left:

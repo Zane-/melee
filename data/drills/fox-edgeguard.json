@@ -205,7 +205,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -245,7 +249,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -285,7 +293,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -325,7 +337,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -365,7 +381,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -405,7 +425,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -445,7 +469,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -485,7 +513,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -525,7 +557,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -565,7 +601,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -605,7 +645,11 @@
       "percent": [
        40,
        70
-      ]
+      ],
+      "player": {
+       "inland": 15,
+       "facing": "stage"
+      }
      }
     ],
     "react": 15,
@@ -627,7 +671,11 @@
    "name": "Fox",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "fox",
@@ -644,25 +692,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -671,19 +735,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -691,10 +763,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -707,10 +787,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -743,7 +958,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -765,7 +984,11 @@
    "name": "Marth",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "marth",
@@ -782,25 +1005,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -809,19 +1048,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -829,10 +1076,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -845,10 +1100,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -881,7 +1271,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -903,7 +1297,11 @@
    "name": "Jigglypuff",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "jigglypuff",
@@ -920,25 +1318,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -947,19 +1361,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -967,10 +1389,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -983,10 +1413,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1019,7 +1584,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1041,7 +1610,11 @@
    "name": "Falco",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "falco",
@@ -1058,25 +1631,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1085,19 +1674,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1105,10 +1702,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1121,10 +1726,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1157,7 +1897,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1179,7 +1923,11 @@
    "name": "Sheik",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "sheik",
@@ -1196,25 +1944,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1223,19 +1987,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1243,10 +2015,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1259,10 +2039,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1295,7 +2210,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1317,7 +2236,11 @@
    "name": "Captain Falcon",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "captain-falcon",
@@ -1334,25 +2257,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1361,19 +2300,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1381,10 +2328,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1397,10 +2352,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1433,7 +2523,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1455,7 +2549,11 @@
    "name": "Peach",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "peach",
@@ -1472,25 +2570,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1499,19 +2613,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1519,10 +2641,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1535,10 +2665,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1571,7 +2836,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1593,7 +2862,11 @@
    "name": "Ice Climbers",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "ice-climbers",
@@ -1610,25 +2883,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1637,19 +2926,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1657,10 +2954,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1673,10 +2978,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1709,7 +3149,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1731,7 +3175,11 @@
    "name": "Pikachu",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "pikachu",
@@ -1748,25 +3196,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1775,19 +3239,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1795,10 +3267,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -1811,10 +3291,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1847,7 +3462,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -1869,7 +3488,11 @@
    "name": "Yoshi",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "yoshi",
@@ -1886,25 +3509,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -1913,19 +3552,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -1933,26 +3580,144 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
+      ],
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
       ],
       "weight": 1
      },
      {
-      "name": "no jump",
+      "name": "off the stage",
       "knockback": [
-       90,
-       106
+       25,
+       50
       ],
       "angle": [
-       42,
-       58
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
       ],
       "percent": [
        40,
-       70
+       120
       ],
-      "jump": false,
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -1985,7 +3750,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [
@@ -2007,7 +3776,11 @@
    "name": "Samus",
    "stage": "final-destination",
    "player": {
-    "inland": 15
+    "inland": [
+     8,
+     30
+    ],
+    "facing": "either"
    },
    "opponent": {
     "character": "samus",
@@ -2024,25 +3797,41 @@
       ],
       "percent": [
        10,
-       40
+       45
       ],
-      "weight": 1
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "normal",
       "knockback": [
-       106,
+       104,
        120
       ],
       "angle": [
-       45,
+       42,
        60
       ],
       "percent": [
-       50,
-       80
+       45,
+       85
       ],
-      "weight": 2
+      "inland": [
+       4,
+       20
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 3
      },
      {
       "name": "hard",
@@ -2051,19 +3840,27 @@
        170
       ],
       "angle": [
-       65,
-       70
+       62,
+       72
       ],
       "percent": [
        80,
-       110
+       120
       ],
-      "weight": 1
+      "inland": [
+       4,
+       24
+      ],
+      "y": [
+       2,
+       12
+      ],
+      "weight": 2
      },
      {
       "name": "shallow",
       "knockback": [
-       108,
+       106,
        122
       ],
       "angle": [
@@ -2071,10 +3868,18 @@
        40
       ],
       "percent": [
-       60,
-       80
+       55,
+       90
       ],
-      "weight": 1
+      "inland": [
+       6,
+       22
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
      },
      {
       "name": "no jump",
@@ -2087,10 +3892,145 @@
        58
       ],
       "percent": [
-       40,
-       70
+       35,
+       80
       ],
       "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
+      "name": "low",
+      "knockback": [
+       72,
+       92
+      ],
+      "angle": [
+       8,
+       20
+      ],
+      "percent": [
+       30,
+       75
+      ],
+      "inland": [
+       0,
+       6
+      ],
+      "y": [
+       4,
+       10
+      ],
+      "weight": 1
+     },
+     {
+      "name": "off the stage",
+      "knockback": [
+       25,
+       50
+      ],
+      "angle": [
+       25,
+       70
+      ],
+      "percent": [
+       20,
+       110
+      ],
+      "inland": [
+       -60,
+       -22
+      ],
+      "y": [
+       -12,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 2
+     },
+     {
+      "name": "off the stage without its jump",
+      "knockback": [
+       25,
+       45
+      ],
+      "angle": [
+       35,
+       70
+      ],
+      "percent": [
+       30,
+       110
+      ],
+      "jump": false,
+      "inland": [
+       -42,
+       -18
+      ],
+      "y": [
+       0,
+       45
+      ],
+      "player": {
+       "inland": [
+        4,
+        22
+       ],
+       "facing": "either"
+      },
+      "weight": 1
+     },
+     {
+      "name": "from above",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       60,
+       90
+      ],
+      "percent": [
+       40,
+       120
+      ],
+      "inland": [
+       -25,
+       10
+      ],
+      "y": [
+       70,
+       105
+      ],
+      "weight": 1
+     },
+     {
+      "name": "on the ledge",
+      "hang": true,
+      "percent": [
+       20,
+       120
+      ],
+      "player": {
+       "inland": [
+        14,
+        45
+       ],
+       "facing": "ledge"
+      },
       "weight": 1
      }
     ],
@@ -2123,7 +4063,11 @@
        "percent": [
         40,
         70
-       ]
+       ],
+       "player": {
+        "inland": 15,
+        "facing": "stage"
+       }
       }
      ],
      "script": [

@@ -211,9 +211,15 @@ plays what the check found.
   it (it stopped at the ledge, and a hit on it took the client down): it is over only
   when it stands on the stage or is lost, with ledge play, getups, stalls and later
   timings, and a player on the ground guarding where they stand. Proof:
-  `tests/engine/recover.py` (22 of 22), `tools/melee_engine/recoveries.py` (the
+  `tests/engine/recover.py` (28 of 28), `tools/melee_engine/recoveries.py` (the
   measurements), `fox-edgeguard`'s `check.py` (36 of 36), `tests/client/edgeguard.py`
-  (13 of 13).
+  (14 of 14). Then, the owner again ("fox will sideb to ledge even if the player is on
+  it ... it still feels like rigid scripts ... always the same percent and always the
+  same starting position"): a ledge the player holds or can take counts against a
+  route to it; what a kind of route came to is remembered from one attempt to the next;
+  every try of a session draws its own numbers (the client gave them all the same, for
+  every scripted opponent); and the drill draws its start from ten kinds, with where
+  the opponent is hit from, its damage and where the player stands.
 
 - 2026-11-15: an approach on the shield hits its front, and attacks with every family
   it has. The owner, playing fox-shine-oos: "the CPU often overshoots on the shield hit

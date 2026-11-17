@@ -707,6 +707,8 @@ class Session:
         self.reset_after = None
         self.reset_seconds = None
         self.settling = False
+        # tries numbered as they come (run): the next one's, the last one's
+        self.runs = self.last_run = self.run_now = 0
         # a fighter is held in place (anchor); at first, as far as this
         # session knows (another drill on the same match may have held one)
         self.anchored = True
@@ -1089,15 +1091,29 @@ class Session:
             self.anchored = False
         d.setup(c)
 
-    def run(self, jitter=0.0, run=0, each_frame=None, demo=None,
+    def run(self, jitter=0.0, run=None, each_frame=None, demo=None,
             scenario=None):
         """One attempt (a demonstration: its two passes, the second's
         result). `each_frame(game, frame)` is called before every frame
         (the client's way out, a test's player). `run` numbers the attempt:
-        the same number draws the same random numbers."""
+        the same number draws the same random numbers (its launch, its
+        side, its opponent's choices). Not given, a try takes the next
+        number, so no two tries of a session are alike (the client never
+        gave one, and every try of a session drew the same numbers: the
+        owner, 2026-11-17, of the edgeguard: "it is always the same percent
+        and always the same starting position"); a demonstration takes the
+        last try's, and shows that try's situation again. The result's
+        "run" is the number it had."""
         d = self.d
         if demo is None:
             demo = self.common[OPT_DEMO] != DEMO_OFF
+        if run is None:
+            if demo:
+                run = self.last_run
+            else:
+                run = self.last_run = self.runs
+                self.runs += 1
+        self.run_now = run
         seed = (self.seed * 1000003 + run * 7919) & 0x7FFFFFFF
         if scenario is None and getattr(self, "_forced", None) is not None:
             scenario, self._forced = self._forced, None
@@ -1252,6 +1268,7 @@ class Session:
                    scenario=(d.deck[self.scenario].name if d.deck
                              else d.name),
                    scenario_index=self.scenario, report=dict(self.report),
+                   run=self.run_now,
                    frames=frame, demo=bool(demo_pass), checks=[],
                    messages=list(self.messages),
                    ui=self.ui[0] if self.ui else None)

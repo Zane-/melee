@@ -10,7 +10,8 @@ stand-in plays as the example does: it walks in (the keyboard's light push);
 with the attack's first frame (the walk was within the opponent's trigger
 distance, which it sees 15 frames late) it dashes back, and on the
 scenario's frame GO of the attack dashes in again and jump-cancels a grab
-once within 16 units. Tries:
+once within 22 units. Every try is its own exchange (the session numbers
+its tries, and each draws its own opponent's choices). Tries:
 
 1. the punish: a success; after the verdict it pummels and throws, and the
    reset waits until 3 seconds after that damage (Reset: After damage
@@ -19,8 +20,9 @@ once within 16 units. Tries:
    damage after it, the reset comes 3 seconds after the verdict;
 3. a dash in, let go, standing next to the opponent: caught, a failure
    saying so, and the coach's card after this second miss (Settings: 2);
-4. the punish with Reset on When judged: the reset at once (the client's
-   45 frames to read the verdict).
+4. the punish (a dash attack, which lands at any spacing) with Reset on
+   When judged: the reset at once (the client's 45 frames to read the
+   verdict).
 
 The pause menu's Reset and Quiet time say what Settings says. Input delay
 0 (the stand-in's keys are the frames it means).
@@ -49,6 +51,8 @@ KEYS = ("c", "x", "z", "s", "d", "h", "f", "t", "g", "Down", "Left",
 DASH = 20
 QUIET = 180                  # 3 seconds
 SEEN = 16                    # frames: its 15 of reaction, and its start seen
+GRAB_FROM = 22               # units: the jump of the stand-in's grab
+HIT_FROM = 26                # units: its dash attack
 
 
 def near(c):
@@ -269,7 +273,18 @@ class Player:
                 game.key(t["toward"])           # a dash in
                 t.update(step="in", n=0)
         elif t["step"] == "in":
-            if gap <= 16 and "jumped" not in t:
+            if t["kind"] == "judged":
+                # a dash attack: out for 14 frames as Fox slides through,
+                # it lands whatever the spacing. (Every try is its own
+                # exchange now, not the first one again; the grab from a
+                # fixed distance goes past a Marth leaning into a forward
+                # smash from 5 units as from 1)
+                if gap <= HIT_FROM and "jumped" not in t:
+                    game.key("x")               # A, running
+                    t["jumped"] = t["n"]
+                elif "jumped" in t and t["n"] == t["jumped"] + 2:
+                    game.key("x", False)
+            elif gap <= GRAB_FROM and "jumped" not in t:
                 game.key("c")                   # Y: the jump
                 t["jumped"] = t["n"]
                 if os.environ.get("TRACE"):
@@ -280,6 +295,14 @@ class Player:
             elif "jumped" in t and t["n"] == t["jumped"] + 3:
                 game.key("c", False)
                 game.key("d", False)
+            if os.environ.get("TRACE") and "jumped" in t and \
+                    t["n"] <= t["jumped"] + 30:
+                a, b = game.state()["p"][:2]
+                print("      in+%d: Fox %d, opponent %d, gap %.1f; %s" % (
+                    t["n"], me.state, op.state, gap, "; ".join(
+                        " ".join("%s %s" % (k, p.get(k)) for k in (
+                            "x", "y", "facing", "invuln", "air"))
+                        for p in (a, b))), file=sys.stderr, flush=True)
 
 
 def main():

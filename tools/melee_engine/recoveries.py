@@ -1,7 +1,8 @@
 """How the recovering opponent does (recover.py; docs/ai/melee-engine.md,
-"Recovering"): characters knocked off the stage as the edgeguard drill
-knocks them (the launches below, TM-CE's hit strengths), recovering
-against stand-ins for the player, headless, and what came of each.
+"Recovering"): characters started off the stage as the edgeguard drill
+starts them (its own table of starts, read from its file: TM-CE's hit
+strengths and more), recovering against stand-ins for the player,
+headless, and what came of each.
 
     python tools/melee_engine/recoveries.py                    # the top 11
     python tools/melee_engine/recoveries.py --chars fox,marth --runs 6
@@ -31,14 +32,20 @@ from melee_engine.script import Opponent  # noqa: E402
 TOP = ("fox", "marth", "jigglypuff", "falco", "sheik", "captain-falcon",
        "peach", "ice-climbers", "pikachu", "yoshi", "samus")
 
-# TM-CE's hit strengths (src/edgeguard.h, HitStrength_KBRange): knockback,
-# its angle, the damage the opponent has
-LAUNCHES = {
-    "weak": dict(kb=(80, 100), angle=(45, 60), percent=(10, 40)),
-    "normal": dict(kb=(106, 120), angle=(45, 60), percent=(50, 80)),
-    "hard": dict(kb=(140, 170), angle=(65, 70), percent=(80, 110)),
-    "shallow": dict(kb=(110, 130), angle=(20, 40), percent=(60, 80)),
-}
+DRILL = "fox-edgeguard"
+
+
+def table(drill=DRILL):
+    """The starts the edgeguard drill draws from (its second part's first
+    scenario's "launch": TM-CE's hit strengths and more), by name, and
+    where its player stands: ({name: hit}, player)."""
+    from melee_drills import format as F
+    spec = F.load(drill)
+    part = spec["parts"][-1]["scenario"]
+    sc = spec["scenarios"][part[0] if isinstance(part, list) else part]
+    return {h["name"]: h for h in sc["opponent"]["launch"]}, sc["player"]
+
+
 NONE = (0, 0, 0, 0, 0, 0, 0)
 A, B, X, Z, R = 0x100, 0x200, 0x400, 0x10, 0x20
 
@@ -163,29 +170,42 @@ STANDINS = {c.name: c for c in (Stand, Ledge, Hog, Bair, Wait)}
 
 # ---- one recovery ---------------------------------------------------------------
 
-def launch(n, rng, kind, side, half, jumps=1, port=1):
-    """The opponent knocked off the stage's `side` as the drill does it: a
-    launch of `kind` drawn from its ranges. Returns what was drawn."""
-    L = LAUNCHES[kind]
-    kb = rng.uniform(*L["kb"])
-    angle = int(round(rng.uniform(*L["angle"])))
-    percent = int(round(rng.uniform(*L["percent"])))
-    # (the player with their back to the ledge, as TM-CE's edgeguard event
-    # leaves them: after the back air that sent the opponent off)
-    n.place(0, side * (half - 15.0), 0.0, -side, False, 0.0)
-    n.launch(port, side * (half - 8.0), 6.0, percent, kb, angle, side, jumps)
-    return dict(kb=round(kb, 1), angle=angle, percent=percent)
+def launch(n, rng, kind, side, half, port=1, pin=False):
+    """The opponent started off the stage's `side` as the drill starts it:
+    the start named `kind` drawn from its ranges (format.draw_launch), the
+    player where the drill stands them; `pin`: 15 units in from the ledge
+    with their back to it instead (TM-CE's start: what the stand-ins that
+    take the ledge are written for). Returns what was drawn."""
+    from melee_drills import format as F
+    from melee_engine.recover import air_jumps
+    hits, player = table()
+    hit = hits[kind]
+    if pin:
+        hit = dict(hit, player=dict(inland=15, facing="stage"))
+    d = F.draw_launch(rng, [hit], player)
+    n.place(0, side * (half - d["stand"]), 0.0,
+            side if d["facing"] == "ledge" else -side, False, 0.0)
+    if d["hang"]:
+        n.ledge(port, d["percent"], "right" if side > 0 else "left")
+    else:
+        char = n.match_info.get("p2") if getattr(n, "match_info", None) \
+            else None
+        n.launch(port, side * (half - d["inland"]), d["y"], d["percent"],
+                 d["knockback"], d["angle"], side,
+                 1 if d["jump"] else air_jumps(char) + 1)
+    return d
 
 
 def recover_once(n, char, kind, side, seed, standin="stand", react=15,
-                 budget=48, limit=900, jumps=1, memory=None, show=False):
+                 budget=64, limit=1200, memory=None, show=False):
     """One launch and the recovery from it. Returns dict(end, frames, kind,
     log, drawn, hit (damage it took), ms, decisions)."""
     rng = random.Random(seed)
     half = abs(n.ledge()[0])
     n.clean()
     n.seed(seed & 0xFFFFFFFF or 1)
-    drawn = launch(n, rng, kind, side, half, jumps)
+    # (a stand-in that acts starts where it was written for)
+    drawn = launch(n, rng, kind, side, half, pin=standin != "stand")
     n.pad(0)
     n.pad(1)
     n.step()
@@ -242,17 +262,19 @@ def recover_once(n, char, kind, side, seed, standin="stand", react=15,
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chars", default=",".join(TOP))
-    ap.add_argument("--launches", default=",".join(LAUNCHES))
+    ap.add_argument("--launches", default=",".join(table()[0]),
+                    help="the drill's starts, by name")
     ap.add_argument("--runs", type=int, default=4,
                     help="recoveries of each launch (both sides in turn)")
     ap.add_argument("--standin", default="stand", choices=sorted(STANDINS))
     ap.add_argument("--react", type=int, default=15)
-    ap.add_argument("--budget", type=int, default=48)
-    ap.add_argument("--jumps", type=int, default=1,
-                    help="jumps used at the launch (2: no double jump)")
+    ap.add_argument("--budget", type=int, default=64)
     ap.add_argument("--stage", default="final-destination")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--show", action="store_true", help="each one's log")
+    ap.add_argument("--forget", action="store_true",
+                    help="each recovery with nothing remembered of the "
+                    "ones before (as against what it remembers)")
     args = ap.parse_args()
     t0 = time.time()
     total = good = 0
@@ -266,9 +288,9 @@ def main():
                     side = 1 if run % 2 == 0 else -1
                     r = recover_once(
                         n, ch, kind, side, args.seed * 7919 + run * 104729
-                        + 131 * sorted(LAUNCHES).index(kind), args.standin,
-                        args.react,
-                        args.budget, jumps=args.jumps, memory=memory,
+                        + 131 * sorted(table()[0]).index(kind),
+                        args.standin, args.react, args.budget,
+                        memory={} if args.forget else memory,
                         show=args.show)
                     ends[r["end"]] = ends.get(r["end"], 0) + 1
                     if r["kind"]:

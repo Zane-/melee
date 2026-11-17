@@ -74,6 +74,7 @@ class Player:
         self.t = None
         self.leaving = None
         self.skipped = []
+        self.starts = []              # each try's start, as drawn
         self.pilots = []              # each try's opponent, as it ended
         self.errors = []              # faults in its thinking, each try
         self.smashes = []
@@ -165,6 +166,9 @@ class Player:
             self.w.pace(kind in ("paced", "smash"))
             self.t = dict(kind=kind, n=0)
             self.names.append(c.session.d.scenario()["name"])
+            d = c.session.d.launched or {}
+            self.starts.append((d.get("name"), d.get("percent"),
+                                d.get("side"), d.get("stand")))
             self.reacts.append(c.session.d.op_script.ctx.react
                                if c.session.d.op_script else None)
             print("   try %d: %s against %s (part %d)" % (
@@ -385,6 +389,11 @@ def main():
               "%s; judged against %s" % (
                   p.turned, told[4].get("scenario") if len(told) > 4
                   else None))
+        part2 = p.starts[1:]
+        check("the edgeguard's tries start differently: the start, its "
+              "damage, where the player stands",
+              len({x[1] for x in part2}) >= 3 and
+              len({x[3] for x in part2}) >= 3, str(part2))
         check("every try judged", len(told) >= len(tries) - 1,
               "%d of %d; skipped %s" % (len(told), len(tries), p.skipped))
         bad = [line.strip()[:160] for line in w.log

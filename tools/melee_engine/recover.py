@@ -342,6 +342,17 @@ class View:
             me["state"] >= OWN_FIRST.get(char, 341)
         self.tumbling = me["state"] in DAMAGE or me["state"] == TUMBLE
         self.grabs = grabs
+        # the player and the ledge on its side: they hang from it (it is
+        # theirs: caught only by hitting them off it); or they stand within
+        # reach of it, free: they can take it, `hog_time` frames after they
+        # see where it is going (their reaction, 15, and a wavedash back
+        # off the edge, 23 from as far as 25 units in, more from further)
+        near = them["x"] * self.side > 0
+        inland = self.half - abs(them["x"])
+        self.their_ledge = near and them["state"] in LEDGE_ALL
+        self.hog_ready = near and not them["air"] and \
+            them["state"] in STANDING and -2.0 <= inland <= 60.0
+        self.hog_time = 38.0 + max(0.0, inland - 25.0) * 0.5
 
 
 # ---- the routes a decision considers ---------------------------------------------
@@ -786,11 +797,11 @@ class Team:
 
 def workers_for(n):
     """How many copies a decision plays its routes in: MELEE_RECOVER_WORKERS,
-    else 6 (0 or 1: none, in the game itself)."""
+    else 8 (0 or 1: none, in the game itself)."""
     try:
-        return int(os.environ.get("MELEE_RECOVER_WORKERS", "6"))
+        return int(os.environ.get("MELEE_RECOVER_WORKERS", "8"))
     except ValueError:
-        return 6
+        return 8
 
 
 # ---- what the player could do -----------------------------------------------------
@@ -921,6 +932,23 @@ def exposure(path, field, start=0):
 GOOD = ("ledge", "stage")
 STAGE, HANG = 100.0, 80.0     # standing on the stage; hanging from the ledge
 AGAIN = 30.0                  # less for each time the ledge was caught before
+THEIRS = 40.0                 # less for a ledge the player hangs from
+HOG = 30.0                    # less for a ledge they have time to take
+FAILED = 25.0                 # less for each time such a route failed lately
+
+
+def route_key(kind):
+    """What a route came down to, for what is remembered of it: its last
+    tool and its end ("jump+side_b>ledge" and "side_b>ledge" are both
+    "side_b>ledge"; "ledge drop+jump+airdodge>stage" is "ledge
+    airdodge>stage")."""
+    base, _, end = (kind or "?").partition(">")
+    end = end.split(" ")[0]
+    ledge = base.startswith("ledge ")
+    last = base.split("+")[-1]
+    if ledge and "+" in base:
+        last = "ledge " + last
+    return "%s>%s" % (last, end)
 
 
 def exposed_cost(share):
@@ -966,6 +994,22 @@ def score(res, v, c=None, pre=0, goal=None):
             s += 4.0          # the jump kept
         s -= exposed_cost(c.exposed)
     if res.end == "ledge":
+        if v.their_ledge:
+            # the ledge is the player's: it was caught by hitting them off
+            # it, and they have every ledge option before that
+            s -= THEIRS
+        elif v.hog_ready and c is not None and c.commit is not None and \
+                c.tool is not None:
+            # they stand where they can take it: a special to the ledge
+            # that they can see start, and still be on the ledge before it
+            # arrives, is theirs to take (Fire Fox's charge; not a quick
+            # Illusion)
+            at = c.commit(c.k, c.g)
+            if at is not None:
+                seen = at - (c.tool.lock if c.tool.steer == "angle" and
+                             c.tool.button == B else 0)
+                if res.frame - pre - seen >= v.hog_time:
+                    s -= HOG
         return s
     # on the stage: its lag within the player's reach is a punish (they
     # run about 1.6 units a frame, and reach 15)
@@ -999,7 +1043,7 @@ ANGLES = 6                # the angles a steered special is tried at
 def decide(n, port, target, pre, their, rng, char=None, budget=64,
            temperature=8.0, recent=(), current=None, horizon=420,
            margin=30.0, keep=12.0, goal=None, predict=True, workers=None,
-           tools=None, grabs=0):
+           tools=None, grabs=0, outcomes=()):
     """The route to take from the frame `len(pre)` frames on (`pre`: the
     pads until then). `their`: the player's pads from now ([(frames, raw)]).
     `current`: the pads of the route now flown, from that frame on (kept
@@ -1008,7 +1052,11 @@ def decide(n, port, target, pre, their, rng, char=None, budget=64,
     use (`air_candidates`). `predict`: what the player could do counts
     against a route (`threats`). `workers`: the copies of the game the
     routes are played in, side by side (`Team`). `grabs`: the times it has
-    caught the ledge on this recovery. Returns a dict: pads (raw pads from
+    caught the ledge on this recovery. `outcomes`: what its last routes
+    came to ([(route_key, "ok" | "hit" | "lost")], kept from one attempt to
+    the next): a kind of route that got it hit or killed lately is worth
+    less, so what the player has found an answer to is flown less.
+    Returns a dict: pads (raw pads from
     that frame), label, kind, end, score, phase, ms (the frames played,
     summed), wall (how long it took), tried, good (routes that end well),
     exposed, and `routes`: every route tried (label, kind, end, score,
@@ -1024,7 +1072,11 @@ def decide(n, port, target, pre, their, rng, char=None, budget=64,
     ms = 0.0
     t0 = time.time()
     done, cur = [], None
-    team = Team(n, workers_for(n) if workers is None else workers)
+    # (a copy for every 8 routes: a small decision, one made again with a
+    # route in hand, does not pay for copies it has no routes for; a fork
+    # of the window build takes 7 ms)
+    team = Team(n, min(workers_for(n), max(2, budget // 8))
+                if workers is None else workers)
     try:
         field = []
         if predict:
@@ -1117,6 +1169,36 @@ def decide(n, port, target, pre, their, rng, char=None, budget=64,
                 more += [c.moved(k, g) for k, g in moves
                          if k >= 0 and (g is None or g >= 0)]
             done += weigh(more)
+        # what failed lately is worth less
+        fails = {}
+        for key, what in list(outcomes)[-8:]:
+            if what != "ok":
+                fails[key] = fails.get(key, 0) + 1
+        if fails:
+            for c in done:
+                if c.res.end in GOOD:
+                    c.score -= FAILED * min(3, fails.get(route_key(
+                        kind_of(c, c.res, v)), 0))
+        waiting = None
+        if v.their_ledge and v.phase == "air" and goal is None and \
+                not any(c.res.end in GOOD and c.score > 0 for c in done):
+            # the player hangs from the ledge and nothing else reaches:
+            # they cannot hang there for ever. The routes that would reach
+            # if they let go, and of those the one that acts last: it
+            # waits as long as the game allows, and decides again on the
+            # way
+            free = [(1, (0, 0, -127, 0, 0, 0, 0)), (1, NONE)]
+
+            def play_free(game, item):
+                segs, hor = item
+                return route(game, port, target, pre_segs + segs, free,
+                             npre + hor)
+            cs = [c for c in done if c.segs is not None][:40]
+            late = [(c, r) for c, r in zip(cs, team.map(play_free, [
+                (c.segs, horizon) for c in cs])) if r.end in GOOD]
+            if late:
+                waiting = max(late, key=lambda cr: (
+                    cr[0].k + (cr[0].g or 0), cr[1].frame))[0]
         # the route now flown, among them
         if current:
             cur = Candidate(None, 0, None, "as planned",
@@ -1161,6 +1243,9 @@ def decide(n, port, target, pre, their, rng, char=None, budget=64,
                                         for x in names])[0]
         cs, ws = zip(*kinds[k])
         choice = rng.choices(cs, weights=ws)[0]
+    elif waiting is not None:
+        choice = waiting
+        choice.label = "waits for the ledge: " + choice.label
     else:
         choice = max(pool, key=lambda c: c.score)
     return dict(pads=frames(choice.segs), label=choice.label,
@@ -1261,6 +1346,8 @@ class Pilot:
         self.react, self.half = react, half
         self.memory = memory if memory is not None else {}
         self.memory.setdefault("recent", [])
+        # what its routes came to, the last ten (decide's `outcomes`)
+        self.memory.setdefault("outcomes", [])
         self.every, self.budget, self.temperature = every, budget, \
             temperature
         self.char, self.goal, self.tools = char, goal, tools
@@ -1322,8 +1409,13 @@ class Pilot:
         current = dict(pads=rest, kind=self.info.get("kind", "?")) \
             if rest and self.info else None
         seg = self._their(their)
-        budget, temp = self.budget, self.temperature
+        # (with a route to compare against, fewer: it must come back in
+        # time to matter)
+        budget = self.budget if current is None else \
+            max(20, self.budget * 2 // 5)
+        temp = self.temperature
         recent = list(self.memory["recent"][-6:])
+        outcomes = list(self.memory["outcomes"][-8:])
         goal, predict, tools = self.goal, self.predict, self.tools
         grabs = self.grabs
 
@@ -1331,8 +1423,9 @@ class Pilot:
             return decide(n, port, target, pre, seg, rng, char=char,
                           budget=budget, temperature=temp, recent=recent,
                           current=current, goal=goal, predict=predict,
-                          tools=tools, grabs=grabs)
-        self._ask("recover", fn, lead, pre)
+                          tools=tools, grabs=grabs, outcomes=outcomes)
+        self._ask("recover" if current is None else "recover-again", fn,
+                  lead, pre)
 
     def _check(self, their, lead):
         port, target, char, goal = self.port, self.target, self.char, \
@@ -1346,10 +1439,20 @@ class Pilot:
                          grabs=grabs)
         self._ask("recover-check", fn, lead, [])
 
+    def _came_to(self, what):
+        """What the route it was on came to ("ok", "hit", "lost"), kept
+        for the decisions after it (this attempt's and the next ones')."""
+        kind = (self.info or {}).get("kind")
+        if kind:
+            self.memory["outcomes"].append((route_key(kind), what))
+            del self.memory["outcomes"][:-10]
+
     def _drop(self, why=None):
         """The route it was on is over (a hit, the ledge caught, knocked
         down): what was being decided for it is dropped with it."""
-        if self.info and why != "hit":
+        if self.info and why and why.startswith("hit"):
+            self._came_to("hit")
+        elif self.info:
             self._flown()
         self.plan, self.info, self.need = [], None, True
         self.retry_at = 0
@@ -1392,14 +1495,17 @@ class Pilot:
                 self.log.append((self.frame, "check: %s %.0f (was %.0f)" % (
                     got["end"], got["score"], was)))
             return
-        if self.frame > p["at"]:
-            self.late += 1
-            self.need = True
-            return
-        # (the pads until its frame were its pre-roll: those played since
-        # it was asked must be the ones it was made with)
+        # (the pads until its frame were its pre-roll, and after it the
+        # route's own: those played since it was asked must be the ones it
+        # was made with. An answer back a few frames after its frame is
+        # still good if what was played meanwhile is what its route begins
+        # with: a route that waits, as most do)
+        behind = self.frame - p["at"]
+        made = list(p["pre"]) + list(got.get("pads") or [])
         played = self.played[p["asked"]:self.frame]
-        if stale or list(played) != list(p["pre"][:len(played)]):
+        if stale or behind > 12 or list(played) != made[:len(played)]:
+            if behind > 0:
+                self.late += 1
             self.need = True
             return
         if not got.get("pads"):
@@ -1453,6 +1559,7 @@ class Pilot:
         if phase in ("lost", "stage") or \
                 (phase == "ledge" and self.goal == "ledge"):
             self.done, self.ended = True, phase
+            self._came_to("lost" if phase == "lost" else "ok")
             self._flown()
             self.stop()
             self.played.append(NONE)
@@ -1478,7 +1585,8 @@ class Pilot:
         self._collect()
         if self.pending is None and phase != "ground":
             have = bool(self._rest(0))
-            lead = self.think.lead_for("recover")
+            lead = self.think.lead_for("recover-again" if have else
+                                       "recover")
             due = self.unseen is not None and \
                 self.frame >= self.unseen + self.react - lead
             blind = self.unseen is not None and not due
