@@ -21,17 +21,24 @@ of the pipe.
 """
 import json
 import os
+import queue
 import re
 import select
 import signal
 import subprocess
+import sys
+import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+# Windows (docs/ai/windows.md): no select() on pipes, no process groups to
+# kill, no prctl; the same protocol otherwise.
+WIN32 = sys.platform == "win32"
 # (MELEE_HEADLESS: another build for every driver, tests and check.py: an
 # optimised one, native_build.py --opt 2 --out DIR)
 EXE = Path(os.environ.get("MELEE_HEADLESS") or
-           ROOT / "build/native/melee_headless")
+           ROOT / ("build/native/melee_headless.exe" if WIN32
+                   else "build/native/melee_headless"))
 
 BUTTONS = {"LEFT": 0x0001, "RIGHT": 0x0002, "DOWN": 0x0004, "UP": 0x0008,
            "Z": 0x0010, "R": 0x0020, "L": 0x0040, "A": 0x0100, "B": 0x0200,
@@ -151,6 +158,58 @@ def die_with_parent():
     ctypes.CDLL("libc.so.6").prctl(1, signal.SIGKILL)  # PR_SET_PDEATHSIG
 
 
+_job = None
+
+
+def die_with_parent_win32(pid):
+    """Windows' die_with_parent: the child goes into a job object that
+    kills what it holds when its last handle closes, which is when this
+    process ends, however it ends. One job for every game this process
+    starts."""
+    global _job
+    import ctypes
+    from ctypes import wintypes
+
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.CreateJobObjectW.restype = wintypes.HANDLE
+    k32.OpenProcess.restype = wintypes.HANDLE
+    if _job is None:
+        class BasicLimits(ctypes.Structure):
+            _fields_ = [("PerProcessUserTimeLimit", ctypes.c_int64),
+                        ("PerJobUserTimeLimit", ctypes.c_int64),
+                        ("LimitFlags", wintypes.DWORD),
+                        ("MinimumWorkingSetSize", ctypes.c_size_t),
+                        ("MaximumWorkingSetSize", ctypes.c_size_t),
+                        ("ActiveProcessLimit", wintypes.DWORD),
+                        ("Affinity", ctypes.c_size_t),
+                        ("PriorityClass", wintypes.DWORD),
+                        ("SchedulingClass", wintypes.DWORD)]
+
+        class IoCounters(ctypes.Structure):
+            _fields_ = [(n, ctypes.c_uint64) for n in (
+                "ReadOps", "WriteOps", "OtherOps", "ReadBytes", "WriteBytes",
+                "OtherBytes")]
+
+        class ExtendedLimits(ctypes.Structure):
+            _fields_ = [("Basic", BasicLimits), ("Io", IoCounters),
+                        ("ProcessMemoryLimit", ctypes.c_size_t),
+                        ("JobMemoryLimit", ctypes.c_size_t),
+                        ("PeakProcessMemoryUsed", ctypes.c_size_t),
+                        ("PeakJobMemoryUsed", ctypes.c_size_t)]
+
+        job = k32.CreateJobObjectW(None, None)
+        limits = ExtendedLimits()
+        limits.Basic.LimitFlags = 0x2000  # KILL_ON_JOB_CLOSE
+        if not job or not k32.SetInformationJobObject(
+                job, 9, ctypes.byref(limits), ctypes.sizeof(limits)):
+            return  # the game still runs; it is only not tied to us
+        _job = job
+    handle = k32.OpenProcess(0x0001 | 0x0100, False, pid)  # TERMINATE|SET_QUOTA
+    if handle:
+        k32.AssignProcessToJobObject(_job, handle)
+        k32.CloseHandle(handle)
+
+
 class Native:
     def __init__(self, exe=EXE, disc=None, draw=False, verbose=False,
                  timeout=120, env=None):
@@ -175,14 +234,37 @@ class Native:
         env[HARNESS] = str(os.getpid())
         # Its own process group: snapshots are further processes, and all
         # of them go when this object is closed.
-        self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT, text=True,
-                                  start_new_session=True, env=env,
-                                  preexec_fn=die_with_parent)
+        if WIN32:
+            self.p = subprocess.Popen(
+                cmd, cwd=ROOT, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, text=True, env=env,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+            die_with_parent_win32(self.p.pid)
+        else:
+            self.p = subprocess.Popen(cmd, cwd=ROOT, stdin=subprocess.PIPE,
+                                      stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT, text=True,
+                                      start_new_session=True, env=env,
+                                      preexec_fn=die_with_parent)
         self._out = self.p.stdout.fileno()
         self._pending = b""    # read from the game, not yet a whole line
+        self._chunks = None
+        if WIN32:
+            # select() takes only sockets on Windows: a thread reads the
+            # pipe, and _line waits on what it has read, with the timeout.
+            self._chunks = queue.Queue()
+            threading.Thread(target=self._read_pipe, daemon=True).start()
         self._wait_frame()
+
+    def _read_pipe(self):
+        while True:
+            try:
+                chunk = os.read(self._out, 65536)
+            except OSError:
+                chunk = b""
+            self._chunks.put(chunk)
+            if not chunk:
+                return
 
     # ---- the pipe -------------------------------------------------------------
 
@@ -191,10 +273,17 @@ class Native:
         says nothing for `timeout` seconds: with snapshots asleep the pipe
         stays open after a crash, and a hung game says nothing either."""
         while b"\n" not in self._pending:
-            if not select.select([self._out], [], [], self.timeout)[0]:
-                raise NativeError("no reply in %d s:\n" % self.timeout +
-                                  "".join(self.log[-40:]))
-            chunk = os.read(self._out, 65536)
+            if self._chunks is not None:
+                try:
+                    chunk = self._chunks.get(timeout=self.timeout)
+                except queue.Empty:
+                    raise NativeError("no reply in %d s:\n" % self.timeout +
+                                      "".join(self.log[-40:]))
+            else:
+                if not select.select([self._out], [], [], self.timeout)[0]:
+                    raise NativeError("no reply in %d s:\n" % self.timeout +
+                                      "".join(self.log[-40:]))
+                chunk = os.read(self._out, 65536)
             if not chunk:
                 rest, self._pending = self._pending, b""
                 return rest.decode(errors="replace")
@@ -732,10 +821,11 @@ class Native:
                 pass
         # the runner may be a later process than the one started; the group
         # is all of them
-        try:
-            os.killpg(self.p.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            pass
+        if not WIN32:  # (Windows: no snapshot processes; the game is one)
+            try:
+                os.killpg(self.p.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
         try:
             self.p.wait(timeout=5)
         except Exception:

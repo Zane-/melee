@@ -145,6 +145,7 @@ u8 lb_80019894(void)
 /* Windows has no sigaction: a crash comes through an exception filter
    (src/host/win32/compat.c). */
 void host_win32_on_fault(void (*report)(unsigned code, void* addr));
+void host_win32_binary_output(void);
 
 static void on_fault(unsigned code, void* addr)
 {
@@ -214,6 +215,10 @@ int main(int argc, char** argv)
        there, and a size of 0 aborts): whoever reads the output line by line
        gets every line as it is written. */
     setvbuf(stdout, NULL, _IONBF, 0);
+    /* Output as on Linux, "\n" and not "\r\n": drivers split replies on
+       "\n" (tools/melee_native/native.py). Input stays in text mode, which
+       turns a Windows writer's "\r\n" back into "\n". */
+    host_win32_binary_output();
     host_win32_on_fault(on_fault);
 #else
     setvbuf(stdout, NULL, _IOLBF, 0);

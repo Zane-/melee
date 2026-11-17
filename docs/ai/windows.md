@@ -95,13 +95,21 @@ in `src/host/win32/`, Winsock, and these link options:
 - `libmelee.a` and the readers: compile with MinGW, no errors.
 - `melee_headless.exe`: links statically (runs without MSYS2 on PATH), boots
   600 frames, and plays a match (`--match 2,9,32 --trace 60`: Fox lands on
-  Final Destination and waits, Marth likewise), 2026-11-17. Not yet compared
-  against the console's code.
+  Final Destination and waits, Marth likewise), 2026-11-17.
+- `tools/melee_native/native.py` drives it (2026-11-17): a reader thread in
+  place of `select()` on the pipe, a job object in place of `prctl`'s
+  death signal, no process group. The game's stdout and stderr are binary
+  on Windows (`main.c`), so replies end in `\n` as on Linux.
+- Against the console's code, `compare.py --tolerance 1e-4` (the scripted
+  exchange and `--random 3`): identical for 520 frames in all four, the
+  same result as on Linux. Without the tolerance the scripted exchange
+  differs at frame 152 in the last bit of a speed (2.0199999809 /
+  2.01999974), as `native-port.md` describes for Linux (130 to 200 frames).
+  Needs `pip install unicorn numpy` and the disc copied to `build/disc`
+  (`robocopy orig\GALE01 build\disc /E`; a link would let tools that write
+  there change the clean extraction).
 
-Next, in order: `tools/melee_native/native.py` on Windows (it uses
-`libc.so.6`'s prctl, `preexec_fn`, `select()` on a pipe and `os.killpg`, all
-Linux-only), then `compare.py` against the console's code (needs `unicorn`
-and `numpy`); the window build (Aurora on
+Next, in order: the window build (Aurora on
 Windows, `tools/aurora32/build.sh` has a Linux-only script); the Python
 client; snapshots without `fork()` (copies of the state inside the process,
 once the statics are gathered); rollback; the adapter over WinUSB.

@@ -10,6 +10,8 @@
 #include <ucontext.h>
 
 #include <errno.h>
+#include <fcntl.h>
+#include <io.h>
 #include <stdio.h>
 #include <windows.h>
 
@@ -187,6 +189,14 @@ int swapcontext(ucontext_t* oucp, const ucontext_t* ucp)
     }
     SwitchToFiber(ucp->fiber);
     return 0;
+}
+
+/* --- stdout and stderr in binary mode (main.c) -------------------------- */
+
+void host_win32_binary_output(void)
+{
+    _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
 }
 
 /* --- backtraces --------------------------------------------------------- */
