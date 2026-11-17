@@ -664,6 +664,8 @@ def link(objs, out, capture=False):
     cmd += ["-Wl,--end-group", "-lm"]
     if WIN32:
         cmd.append("-lws2_32")  # Winsock (net.c)
+        if WINDOW:
+            cmd += ["-lwinusb", "-lsetupapi"]  # the adapter (gcadapter.c)
     if "native-asan" in str(OUT):
         cmd.append("-fsanitize=address")
     return run(cmd, capture_output=True, text=True)
@@ -844,6 +846,9 @@ def main():
     host_sources = sorted((ROOT / "src/host").glob("*.c"))
     if WIN32:
         host_sources.append(ROOT / "src/host/win32/compat.c")
+        if WINDOW:
+            # the GameCube adapter over WinUSB (gcadapter.c)
+            host_sources.append(ROOT / "src/host/win32/winusb_adapter.c")
     for src in host_sources:
         extra = common + (heap if src.name == "archive.c" else [])
         if WIN32:

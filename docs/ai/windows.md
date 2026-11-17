@@ -86,7 +86,7 @@ in `src/host/win32/`, Winsock, and these link options:
 | `fork()` snapshots (`control.c`), engine forks (`engine.c`) | `fork()` fails (`posix.h`) | **`snap`/`restore` and `engine fork` answer with an error** |
 | linker script gathering the game's statics (`state.c`) | none: the region is empty (`compat.c`) | **in-process snapshots miss the statics; rollback is off** |
 | `/proc/self/pagemap` dirty-page tracking (`rollback.c`) | none | **netplay does not start** |
-| `/dev/bus/usb` GameCube adapter (`gcadapter.c`) | not ported | no adapter |
+| `/dev/bus/usb` GameCube adapter (`gcadapter.c`) | WinUSB (`win32/winusb_adapter.c`), window build only; needs Zadig's WinUSB driver, as Dolphin does | the same reader, decoding and rumble; played with a Lossless adapter (Wii U mode) and a PhobGCC, 2026-11-17 |
 
 ## Status
 
@@ -149,6 +149,24 @@ Verified 2026-11-17: `--match 2,9,32 --frames 600` runs in a window on
 Vulkan (RTX 5090) and exits 0. Not yet checked: what the picture looks
 like, sound, input, the Python client on top.
 
+## The GameCube adapter
+
+Nintendo's adapter, or one in its mode ("Wii U mode": USB `057e:0337`), is
+read as on Linux, through WinUSB (`src/host/win32/winusb_adapter.c`): found
+among the devices offering the generic USB device interface, as libusb finds
+it, then opened directly (the adapter has one interface). Setup is Dolphin's:
+[Zadig](https://zadig.akeo.ie/) gives the adapter the WinUSB driver once.
+While Dolphin has it open, the game cannot, and the other way round.
+`client.py --devices` says what the reader sees: "no adapter is plugged
+in", "in use by another program", "needs the WinUSB driver", or "open" with
+the ports that have controllers. Checked 2026-11-17 with a Lossless adapter
+in Wii U mode (shown by Windows as "Lossless adapter [WiiU/NS]", already on
+WinUSB) and a PhobGCC on port 1: about 1,000 reports a second, no failed
+reads, the newest at most 1 ms old when read; the owner played the client
+with it (`client.py --input gcc1`). The keyboard works in the client too
+(`--input keyboard`; with an adapter controller plugged in, `auto` takes
+that instead). Rumble not yet tried.
+
 ## The client
 
 ```powershell
@@ -168,7 +186,7 @@ the disc as on Linux) and exit cleanly. On Windows:
 - **Not on Windows yet:** stage previews and Sheik's portraits (drawn on a
   virtual display and photographed with `window.shot`; the panels keep the
   name logos and her emblem), the tests that press keys or take pictures
-  (`key()`, `shot()`, `close_window()`), the GameCube adapter, snapshots
+  (`key()`, `shot()`, `close_window()`), snapshots
   (and so TM-CE-style instant resets), netplay, the trained-model opponent
   (`opponents.py` still uses `select()` on a pipe and `os.killpg`).
 
