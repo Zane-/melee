@@ -218,9 +218,12 @@ int main(int argc, char** argv)
     }
 #ifdef _WIN32
     /* Windows' C library has no line buffering (_IOLBF is full buffering
-       there, and a size of 0 aborts): whoever reads the output line by line
-       gets every line as it is written. */
-    setvbuf(stdout, NULL, _IONBF, 0);
+       there, and a size of 0 aborts). Fully buffered, and flushed whenever
+       the game waits for a command (control.c, read_line) or stops: a
+       reply goes out in one write, as a line does on Linux. (Unbuffered,
+       each printf of a state was a write of its own, and a driver stepping
+       frame by frame got some 1,100 a second.) */
+    setvbuf(stdout, NULL, _IOFBF, 1 << 16);
     /* Output as on Linux, "\n" and not "\r\n": drivers split replies on
        "\n" (tools/melee_native/native.py). Input stays in text mode, which
        turns a Windows writer's "\r\n" back into "\n". */

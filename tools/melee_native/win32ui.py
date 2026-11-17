@@ -3,21 +3,39 @@ own window: a picture of it (shot), a key pressed in it (key), a request
 to close it (close). There is no virtual display on Windows; the window is
 an ordinary one on the desktop (docs/ai/windows.md).
 
-The window is found by the game's process id. Pictures come from
-PrintWindow with PW_RENDERFULLCONTENT, which includes what the GPU drew
-(Vulkan, through Dawn). Keys are posted to the window as WM_KEYDOWN and
+The window is found by the game's process id. Pictures are taken from the
+screen where the window's client area is, with the window brought to the
+top for that moment: what the compositor shows is what the GPU drew.
+(PrintWindow, even with PW_RENDERFULLCONTENT, waited about two minutes and
+returned black for a window Vulkan presents to, through Dawn.) This
+process is made DPI aware, so that sizes and positions are the screen's
+pixels on a scaled display (at 300%, a 640x480 window measured 213x160).
+Keys are posted to the window as WM_KEYDOWN and
 WM_KEYUP with their scan codes, which is how SDL reads the keyboard there;
 their names are X's, as the tests use them ("Right", "x", "Return").
 """
 import ctypes
+import time
 from ctypes import wintypes
 from pathlib import Path
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 gdi32 = ctypes.WinDLL("gdi32", use_last_error=True)
 
+try:
+    # DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2: the screen's own pixels
+    user32.SetProcessDpiAwarenessContext(ctypes.c_void_p(-4))
+except (AttributeError, OSError):
+    pass
+
 WM_KEYDOWN, WM_KEYUP, WM_CLOSE = 0x0100, 0x0101, 0x0010
-PW_CLIENTONLY, PW_RENDERFULLCONTENT = 0x1, 0x2
+HWND_TOPMOST, HWND_NOTOPMOST = wintypes.HWND(-1), wintypes.HWND(-2)
+# NOSIZE | NOMOVE | NOACTIVATE | ASYNCWINDOWPOS: posted, never waited on.
+# Between frames the game waits for its next command and does not answer
+# its window's messages; a sent SetWindowPos (or PrintWindow) waited some
+# two minutes for it.
+SWP_KEEP = 0x0001 | 0x0002 | 0x0010 | 0x4000
+SRCCOPY = 0x00CC0020
 
 # X key names -> Windows virtual-key codes (letters and digits are their
 # own upper-case character)
@@ -43,7 +61,14 @@ user32.GetClientRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
 user32.GetDC.argtypes = [wintypes.HWND]
 user32.GetDC.restype = wintypes.HDC
 user32.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]
-user32.PrintWindow.argtypes = [wintypes.HWND, wintypes.HDC, wintypes.UINT]
+user32.ClientToScreen.argtypes = [wintypes.HWND,
+                                  ctypes.POINTER(wintypes.POINT)]
+user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, ctypes.c_int,
+                                ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                wintypes.UINT]
+gdi32.BitBlt.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int,
+                         ctypes.c_int, ctypes.c_int, wintypes.HDC,
+                         ctypes.c_int, ctypes.c_int, wintypes.DWORD]
 user32.MapVirtualKeyW.argtypes = [wintypes.UINT, wintypes.UINT]
 gdi32.CreateCompatibleDC.argtypes = [wintypes.HDC]
 gdi32.CreateCompatibleDC.restype = wintypes.HDC
@@ -86,14 +111,19 @@ def shot(pid, path, size=None):
     rect = wintypes.RECT()
     user32.GetClientRect(hwnd, ctypes.byref(rect))
     w, h = rect.right - rect.left, rect.bottom - rect.top
-    screen = user32.GetDC(hwnd)
+    origin = wintypes.POINT(0, 0)
+    user32.ClientToScreen(hwnd, ctypes.byref(origin))
+    # on top for the moment the picture is taken, then as it was
+    user32.SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_KEEP)
+    time.sleep(0.15)  # the compositor shows it over the rest
+    screen = user32.GetDC(None)
     dc = gdi32.CreateCompatibleDC(screen)
     bmp = gdi32.CreateCompatibleBitmap(screen, w, h)
     old = gdi32.SelectObject(dc, bmp)
     try:
-        if not user32.PrintWindow(hwnd, dc,
-                                  PW_CLIENTONLY | PW_RENDERFULLCONTENT):
-            raise RuntimeError("PrintWindow failed")
+        if not gdi32.BitBlt(dc, 0, 0, w, h, screen, origin.x, origin.y,
+                            SRCCOPY):
+            raise RuntimeError("BitBlt from the screen failed")
 
         class BitmapInfo(ctypes.Structure):
             _fields_ = [("biSize", wintypes.DWORD), ("biWidth", ctypes.c_long),
@@ -115,7 +145,8 @@ def shot(pid, path, size=None):
         gdi32.SelectObject(dc, old)
         gdi32.DeleteObject(bmp)
         gdi32.DeleteDC(dc)
-        user32.ReleaseDC(hwnd, screen)
+        user32.ReleaseDC(None, screen)
+        user32.SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_KEEP)
     img = Image.frombuffer("RGB", (w, h), buf.raw, "raw", "BGRX", 0, 1)
     if size is not None:
         img = img.crop((0, 0, min(size[0], w), min(size[1], h)))

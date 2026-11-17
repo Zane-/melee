@@ -159,8 +159,12 @@ class Window(Native):
     @staticmethod
     def _windows_offscreen(state_dir):
         import tempfile
+        # one per driver process: the client's art jobs (art.py, stages.py)
+        # run games of their own beside a test's, and two games sharing
+        # Aurora's shader cache found its database locked
         state = Path(state_dir or os.environ.get("CLAUDE_JOB_DIR")
-                     or tempfile.gettempdir()) / "melee-window-state"
+                     or tempfile.gettempdir()) / (
+            "melee-window-state-%d" % os.getpid())
         state.mkdir(parents=True, exist_ok=True)
         return dict(os.environ, SDL_AUDIO_DRIVER="dummy",
                     MELEE_STATE_DIR=str(state / "aurora"))

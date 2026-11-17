@@ -322,6 +322,9 @@ static int read_line(char* out, size_t size)
         if (in_len == sizeof in_buf) {
             in_len = 0; /* a line longer than any command: drop it */
         }
+        /* everything said so far goes out before the wait (stdout is
+           fully buffered on Windows, which has no line buffering: main.c) */
+        fflush(stdout);
         got = read(0, in_buf + in_len, sizeof in_buf - in_len);
         if (got < 0 && errno == EINTR) {
             continue;

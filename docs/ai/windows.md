@@ -215,16 +215,38 @@ the disc as on Linux) and exit cleanly. On Windows:
     (`compat.c`; it makes the page read-only, so a later read into the same
     page fails: for debugging only).
 
+## The window in tests (`tools/melee_native/win32ui.py`)
+
+There is no virtual display: a test's window opens on the desktop.
+`window.shot()` takes the window's client area from the screen (posting the
+window to the top first; nothing is ever sent to it, since between frames
+the game does not answer its window's messages: a sent `SetWindowPos` or
+`PrintWindow` waited about two minutes). The process is DPI aware, so a
+scaled display gives the window's real pixels. `key()` posts `WM_KEYDOWN`
+and `WM_KEYUP` with scan codes; `close_window()` posts `WM_CLOSE`. Each
+driver gets its own Aurora state directory (two games sharing the shader
+cache found its database locked). The client tests compare pictures with
+ImageMagick: `pacman -S mingw-w64-x86_64-imagemagick` and
+`C:\msys64\mingw64\bin` on PATH.
+
+Checked 2026-11-17: `tests/client/menu.py` 20 of 20, `tests/native/env.py`
+11 of 11 (7,300 frames a second through the driver, a state each: the
+game's stdout is fully buffered and flushed when it waits for a command; it
+was unbuffered, and one write per `printf` gave 1,100).
+
+A GameCube controller on the adapter wins over the keyboard for a port
+whose source is `auto`, as tests' windows are: a controller touched during
+a client test moves the menu too. Unplug it, or leave it alone, for tests.
+
 ## Not done on Windows yet
 
-- **The window build with this branch's flags**, and in it: the client
-  checked again, Sheik's portraits and the stage previews (`window.shot` now
-  photographs the game's window: `tools/melee_native/win32ui.py`), the
-  tests that press keys or close the window (`key()`, `close_window()`).
 - **The trained-model opponent:** `opponents.py` is ported (reader thread,
   job object, `venv\Scripts\python.exe`) but untried: it needs a slippi-ai
   checkout with its models.
 - **Rumble:** the shared code, untried with a controller.
-- `tests/native/env.py` counts games with `pgrep`; `tests/native/place.py`'s
-  "same placement after another past" compares the fall counter, which
-  random play can raise.
+- **Sheik's portraits and the stage previews** are drawn by the client's
+  background jobs with `window.shot`, which works; a whole run of them has
+  not been watched through.
+- Most of `tests/client/` has not been run on Windows (only `menu.py`).
+- `tests/native/place.py`'s "same placement after another past" compares
+  the fall counter, which random play can raise (10 of 11).
