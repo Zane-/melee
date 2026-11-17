@@ -21,6 +21,10 @@ game can work out.
 
 ## 1. Moves (engine macros)
 
+(The recovering opponent's routes are not macros: `recover.py` writes each as pads and
+has the game play it ahead, `route` in `src/host/ahead.c`. Its table of what each
+character recovers with is `recover.TOOLS`.)
+
 Built (`engine.c`, about 100): wait, walk and dash in and out, every ground attack, dash
 attack, shield, the four specials, wavedash in and out, hops and full hops (each aerial,
 drifting in or not), the aerials in the air (drifting in, none, out), drifts, fast fall,
@@ -133,7 +137,8 @@ frames ahead, as `Footsies` is) or a decision the engine searches in a fork, as
 | `pressure` | attacks the shield with options that are safe on it, until the shield breaks or the player acts (a first version: each option's safety is the player's out-of-shield grab, up smash, shine and up-B searched as its stun ends; none safe, a dash back) |
 | `chase` | waits for the player's tech, getup or ledge option (seen `react` late) and covers it (a first version: standing until it is seen, then the punish's search) |
 | `chain_grab` `throw` | grab, the throw, a regrab while the engine finds one that lands before the player can act (built: `regrab` prefixes, `grab,dash_grab,pivot_grab,jc_grab` by default; a regrab connects before the player's first frame free or on the ground, played ahead with them letting go, and within 40 frames of the throw; a knockdown or a tech ends it: `chase`'s. A regrab searched against a player jumping out caught that jump, or a flight its stick's DI changed) |
-| `edgeguard`, `recover` | off the stage (later: not built, and a script naming them is refused) |
+| `recover` | off the stage, the way back the game says works against what the player is doing (built 2026-11-17, `recover.py`; `melee-engine.md`, "Recovering"): the routes its character has from where it is (its jumps left, its specials, their angles and timings: `recover.TOOLS`) played ahead in the game (`route`), scored (the ledge or the stage reached, a landing's lag near the player, how long it flies with nothing left to change, what the player could cover from where they are: `threats`), one of the best taken by a softmax, the kinds flown lately less often; checked again every 4 frames as it flies, decided again when it no longer ends well, and `react` frames after the player commits to something new (a jump, a drop, an attack, the ledge taken). Over on the ledge, standing on the stage, or lost (`ended`); at once if it stands on the stage already. `to` ("ledge", "stage"): it only goes there; `tools` (jump, float, up_b, side_b, down_b, airdodge): the only ones its routes use; `adapt` false: it flies the route it first chose; `predict` false: only what the player is doing counts, not what they could do; `budget`: routes a decision plays ahead (48) |
+| `edgeguard` | off the stage, against a recovering player (later: not built, and a script naming it is refused) |
 | `play` | moves as a person does (the slippi-ai body where a model exists, `footsies` otherwise; a first version: footsies in [25, 60], the model's body not wired in) |
 
 ## 4. Scripts (in a drill)
@@ -190,6 +195,21 @@ a drill's examples and mistakes against the same opponent, and the coach's demon
 plays what the check found.
 
 ## Status
+
+- 2026-11-17: `recover` built, for the edgeguard drill (`fox-edgeguard`). The owner: the
+  drill "should be able to predict and adapt to the players edgeguard. For example for
+  fox, if it is firefox angling, and right before the angle is locked in the player
+  starts to drop and go for a bair to cover the ledge, the CPU could change angle to go
+  high", with "options for reaction time of the engine so the player can essentially
+  choose their own difficulty". What it is, how it was measured and what it does not do
+  yet: `melee-engine.md`, "Recovering". With it: the host's `launch` (the game's own
+  knockback, an edgeguard's start), `route` (a way back played ahead to where it is
+  decided) and `hitboxes` (where a fighter's hitboxes would be); a forked game may fork
+  (a decision plays its routes side by side in copies of its copy); the drill format's
+  `launch`, `example`, `they_die`, `they_ledge`, `they_return` and the player's CPU
+  reaction setting (`drill-format.md`). Proof: `tests/engine/recover.py` (15 of 15),
+  `tools/melee_engine/recoveries.py` (the measurements), `fox-edgeguard`'s `check.py`
+  (36 of 36), `tests/client/edgeguard.py` (12 of 12).
 
 - 2026-11-15: an approach on the shield hits its front, and attacks with every family
   it has. The owner, playing fox-shine-oos: "the CPU often overshoots on the shield hit

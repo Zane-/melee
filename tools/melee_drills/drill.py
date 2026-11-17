@@ -82,10 +82,28 @@ def holds(e, f, fd):
             return f.get("opp_percent") is not None and \
                 p.get("opp_percent") is not None and \
                 f["opp_percent"] > p["opp_percent"]
-        if e in ("their_attack", "they_recover"):
+        if e in ("their_attack", "they_recover", "they_die", "they_ledge",
+                 "they_return"):
             now, was = f.get("opp_state"), p.get("opp_state")
             if now is None or was is None:
                 return False
+            if e == "they_die":
+                # the opponent's stock is lost
+                dead = F.STATES["dead"]
+                return now in dead and was not in dead
+            if e == "they_ledge":
+                # it catches the ledge
+                return now == F.STATES["ledge_catch"] and \
+                    was != F.STATES["ledge_catch"]
+            if e == "they_return":
+                # back on the stage: on the ground and free to act, out of
+                # the air or a landing's lag
+                from melee_engine.sense import FREE
+                here = not f.get("opp_air") and now in FREE and \
+                    now not in F.STATES["ledge"]
+                there = not p.get("opp_air") and was in FREE and \
+                    was not in F.STATES["ledge"]
+                return here and not there
             if e == "their_attack":
                 # the opponent starts an attack (format.THEIR_ATTACKS)
                 return now in F.THEIR_ATTACKS and was not in F.THEIR_ATTACKS
@@ -238,6 +256,15 @@ class JsonDrill(Drill):
         return op["character"] if isinstance(op, dict) else self.cpu
 
     @property
+    def scripted(self):
+        """Whether an opponent of the drill thinks (a script:
+        melee_engine/script.py): then its reaction time is the player's to
+        set (`react`)."""
+        return any(isinstance(sc.get("opponent"), dict) and
+                   "script" in sc["opponent"]
+                   for sc in self.spec["scenarios"])
+
+    @property
     def opponents(self):
         """Every opponent of the drill's scenarios, in order: loaded with
         its match (Session._opponents), so that a later part's deck is
@@ -302,6 +329,20 @@ class JsonDrill(Drill):
         pct = float(F.value(pl.get("percent", 0), nums))
         px = float(F.value(pl.get("x", 0), nums))
         facing = -1 if pl.get("facing") == "left" else 1
+        op = sc.get("opponent", "none")
+        # in a demonstration, what the opponent does in an example
+        # (format.EXAMPLE_KEYS: its own script, launch, reaction)
+        if isinstance(op, dict) and c.is_demo and "example" in op:
+            op = dict(op, **op["example"])
+        launch = op.get("launch") if isinstance(op, dict) else None
+        if launch:
+            # knocked off the side the runtime drew (the pause menu's CPU
+            # side): the player `inland` from that ledge, their back to it
+            side = 1 if c.side >= 0 else -1
+            ledge = c.ledge_pos()
+            half = abs(ledge[0]) if ledge else 85.0
+            px = side * (half - float(F.value(pl.get("inland", 20), nums)))
+            facing = side if pl.get("facing") == "ledge" else -side
         if pl.get("ledge"):
             c.place_on_ledge(pct, "right" if pl["ledge"] == "right" else
                              "left")
@@ -322,8 +363,12 @@ class JsonDrill(Drill):
             # the same example mirrored (the ledge's placement knows its
             # side already)
             c.toward = -1.0 if facing > 0 else 1.0
-        op = sc.get("opponent", "none")
-        if isinstance(op, dict):
+        if launch:
+            self._launch(c, launch, side, half)
+            self.op_refs = []
+            self.op_toward = -side
+            self._script(c, op if "script" in op else None)
+        elif isinstance(op, dict):
             x = float(op["x"])
             toward = -1 if x > px else 1
             c.place_cpu(x, -toward if op.get("facing") == "away" else
@@ -353,8 +398,40 @@ class JsonDrill(Drill):
                                     ())) if c.is_demo else []
         self.predicted = {}
 
+    def _launch(self, c, hits, side, half):
+        """The opponent knocked off the stage's `side` by one of `hits`
+        (format.LAUNCH_KEYS), drawn by weight, its knockback, angle and
+        damage drawn from their ranges with the attempt's random numbers
+        (the same seed, the same launch). `launched`: what was drawn."""
+        from melee_engine.recover import air_jumps
+        rng = c.rng
+
+        def draw(v, default=0.0):
+            if v is None:
+                return default
+            return rng.uniform(v[0], v[1]) if isinstance(v, list) else \
+                float(v)
+        h = rng.choices(hits, weights=[float(x.get("weight", 1))
+                                       for x in hits])[0]
+        kb, angle = draw(h["knockback"]), draw(h["angle"])
+        percent = round(draw(h.get("percent"), 0.0))
+        cpu = c.s.cpu_char
+        jumps = 1 if h.get("jump", True) else air_jumps(cpu) + 1
+        self.launched = dict(name=h.get("name"), knockback=round(kb, 1),
+                             angle=int(round(angle)), percent=percent,
+                             side=side, jump=h.get("jump", True))
+        if c.s.cpu_port is not None:
+            c.n.launch(c.s.cpu_port,
+                       side * (half - float(h.get("inland", 8))),
+                       float(h.get("y", 6)), percent, kb, angle, side,
+                       jumps)
+
+    launched = None     # the opponent's launch this attempt (_launch)
     filming = False     # the client recording the tutorial's examples
     strict = False      # frame-perfect timing (Settings): checks' "strict"
+    # the opponent's reaction time, frames (the player's choice in the
+    # pause menu and Settings; None: each scenario's own "react")
+    react = None
 
     def camera(self, n, person):
         """The scenario's camera, or while the tutorial's examples are
@@ -465,7 +542,8 @@ class JsonDrill(Drill):
                     opp_percent=c.cpu.percent if c.cpu is not None
                     else None,
                     opp_state=c.cpu.state if c.cpu is not None else None,
-                    opp_x=c.cpu.pos[0] if c.cpu is not None else None)
+                    opp_x=c.cpu.pos[0] if c.cpu is not None else None,
+                    opp_air=c.cpu.airborne if c.cpu is not None else None)
 
     def _script(self, c, op):
         """The scenario's scripted opponent (`op`: its "script", "react",
@@ -495,7 +573,10 @@ class JsonDrill(Drill):
         self.op_script = Opponent(
             thinker(c), c.s.cpu_port, c.s.person, op, seed=seed,
             half=abs(ledge[0]) if ledge and abs(ledge[0]) > 1 else 85.0,
-            char=c.fd.id, memory=self.op_memory.get(op.get("character")))
+            char=c.fd.id, memory=self.op_memory.get(op.get("character")),
+            # (a demonstration's opponent keeps its own: the example was
+            # written against it)
+            react=None if c.is_demo else self.react)
 
     def settle(self, c):
         """After a judged try, until the reset (Session.settle): the
@@ -597,7 +678,9 @@ class JsonDrill(Drill):
                    opp_percent=r.t_percent if s.cpu_port is not None
                    else None,
                    opp_state=r.t_state if s.cpu_port is not None else None,
-                   opp_x=r.t_x if s.cpu_port is not None else None)
+                   opp_x=r.t_x if s.cpu_port is not None else None,
+                   opp_air=bool(r.t_air) if s.cpu_port is not None
+                   else None)
         return rec
 
     def _look_ahead(self, c, f, a):

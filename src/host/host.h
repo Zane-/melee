@@ -182,6 +182,8 @@ void host_audio_quiet(int on);
 const char* host_sleep(int slot);
 const char* host_place(int slot, float x, float y, float facing, int air,
                        float percent);
+const char* host_launch(int slot, float x, float y, float percent, float kb,
+                        int angle, float dir, int jumps);
 /// The control protocol (control.c), when enabled.
 extern int host_control_enabled;
 void host_control_frame(void);
@@ -339,6 +341,8 @@ void host_control_frame(void);
 /* ahead.c: the next frames played with a planned pad, then undone */
 int host_ahead_active(void);
 const char* host_ahead_begin(const char* line);
+const char* host_route_begin(const char* line, int path);
+const char* host_hitboxes_begin(const char* line);
 int host_ahead_boundary(void);
 void host_frame_tick_rest(void);
 void host_control_resume(void);

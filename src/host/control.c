@@ -39,6 +39,18 @@
  *                                 client's coach (frames.c)
  *   mask HEX                      live ports' buttons kept from the game
  *   ledge [P [PERCENT]]           the stage's left ledge: where; P hanging
+ *   launch P X Y PERCENT KB ANGLE DIR [JUMPS]
+ *                                 fighter P knocked away from (X, Y) by
+ *                                 the game's own launch: an edgeguard's
+ *                                 start (setup.c)
+ *   route PORT TARGET HORIZON N BUTTONS LX LY CX CY L R [N ...] [| N ...]
+ *                                 a way back to the stage played ahead to
+ *                                 where it is decided (the ledge, the
+ *                                 stage, a hit, lost) and undone; routep:
+ *                                 its path too (ahead.c)
+ *   hitboxes PORT FRAMES N BUTTONS LX LY CX CY L R [N ...]
+ *                                 where PORT's hitboxes would be, frame by
+ *                                 frame, played ahead and undone (ahead.c)
  *   shield P HEALTH [KEEP]        a fighter's shield health; KEEP 1: kept
  *                                 at it every frame (searches too), 0: no
  *                                 longer; "shield -1 H 0": none kept
@@ -650,6 +662,43 @@ static void command(char* line)
             printf("@ error %s\n", why);
         } else {
             steps_left = 1; /* this boundary goes on: the frames run */
+        }
+    } else if (strcmp(cmd, "route") == 0 || strcmp(cmd, "routep") == 0) {
+        /* "route PORT TARGET HORIZON N BUTTONS LX LY CX CY L R [N ...] [|
+           N ...]": a way back to the stage played ahead to where it is
+           decided (the ledge, the stage, a hit, lost), then undone;
+           "routep": its path too (ahead.c) */
+        const char* why = host_route_begin(line, cmd[5] == 'p');
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            steps_left = 1; /* this boundary goes on: the frames run */
+        }
+    } else if (strcmp(cmd, "hitboxes") == 0) {
+        /* "hitboxes PORT FRAMES N BUTTONS LX LY CX CY L R [N ...]": where
+           PORT's hitboxes would be, frame by frame, played ahead and
+           undone (ahead.c) */
+        const char* why = host_hitboxes_begin(line);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            steps_left = 1;
+        }
+    } else if (strcmp(cmd, "launch") == 0) {
+        /* "launch P X Y PERCENT KB ANGLE DIR [JUMPS]": fighter P knocked
+           away from (X, Y) by KB units of knockback at ANGLE degrees above
+           level, toward +x (DIR 1) or -x (-1), with PERCENT damage, JUMPS
+           of its jumps used (1: the double jump left) (setup.c) */
+        int p = 0, angle = 45, jumps = 1;
+        float x = 0, y = 0, percent = 0, kb = 100, dir = 1;
+        const char* why;
+        sscanf(line, "%d %f %f %f %f %d %f %d", &p, &x, &y, &percent, &kb,
+               &angle, &dir, &jumps);
+        why = host_launch(p, x, y, percent, kb, angle, dir, jumps);
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
         }
     } else if (strcmp(cmd, "search") == 0) {
         /* "search PORT TARGET HORIZON BUDGET DEPTH [KEY=VALUE ...]": PORT's

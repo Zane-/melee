@@ -88,6 +88,8 @@ STATES = {
     # hit: in hitstun (DamageHi1 to DamageFlyRoll); launched (DamageFly*)
     "damage": tuple(range(75, 92)), "tumble": (87, 88, 89, 90, 91),
     "ledge": (252, 253), "ledge_catch": 252, "ledge_hang": 253,
+    # a stock lost: DeadDown to DeadUpFallHitCameraIce
+    "dead": tuple(range(0, 11)),
     # Fox
     "laser": (341, 342, 343, 344, 345, 346),
     "illusion": (347, 348, 349, 350, 351, 352),
@@ -129,9 +131,14 @@ BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
 # their_attack: the opponent starts an attack (a ground attack, an aerial, a
 # grab or a dash grab: THEIR_ATTACKS); they_recover: the opponent can act
 # again (enters a state of sense.FREE from one outside it: its attack over)
+# they_die: the opponent loses its stock (enters a state of "dead");
+# they_ledge: it catches the ledge (CliffCatch); they_return: it is back on
+# the stage, on the ground and free to act (out of the air or a landing's
+# lag): an edgeguard's ends
 SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
                  "hit", "hitlag_last", "hitlag_end", "shot", "connects",
-                 "their_attack", "they_recover")
+                 "their_attack", "they_recover", "they_die", "they_ledge",
+                 "they_return")
 # the opponent's attacks, for their_attack: Attack11 to AttackLw4 (jab to
 # down smash, the dash attack), the aerials, Catch and CatchDash; not its
 # specials (a character's own states, numbered from 341, are not all
@@ -197,9 +204,25 @@ SHIELDS = ("infinite",)
 # don't overtrain one side! It should have options to swap ledges on
 # success too"); the pause menu's Swap changes it
 SWITCHES = ("manual", "success", "every")
-PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent")
+PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent",
+               "inland")
 OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
-                 "react", "script", "loop")
+                 "react", "script", "loop", "launch", "example")
+# an opponent's "launch": it starts each attempt knocked off the stage (an
+# edgeguard: TM-CE's edgeguard event), by one of these hits drawn by
+# "weight": "knockback" and "angle" (degrees above level) and "percent" (its
+# damage), each a number or [LO, HI] drawn from; "jump": false if its
+# double jump is gone; "inland", "y": where it is hit from, units in from
+# the ledge and above the stage (8 and 6). Off the left or the right ledge
+# as the runtime draws the side (the pause menu's CPU side); the player
+# stands "inland" units in from that ledge
+LAUNCH_KEYS = ("name", "knockback", "angle", "percent", "jump", "weight",
+               "inland", "y")
+# an opponent's "example": what it does in a demonstration (an example, a
+# mistake, the coach's replay) in place of its "script" and "launch": an
+# example's inputs are frames, and an opponent that thinks would answer
+# them another way each time, so there it does the one thing they answer
+EXAMPLE_KEYS = ("script", "launch", "react")
 # within: frames after the reset by which the start must have come, or the
 # scenario is reset uncounted ("missed": the words then: the opponent's
 # attack whiffed, the player jumped behind it)
@@ -609,6 +632,41 @@ def _problems(spec):
                 need(st["cue"].get("kind", "info") in CUE_KINDS, w,
                      "cue kind: one of %s" % ", ".join(CUE_KINDS))
 
+    def span(v, lo, hi):
+        """A number, or [LO, HI] drawn from, within lo..hi."""
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            return lo <= v <= hi
+        return isinstance(v, list) and len(v) == 2 and all(
+            isinstance(x, (int, float)) and not isinstance(x, bool)
+            for x in v) and lo <= v[0] <= v[1] <= hi
+
+    def launch(hits, where):
+        if not need(isinstance(hits, list) and hits, where,
+                    "a list of hits: {knockback, angle, percent, ...}"):
+            return
+        for k, h in enumerate(hits):
+            hw = "%s[%d]" % (where, k)
+            if not need(isinstance(h, dict), hw, "{knockback, angle, "
+                        "percent, ...}"):
+                continue
+            need(span(h.get("knockback"), 1, 400), hw,
+                 "knockback: a number or [LO, HI], 1 to 400")
+            need(span(h.get("angle"), 0, 180), hw,
+                 "angle: degrees above level, a number or [LO, HI]")
+            need(span(h.get("percent", 0), 0, 999), hw,
+                 "percent: a number or [LO, HI]")
+            need(isinstance(h.get("jump", True), bool), hw,
+                 "jump: true or false")
+            need(isinstance(h.get("weight", 1), (int, float)) and
+                 h.get("weight", 1) > 0, hw, "weight: above 0")
+            for key in ("inland", "y"):
+                need(isinstance(h.get(key, 0), (int, float)), hw,
+                     key + ": a number")
+            if "name" in h:
+                need(isinstance(h["name"], str), hw, "name: words")
+            extra = set(h) - set(LAUNCH_KEYS)
+            need(not extra, hw, "unknown %s" % ", ".join(sorted(extra)))
+
     for i, sc in enumerate(spec["scenarios"]):
         w = "scenarios[%d]" % i
         need(isinstance(sc.get("name"), str), w, "no name")
@@ -632,22 +690,56 @@ def _problems(spec):
             if pl.get("ledge"):
                 need(pl["ledge"] in ("left", "right", True), w,
                      "player.ledge: left or right")
+            elif "inland" in pl:
+                # standing that far in from the ledge the opponent is
+                # knocked off, their back to it ("facing": "ledge": facing
+                # it)
+                need(isinstance(sc.get("opponent"), dict) and
+                     "launch" in sc["opponent"], w,
+                     "player.inland: with an opponent's launch")
             else:
                 need("x" in pl, w, 'player: {"x": number}')
-            for k in ("x", "y", "above", "percent"):
+            for k in ("x", "y", "above", "percent", "inland"):
                 if k in pl:
                     num(pl[k], "%s.player.%s" % (w, k))
             if "facing" in pl:
-                need(pl["facing"] in ("left", "right"), w,
-                     "player.facing: left or right")
+                need(pl["facing"] in (("stage", "ledge") if "inland" in pl
+                                      else ("left", "right")), w,
+                     "player.facing: left or right (with inland: stage or "
+                     "ledge)")
             extra = set(pl) - set(PLAYER_KEYS)
             need(not extra, w, "player: unknown %s" % ", ".join(sorted(extra)))
         op = sc.get("opponent", "none")
         if isinstance(op, dict):
             need(isinstance(op.get("character"), str), w,
                  "opponent.character: a character id")
-            need(isinstance(op.get("x"), (int, float)), w,
-                 "opponent.x: a number")
+            if "launch" in op:
+                launch(op["launch"], w + ".opponent.launch")
+                need("inland" in pl if isinstance(pl, dict) else False, w,
+                     "player.inland: where the player stands for a launch")
+            else:
+                need(isinstance(op.get("x"), (int, float)), w,
+                     "opponent.x: a number")
+            if "example" in op:
+                ex = op["example"]
+                if need(isinstance(ex, dict) and ex and
+                        set(ex) <= set(EXAMPLE_KEYS), w,
+                        "opponent.example: {%s}" % ", ".join(EXAMPLE_KEYS)):
+                    need("script" in op, w,
+                         "opponent.example: only with a script")
+                    if "launch" in ex:
+                        need("launch" in op, w, "opponent.example.launch: "
+                             "only with a launch")
+                        launch(ex["launch"], w + ".opponent.example.launch")
+                    if "script" in ex or "react" in ex:
+                        from melee_engine import script as SC
+                        names = set(STATES)
+                        for cs in CHAR_STATES.values():
+                            names |= set(cs)
+                        out.extend(SC.problems(
+                            dict(ex, script=ex.get("script",
+                                                   op.get("script"))),
+                            w + ".opponent.example", names))
             if "facing" in op:
                 need(op["facing"] in ("player", "away"), w,
                      "opponent.facing: player or away")

@@ -469,9 +469,11 @@ static const char* engine_fork(const char* line)
     if (sscanf(line, "%255s %255s", in, out) != 2) {
         return "engine fork IN OUT";
     }
-    if (fork_child) {
-        return "a forked game does not fork";
-    }
+    /* (a forked game may fork too: a decision that plays many routes
+       ahead plays them side by side in copies of its copy, and the game a
+       person watches pays for one fork: tools/melee_engine/recover.py,
+       Team. Its table of copies is its parent's: those are not its
+       children, and are dropped below.) */
     /* the copies that have left */
     for (int i = 0; i < FORKS_MAX; i++) {
         if (forks[i] > 0 && waitpid(forks[i], NULL, WNOHANG) != 0) {

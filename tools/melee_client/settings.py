@@ -37,10 +37,22 @@ RESETS = ("quiet", "judged", "hand")
 RESET_WORDS = {"quiet": "After damage stops", "judged": "When judged",
                "hand": "By hand"}
 QUIET = (1, 2, 3, 4, 5, 8)
+# the reaction time of a drill's opponent that thinks (a scripted one:
+# melee_engine/script.py), in frames: how long after the player commits to
+# something (a jump, an attack, the ledge taken) it sees it and may change
+# what it does. The player's difficulty (the owner, 2026-11-17: "options for
+# reaction time of the engine so the player can essentially choose their
+# own difficulty"). Kept once the player chooses ("react"); until then each
+# drill's own (15: a person's)
+REACT = (30, 24, 20, 15, 12, 9, 6, 3)
 
 
 def quiet_words(n):
     return "1 second" if n == 1 else "%d seconds" % n
+
+
+def react_words(n):
+    return "%d frames" % n
 FRAME_MS = 1000.0 * 1001 / 60000  # the console's 59.94 frames a second
 
 
@@ -66,6 +78,8 @@ def get(progress):
         del s["reset"]
     if "quiet" in s and s["quiet"] not in QUIET:
         del s["quiet"]
+    if "react" in s and s["react"] not in REACT:
+        del s["react"]
     return s
 
 

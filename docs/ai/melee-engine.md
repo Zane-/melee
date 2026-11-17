@@ -449,6 +449,112 @@ attack), every move a look with the family drawn among those found (the scan sto
 `enough` with what it finds first: Sheik's tilts never, Peach's dash attack 80%), three a
 look with no cap (Jigglypuff's dash attack 70% live).
 
+## Recovering: the opponent off the stage (2026-11-17)
+
+The owner, asking for an edgeguard drill (`data/drills/fox-edgeguard.json`): "a big test
+of the engine performance because it should be able to predict and adapt to the players
+edgeguard. For example for fox, if it is firefox angling, and right before the angle is
+locked in the player starts to drop and go for a bair to cover the ledge, the CPU could
+change angle to go high. This should have options for reaction time of the engine so the
+player can essentially choose their own difficulty. The goal of this is to get the player
+amazing at edgeguarding by building a CPU that recovers very optimally to force the
+player to adapt and learn more consistent options".
+
+A recovery is not an attack that lands, so it is not the macro search's: it is the
+behaviour `recover` (`tools/melee_engine/recover.py`; `opponent-vocabulary.md`), on three
+host commands.
+
+| Command | What |
+|-|-|
+| `launch P X Y PERCENT KB ANGLE DIR [JUMPS]` (`setup.c`) | a fighter knocked away by the game's own launch (`ftCo_8008DCE0`, as a throw's release calls it): the damage state its knockback gives, its speed and decay, its hitstun, the tumble. TM-CE's edgeguard event writes those itself (`Reset_CPU`, `src/edgeguard.c`); its hit strengths are the drill's. With the state reading H frames of hitstun, a jump pressed H - 1 frames later is the first that works (measured: a frame sooner is ignored) |
+| `route PORT TARGET HORIZON pads [| pads]` (`ahead.c`) | a way back played ahead and undone: PORT's pads, TARGET's (what the player is expected to do), until PORT has caught the ledge, has landed and can act, is hit or grabbed, or is lost (dead, or under the lower blast line). The reply says which and when, where, the landing's frame and the first free one, how close the target's hitboxes came, how near the ledge it came (for routes that fall short), and with `routep` the path frame by frame. 22,000 frames a second headless: a 140-frame recovery in 6 ms |
+| `hitboxes PORT FRAMES pads` (`ahead.c`) | where a fighter's hitboxes would be, frame by frame, if it pressed that |
+
+**A decision** (`recover.decide`, about 50 routes): from where the fighter is, after its
+hitstun, the routes its character has: the drift; its jumps, now or later; each special
+(`recover.TOOLS`: Fire Fox, Fire Bird and Vanish at an angle, Illusion and Phantasm full
+or shortened, Dolphin Slash, Dancing Blade's stall, Falcon Dive and the kick that gives
+the jump back, the parasol and the float, Pound, Belay and Squall Hammer mashed, Quick
+Attack's two directions, a bomb, Screw Attack) now or later, after a jump or without, and
+an air dodge. A steered special's angles are aimed from where the fighter is when the
+angle is read (one route played to there first): at the ledge, a little under and over
+it, and a sweep. Each is played ahead against the player going on with what they are
+doing (their pad three frames more, then let go: an attack begun plays out, a ledge held
+stays held). The score: the ledge or the stage reached; a landing's lag next to the
+player; the player's hitboxes close by; the frames flown with nothing left to change (an
+air dodge 60 frames from the ledge is seen coming); the jump kept; and what the player
+could do. One of the best by a softmax, the kinds of route flown lately (kept from one
+attempt to the next) drawn less. Where nothing reaches, the four routes that came nearest
+the ledge are played again at every timing 8 frames either side.
+
+**What the player could do** (`recover.threats`, `exposure`). A route that ends well
+against a player who does nothing more may pass through where they can strike. Each
+decision plays the player ahead alone through the attacks they have from where they are
+(in the air: the five aerials and the down special, pressed now and 5, 10, 16 and 24
+frames on; on the ground: the smashes and the down special) and keeps their hitboxes
+frame by frame. The share of them a route's body crosses at its frame costs it: an
+eighth 17 points, a quarter 35 (a route kept is worth 12). So a player who has jumped
+off the stage threatens the ledge and not the stage above them, and the opponent goes
+high; one standing at the edge threatens what comes up beside it.
+
+**Reacting** (`recover.Pilot`). The route is checked again every 4 frames (one route
+played: 5 ms) and decided again when it no longer ends well or is worth 25 less. What
+the player commits to (`recover.commitment`: the ground left, a double jump, an attack,
+a special, the shield, a dodge, the ledge taken or left) starts a clock: until `react`
+frames have passed the opponent decides nothing, and then decides with what it sees.
+Moving about on the ground is not a commitment: that it follows as it happens. What it
+can still change is what the game allows: in a special only the stick (Fire Fox's angle
+until its 43rd frame) and B. `react` is the scenario's (15), or the player's: CPU
+reaction, 30 to 3 frames, in the pause menu and Settings.
+
+**Side by side** (`recover.Team`). Fifty routes one after the other take a third of a
+second, too long for an opponent that reacts in a quarter. A decision forks the game it
+is made in six times (`engine fork`: a forked game may now fork too, so the game a person
+watches still pays for one fork) and plays its routes in those copies, each answering in
+a thread. Headless a recovery's thinking, checks and all, takes 150 to 250 ms (350 to
+400 before); live, in forks of the window build on a virtual display, a first decision
+took 207 to 226 ms (`tests/client/edgeguard.py`), inside the launch's hitstun (32 to 68
+frames).
+
+`tests/engine/recover.py` (15 of 15, headless): the launch's state, hitstun and tumble;
+a route played ahead says where it ends, leaves the game as it was, and played for real
+ends there on that frame; Fox, Marth, Sheik and Jigglypuff back from six launches each
+by more than one kind of route; the same seed, the same route; the first part's opponent
+(`to` "ledge", `tools` "jump") falls past a ledge held; and the owner's example, four
+seeds: Fox, 62 units out and 18 up, charges Fire Fox at the ledge; 30 frames into the
+charge (13 before the angle is read) the player jumps off the stage and back airs where
+he would arrive.
+
+| Reaction | What Fox does | Result |
+|-|-|-|
+| 3 frames | 4 frames after the jump the stick is aimed onto the stage (20 or 60 degrees up) | lands on the stage unhit, 4 of 4 |
+| 30 frames | nothing before the angle is read | flies at the ledge: hit by the back air 3 of 4 |
+
+`tools/melee_engine/recoveries.py` (the drill's launches, TM-CE's weak, normal, hard and
+shallow, either ledge, headless):
+
+| The player | Back |
+|-|-|
+| does nothing, the eleven characters, 16 recoveries each | 175 of 176 (Falco, shallow and far, once fell short) |
+| takes the ledge late (a wavedash back as the opponent comes within 75 units), six characters (Fox, Marth, Sheik, Falco, Captain Falcon, Pikachu), normal and shallow launches, 48 recoveries: reaction 30, 15, 3 | 23, 27, 31 |
+| jumps off and back airs the ledge: 30, 15, 3 | 38, 39, 40 |
+| stands at the edge and down smashes: 30, 15, 3 | 34, 33, 35 |
+| takes the ledge at once and holds it: 30, 15, 3 | 44, 45, 45 |
+
+(The stand-ins are crude: they do not aim. A ledge taken early is no edgeguard against a
+special with a hitbox: once the 30 frames of intangibility are over, Fire Fox, Dolphin
+Slash, Vanish, Quick Attack and Screw Attack hit Fox off the ledge and take it, which the
+opponent finds by playing it. The drill's first part has the opponent come back with its
+jump alone for that reason.)
+
+Not yet: a model of the player beyond "goes on, then lets go" and the attacks they have
+without moving (a grounded player's run to the ledge, a jump and an aerial, a ledge
+dropped and regrabbed); stalling until the player leaves the ledge; DI of the launch and
+teching the stage; the wall jump and Samus's grapple; ledge options once it hangs (the
+drill judges there); an edgeguarding stand-in that aims, to measure it against. The
+routes' table is hand-written per character (`recover.TOOLS`); what a route comes to is
+the game's.
+
 Not yet: the other drills on the engine (E5: wavedash back, shine out of shield, then the
 rest, each with its contract); the slippi-ai body and model of the player in the drills;
 several futures of the player (a jump-in that lands whether they stop or go on); faster

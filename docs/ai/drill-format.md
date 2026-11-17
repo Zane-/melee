@@ -29,6 +29,12 @@ standing until the player comes within its reach and 8 units more (seen 15 frame
 then one of the attacks of its own that a jump-cancelled grab punishes from where it
 misses; the attempt runs from its attack's first frame (`their_attack`) to the grab, a
 hit, or the opponent free again (`they_recover`: too late).
+Punish (2026-11-17): Fox's edgeguard (`fox-edgeguard`): the same eleven, each knocked off
+the stage by a hit drawn for the attempt (`launch`) and recovering by the engine's
+`recover` (`melee-engine.md`, "Recovering"): its routes played ahead in the game, one of
+the best taken, another when it sees what the player commits to, its reaction time after
+they do. The reaction time is the player's to set (CPU reaction, in the pause menu and
+Settings), for this and every drill whose opponent is a script.
 
 ## Where things are
 
@@ -89,7 +95,7 @@ its proof, never written into one drill's file.
   states counts: `wait turn dash run run_brake jump_squat jump double_jump (Kirby's and Jigglypuff's extra jumps included, `CHAR_STATES`) fall special_fall
   squat landing landing_special up_smash nair fair bair uair dair aerial aerial_landing
   shield grab dash_grab air_dodge platform_drop teeter roll spot_dodge damage tumble ledge
-  ledge_catch ledge_hang` (Ness's up smash and Yoshi's shield are their own states,
+  ledge_catch ledge_hang dead` (`dead`: a stock lost, DeadDown on; Ness's up smash and Yoshi's shield are their own states,
   `CHAR_STATES`), the shield's own `shield_stun` (GuardSetOff, 181: after a hit on it,
   every input ignored) and `shield_release` (GuardOff, 180: let go, 15 frames; X or Y
   there jumps, down is a spot dodge), both in `shield` too, and
@@ -107,8 +113,11 @@ its proof, never written into one drill's file.
   opponent starts a ground attack, an aerial, a grab or a dash grab: states 44 to 69, 212
   and 214, `format.THEIR_ATTACKS`; not its specials, numbered from 341 with other states:
   Peach's forward smash is one), `they_recover` (the opponent can act again: it enters a
-  state of `sense.FREE` out of one that is not), both read from the opponent's state in
-  the frame record (`opp_state`, live and played ahead); `{"near": D}` (the fighters come
+  state of `sense.FREE` out of one that is not), and an edgeguard's ends: `they_die` (the
+  opponent's stock is lost: it enters a state of `dead`), `they_ledge` (it catches the
+  ledge), `they_return` (it is back on the stage: on the ground and free to act, out of
+  the air or a landing's lag); all read from the opponent's state in the frame record
+  (`opp_state`, `opp_air`, live and played ahead); `{"near": D}` (the fighters come
   within D units, centre to centre along the stage: D or less, more the frame before; D
   may be an expression: `{"near": 16, "after": {"frame": "GO"}}`, the punish's grab);
   `{"is": SIMPLE, "from": S}` (a simple event with modifiers: left the ground out of a
@@ -207,7 +216,9 @@ its proof, never written into one drill's file.
   the pause menu's Swap changes it. A drill's `"shield": "infinite"` keeps the
   player's shield full every frame (a shield drill: never shrunk, poked through or broken;
   the owner, 2026-11-15). A scenario facing left on a platform, the stage or in
-  the air plays the examples mirrored: forward is the way it faces), `lead` (frames from the reset to
+  the air plays the examples mirrored: forward is the way it faces; `"inland": D`, with an
+  opponent's `launch`: standing D units in from the ledge the opponent is knocked off, their
+  back to it as TM-CE's edgeguard event leaves them, `"facing": "ledge"` to face it), `lead` (frames from the reset to
   an example's frame 1: 10, and 0
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
@@ -258,6 +269,39 @@ its proof, never written into one drill's file.
   headless. `format.py` checks every name against the tables (`script.py`, `behave.py`,
   `sense.py`; moves by name prefix against the engine's), and a script with `inputs` is
   refused. `check.py` takes a drill file's path too (`check.py path/to/drill.json`).
+
+  A scripted opponent's reaction time is the player's to set: CPU reaction (30, 24, 20,
+  15, 12, 9, 6 or 3 frames; fewer is harder), in the drill's pause menu and in Settings,
+  Display, kept in the progress file; until chosen, each scenario's own `react`
+  (`JsonDrill.react`, `Client.react_change`; the owner, 2026-11-17: "options for reaction
+  time of the engine so the player can essentially choose their own difficulty"). A
+  demonstration's opponent keeps the scenario's own.
+
+  `"launch"` (an edgeguard's start, as TM-CE's edgeguard event): the opponent begins each
+  attempt knocked off the stage by one of a list of hits, drawn by `"weight"` with the
+  attempt's random numbers: `{"name", "knockback": N or [LO, HI], "angle": degrees above
+  level, "percent": its damage, "jump": false if its double jump is gone, "inland": 8,
+  "y": 6}` (where it is hit from). The game's own launch (`launch`, `src/host/setup.c`:
+  the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
+  off the left or the right ledge as the runtime draws the side (the pause menu's CPU
+  side: Random, Left, Right). `JsonDrill.launched` is what was drawn.
+
+  `"example"`: what the opponent does in a demonstration (a part's example, a mistake,
+  the tutorial's and the coach's replays) in place of its `script`, `launch` and `react`:
+  `{"script": [...], "launch": [...]}`. An example's inputs are frames; an opponent that
+  thinks would answer them another way each time, so in an example it does the one thing
+  they answer (`fox-edgeguard`: it comes to the ledge with its jump alone, `{"do":
+  "recover", "to": "ledge", "tools": "jump"}`, and falls past a ledge taken). The opponent
+  a person plays is proved apart from `check.py`: `tests/engine/recover.py`.
+
+    ```json
+    "opponent": {"character": "marth", "launch": [
+      {"name": "normal", "knockback": [106, 120], "angle": [45, 60], "percent": [50, 80]},
+      {"name": "no jump", "knockback": [90, 106], "angle": [42, 58], "jump": false}],
+      "react": 15, "loop": true, "script": [{"do": "recover"}, {"do": "hold", "pad": "stand",
+        "until": {"all": [{"me": "offstage"}, {"not": {"me": "on_ledge"}}]}}],
+      "example": {"script": [{"do": "recover", "to": "ledge", "tools": "jump"}]}}
+    ```
 
     ```json
     "opponent": {"character": "marth", "x": 30, "react": 15, "script": [
@@ -362,6 +406,13 @@ A part whose scenarios are a deck of opponents (each scenario another opponent) 
 example, its frame-perfect example and every mistake judged as it in each scenario of the
 deck. `fox-shine-oos`: 45 of 45 cases, the eleven opponents' scripts each meeting the
 frame-perfect example and the late jump, in 30 seconds.
+
+`fox-edgeguard`: 36 of 36 cases in 40 seconds: both parts' example (the ledge taken by a
+wavedash back off the edge) against each of the eleven opponents' example script, and
+standing still failing on "It reached the ledge". What its opponent does against a
+person (it gets back when nothing is done, changes its route when it sees a commitment,
+later with a longer reaction time) is `tests/engine/recover.py`'s and
+`tools/melee_engine/recoveries.py`'s to show.
 
 A drill generated from a description is done when `check.py` passes and the owner has
 played it.

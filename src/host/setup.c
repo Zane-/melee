@@ -24,6 +24,7 @@
 #include <melee/ft/ftcolanimlist.h>
 #include <melee/ft/ftcoll.h>
 #include <melee/ft/kinds/ftCommon/ftCo_CliffWait.h>
+#include <melee/ft/kinds/ftCommon/ftCo_Damage.h>
 #include <melee/ft/ftcommon.h>
 #include <melee/ft/inlines.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Fall.h>
@@ -35,6 +36,7 @@
 #include <melee/it/inlines.h>
 #include <melee/it/item.h>
 #include <melee/it/types.h>
+#include <melee/lb/forward.h>
 #include <melee/mp/mpcoll.h>
 #include <melee/mp/mplib.h>
 #include <melee/pl/player.h>
@@ -748,6 +750,73 @@ const char* host_place(int slot, float x, float y, float facing, int air,
     Player_SetHUDDamage(fp->player_idx, (int) percent);
     fp->shield_health = p_ftCommonData->x260_startShieldHealth;
     partner(gobj, air ? BESIDE_AIR : BESIDE_GROUND, NULL);
+    ftCamera_UpdateCameraBox(gobj);
+    Camera_8002F3AC();
+    return NULL;
+}
+
+/// A fighter in the air knocked away by the game's own launch
+/// (ftCo_8008DCE0, as a throw's release calls it: ftCo_Throw.c): the damage
+/// state its knockback gives (DamageFly from about 80 units on), the
+/// knockback's speed and decay, its hitstun, the tumble after it.
+static void knock(HSD_GObj* gobj, Fighter* fp, float kb, int angle,
+                  float dir)
+{
+    fp->dmg.kb_applied = kb;
+    fp->dmg.x1848_kb_angle = angle;
+    /* knocked the way it does not face */
+    fp->dmg.facing_dir_1 = dir < 0.0F ? 1.0F : -1.0F;
+    fp->dmg.x184c_damaged_hurtbox = 1;
+    fp->dmg.x1860_element = HitElement_Normal;
+    fp->dmg.x1838_percentTemp = 0.0F;
+    fp->dmg.x18ac_time_since_hit = 0;
+    ftCo_8008DCE0(gobj, -1, 0.0F);
+    /* (the frame's damage step would launch it again) */
+    fp->dmg.kb_applied = 0.0F;
+}
+
+/// A fighter knocked off its feet at (x, y), as a hit there would leave
+/// it: an edgeguard's start (TM-CE's edgeguard event, Reset_CPU in
+/// src/edgeguard.c, which writes the damage state, the speed and the
+/// hitstun itself; here the game's own launch does). `kb` units of
+/// knockback at `angle` degrees above level, toward +x (`dir` > 0) or -x;
+/// `percent` its damage; `jumps` the jumps it has used (1: the double jump
+/// left, 2: gone). No hitlag: it flies from the coming frame. The Ice
+/// Climbers' partner is knocked away with its leader.
+const char* host_launch(int slot, float x, float y, float percent, float kb,
+                        int angle, float dir, int jumps)
+{
+    HSD_GObj* gobj = Player_GetEntity(slot);
+    HSD_GObj* other;
+    Fighter* fp;
+
+    if (gobj == NULL || !host_live_fighter(gobj) ||
+        (fp = GET_FIGHTER(gobj)) == NULL)
+    {
+        return "no such fighter";
+    }
+    if (kb <= 0.0F) {
+        return "no knockback";
+    }
+    wake(gobj, fp);
+    release(gobj, fp);
+    ftCo_800D4F24(gobj, 0); /* as if it had just come back */
+    ftCo_800D4FF4(gobj);
+    still(fp, dir < 0.0F ? 1.0F : -1.0F);
+    fp->cur_pos.x = x;
+    fp->cur_pos.y = y;
+    moved(gobj, fp);
+    ftCo_Fall_Enter(gobj);
+    fp->x1968_jumpsUsed = (u8) (jumps < 1 ? 1 : jumps);
+    fp->dmg.x1830_percent = percent;
+    Player_SetHUDDamage(fp->player_idx, (int) percent);
+    fp->shield_health = p_ftCommonData->x260_startShieldHealth;
+    partner(gobj, BESIDE_AIR, NULL);
+    knock(gobj, fp, kb, angle, dir);
+    other = partner_of(gobj);
+    if (other != NULL) {
+        knock(other, GET_FIGHTER(other), kb, angle, dir);
+    }
     ftCamera_UpdateCameraBox(gobj);
     Camera_8002F3AC();
     return NULL;

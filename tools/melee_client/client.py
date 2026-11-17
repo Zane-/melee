@@ -805,6 +805,47 @@ class Client:
                 ("quiet", "Quiet time", "No damage, then the reset.",
                  settings.quiet_words(secs), "#F5BE1B")]
 
+    # -- the opponent's reaction time (settings "react") --------------------
+
+    def react_rule(self):
+        """The reaction time, in frames, of a drill's opponent that thinks:
+        the player's choice, else the drill's own (its scenario's "react"),
+        else a person's 15."""
+        own = 15
+        s = self.session
+        if isinstance(s, course_engine.Session) and \
+                getattr(s.d, "scripted", False):
+            op = s.d.scenario().get("opponent")
+            if isinstance(op, dict):
+                own = op.get("react", own)
+        return self.settings.get("react", own)
+
+    def react_change(self, step):
+        """Left or right on CPU reaction: the player's choice, kept, and
+        given to the drill (its next attempt's opponent has it)."""
+        now = self.react_rule()
+        at = min(range(len(settings.REACT)),
+                 key=lambda i: abs(settings.REACT[i] - now))
+        self.settings["react"] = settings.REACT[
+            (at + step) % len(settings.REACT)]
+        self.progress.save()
+        self.react_now()
+
+    def react_now(self):
+        """The player's reaction time for the opponent (settings "react")
+        given to the drill; None where they have not chosen."""
+        s = self.session
+        if isinstance(s, course_engine.Session) and hasattr(s.d, "react"):
+            s.d.react = self.settings.get("react")
+
+    def react_rows(self, icons=False):
+        """CPU reaction, as the pause menu (icons) and Settings show it."""
+        words = settings.react_words(self.react_rule())
+        if icons:
+            return [("react", "CPU reaction", words, "options")]
+        return [("react", "CPU reaction", "How fast an opponent sees you.",
+                 words, "#F5BE1B")]
+
     def pause_tabs(self, kind):
         """The pause menu's tabs for a `kind` of match ("drill", "versus",
         "online")."""
@@ -856,6 +897,9 @@ class Client:
                     s.common[course_engine.OPT_SIDE]], "side"))
             if s.cpu_port is not None and not s.d.flow:
                 rows += self.reset_rows(icons=True)
+            if s.cpu_port is not None and getattr(s.d, "scripted", False):
+                # an opponent that thinks: how fast it reacts
+                rows += self.react_rows(icons=True)
             if s.d.stages:
                 rows.append(("stage", "Stage", s.d.stage.replace(
                     "-", " ").title(), "stage"))
@@ -922,6 +966,9 @@ class Client:
         if ident in ("rmode", "rquiet"):
             self.reset_change(ident, step)
             return True, False
+        if ident == "react":
+            self.react_change(step)
+            return True, True
         if ident.startswith("opt"):
             i = int(ident[3:])
             s.opts[i] = (s.opts[i] + step) % s.d.options[i].size()
@@ -3208,6 +3255,7 @@ class Client:
             also=self.course_opponents())
         self.session = session
         self.reset_now()            # (Settings: Drill reset, Quiet time)
+        self.react_now()            # (Settings: CPU reaction)
         self.drill_stages = drill.stages
         self.wait_released()
         self.screen = "drill"
@@ -4551,7 +4599,7 @@ class Client:
     SUB = {"ssound": ("Sound", "#F0643C", ("music", "effects", "menus")),
            "sdisplay": ("Display", "#F5BE1B",
                         ("window", "size", "sidebar", "inputs", "coach",
-                         "reset", "quiet")),
+                         "reset", "quiet", "react")),
            "sonline": ("Online", "#22B8A0",
                        ("nick", "port", "friends", "router"))}
 
@@ -4609,7 +4657,7 @@ class Client:
                      s["inputs"].title(), "#F5BE1B"),
                     ("coach", "Coach", "Its card, after misses in a row.",
                      "After %d misses" % s["coach"] if s["coach"] else "Off",
-                     "#F5BE1B")] + self.reset_rows()
+                     "#F5BE1B")] + self.reset_rows() + self.react_rows()
             panel = screens.display_panel(s["sidebar"], full, s["size"])
             desc = ("TM-CE's input display: whose buttons and sticks are "
                     "drawn over the game in drills and matches."
@@ -4627,6 +4675,12 @@ class Client:
                 desc = ("How long neither fighter takes damage before the "
                         "scenario resets, with Drill reset on After damage "
                         "stops.")
+            elif ident == "react":
+                desc = ("In a drill whose opponent thinks: how long after "
+                        "you commit to something (a jump, an attack, the "
+                        "ledge taken) it sees it and may change what it "
+                        "does. Fewer frames is harder. Until chosen, each "
+                        "drill's own.")
             hints = [("D-SIDE", "Change"), ("B", "Back")]
         else:
             fr = online.friends(self.progress.data)
@@ -4718,6 +4772,9 @@ class Client:
                 changed = True
             elif ident in ("reset", "quiet"):
                 self.reset_change(ident, step or 1)
+                changed = True
+            elif ident == "react":
+                self.react_change(step or 1)
                 changed = True
             else:
                 i = settings.COACH.index(s["coach"])

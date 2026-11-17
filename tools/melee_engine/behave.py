@@ -1166,16 +1166,65 @@ class ChainGrab(Driven):
         return raw
 
 
+# ---- off the stage ----------------------------------------------------------
+
+class Recover(Behaviour):
+    """Off the stage, the way back that the game says works against what
+    the player is doing: the routes its character has (jumps, specials,
+    their angles and timings) played ahead, one of the best taken, checked
+    again as it flies and changed when the player commits to covering it,
+    seen `react` frames late (recover.py). Over when it hangs from the
+    ledge, stands on the stage, or is lost (`ended`); at once if it stands
+    on the stage already. `budget`: routes a decision plays ahead. `to`
+    ("ledge", "stage"): it only goes there (an example's opponent, which
+    does the one thing the example answers). `tools`: the only ones its
+    routes use, comma separated (jump, float, up_b, side_b, down_b,
+    airdodge; "jump": it comes back with its jump and its drift alone, no
+    special that would hit a player on the ledge). `adapt` false: it flies the
+    route it first chose, whatever the player does. `predict` false: only
+    what the player is doing counts against a route, not what they could
+    do from where they are."""
+    name = "recover"
+
+    def __init__(self, ctx, spec):
+        super().__init__(ctx, spec)
+        from melee_engine.recover import Pilot
+        self.pilot = Pilot(
+            ctx.think, ctx.port, ctx.target,
+            rng=random.Random(self.rng.random()), react=ctx.react,
+            half=ctx.half, memory=ctx.memory.setdefault("recover", {}),
+            budget=int(spec.get("budget", 48)),
+            temperature=ctx.temperature + 2.0, goal=spec.get("to"),
+            tools=spec.get("tools"),
+            adapt=spec.get("adapt", True), predict=spec.get("predict", True))
+
+    @property
+    def ended(self):
+        return self.pilot.ended
+
+    def step(self, st):
+        raw = self.pilot.pad(st, self.ctx.their)
+        self.done = self.pilot.done
+        self.log = self.pilot.log
+        return raw
+
+    def plan(self, st, k):
+        return self.pilot.ahead(k)
+
+    def stop(self):
+        self.pilot.stop()
+
+
 # ---- the table --------------------------------------------------------------
 
 BEHAVIOURS = {
     "hold": Hold, "footsies": Footsies, "retreat": Retreat,
     "approach": Approach, "move": Move, "punish": Punish,
     "pressure": Pressure, "chase": Chase, "chain_grab": ChainGrab,
-    "play": Play,
+    "play": Play, "recover": Recover,
 }
 # in the scope, not built yet: a script naming them is refused
-NOT_BUILT = ("edgeguard", "recover")
+NOT_BUILT = ("edgeguard",)
 
 
 def _pair(v):
@@ -1219,6 +1268,16 @@ PARAMS = {
     "chain_grab": {"throw": (lambda v: v in THROWS, ", ".join(THROWS)),
                    "regrab": (_moves, "engine moves by name prefix")},
     "play": {},
+    "recover": {"budget": (lambda v: isinstance(v, int) and 8 <= v <= 200,
+                           "routes a decision plays ahead, 8 to 200"),
+                "to": (lambda v: v in ("ledge", "stage"), "ledge or stage"),
+                "tools": (lambda v: isinstance(v, str) and v != "" and all(
+                    t in ("jump", "float", "up_b", "side_b", "down_b",
+                          "airdodge") for t in v.split(",")),
+                    "jump, float, up_b, side_b, down_b, airdodge, comma "
+                    "separated"),
+                "adapt": (lambda v: isinstance(v, bool), "true or false"),
+                "predict": (lambda v: isinstance(v, bool), "true or false")},
 }
 REQUIRED = {"approach": ("moves",), "move": ("name",)}
 

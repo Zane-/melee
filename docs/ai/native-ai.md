@@ -1227,6 +1227,7 @@ process when the client starts and whenever one changes.
 | Controls: Button layouts | Said to be next: they exist only in the overlay build |
 | Sound | Music, effects (matches and drills) and menu sounds, 0 to 100 in tens. Mixed apart outside the game (`volume MUSIC SOUND`, `host_window_gain`): a voice is music when its samples came from a `.hps` file (`host_aram_file`, `audio.c`'s `is_music`). The client gives the effects' volume in matches and the menus' on menus |
 | Display | Fullscreen or a window, the window's size (1280x720 to 2560x1440), the sidebar shown or hidden (also START held in a match; kept) |
+| Display: CPU reaction | The reaction time of a drill's opponent that thinks (a script, `melee_engine/script.py`): 30, 24, 20, 15, 12, 9, 6 or 3 frames after the player commits to something before it sees it and may change what it does; fewer is harder. Until chosen, each drill's own (15). Also in a drill's pause menu, where a change is the next attempt's (`settings.REACT`, `Client.react_change`, `JsonDrill.react`; 2026-11-17, for the edgeguard drill; `tests/client/edgeguard.py`) |
 | Online | The nickname (X pastes it), the code's UDP port, the friends met (Y forgets one), and the router: two STUN servers asked from one socket, "Open" when both saw the same public port (`online.router_check`; only when A is pressed) |
 
 The online screen (Versus, Online) is redrawn as the canvas's "Versus: online" (the

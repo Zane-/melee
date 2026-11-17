@@ -130,6 +130,49 @@ class Fighter:
             "air" if self.airborne else "ground", self.percent)
 
 
+class Route:
+    """What a way back to the stage came to, played ahead (Native.route):
+    `end` "air" (undecided at the horizon), "ledge" (caught), "stage"
+    (landed and free again), "hit" (or grabbed), "lost" (dead, or under the
+    lower blast line); `frame` it was decided on (1 the first played); `x`,
+    `y`, `state`, `air` the fighter then; `taken` its damage; `land` the
+    frame it landed on and `free` the first it could act on the ground (0:
+    not); `near` the least distance between the fighters (`near_at` its
+    frame); `gap` the least gap from the target's active hitboxes to its
+    hurtboxes (999: none out; `gap_at`); `top`, `low` its highest and
+    lowest; `tx`, `ty`, `tstate` the target at the end; `ledge` the least
+    distance it came to the ledge on its side (`ledge_at` its frame)."""
+    ENDS = ("air", "ledge", "stage", "hit", "lost")
+    __slots__ = ("ms", "end", "frame", "x", "y", "state", "air", "taken",
+                 "land", "free", "near", "near_at", "gap", "gap_at", "top",
+                 "low", "tx", "ty", "tstate", "ledge", "ledge_at", "path")
+
+    def __init__(self, text):
+        # ("routep": after a "|", the fighter's (x, y) after each frame)
+        text, _, rest = text.partition("|")
+        self.path = [tuple(float(a) for a in row.split())
+                     for row in rest.split(";") if row.strip()]
+        v = text.split()
+        self.ms = float(v[1])
+        self.end = self.ENDS[int(v[2])]
+        self.frame = int(v[3])
+        self.x, self.y = float(v[4]), float(v[5])
+        self.state, self.air = int(v[6]), v[7] == "1"
+        self.taken = float(v[8])
+        self.land, self.free = int(v[9]), int(v[10])
+        self.near, self.near_at = float(v[11]), int(v[12])
+        self.gap, self.gap_at = float(v[13]), int(v[14])
+        self.top, self.low = float(v[15]), float(v[16])
+        self.tx, self.ty, self.tstate = float(v[17]), float(v[18]), \
+            int(v[19])
+        self.ledge = float(v[20]) if len(v) > 20 else 999.0
+        self.ledge_at = int(v[21]) if len(v) > 21 else 0
+
+    def __repr__(self):
+        return "<%s on %d at (%.1f, %.1f) near %.1f gap %.1f>" % (
+            self.end, self.frame, self.x, self.y, self.near, self.gap)
+
+
 class _Pads:
     """What each controller is holding, as the simulator keeps it
     (`sim.h.pads`), for code that reads the pads back."""
@@ -673,6 +716,35 @@ class Native:
         damage, a full shield. Raises if there is no floor below."""
         self._cmd("place %d %.9g %.9g %d %d %.9g" % (
             port, x, y, 1 if facing >= 0 else -1, 1 if air else 0, percent))
+
+    def launch(self, port, x, y, percent=0.0, kb=100.0, angle=45, toward=1,
+               jumps=1):
+        """Knock a fighter away from (x, y) in the air, as a hit there
+        would: `kb` units of knockback at `angle` degrees above level,
+        toward +x (`toward` 1) or -x (-1), with that much damage, `jumps`
+        of its jumps used (1: the double jump left; 2: gone). The game's
+        own launch: its damage state, speed, hitstun and tumble
+        (src/host/setup.c)."""
+        self._cmd("launch %d %.9g %.9g %.9g %.9g %d %d %d" % (
+            port, x, y, percent, kb, int(round(angle)),
+            1 if toward >= 0 else -1, jumps))
+
+    def route(self, port, target, plan, their=None, horizon=240):
+        """A way back to the stage played ahead and undone
+        (src/host/ahead.c, "route"): `port` plays `plan` ([(frames, raw
+        pad)], the last held on), `target` plays `their` (the same; None:
+        it holds its pad), until `port` has caught the ledge, landed and is
+        free, is hit, is lost, or `horizon` frames. Returns a Route."""
+        def words(segs):
+            return " ".join("%d %x %d %d %d %d %d %d" % ((n,) + tuple(raw))
+                            for n, raw in segs if n > 0)
+        state = self._state
+        text = "route %d %d %d %s" % (port, target, horizon, words(plan))
+        if their:
+            text += " | " + words(their)
+        reply = self._cmd(text)
+        self._state = state                # nothing changed
+        return Route(reply)
 
     # ---- reading --------------------------------------------------------------------
 

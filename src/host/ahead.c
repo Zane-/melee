@@ -41,6 +41,28 @@
  * game's): while a lookahead runs they only note it, and the lookahead
  * stops at the next boundary.
  *
+ * A route ("route PORT TARGET HORIZON N BUTTONS LX LY CX CY L R [N ...]
+ * [| N BUTTONS LX LY CX CY L R ...]"): a way back to the stage played
+ * ahead, to where it is decided, and undone. PORT plays its pads (the last
+ * held on), TARGET the pads after the "|" (the last held on; none: what it
+ * holds now), until PORT has caught the ledge, has landed and can act
+ * again, is hit or grabbed, is lost (dead, or under the stage's lower
+ * blast line), or HORIZON frames have passed. The opponent that recovers
+ * (tools/melee_engine/recover.py) asks it of every way back it considers,
+ * against what the player is expected to do. The reply:
+ * "@ ok MS END FRAME X Y STATE AIR TAKEN LAND FREE NEAR NEAR_AT GAP GAP_AT
+ * TOP LOW TX TY TSTATE LEDGE LEDGE_AT": END 0 still in the air at the horizon, 1 the
+ * ledge caught, 2 landed and free again, 3 hit (or grabbed), 4 lost;
+ * FRAME the frame it was decided on (1 the first played); X Y STATE AIR
+ * PORT's then; TAKEN its damage taken; LAND the frame it landed on (0:
+ * not), FREE the first frame it could act on the ground (0: not); NEAR
+ * the least distance between the two fighters and its frame; GAP the
+ * least gap from TARGET's active hitboxes to PORT's hurtboxes, edge to
+ * edge (999: none out), and its frame; TOP and LOW the highest and lowest
+ * PORT was; TX TY TSTATE the target at the end; LEDGE the least distance
+ * PORT came to the ledge on its side of the stage, and its frame (how near
+ * a route that fell short came).
+ *
  * This file's statics are not the game's state (tools/native_build.py's
  * GAME_STATE_HOST does not list it), so what the frames showed survives
  * their undoing.
@@ -57,11 +79,34 @@
 
 #include <melee/ft/inlines.h>
 #include <melee/ft/types.h>
+#include <melee/gr/stage.h>
 #include <melee/lb/types.h>
 #include <melee/pl/player.h>
 #include <sysdolphin/baselib/gobj.h>
 
 #define AHEAD_MAX 180 /* frames one lookahead may play */
+#define ROUTE_MAX 600 /* frames one route may play */
+/* frames a route is followed after it landed, for the fighter to be free */
+#define ROUTE_LANDED 70
+/* a route's end */
+enum { ROUTE_AIR, ROUTE_LEDGE, ROUTE_STAGE, ROUTE_HIT, ROUTE_LOST };
+/* action states (ftCo_MS_*) a route reads */
+#define RS_DEAD_LAST 10
+#define RS_WAIT 14
+#define RS_WALK_FIRST 15
+#define RS_TURN 18
+#define RS_DASH 20
+#define RS_RUN 21
+#define RS_SQUAT_FIRST 39
+#define RS_SQUAT_LAST 41
+#define RS_LANDING 42
+#define RS_LANDING_FALL_SPECIAL 43
+#define RS_GUARD_ON 178
+#define RS_GUARD 179
+#define RS_CAPTURE_FIRST 223
+#define RS_CAPTURE_LAST 232
+#define RS_CLIFF_CATCH 252
+#define RS_CLIFF_WAIT 253
 /* pads (segments) one lookahead takes: a body's dash dances and a
    line's L-cancel pulses made more than 16 (behave.stun_over); 48 of them
    fit in the command loop's 2,048 characters with room */
@@ -92,6 +137,23 @@ static struct {
     Row rows[AHEAD_MAX];
     struct timespec t0;
     pid_t rb_pid;      ///< the process rollback was started in by us
+    /* a route ("route ..."): TARGET's pads, and what came of it */
+    int route;
+    Seg tsegs[SEGS];
+    int ntsegs;
+    int end, end_at, land_at, free_at, near_at, gap_at;
+    int end_state, end_air, t_state;
+    float end_x, end_y, taken, near, gap, top, low, t_x, t_y;
+    /* the stage's ledges, and the least distance PORT came to the one on
+       its side (its frame) */
+    float ledge_x[2], ledge_y[2], ledge_d;
+    int ledges, ledge_at;
+    /* "routep": PORT's place frame by frame, in the reply too */
+    int with_path;
+    float path_x[ROUTE_MAX], path_y[ROUTE_MAX];
+    /* "hitboxes": PORT's active hitboxes frame by frame, as the reply */
+    char hb[32768];
+    int hb_len;
 } ahead;
 
 int host_ahead_active(void)
@@ -222,16 +284,58 @@ static void record(Row* row)
     hit_gap(a, t, &row->gap, &row->gx);
 }
 
+/// The pad of `segs` held on frame `n` (past its end: the last one).
+static const HostPad* seg_pad(const Seg* segs, int nsegs, int n)
+{
+    for (int s = 0; s < nsegs; s++) {
+        if (n < segs[s].frames) {
+            return &segs[s].pad;
+        }
+        n -= segs[s].frames;
+    }
+    return &segs[nsegs - 1].pad;
+}
+
 /// The pad PORT holds on frame `n` of the lookahead.
 static const HostPad* pad_for(int n)
 {
-    for (int s = 0; s < ahead.nsegs; s++) {
-        if (n < ahead.segs[s].frames) {
-            return &ahead.segs[s].pad;
+    return seg_pad(ahead.segs, ahead.nsegs, n);
+}
+
+/// Pads read from `*line` into `segs` ("N BUTTONS LX LY CX CY L R" each),
+/// up to a "|" or the line's end; how many, or -1 (too many, a length
+/// under 1). `*total`: their frames.
+static int read_segs(const char** line, Seg* segs, int* total)
+{
+    int nsegs = 0, used = 0;
+    *total = 0;
+    for (;;) {
+        int n = 0, lx, ly, cx, cy, lt, rt;
+        unsigned buttons;
+        Seg* s;
+        if (sscanf(*line, "%d %x %d %d %d %d %d %d%n", &n, &buttons, &lx,
+                   &ly, &cx, &cy, &lt, &rt, &used) < 8)
+        {
+            break;
         }
-        n -= ahead.segs[s].frames;
+        *line += used;
+        if (n <= 0 || nsegs == SEGS) {
+            return -1;
+        }
+        s = &segs[nsegs++];
+        memset(&s->pad, 0, sizeof s->pad);
+        s->frames = n;
+        s->pad.buttons = (uint16_t) buttons;
+        s->pad.lx = (int8_t) lx;
+        s->pad.ly = (int8_t) ly;
+        s->pad.cx = (int8_t) cx;
+        s->pad.cy = (int8_t) cy;
+        s->pad.lt = (uint8_t) lt;
+        s->pad.rt = (uint8_t) rt;
+        s->pad.connected = 1;
+        *total += n;
     }
-    return &ahead.segs[ahead.nsegs - 1].pad;
+    return nsegs;
 }
 
 /// "ahead ..." read at a frame boundary (control.c). NULL when the frames
@@ -248,6 +352,7 @@ const char* host_ahead_begin(const char* line)
     if (host_net_active()) {
         return "not during a netplay session";
     }
+    ahead.route = 0;
     if (sscanf(line, "%d %d %d%n", &ahead.port, &ahead.target, &ahead.stop,
                &used) < 3 ||
         ahead.port < 0 || ahead.port > 3 || ahead.target < 0 ||
@@ -340,9 +445,19 @@ static void reply(void)
 /// another frame is to be played ahead (its pads are set); 0 when the
 /// lookahead is over: the game is back where the command was read and the
 /// reply has been printed.
+static int route_boundary(void);
+static int hitboxes_boundary(void);
+
 int host_ahead_boundary(void)
 {
-    Row* row = &ahead.rows[ahead.played];
+    Row* row;
+    if (ahead.route == 2) {
+        return hitboxes_boundary();
+    }
+    if (ahead.route) {
+        return route_boundary();
+    }
+    row = &ahead.rows[ahead.played];
     record(row);
     ahead.played++;
     if (ahead.contact_at < 0 &&
@@ -373,5 +488,373 @@ int host_ahead_boundary(void)
     }
     ahead.active = 0;
     reply();
+    return 0;
+}
+
+/* ---- a route: a way back to the stage, played to where it is decided ---- */
+
+/// Can a fighter on the ground act (standing, moving, crouching,
+/// shielding, or its landing's lag over: ftCo_Landing_IASA, as engine.c's
+/// can_act reads it)?
+static int ground_free(Fighter* fp)
+{
+    int m = (int) fp->motion_id;
+    if (fp->dmg.x195c_hitlag_frames > 0) {
+        return 0;
+    }
+    if ((m == RS_LANDING || m == RS_LANDING_FALL_SPECIAL) &&
+        fp->mv.co.landing.allow_interrupt &&
+        fp->cur_anim_frame >= fp->co_attrs.normal_landing_lag)
+    {
+        return 1;
+    }
+    return m == RS_WAIT || (m >= RS_WALK_FIRST && m <= RS_TURN) ||
+           m == RS_DASH || m == RS_RUN ||
+           (m >= RS_SQUAT_FIRST && m <= RS_SQUAT_LAST) || m == RS_GUARD ||
+           m == RS_GUARD_ON;
+}
+
+/// "route ..." read at a frame boundary (control.c), as host_ahead_begin.
+/// `path`: "routep", the reply ends with "|" and PORT's place after each
+/// frame, "X Y" joined by ";".
+const char* host_route_begin(const char* line, int path)
+{
+    int used = 0, horizon = 0, total = 0, ttotal = 0;
+    Fighter *a, *t;
+
+    ahead.with_path = path;
+    if (ahead.active || host_engine_active()) {
+        return "a search or lookahead is already running";
+    }
+    if (host_net_active()) {
+        return "not during a netplay session";
+    }
+    if (sscanf(line, "%d %d %d%n", &ahead.port, &ahead.target, &horizon,
+               &used) < 3 ||
+        ahead.port < 0 || ahead.port > 3 || ahead.target < 0 ||
+        ahead.target > 3 || horizon <= 0)
+    {
+        return "route PORT TARGET HORIZON N BUTTONS LX LY CX CY L R ... "
+               "[| N BUTTONS LX LY CX CY L R ...]";
+    }
+    line += used;
+    ahead.nsegs = read_segs(&line, ahead.segs, &total);
+    if (ahead.nsegs <= 0) {
+        return "each pad is held 1 frame or more, 48 pads at most";
+    }
+    ahead.ntsegs = 0;
+    while (*line == ' ') {
+        line++;
+    }
+    if (*line == '|') {
+        line++;
+        ahead.ntsegs = read_segs(&line, ahead.tsegs, &ttotal);
+        if (ahead.ntsegs < 0) {
+            return "each pad is held 1 frame or more, 48 pads at most";
+        }
+    }
+    ahead.total = horizon > ROUTE_MAX ? ROUTE_MAX : horizon;
+    a = fighter_of(ahead.port);
+    t = fighter_of(ahead.target);
+    if (a == NULL || t == NULL) {
+        return "no fighter there";
+    }
+    if (!host_rb_running() || ahead.rb_pid != getpid()) {
+        const char* why = host_rb_start();
+        if (why != NULL) {
+            return why;
+        }
+        ahead.rb_pid = getpid();
+    }
+    clock_gettime(CLOCK_MONOTONIC, &ahead.t0);
+    host_rb_mark();
+    ahead.a_percent0 = a->dmg.x1830_percent;
+    ahead.t_percent0 = t->dmg.x1830_percent;
+    ahead.played = 0;
+    ahead.contact_at = -1;
+    ahead.scene_end = 0;
+    ahead.end = ROUTE_AIR;
+    ahead.end_at = ahead.land_at = ahead.free_at = 0;
+    ahead.near_at = ahead.gap_at = 0;
+    ahead.near = ahead.gap = NO_GAP;
+    ahead.top = ahead.low = a->cur_pos.y;
+    ahead.ledges = host_ledge_at(0, &ahead.ledge_x[0], &ahead.ledge_y[0]) >=
+                       0 &&
+                   host_ledge_at(1, &ahead.ledge_x[1], &ahead.ledge_y[1]) >= 0;
+    ahead.ledge_d = NO_GAP;
+    ahead.ledge_at = 0;
+    ahead.taken = 0.0F;
+    ahead.route = 1;
+    ahead.active = 1;
+    host.draw = 0; /* undone with the rest */
+    host.pads[ahead.port] = *pad_for(0);
+    if (ahead.ntsegs > 0) {
+        host.pads[ahead.target] = *seg_pad(ahead.tsegs, ahead.ntsegs, 0);
+    }
+    return NULL;
+}
+
+/// The frame just played, read: 1 while the route is undecided.
+static int route_note(void)
+{
+    Fighter* a = fighter_of(ahead.port);
+    Fighter* t = fighter_of(ahead.target);
+    int n = ahead.played + 1, m, end = ROUTE_AIR;
+    float d, gap, gx;
+
+    if (a == NULL) {
+        ahead.end = ROUTE_LOST;
+        ahead.end_at = n;
+        return 0;
+    }
+    m = (int) a->motion_id;
+    ahead.end_x = a->cur_pos.x;
+    ahead.end_y = a->cur_pos.y;
+    if (ahead.played < ROUTE_MAX) {
+        ahead.path_x[ahead.played] = a->cur_pos.x;
+        ahead.path_y[ahead.played] = a->cur_pos.y;
+    }
+    ahead.end_state = m;
+    ahead.end_air = (int) a->ground_or_air;
+    ahead.taken = a->dmg.x1830_percent - ahead.a_percent0;
+    if (a->cur_pos.y > ahead.top) {
+        ahead.top = a->cur_pos.y;
+    }
+    if (a->cur_pos.y < ahead.low) {
+        ahead.low = a->cur_pos.y;
+    }
+    if (ahead.ledges) {
+        int right = a->cur_pos.x >= 0.0F;
+        float dx = a->cur_pos.x - ahead.ledge_x[right];
+        float dy = a->cur_pos.y - ahead.ledge_y[right];
+        d = sqrtf(dx * dx + dy * dy);
+        if (d < ahead.ledge_d) {
+            ahead.ledge_d = d;
+            ahead.ledge_at = n;
+        }
+    }
+    if (t != NULL) {
+        float dx = t->cur_pos.x - a->cur_pos.x;
+        float dy = t->cur_pos.y - a->cur_pos.y;
+        ahead.t_x = t->cur_pos.x;
+        ahead.t_y = t->cur_pos.y;
+        ahead.t_state = (int) t->motion_id;
+        d = sqrtf(dx * dx + dy * dy);
+        if (d < ahead.near) {
+            ahead.near = d;
+            ahead.near_at = n;
+        }
+        hit_gap(t, a, &gap, &gx);
+        if (gap < ahead.gap) {
+            ahead.gap = gap;
+            ahead.gap_at = n;
+        }
+    }
+    if (m <= RS_DEAD_LAST ||
+        a->cur_pos.y < Stage_GetBlastZoneBottomOffset() + 4.0F)
+    {
+        end = ROUTE_LOST;
+    } else if (ahead.taken > 0.0F ||
+               (m >= RS_CAPTURE_FIRST && m <= RS_CAPTURE_LAST))
+    {
+        end = ROUTE_HIT;
+    } else if (m == RS_CLIFF_CATCH || m == RS_CLIFF_WAIT) {
+        end = ROUTE_LEDGE;
+    } else if (a->ground_or_air == GA_Ground) {
+        if (ahead.land_at == 0) {
+            ahead.land_at = n;
+        }
+        if (ground_free(a)) {
+            ahead.free_at = n;
+            end = ROUTE_STAGE;
+        } else if (n - ahead.land_at >= ROUTE_LANDED) {
+            end = ROUTE_STAGE;
+        }
+    } else if (ahead.land_at != 0) {
+        ahead.land_at = 0; /* off the ground again (slid off, a hop) */
+    }
+    if (end != ROUTE_AIR) {
+        ahead.end = end;
+        ahead.end_at = n;
+        return 0;
+    }
+    ahead.end_at = n;
+    return 1;
+}
+
+static void route_reply(void)
+{
+    struct timespec t1;
+    double ms;
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    ms = (t1.tv_sec - ahead.t0.tv_sec) * 1000.0 +
+         (t1.tv_nsec - ahead.t0.tv_nsec) / 1e6;
+    printf("@ ok %.3f %d %d %.3f %.3f %d %d %.2f %d %d %.2f %d %.2f %d %.2f "
+           "%.2f %.3f %.3f %d %.2f %d",
+           ms, ahead.end, ahead.end_at, ahead.end_x, ahead.end_y,
+           ahead.end_state, ahead.end_air, ahead.taken, ahead.land_at,
+           ahead.free_at, ahead.near, ahead.near_at, ahead.gap, ahead.gap_at,
+           ahead.top, ahead.low, ahead.t_x, ahead.t_y, ahead.t_state,
+           ahead.ledge_d, ahead.ledge_at);
+    if (ahead.with_path) {
+        int k = ahead.played < ROUTE_MAX ? ahead.played : ROUTE_MAX;
+        printf(" |");
+        for (int i = 0; i < k; i++) {
+            printf("%s%.1f %.1f", i ? ";" : "", ahead.path_x[i],
+                   ahead.path_y[i]);
+        }
+    }
+    printf("\n");
+    fflush(stdout);
+}
+
+/* ---- where a fighter's hitboxes would be ---------------------------------- */
+
+/// "hitboxes PORT FRAMES N BUTTONS LX LY CX CY L R [N ...]": PORT plays
+/// its pads (the last held on) for FRAMES frames, the others holding
+/// theirs, and the frames are undone. The reply, "@ ok MS ROW;ROW;...":
+/// for each frame on which one of its hitboxes was out, "F X Y R [X Y R
+/// ...]": the frame (1 the first played) and each active hitbox's two ends
+/// (where it is and where it was a frame before: the game sweeps between
+/// them) with its radius. What the player could strike, and when
+/// (tools/melee_engine/recover.py, `threats`).
+const char* host_hitboxes_begin(const char* line)
+{
+    int used = 0, horizon = 0, total = 0;
+    Fighter* a;
+
+    if (ahead.active || host_engine_active()) {
+        return "a search or lookahead is already running";
+    }
+    if (host_net_active()) {
+        return "not during a netplay session";
+    }
+    if (sscanf(line, "%d %d%n", &ahead.port, &horizon, &used) < 2 ||
+        ahead.port < 0 || ahead.port > 3 || horizon <= 0)
+    {
+        return "hitboxes PORT FRAMES N BUTTONS LX LY CX CY L R ...";
+    }
+    line += used;
+    ahead.nsegs = read_segs(&line, ahead.segs, &total);
+    if (ahead.nsegs <= 0) {
+        return "each pad is held 1 frame or more, 48 pads at most";
+    }
+    ahead.ntsegs = 0;
+    ahead.target = ahead.port;
+    ahead.total = horizon > AHEAD_MAX ? AHEAD_MAX : horizon;
+    a = fighter_of(ahead.port);
+    if (a == NULL) {
+        return "no fighter there";
+    }
+    if (!host_rb_running() || ahead.rb_pid != getpid()) {
+        const char* why = host_rb_start();
+        if (why != NULL) {
+            return why;
+        }
+        ahead.rb_pid = getpid();
+    }
+    clock_gettime(CLOCK_MONOTONIC, &ahead.t0);
+    host_rb_mark();
+    ahead.played = 0;
+    ahead.contact_at = -1;
+    ahead.scene_end = 0;
+    ahead.hb_len = 0;
+    ahead.hb[0] = '\0';
+    ahead.route = 2;
+    ahead.active = 1;
+    host.draw = 0; /* undone with the rest */
+    host.pads[ahead.port] = *pad_for(0);
+    return NULL;
+}
+
+/// The frame just played: PORT's active hitboxes, written down.
+static void hitboxes_note(void)
+{
+    Fighter* a = fighter_of(ahead.port);
+    int n = ahead.played + 1, any = 0;
+    if (a == NULL) {
+        return;
+    }
+    for (int h = 0; h < 4; h++) {
+        HitCapsule* hit = &a->x914[h];
+        int room = (int) sizeof ahead.hb - ahead.hb_len;
+        int w;
+        if (hit->state == HitCapsule_Disabled || room < 96) {
+            continue;
+        }
+        if (!any) {
+            w = snprintf(ahead.hb + ahead.hb_len, (size_t) room, "%s%d",
+                         ahead.hb_len ? ";" : "", n);
+            ahead.hb_len += w;
+            room -= w;
+            any = 1;
+        }
+        w = snprintf(ahead.hb + ahead.hb_len, (size_t) room,
+                     " %.1f %.1f %.1f %.1f %.1f %.1f", hit->x4C.x,
+                     hit->x4C.y, hit->scale, hit->x58.x, hit->x58.y,
+                     hit->scale);
+        ahead.hb_len += w;
+    }
+}
+
+static int hitboxes_boundary(void)
+{
+    hitboxes_note();
+    ahead.played++;
+    if (ahead.played < ahead.total && !ahead.scene_end) {
+        host.int_enabled = 1;
+        host_deliver();
+        host.frame++;
+        host_advance(HOST_TICKS_PER_FRAME);
+        host_match_install();
+        host_anchor_frame();
+        host_rng_frame();
+        host.pads[ahead.port] = *pad_for(ahead.played);
+        return 1;
+    }
+    host_rb_mark();
+    if (host_rb_rewind(1) < 0) {
+        host_fatal("hitboxes: could not go back");
+    }
+    ahead.active = 0;
+    ahead.route = 0;
+    {
+        struct timespec t1;
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        printf("@ ok %.3f %s\n",
+               (t1.tv_sec - ahead.t0.tv_sec) * 1000.0 +
+                   (t1.tv_nsec - ahead.t0.tv_nsec) / 1e6,
+               ahead.hb);
+        fflush(stdout);
+    }
+    return 0;
+}
+
+static int route_boundary(void)
+{
+    int go = route_note();
+    ahead.played++;
+    if (go && ahead.played < ahead.total && !ahead.scene_end) {
+        host.int_enabled = 1;
+        host_deliver();
+        host.frame++;
+        host_advance(HOST_TICKS_PER_FRAME);
+        host_match_install();
+        host_anchor_frame();
+        host_rng_frame();
+        host.pads[ahead.port] = *pad_for(ahead.played);
+        if (ahead.ntsegs > 0) {
+            host.pads[ahead.target] =
+                *seg_pad(ahead.tsegs, ahead.ntsegs, ahead.played);
+        }
+        return 1;
+    }
+    host_rb_mark();
+    if (host_rb_rewind(1) < 0) {
+        host_fatal("route: could not go back");
+    }
+    ahead.active = 0;
+    ahead.route = 0;
+    route_reply();
     return 0;
 }
