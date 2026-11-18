@@ -39,6 +39,7 @@ int aurora_capture_read(void (*sink)(const unsigned char* rgba,
 static int in_frame;
 static int started;
 static double mouse_moved_at; ///< when the mouse last moved (now_ms)
+static unsigned long mouse_motions; ///< motion events seen, for "cursor"
 /// The process is exiting (exit() has begun): Aurora's teardown then
 /// destroys the graphics device, which Dawn reports as a device lost at
 /// the fatal level; that is the end it was asked for, not a failure (it
@@ -1049,6 +1050,17 @@ static double now_ms(void)
     return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
 }
 
+/// "cursor" (control.c): whether SDL shows the cursor, how long since the
+/// mouse last moved (ms), the motion events seen, and whether the window
+/// has the mouse's focus.
+void host_window_cursor(char* out, size_t size)
+{
+    snprintf(out, size, "visible %d idle %.0f motions %lu focus %d",
+             SDL_CursorVisible() ? 1 : 0, now_ms() - mouse_moved_at,
+             mouse_motions,
+             sdl_window != NULL && SDL_GetMouseFocus() == sdl_window);
+}
+
 /// MELEE_TIMING=1: every 60 frames, where a frame's time went. "game" is
 /// everything between two frame boundaries (the game's own work and its
 /// graphics calls, which Aurora only records); "end" is Aurora drawing and
@@ -1326,6 +1338,7 @@ void host_window_frame(void)
             event->sdl.type == SDL_EVENT_MOUSE_MOTION)
         {
             mouse_moved_at = now_ms();
+            mouse_motions++;
             if (!SDL_CursorVisible()) {
                 SDL_ShowCursor();
             }

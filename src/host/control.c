@@ -1166,6 +1166,15 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "cursor") == 0) {
+        /* "cursor": the mouse cursor's state (window.c) */
+#ifdef HOST_WINDOW
+        char buf[160];
+        host_window_cursor(buf, sizeof buf);
+        printf("@ %s\n", buf);
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "frameshot") == 0) {
         /* "frameshot PATH": the last frame shown, as a PPM (window.c;
            needs MELEE_CAPTURE) */

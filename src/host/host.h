@@ -209,6 +209,7 @@ void host_window_forget(const void* data, size_t size);
 const char* host_window_live(int port, const char* source);
 const char* host_window_vkey(const char* name, int down);
 const char* host_window_frameshot(const char* path);
+void host_window_cursor(char* out, size_t size);
 void host_window_pace(int on);
 void host_window_quiet(int on);
 int host_window_drawable(void);

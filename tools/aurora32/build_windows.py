@@ -79,6 +79,10 @@ def main():
     # latest frame of a window the GPU presents.
     apply_patch(SRC, HERE / "aurora-0004-frame-capture.patch",
                 "include/aurora/aurora.h", "aurora_capture_enable")
+    # The mouse cursor is the host's (window.c hides it while the mouse is
+    # still): ImGui's SDL3 backend showed it again every frame.
+    apply_patch(SRC, HERE / "aurora-0005-host-owns-cursor.patch",
+                "lib/imgui.cpp", "NoMouseCursorChange")
 
     configure = [
         "cmake", "-S", SRC, "-B", OUT / "build", "-G", "Ninja",
