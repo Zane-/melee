@@ -109,9 +109,12 @@ enum { ROUTE_AIR, ROUTE_LEDGE, ROUTE_STAGE, ROUTE_HIT, ROUTE_LOST };
 #define RS_CLIFF_WAIT 253
 #define RS_CLIFF_LAST 263 /* CliffJumpQuick2: the ledge's own states */
 /* pads (segments) one lookahead takes: a body's dash dances and a
-   line's L-cancel pulses made more than 16 (behave.stun_over); 48 of them
-   fit in the command loop's 2,048 characters with room */
-#define SEGS 48
+   line's L-cancel pulses made more than 16 (behave.stun_over); a route
+   that mashes a button (the Ice Climbers' side special, B every other
+   frame for 44) after a pre-roll and a stall more than 48, and a decision
+   whose route did not fit was lost whole (2026-11-17). 160 of them fit in
+   the command loop's 8,192 characters with room (control.c) */
+#define SEGS 160
 #define NO_GAP 999.0F
 
 typedef struct Seg {
@@ -156,6 +159,11 @@ static struct {
     /* PORT has been off the ledge on this route (it began there: a route
        from the ledge ends on the ledge only once it has left it) */
     int off_ledge;
+    /* the magnifier's damage (1% for each second off the screen:
+       fighter.c) is not a hit: PORT's counter of it and damage the frame
+       before, and what of its damage was the magnifier's */
+    int a_1910;
+    float a_percent_was, off;
     /* "hitboxes": PORT's active hitboxes frame by frame, as the reply */
     char hb[32768];
     int hb_len;
@@ -378,7 +386,7 @@ const char* host_ahead_begin(const char* line)
         }
         line += used;
         if (n <= 0 || ahead.nsegs == SEGS) {
-            return "each pad is held 1 frame or more, 48 pads at most";
+            return "each pad is held 1 frame or more, 160 pads at most";
         }
         Seg* s = &ahead.segs[ahead.nsegs++];
         s->frames = n;
@@ -547,7 +555,7 @@ const char* host_route_begin(const char* line, int path)
     line += used;
     ahead.nsegs = read_segs(&line, ahead.segs, &total);
     if (ahead.nsegs <= 0) {
-        return "each pad is held 1 frame or more, 48 pads at most";
+        return "each pad is held 1 frame or more, 160 pads at most";
     }
     ahead.ntsegs = 0;
     while (*line == ' ') {
@@ -557,7 +565,7 @@ const char* host_route_begin(const char* line, int path)
         line++;
         ahead.ntsegs = read_segs(&line, ahead.tsegs, &ttotal);
         if (ahead.ntsegs < 0) {
-            return "each pad is held 1 frame or more, 48 pads at most";
+            return "each pad is held 1 frame or more, 160 pads at most";
         }
     }
     ahead.total = horizon > ROUTE_MAX ? ROUTE_MAX : horizon;
@@ -593,6 +601,9 @@ const char* host_route_begin(const char* line, int path)
     ahead.off_ledge = !((int) a->motion_id >= RS_CLIFF_CATCH &&
                         (int) a->motion_id <= RS_CLIFF_LAST);
     ahead.taken = 0.0F;
+    ahead.a_1910 = a->dmg.x1910;
+    ahead.a_percent_was = a->dmg.x1830_percent;
+    ahead.off = 0.0F;
     ahead.route = 1;
     ahead.active = 1;
     host.draw = 0; /* undone with the rest */
@@ -630,7 +641,19 @@ static int route_note(void)
     }
     ahead.end_state = m;
     ahead.end_air = (int) a->ground_or_air;
-    ahead.taken = a->dmg.x1830_percent - ahead.a_percent0;
+    /* off the screen a fighter takes 1% a second (Fighter's own count,
+       x1910, back at 0 with the damage): no hit, and a route flown far out
+       or high is not over with it. (Until 2026-11-17 it was: every route
+       of a fighter in the magnifier ended "hit", none was good, and it
+       drifted.) */
+    if (a->dmg.x1830_percent > ahead.a_percent_was && ahead.a_1910 > 0 &&
+        a->dmg.x1910 == 0 && a->dmg.x195c_hitlag_frames <= 0.0F)
+    {
+        ahead.off += a->dmg.x1830_percent - ahead.a_percent_was;
+    }
+    ahead.a_1910 = a->dmg.x1910;
+    ahead.a_percent_was = a->dmg.x1830_percent;
+    ahead.taken = a->dmg.x1830_percent - ahead.a_percent0 - ahead.off;
     if (a->cur_pos.y > ahead.top) {
         ahead.top = a->cur_pos.y;
     }
@@ -753,7 +776,7 @@ const char* host_hitboxes_begin(const char* line)
     line += used;
     ahead.nsegs = read_segs(&line, ahead.segs, &total);
     if (ahead.nsegs <= 0) {
-        return "each pad is held 1 frame or more, 48 pads at most";
+        return "each pad is held 1 frame or more, 160 pads at most";
     }
     ahead.ntsegs = 0;
     ahead.target = ahead.port;

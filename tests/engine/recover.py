@@ -28,7 +28,18 @@ behaviour; src/host: "launch", "route", "hitboxes"), on the headless game.
   the ledge with its jump alone and stops there, and with the ledge held
   it falls;
 - a script's `recover` step is checked by the format: its keys, their
-  values.
+  values;
+- it never falls without a try (the owner, 2026-11-17: "many of the drills
+  the CPU will just SD"): a decision with no time at all still answers; a
+  route the game will not play is one route less; hit off the stage with
+  little hitstun, the first decision is the one flown; answers back after
+  their frame are flown from where it is, not thrown away; where nothing
+  ends well it presses something all the same; a ledge it waits for is
+  waited for once, not put off again;
+- it is flown as a person flies (the same day: "Humans are naturally
+  tricky"): hanging back, in and back out, fast falls, a special pulled
+  back before it comes in; every start of the drill leaves a way back, and
+  four of them are high.
 """
 import os
 import random
@@ -237,15 +248,18 @@ def main():
             restart(n, "fox", ch)
             n.start("fox", ch, "final-destination", 1)
             memory, seen = {}, []
-            for i in range(10):
-                r = RV.recover_once(n, ch, "normal", 1 if i % 2 == 0 else -1,
+            for i in range(12):
+                r = RV.recover_once(n, ch, ("weak", "normal", "hard",
+                                            "high")[i % 4],
+                                    1 if i % 2 == 0 else -1,
                                     500 + 31 * i, memory=memory)
                 seen += [k for k in r["via"]
                          if k.split(">")[0].startswith(stall + "+") or
                          ("+" + stall + "+") in k.split(">")[0] or
                          (ch == "jigglypuff" and stall in k)]
-            check("%s stalls with %s before it comes in, some of ten "
-                  "recoveries" % (ch, name), len(seen) >= 1,
+            check("%s stalls with %s before it comes in, some of twelve "
+                  "recoveries (weak, normal, hard and high starts)"
+                  % (ch, name), len(seen) >= 1,
                   "%d: %s" % (len(seen), ", ".join(sorted(set(seen)))))
 
         # -- from the ledge ---------------------------------------------------
@@ -412,6 +426,174 @@ def main():
               "free: %s -> %s on %d; held: %s -> %s on %d" % (
                   free["label"], free["end"], free["frame"], only["label"],
                   only["end"], only["frame"]))
+
+        # -- a ledge held and nothing else in reach: it waits, once -----------
+        wait = at(hang=True, out=30.0, up=-45.0, tools="jump")
+        kept = at(hang=True, out=30.0, up=-45.0, tools="jump",
+                  current=dict(pads=wait["pads"], kind=wait["kind"],
+                               waiting=True)) if wait.get("pads") else {}
+        check("the ledge held and only its jump: it waits for the ledge "
+              "with a jump that would reach if they let go; decided again, "
+              "that jump is kept, not put off for a later one",
+              wait.get("waiting") and
+              wait["label"].startswith("waits for the ledge") and
+              any(raw[0] for raw in wait["pads"]) and kept.get("kept") and
+              kept.get("waiting"),
+              "%s; again: %s, kept %s" % (wait.get("label"),
+                                          kept.get("label"),
+                                          kept.get("kept")))
+
+        # -- nothing ends well: it goes for it all the same -------------------
+        n.clean()
+        n.seed(5)
+        n.place(0, 0.0, 0.0, 1, False, 0.0)
+        n.launch(1, half + 95.0, -55.0, 60, 25, 45, 1, 2)
+        put(n, 0, NONE)
+        put(n, 1, NONE)
+        n.step()
+        none = RC.decide(n, 1, 0, [], [(1, NONE)], random.Random(5))
+        check("Fox 95 out and 55 under the ledge, his jump gone: no route "
+              "ends well, and it presses something all the same (a drift "
+              "that fell past nearest the ledge was the best, once)",
+              none["good"] == 0 and none["end"] != "stage" and
+              any(raw[0] for raw in none["pads"]) and
+              not none["label"].startswith("drift"),
+              "%s -> %s, %d of %d good" % (none["label"], none["end"],
+                                           none["good"], none["tried"]))
+
+        # -- on the clock ----------------------------------------------------
+        n.clean()
+        n.seed(6)
+        n.place(0, 0.0, 0.0, 1, False, 0.0)
+        n.launch(1, half - 8, 6, 60, 100, 50, 1, 1)
+        put(n, 0, NONE)
+        put(n, 1, NONE)
+        n.step()
+        full = RC.decide(n, 1, 0, [NONE] * 14, [(1, NONE)],
+                         random.Random(6))
+        rough = RC.decide(n, 1, 0, [NONE] * 14, [(1, NONE)],
+                          random.Random(6), deadline=0.0)
+        check("a decision with no time at all still answers: the routes "
+              "that act at once, one in each copy, and the best of them",
+              rough["pads"] and rough["partial"] and
+              rough["tried"] <= 8 < full["tried"] and not full["partial"],
+              "%d routes, %s -> %s in %.0f ms; with time %d routes in "
+              "%.0f ms" % (rough["tried"], rough["label"], rough["end"],
+                           rough["wall"], full["tried"], full["wall"]))
+        team = RC.Team(n, 3)
+
+        def twice(game, x):
+            if x == 1:
+                raise ValueError("no")
+            return x * 2
+        out = team.map(twice, [0, 1, 2, 3])
+        team.close()
+        check("a route the game will not play is one route less, not the "
+              "decision lost", out == [0, None, 4, 6] and team.faults == 1,
+              "%s, %d faults" % (out, team.faults))
+
+        restart(n, "fox", "marth")
+        n.start("fox", "marth", "final-destination", 1)
+        flown = []
+        for delay, name in ((1, "in time"), (20, "6 frames late")):
+            for seed in (21, 22, 23):
+                n.clean()
+                n.seed(seed)
+                d = RV.launch(n, random.Random(seed), "off the stage",
+                              1 if seed % 2 else -1, half, scenario="marth")
+                put(n, 0, NONE)
+                put(n, 1, NONE)
+                n.step()
+                stun = int(n.state()["p"][1]["hitstun"])
+                pilot = RC.Pilot(Late(n, delay), 1, 0,
+                                 rng=random.Random(seed), half=half)
+                fly(n, pilot, lambda f, st: NONE)
+                flown.append(dict(
+                    name=name, stun=stun, ended=pilot.ended,
+                    first=pilot.first, late=pilot.late,
+                    dropped=len(pilot.dropped),
+                    asked=pilot.decisions[0]["asked"] if pilot.decisions
+                    else None))
+        early = [x for x in flown if x["name"] == "in time"]
+        slow = [x for x in flown if x["name"] != "in time"]
+        check("hit off the stage with less hitstun than its decision's "
+              "lead: the first decision, asked on the first frame, is the "
+              "one flown (the pads until its frame are played as it was "
+              "made with: it was thrown away, and the next came a lead "
+              "later)", all(x["asked"] == 0 and not x["dropped"] and
+                            x["ended"] == "stage" and
+                            x["stun"] < RC.Pilot.LEAD + 6 for x in early),
+              str(early))
+        check("every answer some frames after its frame (a machine too "
+              "slow for the allowance): each is flown from where it is, "
+              "none thrown away, every time it presses, and it stands on "
+              "the stage again two times of three or more (thrown away, "
+              "none was ever flown, and it fell without a press)",
+              all(x["late"] >= 1 and not x["dropped"] and
+                  x["first"] is not None for x in slow) and
+              sum(x["ended"] == "stage" for x in slow) >= 2, str(slow))
+
+        # -- flown as a person flies -----------------------------------------
+        tags, ends, pulled = {}, [], 0
+        for ch in ("captain-falcon", "peach"):
+            restart(n, "fox", ch)
+            n.start("fox", ch, "final-destination", 1)
+            memory = {}
+            for run in range(8):
+                r = RV.recover_once(n, ch, "high", 1 if run % 2 else -1,
+                                    300 + run, memory=memory)
+                ends.append(r["end"])
+                for kind in r["via"]:
+                    tag = kind.split(" ")[-1]
+                    if tag in ("fade", "late", "fast", "weave"):
+                        tags[tag] = tags.get(tag, 0) + 1
+            st = n.state()
+            v = RC.View(dict(st["p"][1], x=half + 60.0, y=70.0, state=29,
+                             air=1, jumps=1, hitstun=0), st["p"][0],
+                        RC.ledges(n), ch)
+            pulled += sum("pulled back" in c.label
+                          for c in RC.air_candidates(v, random.Random(1)))
+        check("from high beside the stage, Captain Falcon and Peach, 16 "
+              "recoveries: not all straight in (it hangs back, comes and "
+              "pulls away, falls fast, weaves), every one back; a special "
+              "pulled back before it comes in is among their routes",
+              len(tags) >= 3 and sum(tags.values()) >= 5 and
+              all(e == "stage" for e in ends) and pulled >= 4,
+              "%s; ends %s; %d routes with a special pulled back" % (
+                  tags, sorted(set(ends)), pulled))
+
+        # -- every start leaves a way back -----------------------------------
+        none = []
+        total = 0
+        for ch in ("fox", "jigglypuff", "samus"):
+            restart(n, "fox", ch)
+            n.start("fox", ch, "final-destination", 1)
+            for kind in RV.table(scenario=ch)[0]:
+                for run in range(2):
+                    ok, _, d = RV.feasible(n, kind, 1 if run else -1,
+                                           500 + run, scenario=ch)
+                    total += 1
+                    if not ok:
+                        none.append((ch, kind, d["inland"], d["y"]))
+        check("the drill's starts, Fox, Jigglypuff and Samus, two draws of "
+              "each: every one leaves it a way back when it first acts a "
+              "reaction after the launch (those that leave none are "
+              "narrowed or left out, for each character)",
+              not none and total >= 70, "%d starts; none from %s" % (
+                  total, none))
+        hits = RV.table(scenario="fox")[0]
+        check("its starts are high too: above the edge, high beside the "
+              "stage, high and far out, with its jump and without",
+              all(k in hits for k in ("from above", "high", "high and far",
+                                      "high without its jump")) and
+              hits["high"]["y"][0] >= 90 and
+              sum(h.get("weight", 1) for k, h in hits.items()
+                  if k.startswith(("high", "from above"))) >=
+              0.35 * sum(h.get("weight", 1) for h in hits.values()),
+              "%d starts: %s" % (len(hits), ", ".join(hits)))
+
+        restart(n, "fox", "fox")
+        n.start("fox", "fox", "final-destination", 1)
 
         # -- the drill's tries: no two alike ---------------------------------
         from melee_course import engine as CE

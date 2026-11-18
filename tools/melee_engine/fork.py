@@ -128,6 +128,7 @@ class InFork:
     a jump planned far ahead, a correction in the air a few frames on."""
 
     FRAME = 1.0 / 60
+    timed = True              # its decisions are on the clock (recover.Pilot)
     # the longest lead of a kind: a correction in the air decided further
     # ahead than this comes too late to matter (the arc is over), so one
     # that takes longer is dropped, not waited for
@@ -141,7 +142,17 @@ class InFork:
         self.lock = threading.Lock()
         self.took = {}            # kind: seconds each decision took
         self.leads = {}           # kind: its lead
-        self.errors = []
+        # The thinking is threads of this process, beside the client's
+        # own (its interface, drawn in Python each frame), and all of them
+        # take turns at the interpreter. A thread that has waited for the
+        # game's answer waits again for its turn, up to the interpreter's
+        # switch interval each time (5 ms: a copy of the game made, 3 ms
+        # alone, took 13 beside the client, and a decision three times as
+        # long as alone). A tenth of that: the turns come round at once.
+        if sys.getswitchinterval() > 0.0005:
+            sys.setswitchinterval(0.0005)
+        self.errors = []          # decisions that raised: tracebacks
+        self.said = set()         # the faults already said
         self.forgotten = set()    # decisions no longer wanted
 
     def realtime(self):
@@ -163,8 +174,8 @@ class InFork:
             out = None
             try:
                 out = fn(self.n)
-            except Exception as e:
-                self.errors.append(repr(e))
+            except Exception:
+                self._fault()
             with self.lock:
                 self.results[tag] = out
             return
@@ -178,8 +189,8 @@ class InFork:
         out = None
         try:
             out = fn(child)
-        except Exception as e:           # reported, and nothing decided
-            self.errors.append(repr(e))
+        except Exception:                # reported, and nothing decided
+            self._fault()
         finally:
             child.close()
         took = time.time() - t0
@@ -198,6 +209,23 @@ class InFork:
             most = self.MOST.get(kind, self.most)
             self.leads[kind] = max(3, min(most, int(math.ceil(
                 slow / self.FRAME)) + 2))
+
+    def _fault(self):
+        """A decision that raised: kept (`errors`: its traceback), and
+        said once for each kind of fault, where the client was started
+        (until 2026-11-17 nothing showed them, and an opponent whose
+        every decision failed stood there or fell)."""
+        import sys
+        import traceback
+        text = traceback.format_exc()
+        last = text.strip().splitlines()[-1]
+        with self.lock:
+            self.errors.append(text)
+            new = last not in self.said
+            self.said.add(last)
+        if new:
+            print("the opponent's thinking failed (said once):\n" + text,
+                  file=sys.stderr, flush=True)
 
     def ready(self, tag):
         with self.lock:

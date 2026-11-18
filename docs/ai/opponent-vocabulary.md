@@ -219,7 +219,13 @@ plays what the check found.
   route to it; what a kind of route came to is remembered from one attempt to the next;
   every try of a session draws its own numbers (the client gave them all the same, for
   every scripted opponent); and the drill draws its start from ten kinds, with where
-  the opponent is hit from, its damage and where the player stands.
+  the opponent is hit from, its damage and where the player stands. Then twice more
+  ("many of the drills the CPU will just SD"; "a lot of the recoveries do not recover
+  like a human would"): decisions on a deadline, late answers flown, the damage off the
+  screen no hit, always an attempt; routes flown hanging back, pulled away, fast or
+  weaving, a special pulled back, a float kept; thirteen starts, four of them high
+  ("It fell without a press" and "Flown as a person flies" in `melee-engine.md`;
+  `tests/engine/recover.py` 37 of 37, `tests/native/offscreen.py` 5 of 5).
 
 - 2026-11-15: an approach on the shield hits its front, and attacks with every family
   it has. The owner, playing fox-shine-oos: "the CPU often overshoots on the shield hit

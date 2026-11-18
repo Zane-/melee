@@ -437,7 +437,7 @@ families drawn into a queue, three searched a look, one used twice in the last 8
 while the opponent is patient. On a shield the contract also wants one hit in the
 answer's frames (`behave.stun_over(clear=)`: Yoshi's two-hit back air told a jump three
 frames late that the shield was hit again, where check.py's mistake is judged late). And a
-lookahead takes 48 pads, not 16 (`ahead.c`): live, a body's dash dances in the pre-roll
+lookahead takes 48 pads (160 since the recovering opponent: below), not 16 (`ahead.c`): live, a body's dash dances in the pre-roll
 and a line's L-cancel pulses made more, and the decision failed ("16 pads at most": 106
 of 750 decisions before, 587 of 1,476 with the variety pick, each one waited for again).
 The cost: live, the commitment comes later for some (Marth's median 38 to 152 frames,
@@ -579,9 +579,12 @@ watches still pays for one fork) and plays its routes in those copies, each answ
 a thread. Headless a recovery's thinking, checks and all, takes 250 to 600 ms over its
 150 to 270 frames; live, in forks of the window build on a virtual display, a decision
 took 235 to 326 ms, 1 of 3 back after its frame (`tests/client/edgeguard.py`; that rig
-draws in software beside it: on a desktop whose GPU draws, the cores are free).
+draws in software beside it: on a desktop whose GPU draws, the cores are free). That
+was the first measure, of two tries; what came of answers back after their frame, and
+the deadline a decision has since, is "It fell without a press" below.
 
-`tests/engine/recover.py` (28 of 28, headless): the launch's state, hitstun and tumble; a
+`tests/engine/recover.py` (37 of 37, headless; the nine added 2026-11-17 are in "It fell
+without a press" and "Flown as a person flies" below): the launch's state, hitstun and tumble; a
 route played ahead says where it ends, leaves the game as it was, and played for real
 ends there on that frame; one begun on the ledge gets up onto the stage, intangible on
 the way; Fox, Marth, Sheik and Jigglypuff stand on the stage again from six starts each
@@ -637,6 +640,62 @@ the coach's replays the number of the try they show. And the drill draws more
 stands and faces, with its damage, each time; ten starts: TM-CE's four strengths, one
 with the double jump gone, hit low off the edge, already off the stage with its jump or
 without, coming down from above, hanging from the ledge.
+
+**It fell without a press** (2026-11-17, the owner: "many of the drills the CPU will
+just SD (i.e. do nothing, no side b, no up B, etc.)"). Headless it never did; in the
+client, at the console's pace, it did in 8 tries of 33 with the player standing still.
+Four causes, each fixed:
+
+| Cause | What happened | Now |
+|-|-|-|
+| An answer back after its frame was thrown away | A decision is made for a frame some frames on. The lead followed how long decisions took, a third to half a second in the client; one back a few frames late whose route began at once was dropped and asked again, as late each time. From high or far out, where routes are long to play ahead, none ever came in time: "0 decisions used, 3 to 10 late", no press | A decision has a deadline (`decide(deadline=)`: the frames until its frame less a slack measured from how late the last ones came, `Pilot._paced`), plays the routes that act at once and the others in turn, and answers with the best of those played ("partial"; it is made again with that route in hand while there is time to change it). The lead is 14 frames, a person's reaction, or the hitstun left if that is longer. An answer that is late all the same is flown from the frame it came, and checked at once |
+| The pads until a decision's frame were not the ones it was made with | Hit off the stage with less hitstun than the lead (the starts off the stage and from above: 10 to 20 frames), the decision was made with the stick let go until its frame, and the pilot drifted once the hitstun was over: the answer did not fit what was played, and was dropped. The next came a lead later: a first press 50 to 70 frames after the launch | The pads until a decision's frame are decided when it is asked and played as promised (`Pilot.promise`) |
+| The damage taken off the screen | A fighter in the magnifier takes 1% a second (fighter.c, `dmg.x1910`). A route ended "hit" at any damage and the pilot dropped its route at any: knocked far out or high, every route was "hit", none good, and each second what was being decided was thrown away | `route` (ahead.c) leaves the magnifier's damage out; the pilot takes damage for a hit only with hitlag or a damage state begun. `tests/native/offscreen.py` (the window build: the headless one has no camera) |
+| Nothing ended well | The best of the bad was often a drift that fell past nearest the ledge; with the ledge held, each decision put the wait off for a later one until none reached | It goes for it: the best of the routes that do something. A route it waits on for a ledge is kept while it would still reach. From high, where a rough answer found nothing, it drifts on with its jump and specials kept and decides again at once |
+
+Also: a route of more than 48 pads (the Ice Climbers' side special mashed, after a
+pre-roll) failed, and the whole decision with it, silently: 160 now (`ahead.c` SEGS,
+`control.c`'s line of 8,192), a route the game will not play is one route less
+(`Team.map`), and a fault in the forked thinking is printed once where the client was
+started (`fork.InFork._fault`: nothing showed them). A decision's copies are made by
+doubling (`recover.copies`: seven one after the other took 105 to 130 ms beside the
+client, half a decision's time; 46 to 57 now), the player's attacks are played beside
+the routes, and the thinking threads get the interpreter every half millisecond
+(`sys.setswitchinterval`). Starts that leave a character no way back when it first acts
+a reaction after the launch are narrowed or left out for that character
+(`recoveries.feasible`, `--feasible`).
+
+Measured in the client at the console's pace, on a virtual display, with a scratch
+harness that plays many tries and counts those that end without a press (the client
+test plays two tries at pace):
+
+| The player | Before | Now |
+|-|-|-|
+| stands still | 25 of 33 back, 8 fell without a press | %(passive)s |
+| takes the ledge at once, down smashes at the edge, jumps out and swings, in turn | not measured with these starts | %(active)s |
+
+%(first)s
+
+**Flown as a person flies** (the owner, the same day: "Peaches will bait attacks and
+then drift back to dodge, Captain Falcon will drift back in up B to mix up timings,
+Foxes will up B from high angles ... We need to add more variety in the edge guarding
+height ... Humans are naturally tricky"). Every route held the stick at the stage from
+the hit to the landing. Now a wait and a route's end are flown one of several ways
+(`recover.WAYS`, `ENDS`): hanging back, in and back out, the stick let go; at the end
+back first, a fast fall, a weave. A special that drifts may be pulled back before it
+comes in (`Tool.fade`: Falcon Dive, the parasol, Screw Attack, Dolphin Slash, Belay).
+Peach, floating, may float on, pull back and come in, or let go (the float's own
+candidates: until now a change of mind dropped her out of it). Pulling back is always
+among the first routes played, so that an attack seen coming can be dodged within the
+reaction time. A route flown some other way than straight in is drawn within its kind's
+family ("jump>stage high fade" with "jump>stage high"), and one that begins with a
+stall weighs 2.5 times: among so many ways in, the shine was hardly flown. An opponent
+held to some of its tools (an example's, the first part's) comes straight in.
+
+And the starts are high too (`data/drills/fox-edgeguard.json`, 13 kinds; four of them
+high, 11 of the 26 weights): coming down above the edge, high beside the stage (95 to
+150 up), high and far out, high with the jump gone. They are placed there with a small
+knockback, not thrown: the same knockback sends Jigglypuff three times as high as Fox.
 
 Not yet: a model of the player beyond "goes on, then lets go", the attacks they have in
 the air and the space they guard on the ground (a run to the ledge, a ledge dropped and

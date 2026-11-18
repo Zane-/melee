@@ -35,14 +35,19 @@ TOP = ("fox", "marth", "jigglypuff", "falco", "sheik", "captain-falcon",
 DRILL = "fox-edgeguard"
 
 
-def table(drill=DRILL):
-    """The starts the edgeguard drill draws from (its second part's first
-    scenario's "launch": TM-CE's hit strengths and more), by name, and
-    where its player stands: ({name: hit}, player)."""
+def table(drill=DRILL, scenario=None):
+    """The starts the edgeguard drill draws from (its second part's
+    scenarios' "launch": TM-CE's hit strengths and more), by name, and
+    where its player stands: ({name: hit}, player). `scenario`: the
+    opponent's character (its own starts: one that leaves a character no
+    way back is not among them); None: the first's."""
     from melee_drills import format as F
     spec = F.load(drill)
     part = spec["parts"][-1]["scenario"]
-    sc = spec["scenarios"][part[0] if isinstance(part, list) else part]
+    ids = part if isinstance(part, list) else [part]
+    scs = [spec["scenarios"][i] for i in ids]
+    sc = next((x for x in scs if x["opponent"].get("character") ==
+               scenario), scs[0])
     return {h["name"]: h for h in sc["opponent"]["launch"]}, sc["player"]
 
 
@@ -170,7 +175,8 @@ STANDINS = {c.name: c for c in (Stand, Ledge, Hog, Bair, Wait)}
 
 # ---- one recovery ---------------------------------------------------------------
 
-def launch(n, rng, kind, side, half, port=1, pin=False):
+def launch(n, rng, kind, side, half, port=1, pin=False, scenario=None,
+           hit=None):
     """The opponent started off the stage's `side` as the drill starts it:
     the start named `kind` drawn from its ranges (format.draw_launch), the
     player where the drill stands them; `pin`: 15 units in from the ledge
@@ -178,8 +184,12 @@ def launch(n, rng, kind, side, half, port=1, pin=False):
     take the ledge are written for). Returns what was drawn."""
     from melee_drills import format as F
     from melee_engine.recover import air_jumps
-    hits, player = table()
-    hit = hits[kind]
+    # (`hit`: a start of the caller's own, not one of the drill's)
+    if hit is None:
+        hits, player = table(scenario=scenario)
+        hit = hits[kind]
+    else:
+        player = {"inland": [8, 30], "facing": "either"}
     if pin:
         hit = dict(hit, player=dict(inland=15, facing="stage"))
     d = F.draw_launch(rng, [hit], player)
@@ -196,6 +206,37 @@ def launch(n, rng, kind, side, half, port=1, pin=False):
     return d
 
 
+def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
+             hit=None):
+    """Whether the start named `kind`, drawn with `seed`, is one the
+    opponent can get back from when its first decision is for `lead` frames
+    after the launch (as while a person plays: recover.Pilot.LEAD; it does
+    nothing until then but drift once its hitstun is over) and the player
+    does nothing: (routes that end well, routes tried, what was drawn). A
+    start with none is not an edgeguard: whatever the player does it falls
+    (and looks as if it gave up)."""
+    from melee_engine import recover as RC
+    lead = RC.Pilot.LEAD if lead is None else lead
+    rng = random.Random(seed)
+    half = abs(n.ledge()[0])
+    n.clean()
+    n.seed(seed & 0xFFFFFFFF or 1)
+    drawn = launch(n, rng, kind, side, half, scenario=scenario, hit=hit)
+    n.pad(0)
+    n.pad(1)
+    n.step()
+    if drawn["hang"]:
+        return 1, 1, drawn
+    me = n.state()["p"][1]
+    stun = int(me.get("hitstun") or 0) if me["state"] in RC.DAMAGE else 0
+    lead = max(lead, min(stun, RC.Pilot.LEAD_MOST))
+    drift = (0, -127 * side, 0, 0, 0, 0, 0)
+    pre = [NONE if j < stun else drift for j in range(lead)]
+    got = RC.decide(n, 1, 0, pre, [(1, NONE)], random.Random(seed),
+                    budget=budget, predict=False)
+    return got["good"], got["tried"], drawn
+
+
 def recover_once(n, char, kind, side, seed, standin="stand", react=15,
                  budget=64, limit=1200, memory=None, show=False):
     """One launch and the recovery from it. Returns dict(end, frames, kind,
@@ -205,7 +246,8 @@ def recover_once(n, char, kind, side, seed, standin="stand", react=15,
     n.clean()
     n.seed(seed & 0xFFFFFFFF or 1)
     # (a stand-in that acts starts where it was written for)
-    drawn = launch(n, rng, kind, side, half, pin=standin != "stand")
+    drawn = launch(n, rng, kind, side, half, pin=standin != "stand",
+                   scenario=char)
     n.pad(0)
     n.pad(1)
     n.step()
@@ -272,12 +314,42 @@ def main():
     ap.add_argument("--stage", default="final-destination")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--show", action="store_true", help="each one's log")
+    ap.add_argument("--feasible", type=int, default=0, metavar="N",
+                    help="instead: N draws of each start, and how many "
+                    "leave it a way back when it first acts a reaction "
+                    "after the launch (those with none are listed)")
     ap.add_argument("--forget", action="store_true",
                     help="each recovery with nothing remembered of the "
                     "ones before (as against what it remembers)")
     args = ap.parse_args()
     t0 = time.time()
     total = good = 0
+    if args.feasible:
+        for ch in args.chars.split(","):
+            hits, _ = table(scenario=ch)
+            with Native() as n:
+                n.start("fox", ch, args.stage, args.seed)
+                for kind in args.launches.split(","):
+                    if kind not in hits:
+                        continue
+                    none = []
+                    for run in range(args.feasible):
+                        ok, tried, d = feasible(
+                            n, kind, 1 if run % 2 == 0 else -1,
+                            args.seed * 7919 + run * 104729, scenario=ch)
+                        total += 1
+                        good += ok > 0
+                        if not ok:
+                            none.append("inland %s y %s kb %s at %s" % (
+                                d["inland"], d["y"], d["knockback"],
+                                d["angle"]))
+                    print("%-15s %-30s %2d of %2d with a way back%s" % (
+                        ch, kind, args.feasible - len(none), args.feasible,
+                        "; none from: " + "; ".join(none) if none else ""),
+                        flush=True)
+        print("%d of %d starts with a way back, %.0f s" % (
+            good, total, time.time() - t0))
+        return 0
     for ch in args.chars.split(","):
         with Native() as n:
             n.start("fox", ch, args.stage, args.seed)
