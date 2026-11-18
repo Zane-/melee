@@ -288,7 +288,9 @@ its proof, never written into one drill's file.
   `"player": {"inland", "facing"}`: where the player stands for this hit, over the
   scenario's. The player's `"inland"` may be [LO, HI] too, their `"facing"` "stage"
   (their back to the ledge), "ledge" or "either" (drawn). `format.draw_launch` draws
-  one. The game's own launch (`launch`, `src/host/setup.c`:
+  one. A start must leave the opponent a way back when it first acts a reaction after
+  the launch (`python tools/melee_engine/recoveries.py --feasible 12`): one that
+  leaves none is no edgeguard, and looks as if the opponent gave up. The game's own launch (`launch`, `src/host/setup.c`:
   the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
   off the left or the right ledge as the runtime draws the side (the pause menu's CPU
   side: Random, Left, Right). `JsonDrill.launched` is what was drawn.
