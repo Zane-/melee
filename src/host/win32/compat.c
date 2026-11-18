@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <io.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <windows.h>
 
@@ -42,10 +43,14 @@ void* mmap(void* addr, size_t length, int prot, int flags, int fd,
     }
     /* A fixed address is taken only if free (MAP_FIXED_NOREPLACE; the
        host never asks to replace a mapping). Committed pages are not
-       backed by memory until touched, as with MAP_NORESERVE. */
-    p = VirtualAlloc((flags & (MAP_FIXED | MAP_FIXED_NOREPLACE)) ? addr
-                                                                 : NULL,
-                     length, MEM_RESERVE | MEM_COMMIT, protection(prot));
+       backed by memory until touched, as with MAP_NORESERVE. The mappings
+       at fixed addresses are the game's (low memory, the arena, the game
+       heap, audio RAM): their written pages are watched, for rollback.c,
+       as Linux's soft-dirty bits are. */
+    int fixed = (flags & (MAP_FIXED | MAP_FIXED_NOREPLACE)) != 0;
+    p = VirtualAlloc(fixed ? addr : NULL, length,
+                     MEM_RESERVE | MEM_COMMIT | (fixed ? MEM_WRITE_WATCH : 0),
+                     protection(prot));
     if (p == NULL) {
         errno = ENOMEM;
         return MAP_FAILED;
@@ -82,14 +87,16 @@ int mprotect(void* addr, size_t length, int prot)
 
 /* --- the game's statics (state.c, rollback.c) --------------------------- */
 
-/* On Linux the linker script tools/native_build.py writes gathers the
-   game's statics into one section between these two symbols, which a
-   snapshot copies. The Windows linker gets no such script yet, so the
-   region is empty: snapshots there hold the arena and the game heap only,
-   and rollback (netplay) is not to be trusted on Windows until the statics
-   are gathered too. */
-char __game_state_start[16] __attribute__((aligned(4096)));
-extern char __game_state_end[] __attribute__((alias("__game_state_start")));
+/* On Linux a linker script gathers the game's statics into one section
+   between these two symbols, which a snapshot copies. On Windows the game's
+   objects have their .data and .bss renamed .data$gs1 and .data$gs2
+   (tools/native_build.py, gather_win32); the PE linker sorts .data$ sections
+   by name, so these two, in .data$gs0 and .data$gs9, bound them. Page
+   aligned, as on Linux (rollback.c follows whole pages). */
+__attribute__((section(".data$gs0"), aligned(4096))) char
+    __game_state_start[4] = { 1 };
+__attribute__((section(".data$gs9"), aligned(4096))) char
+    __game_state_end[4] = { 1 };
 
 /* --- crashes: main.c's report, in place of its sigaction handler ------- */
 
@@ -191,6 +198,72 @@ int swapcontext(ucontext_t* oucp, const ucontext_t* ucp)
     return 0;
 }
 
+/* --- memory outside the address space (control.c's snapshots) --------- */
+
+/* A snapshot is the game's whole state, some 70 MB; a 32-bit process has
+   room for few of them. Each is kept in a section of its own backed by the
+   page file, mapped only while it is written or read. */
+
+void* host_win32_blob_new(size_t size)
+{
+    return CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0,
+                              (DWORD) size, NULL);
+}
+
+void* host_win32_blob_map(void* blob, size_t size)
+{
+    return MapViewOfFile((HANDLE) blob, FILE_MAP_ALL_ACCESS, 0, 0, size);
+}
+
+void host_win32_blob_unmap(void* view)
+{
+    UnmapViewOfFile(view);
+}
+
+void host_win32_blob_free(void* blob)
+{
+    CloseHandle((HANDLE) blob);
+}
+
+/// The same with a name another process can open it by (a forked game's
+/// state, engine.c): NULL if it cannot be made.
+void* host_win32_blob_new_named(const char* name, size_t size)
+{
+    return CreateFileMappingA(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0,
+                              (DWORD) size, name);
+}
+
+void* host_win32_blob_open(const char* name)
+{
+    return OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, name);
+}
+
+/* --- written pages (rollback.c, in place of /proc/self/pagemap) --------- */
+
+/// The pages written in [base, base + length) since the last reset, into
+/// `pages` (room for `max`): how many, or -1 if the range is not watched.
+long host_win32_written(void* base, size_t length, void** pages,
+                        unsigned long max)
+{
+    ULONG_PTR count = max;
+    ULONG granularity;
+
+    if (GetWriteWatch(0, base, length, pages, &count, &granularity) != 0) {
+        return -1;
+    }
+    return (long) count;
+}
+
+void host_win32_unwrite(void* base, size_t length)
+{
+    ResetWriteWatch(base, length);
+}
+
+unsigned long host_win32_pid(void)
+{
+    return GetCurrentProcessId();
+}
+
 /* --- the executable's own path (window.c, in place of /proc/self/exe) -- */
 
 int host_win32_exe_path(char* out, int size)
@@ -205,6 +278,84 @@ void host_win32_binary_output(void)
 {
     _setmode(_fileno(stdout), _O_BINARY);
     _setmode(_fileno(stderr), _O_BINARY);
+}
+
+/* --- a write watch, for finding what overwrites memory (dvd.c) ---------- */
+
+/* MELEE_WATCH_FILE=NAME (dvd.c): once that disc file has been read, its
+   first word's page is made read-only. A write to the page faults; one to
+   the word itself is reported, with the writing instruction and its
+   callers, then every write is let through by a single step and the page
+   protected again. */
+static uint8_t* watch_page;
+static uintptr_t watch_lo, watch_hi;
+static int watch_rearm;
+
+static void watch_report(CONTEXT* c, uintptr_t addr)
+{
+    void** fp = (void**) c->Ebp;
+    fprintf(stderr, "[host] watch: %p written by %p (now %08x)\n",
+            (void*) addr, (void*) c->Eip, *(unsigned*) watch_lo);
+    for (int i = 0; i < 16 && fp != NULL; i++) {
+        MEMORY_BASIC_INFORMATION mbi;
+        if (VirtualQuery(fp, &mbi, sizeof mbi) == 0 ||
+            mbi.State != MEM_COMMIT)
+        {
+            break;
+        }
+        fprintf(stderr, "  caller %p\n", fp[1]);
+        fp = (void**) fp[0];
+    }
+    fflush(stderr);
+}
+
+static LONG WINAPI watch_handler(EXCEPTION_POINTERS* info)
+{
+    EXCEPTION_RECORD* rec = info->ExceptionRecord;
+    DWORD old;
+
+    if (rec->ExceptionCode == EXCEPTION_ACCESS_VIOLATION &&
+        rec->NumberParameters >= 2 && rec->ExceptionInformation[0] == 1 &&
+        watch_page != NULL)
+    {
+        uintptr_t addr = rec->ExceptionInformation[1];
+        if (addr >= (uintptr_t) watch_page &&
+            addr < (uintptr_t) watch_page + 4096)
+        {
+            if (addr + 4 > watch_lo && addr < watch_hi) {
+                watch_report(info->ContextRecord, addr);
+            }
+            VirtualProtect(watch_page, 4096, PAGE_READWRITE, &old);
+            info->ContextRecord->EFlags |= 0x100; /* one instruction */
+            watch_rearm = 1;
+            return EXCEPTION_CONTINUE_EXECUTION;
+        }
+    }
+    if (rec->ExceptionCode == EXCEPTION_SINGLE_STEP && watch_rearm) {
+        watch_rearm = 0;
+        VirtualProtect(watch_page, 4096, PAGE_READONLY, &old);
+        return EXCEPTION_CONTINUE_EXECUTION;
+    }
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void host_win32_watch(void* addr, unsigned length)
+{
+    static int installed;
+    DWORD old;
+
+    if (!installed) {
+        AddVectoredExceptionHandler(1, watch_handler);
+        installed = 1;
+    }
+    if (watch_page != NULL) {
+        VirtualProtect(watch_page, 4096, PAGE_READWRITE, &old);
+    }
+    watch_lo = (uintptr_t) addr;
+    watch_hi = watch_lo + length;
+    watch_page = (uint8_t*) (watch_lo & ~(uintptr_t) 4095);
+    fprintf(stderr, "[host] watch: %p, now %08x\n", addr, *(unsigned*) addr);
+    VirtualProtect(watch_page, 4096, PAGE_READONLY, &old);
 }
 
 /* --- backtraces --------------------------------------------------------- */

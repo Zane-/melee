@@ -111,6 +111,100 @@ int host_control_enabled;
 
 #define MAX_SNAPS 256
 
+#ifdef _WIN32
+/* Windows has no fork(): a snapshot is the game's whole state (state.c)
+   copied into a section of the page file (compat.c), outside the 32-bit
+   address space, and a restore copies it back here, at the frame boundary
+   as everything in this file runs. The game's state is what comes back;
+   the host's own side (this protocol, the window, the pads' sources) goes
+   on, as with "load". */
+void* host_win32_blob_new(size_t size);
+void* host_win32_blob_map(void* blob, size_t size);
+void host_win32_blob_unmap(void* view);
+void host_win32_blob_free(void* blob);
+
+static struct Snap {
+    void* blob;
+    size_t size;
+    uint32_t heap_length;
+    uint32_t frame;
+    int alive;
+}* snaps;
+
+static void snaps_init(void)
+{
+    snaps = calloc(MAX_SNAPS, sizeof *snaps);
+    if (snaps == NULL) {
+        host_fatal("cannot allocate the snapshot table");
+    }
+}
+
+/// Take a snapshot: its id, or -1 (none left, or no memory).
+static int snap_take(int* id_out)
+{
+    int id;
+    size_t size = host_state_size();
+    uint8_t* view;
+
+    for (id = 0; id < MAX_SNAPS && snaps[id].alive; id++) {
+    }
+    if (id == MAX_SNAPS) {
+        return -1;
+    }
+    *id_out = id;
+    snaps[id].blob = host_win32_blob_new(size);
+    if (snaps[id].blob == NULL) {
+        return -1;
+    }
+    view = host_win32_blob_map(snaps[id].blob, size);
+    if (view == NULL) {
+        host_win32_blob_free(snaps[id].blob);
+        return -1;
+    }
+    snaps[id].heap_length = host_state_copy_out(view);
+    host_win32_blob_unmap(view);
+    snaps[id].size = size;
+    snaps[id].frame = host.frame;
+    snaps[id].alive = 1;
+    return id;
+}
+
+/// Bring a snapshot back: 0, or -1 if there is no such snapshot.
+static int snap_restore(int id)
+{
+    const uint8_t* view;
+
+    if (id < 0 || id >= MAX_SNAPS || !snaps[id].alive) {
+        return -1;
+    }
+    view = host_win32_blob_map(snaps[id].blob, snaps[id].size);
+    if (view == NULL) {
+        return -1;
+    }
+    host_state_copy_in(view, snaps[id].heap_length);
+    host_win32_blob_unmap((void*) view);
+    return 0;
+}
+
+static void snap_drop(int id)
+{
+    if (id >= 0 && id < MAX_SNAPS && snaps[id].alive) {
+        host_win32_blob_free(snaps[id].blob);
+        snaps[id].alive = 0;
+    }
+}
+
+static void snap_drop_all(void)
+{
+    if (snaps == NULL) {
+        return;
+    }
+    for (int id = 0; id < MAX_SNAPS; id++) {
+        snap_drop(id);
+    }
+}
+#else
+
 /// Which process holds each snapshot. Shared by every process of a session,
 /// whichever of them is running the game at the moment.
 static struct Snap {
@@ -211,6 +305,7 @@ static void snap_drop_all(void)
         }
     }
 }
+#endif /* _WIN32 */
 
 /* --- reading commands -------------------------------------------------------- */
 
@@ -239,6 +334,9 @@ static int read_line(char* out, size_t size)
         if (in_len == sizeof in_buf) {
             in_len = 0; /* a line longer than any command: drop it */
         }
+        /* everything said so far goes out before the wait (stdout is
+           fully buffered on Windows, which has no line buffering: main.c) */
+        fflush(stdout);
         got = read(0, in_buf + in_len, sizeof in_buf - in_len);
         if (got < 0 && errno == EINTR) {
             continue;
@@ -503,6 +601,14 @@ static void command(char* line)
     } else if (strcmp(cmd, "restore") == 0) {
         int id = -1;
         sscanf(line, "%d", &id);
+#ifdef _WIN32
+        if (in_len != 0 || snap_restore(id) != 0) {
+            printf("@ error no such snapshot\n");
+        } else {
+            /* as the sleeper's copy answers on Linux */
+            printf("@ restored %d frame %u\n", id, host.frame);
+        }
+#else
         if (id < 0 || id >= MAX_SNAPS || !snaps[id].alive || in_len != 0 ||
             kill(snaps[id].pid, SIGUSR1) != 0)
         {
@@ -512,13 +618,18 @@ static void command(char* line)
             fflush(stdout);
             _exit(0);
         }
+#endif
     } else if (strcmp(cmd, "drop") == 0) {
         int id = -1;
         sscanf(line, "%d", &id);
+#ifdef _WIN32
+        snap_drop(id);
+#else
         if (id >= 0 && id < MAX_SNAPS && snaps[id].alive) {
             kill(snaps[id].pid, SIGUSR2);
             snaps[id].alive = 0;
         }
+#endif
         printf("@ ok\n");
     } else if (strcmp(cmd, "ledge") == 0) {
         /* "ledge [right]": where the stage's left (or right) ledge is
@@ -1104,6 +1215,48 @@ static void command(char* line)
 #else
         printf("@ error %s needs the window build\n", cmd);
 #endif
+    } else if (strcmp(cmd, "cursor") == 0) {
+        /* "cursor": the mouse cursor's state (window.c) */
+#ifdef HOST_WINDOW
+        char buf[160];
+        host_window_cursor(buf, sizeof buf);
+        printf("@ %s\n", buf);
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
+    } else if (strcmp(cmd, "frameshot") == 0) {
+        /* "frameshot PATH": the last frame shown, as a PPM (window.c;
+           needs MELEE_CAPTURE) */
+#ifdef HOST_WINDOW
+        char path[1024] = "";
+        const char* why;
+        sscanf(line, " %1023[^\n]", path);
+        why = path[0] ? host_window_frameshot(path) : "frameshot PATH";
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
+    } else if (strcmp(cmd, "vkey") == 0) {
+        /* "vkey 1|0 NAME": a key held down (or let go) for the keyboard
+           port, by SDL's name for it ("Left Shift", "Right", "X"):
+           window.c, for tests on Windows */
+#ifdef HOST_WINDOW
+        int down = 0, at = 0;
+        const char* why;
+        sscanf(line, " %d %n", &down, &at);
+        why = at > 0 ? host_window_vkey(line + at, down) : "vkey 1|0 NAME";
+        if (why != NULL) {
+            printf("@ error %s\n", why);
+        } else {
+            printf("@ ok\n");
+        }
+#else
+        printf("@ error %s needs the window build\n", cmd);
+#endif
     } else if (strcmp(cmd, "live") == 0 || strcmp(cmd, "pace") == 0) {
 #ifdef HOST_WINDOW
         if (cmd[0] == 'l') {
@@ -1453,6 +1606,13 @@ void host_control_frame(void)
     if (snaps == NULL) {
         snaps_init();
     }
+#ifdef _WIN32
+    if (host_fork_child_name != NULL && !host_engine_forked()) {
+        /* a forked game's first frame boundary: the parent's state, and
+           "@ ok fork" for the first reply (engine.c) */
+        host_engine_fork_child_load();
+    } else
+#endif
     if (reply_state) {
         reply_state = 0;
         print_state();

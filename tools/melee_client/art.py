@@ -566,16 +566,27 @@ def render_sheik_later(root=ART):
     Popen to poll, or None if she is drawn already."""
     if not sheik_missing(root):
         return None
+    return _later([sys.executable, str(Path(__file__).resolve()), "--sheik",
+                   "--root", str(root)])
+
+
+def _later(cmd):
+    """A drawing process of its own that dies with this one. (Windows: the
+    game it starts opens a window of its own, off to the side of the
+    client's, and window.shot photographs that: win32ui.py.)"""
     if sys.platform == "win32":
-        # She is drawn on a virtual display and photographed from it
-        # (window.shot), which Windows does not have yet: her place keeps
-        # her emblem (docs/ai/windows.md).
-        return None
-    return subprocess.Popen(
-        [sys.executable, str(Path(__file__).resolve()), "--sheik",
-         "--root", str(root)],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        start_new_session=True, preexec_fn=_die_with_parent)
+        sys.path.insert(0, str(ROOT / "tools" / "melee_native"))
+        from native import die_with_parent_win32
+        p = subprocess.Popen(
+            [cmd[0], "-X", "utf8", *cmd[1:]], stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        die_with_parent_win32(p.pid)
+        return p
+    return subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            start_new_session=True,
+                            preexec_fn=_die_with_parent)
 
 
 def _die_with_parent():

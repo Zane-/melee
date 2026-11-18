@@ -9,6 +9,7 @@
 #include "host.h"
 
 #include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +33,31 @@ typedef struct DiscFile {
 
 static DiscFile* files;
 static int nfiles, files_cap;
+
+/// The table of the disc's files is this process's own (on the C heap),
+/// though its pointer is among the game's statics: a forked game on
+/// Windows, loaded with another process's state (engine.c), keeps its own,
+/// made the same way from the same disc.
+typedef struct {
+    DiscFile* files;
+    int nfiles, files_cap;
+} DiscTable;
+
+void host_dvd_keep(void* out)
+{
+    DiscTable* t = out;
+    t->files = files;
+    t->nfiles = nfiles;
+    t->files_cap = files_cap;
+}
+
+void host_dvd_put_back(const void* in)
+{
+    const DiscTable* t = in;
+    files = t->files;
+    nfiles = t->nfiles;
+    files_cap = t->files_cap;
+}
 
 static int by_path(const void* a, const void* b)
 {
@@ -69,6 +95,11 @@ static void scan(const char* root, const char* rel)
                 files_cap = files_cap ? files_cap * 2 : 1024;
                 files = realloc(files, files_cap * sizeof *files);
             }
+            /* realloc leaves the new entry as the C heap held it: words,
+               words_known, heads and nheads must start at zero, or a .dat
+               file's start could be taken for words and byte-swapped
+               (EfMnData.dat on Windows, depending on the environment) */
+            memset(&files[nfiles], 0, sizeof files[nfiles]);
             files[nfiles].path = strdup(sub);
             files[nfiles].host_path = strdup(full);
             files[nfiles].size = (uint32_t) st.st_size;
@@ -337,6 +368,32 @@ static void read_done(intptr_t length, intptr_t info)
     fi->callback((s32) length, fi);
 }
 
+/* The last disc reads, for archive.c's report of a parse that failed. */
+#define READS 24
+static struct {
+    void* addr;
+    uint32_t length, offset, first;
+    int file;
+    void* caller;
+} reads[READS];
+static int read_next;
+
+void host_dvd_history(void)
+{
+    host_log("the last disc reads, oldest first:");
+    for (int n = READS; n >= 1; n--) {
+        int i = (read_next - n + READS) % READS;
+        if (reads[i].addr != NULL) {
+            host_log("  read %s +%u (%u bytes) into %p, first %08x, by %p",
+                     reads[i].file >= 0 && reads[i].file < nfiles
+                         ? files[reads[i].file].path
+                         : "?",
+                     reads[i].offset, reads[i].length, reads[i].addr,
+                     reads[i].first, reads[i].caller);
+        }
+    }
+}
+
 BOOL DVDReadAsyncPrio(DVDFileInfo* info, void* addr, s32 length, s32 offset,
                       DVDCallback callback, s32 prio)
 {
@@ -351,6 +408,11 @@ BOOL DVDReadAsyncPrio(DVDFileInfo* info, void* addr, s32 length, s32 offset,
     if (fseek(fp, offset, SEEK_SET) == 0) {
         got = fread(addr, 1, (size_t) length, fp);
     }
+    if (got + 32 < (size_t) length && (uint32_t) offset + got < f->size) {
+        /* short of the file's end, not the rounding past it: say so */
+        host_log("short read of %s: %zu of %d bytes at %d (errno %d)",
+                 f->path, got, (int) length, (int) offset, errno);
+    }
     fclose(fp);
     if (got < (size_t) length) {
         /* Reads are rounded up to 32 bytes past the end of the file. */
@@ -359,6 +421,28 @@ BOOL DVDReadAsyncPrio(DVDFileInfo* info, void* addr, s32 length, s32 offset,
     to_host_words(f, addr, (uint32_t) offset, (uint32_t) got);
     remember(addr, (uint32_t) length, (int) info->startAddr,
              (uint32_t) offset);
+    {
+        const uint8_t* b = addr;
+        int i = read_next;
+        read_next = (read_next + 1) % READS;
+        reads[i].addr = addr;
+        reads[i].length = (uint32_t) length;
+        reads[i].offset = (uint32_t) offset;
+        reads[i].first = length >= 4 ? be32(b) : 0;
+        reads[i].file = (int) info->startAddr;
+        reads[i].caller = __builtin_return_address(0);
+    }
+#ifdef _WIN32
+    {
+        /* MELEE_WATCH_FILE=NAME: report what writes over the start of that
+           file once it is read (src/host/win32/compat.c) */
+        void host_win32_watch(void* addr, unsigned length);
+        const char* watch = getenv("MELEE_WATCH_FILE");
+        if (watch != NULL && offset == 0 && strcmp(watch, f->path) == 0) {
+            host_win32_watch(addr, 4);
+        }
+    }
+#endif
     info->cb.state = 0; /* DVD_STATE_END */
     info->cb.transferredSize = (u32) length;
     info->callback = callback;

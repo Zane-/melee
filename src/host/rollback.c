@@ -82,10 +82,38 @@ static double now_ms(void)
     return t.tv_sec * 1e3 + t.tv_nsec / 1e6;
 }
 
+#ifdef _WIN32
+/* Windows: the game's fixed mappings (low memory, the arena, the game heap)
+   are made with MEM_WRITE_WATCH (src/host/win32/compat.c), and Windows
+   lists the pages written in them since the last reset: Linux's soft-dirty
+   bits, by another name. The statics are in the executable's image, which
+   cannot be watched: every page of theirs is a candidate, and the mark's
+   comparison with the mirror keeps only those that changed (1.1 MB, well
+   under a millisecond a frame). */
+long host_win32_written(void* base, size_t length, void** pages,
+                        unsigned long max);
+void host_win32_unwrite(void* base, size_t length);
+
+static int watched(int region)
+{
+    return region != STATICS;
+}
+
+static int clear_marks(void)
+{
+    for (int i = 0; i < NREGIONS; i++) {
+        if (watched(i) && regions[i].length != 0) {
+            host_win32_unwrite(regions[i].start, regions[i].length);
+        }
+    }
+    return 0;
+}
+#else
 static int clear_marks(void)
 {
     return pwrite(clear, "4", 1, 0) == 1 ? 0 : -1;
 }
+#endif
 
 static void* mirror_of(size_t length)
 {
@@ -139,11 +167,18 @@ static void follow_heap(void)
         if (want > r->cap) {
             /* the mirror grows; everything finds it through r->mirror */
             size_t cap = heap_room(want);
+#ifdef _WIN32
+            /* no mremap: a new mirror, what is followed copied over */
+            void* m = mirror_of(cap);
+            memcpy(m, r->mirror, r->length);
+            munmap(r->mirror, r->cap);
+#else
             void* m = mremap(r->mirror, r->cap, cap, MREMAP_MAYMOVE);
             if (m == MAP_FAILED) {
                 host_fatal("rollback: no memory to grow the heap's mirror "
                            "to %zu bytes", cap);
             }
+#endif
             r->mirror = m;
             r->cap = cap;
         }
@@ -163,6 +198,9 @@ const char* host_rb_start(void)
     if (running && opened_by == getpid()) {
         return NULL;
     }
+#ifdef _WIN32
+    opened_by = getpid(); /* nothing to open: the mappings are watched */
+#else
     if (pagemap < 0 || opened_by != getpid()) {
         /* /proc/self is the process that opened it: a process restored
            from a snapshot (control.c) opens its own, and starts over */
@@ -177,6 +215,7 @@ const char* host_rb_start(void)
         }
         opened_by = getpid();
     }
+#endif
     host_game_heap_extent(&heap, &top);
     regions[LOW].start = (uint8_t*) 0x80000000u;
     regions[LOW].length = 0x4000;
@@ -202,6 +241,19 @@ const char* host_rb_start(void)
     if (clear_marks() < 0) {
         return "clear_refs refused";
     }
+#ifdef _WIN32
+    /* write watching works: a page of the arena written now must show it */
+    {
+        volatile uint8_t* probe = regions[ARENA].start;
+        void* page = NULL;
+        probe[0] = probe[0];
+        if (host_win32_written(regions[ARENA].start, PAGE, &page, 1) != 1) {
+            return "the game's memory is not watched for writes "
+                   "(MEM_WRITE_WATCH)";
+        }
+        clear_marks();
+    }
+#else
     /* soft-dirty works: a page written now must show it */
     {
         volatile uint8_t* probe = regions[STATICS].start;
@@ -216,6 +268,7 @@ const char* host_rb_start(void)
         }
         clear_marks();
     }
+#endif
     newest = -1;
     kept = 0;
     memset(&stats, 0, sizeof stats);
@@ -265,6 +318,47 @@ int host_rb_mark(void)
     newest = (newest + 1) % DEPTH;
     rec = &records[newest];
     rec->count = 0;
+#ifdef _WIN32
+    for (int i = 0; i < NREGIONS; i++) {
+        Region* r = &regions[i];
+        size_t pages = r->length / PAGE;
+        long n;
+        if (pages == 0) {
+            continue;
+        }
+        if (!watched(i)) {
+            /* every page; the comparison keeps the changed ones */
+            for (size_t p = 0; p < pages; p++) {
+                uint8_t* live = r->start + p * PAGE;
+                uint8_t* mirror = r->mirror + p * PAGE;
+                if (memcmp(live, mirror, PAGE) != 0) {
+                    record_page(rec, live, mirror);
+                    memcpy(mirror, live, PAGE);
+                }
+            }
+            continue;
+        }
+        if (entries_cap < pages * 2) {
+            /* (entries holds the written pages' addresses here) */
+            entries = realloc(entries, pages * sizeof *entries);
+            entries_cap = pages * 2;
+        }
+        n = host_win32_written(r->start, r->length, (void**) entries,
+                               (unsigned long) pages);
+        if (n < 0) {
+            host_fatal("rollback: the written pages could not be read");
+        }
+        for (long k = 0; k < n; k++) {
+            uint8_t* live = ((uint8_t**) entries)[k];
+            uint8_t* mirror = r->mirror + (live - r->start);
+            if (memcmp(live, mirror, PAGE) == 0) {
+                continue; /* written with what it held */
+            }
+            record_page(rec, live, mirror);
+            memcpy(mirror, live, PAGE);
+        }
+    }
+#else
     for (int i = 0; i < NREGIONS; i++) {
         Region* r = &regions[i];
         size_t pages = r->length / PAGE;
@@ -290,6 +384,7 @@ int host_rb_mark(void)
             }
         }
     }
+#endif
     clear_marks();
     if (kept < DEPTH) {
         kept++;

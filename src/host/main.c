@@ -206,15 +206,24 @@ int main(int argc, char** argv)
             match_at = 30;
         } else if (strcmp(argv[i], "--trace") == 0 && i + 1 < argc) {
             trace_every = (uint32_t) strtoul(argv[++i], NULL, 0);
+#ifdef _WIN32
+        } else if (strcmp(argv[i], "--fork-child") == 0 && i + 1 < argc) {
+            /* a forked game (engine.c): no window, commands on stdin */
+            host_fork_child_name = argv[++i];
+            host_control_enabled = 1;
+#endif
         } else {
             usage();
         }
     }
 #ifdef _WIN32
     /* Windows' C library has no line buffering (_IOLBF is full buffering
-       there, and a size of 0 aborts): whoever reads the output line by line
-       gets every line as it is written. */
-    setvbuf(stdout, NULL, _IONBF, 0);
+       there, and a size of 0 aborts). Fully buffered, and flushed whenever
+       the game waits for a command (control.c, read_line) or stops: a
+       reply goes out in one write, as a line does on Linux. (Unbuffered,
+       each printf of a state was a write of its own, and a driver stepping
+       frame by frame got some 1,100 a second.) */
+    setvbuf(stdout, NULL, _IOFBF, 1 << 16);
     /* Output as on Linux, "\n" and not "\r\n": drivers split replies on
        "\n" (tools/melee_native/native.py). Input stays in text mode, which
        turns a Windows writer's "\r\n" back into "\n". */
@@ -246,8 +255,13 @@ int main(int argc, char** argv)
     host_memory_init();
     host_disc_init(disc);
 #ifdef HOST_WINDOW
-    host.draw = 1;
-    host_window_init();
+#ifdef _WIN32
+    if (host_fork_child_name == NULL)
+#endif
+    {
+        host.draw = 1;
+        host_window_init();
+    }
 #endif
     game_main();
     host_log("the game's main returned");

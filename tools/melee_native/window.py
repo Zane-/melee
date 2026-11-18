@@ -159,10 +159,24 @@ class Window(Native):
     @staticmethod
     def _windows_offscreen(state_dir):
         import tempfile
-        state = Path(state_dir or os.environ.get("CLAUDE_JOB_DIR")
-                     or tempfile.gettempdir()) / "melee-window-state"
+        if state_dir is not None:
+            # a test's own: laid out as on Linux (_virtual_display), where
+            # the test looks for what the game keeps (tests/client/
+            # fullscreen.py reads aurora/fullscreen there)
+            state = Path(state_dir) / "tmp" / "melee-window-xdg"
+        else:
+            # one per game: the client's art jobs (art.py, stages.py) run
+            # games of their own beside a test's, an online test runs two
+            # from one process, and two games sharing Aurora's shader cache
+            # found its database locked
+            Window._made = getattr(Window, "_made", 0) + 1
+            state = Path(os.environ.get("CLAUDE_JOB_DIR")
+                         or tempfile.gettempdir()) / (
+                "melee-window-state-%d-%d" % (os.getpid(), Window._made))
         state.mkdir(parents=True, exist_ok=True)
-        return dict(os.environ, SDL_AUDIO_DRIVER="dummy",
+        # MELEE_CAPTURE: the game keeps a copy of each frame shown, which
+        # shot() reads back exactly ("frameshot")
+        return dict(os.environ, SDL_AUDIO_DRIVER="dummy", MELEE_CAPTURE="1",
                     MELEE_STATE_DIR=str(state / "aurora"))
 
     def _virtual_display(self, size, state_dir):
@@ -334,6 +348,18 @@ class Window(Native):
     def key(self, name, down=True):
         """Press or release a key on the virtual display, by its X name
         ("Right", "x", "Return", "Shift_L"). For tests."""
+        if WIN32:
+            # Held for the keyboard port by the game itself ("vkey"):
+            # posted keys do not reach SDL's state for all keys there (left
+            # Shift, the light push, is checked against the physical
+            # keyboard). Also posted to the game's window (win32ui.py),
+            # for what the window handles itself (F11).
+            import win32ui
+            sdl = win32ui.SDL_NAMES.get(name, name.upper()
+                                        if len(name) == 1 else name)
+            self._cmd("vkey %d %s" % (1 if down else 0, sdl))
+            win32ui.key(self.p.pid, name, down)
+            return
         if self.display is None:
             raise NativeError("key() is for the virtual display only")
         if self._xlib is None:
@@ -370,6 +396,9 @@ class Window(Native):
         """Ask the game's window to close, as a desktop does when its close
         button is pressed (a WM_DELETE_WINDOW message): for tests, on the
         virtual display. Returns the number of windows asked."""
+        if WIN32:
+            import win32ui
+            return win32ui.close(self.p.pid)
         if self.display is None:
             raise NativeError("close_window() is for the virtual display only")
 
@@ -432,6 +461,32 @@ class Window(Native):
 
     def shot(self, path):
         """Save what is on the virtual screen as a picture."""
+        if WIN32:
+            # The frame the game last showed, read back from the GPU by the
+            # game itself ("frameshot", window.c): exact, and nothing is
+            # played to take it. A copy of the screen (win32ui.py) when the
+            # game has none (MELEE_CAPTURE not set: a window on the desktop).
+            path = Path(path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            raw = path.with_name(path.stem + ".frame.ppm")
+            try:
+                self._cmd("frameshot %s" % raw)
+            except NativeError:
+                import win32ui
+                return win32ui.shot(self.p.pid, path, self.window)
+            from PIL import Image
+            img = Image.open(raw)
+            img.load()
+            raw.unlink()
+            if img.size != tuple(self.window):
+                if abs(img.size[0] * self.window[1] -
+                       img.size[1] * self.window[0]) <= max(img.size) // 50:
+                    img = img.resize(tuple(self.window), Image.LANCZOS)
+                else:
+                    img = img.crop((0, 0, min(self.window[0], img.size[0]),
+                                    min(self.window[1], img.size[1])))
+            img.save(path)
+            return path
         if self.display is None:
             raise NativeError("shot() is for the virtual display only")
         path = Path(path)

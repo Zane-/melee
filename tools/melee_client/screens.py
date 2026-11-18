@@ -424,8 +424,11 @@ def versus_menu(focus):
 
 def picture(path):
     """An image's source in a document: the file itself, wherever the
-    document was written (RmlUi passes a file: URL on as it is)."""
-    return "file://" + str(Path(path).resolve())
+    document was written (RmlUi passes a file: URL on as it is). Forward
+    slashes everywhere: on Windows str() gave file://C:\\Users\\..., which
+    Aurora read but which is not a URL; C:/Users/... is (and the same
+    text as before on Linux)."""
+    return "file://" + Path(path).resolve().as_posix()
 
 
 def _portrait(c, n=0):
