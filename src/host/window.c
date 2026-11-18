@@ -38,6 +38,7 @@ int aurora_capture_read(void (*sink)(const unsigned char* rgba,
 
 static int in_frame;
 static int started;
+static double mouse_moved_at; ///< when the mouse last moved (now_ms)
 /// The process is exiting (exit() has begun): Aurora's teardown then
 /// destroys the graphics device, which Dawn reports as a device lost at
 /// the fatal level; that is the end it was asked for, not a failure (it
@@ -1321,6 +1322,21 @@ void host_window_frame(void)
         {
             host_window_fullscreen(2);
         }
+        if (event->type == AURORA_SDL_EVENT &&
+            event->sdl.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            mouse_moved_at = now_ms();
+            if (!SDL_CursorVisible()) {
+                SDL_ShowCursor();
+            }
+        }
+    }
+    /* The mouse cursor goes once the mouse has been still over the game for
+       a moment, windowed or fullscreen, and comes back when it moves (the
+       owner, 2026-11-17: the cursor stayed over the game; hiding it once,
+       on F11, did not keep it hidden on Windows). */
+    if (now_ms() - mouse_moved_at > 1500.0 && SDL_CursorVisible()) {
+        SDL_HideCursor();
     }
     read_live();
     host_ui_frame();
