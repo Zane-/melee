@@ -312,7 +312,9 @@ static void snap_drop_all(void)
 /* stdin is read with read(), not stdio: a process started from a snapshot
    must not find bytes in a buffer that another process has already acted
    on. */
-static char in_buf[4096];
+/* (a route of 160 pads and the player's is under 8,192 characters:
+   ahead.c, SEGS) */
+static char in_buf[16384];
 static size_t in_len;
 
 /// The next line, without its newline. False at end of input.
@@ -1548,7 +1550,7 @@ static void command(char* line)
 /// at once.
 void host_control_resume(void)
 {
-    char line[2048];
+    char line[8192];
 
     steps_left = 0;
     while (steps_left == 0) {
@@ -1591,7 +1593,7 @@ static void stock_rows(void)
 
 void host_control_frame(void)
 {
-    char line[2048];
+    char line[8192];
 
     stock_rows();
 

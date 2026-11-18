@@ -148,8 +148,9 @@
    {
     "title": "It reacts, and it waits",
     "text": [
-     "The opponent sees what you commit to (a jump, a drop from the stage, an attack, the ledge taken) its reaction time later, and takes another way if it still has one: a Fire Fox still charging is aimed above the ledge you took. It also stalls to come later than you expect: the shine, Marth's side special, Pound, a late up special.",
-     "Commit once it cannot change: its special has started, its jump is gone. CPU reaction, in the pause menu, sets how fast it sees you."
+     "The opponent sees what you commit to (a jump, a drop, an attack, the ledge taken) its reaction time later, and takes another way if it still has one: a Fire Fox still charging is aimed above the ledge you took.",
+     "It stalls and drifts back to come later than you expect. From high it has more ways: down onto the stage, to the ledge, or in after an attack it pulled back from.",
+     "Commit once it cannot change. CPU reaction, in the pause menu, sets how fast it sees you."
     ],
     "scenario": 1,
     "show": {
@@ -900,7 +901,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -908,9 +909,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -1069,7 +1143,7 @@
       "name": "shallow",
       "knockback": [
        106,
-       122
+       109.8
       ],
       "angle": [
        22,
@@ -1213,7 +1287,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -1221,9 +1295,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -1526,7 +1673,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -1534,9 +1681,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -1695,7 +1915,7 @@
       "name": "shallow",
       "knockback": [
        106,
-       122
+       113.8
       ],
       "angle": [
        22,
@@ -1839,7 +2059,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -1847,9 +2067,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -2008,7 +2301,7 @@
       "name": "shallow",
       "knockback": [
        106,
-       122
+       117.2
       ],
       "angle": [
        22,
@@ -2152,7 +2445,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -2160,9 +2453,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -2321,7 +2687,7 @@
       "name": "shallow",
       "knockback": [
        106,
-       122
+       113.8
       ],
       "angle": [
        22,
@@ -2465,7 +2831,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -2473,9 +2839,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -2778,7 +3217,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -2786,9 +3225,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -3091,7 +3603,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -3099,9 +3611,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -3404,7 +3989,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -3412,9 +3997,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -3594,6 +4252,31 @@
       "weight": 2
      },
      {
+      "name": "no jump",
+      "knockback": [
+       90,
+       106
+      ],
+      "angle": [
+       42,
+       58
+      ],
+      "percent": [
+       35,
+       80
+      ],
+      "jump": false,
+      "inland": [
+       4,
+       16
+      ],
+      "y": [
+       2,
+       10
+      ],
+      "weight": 2
+     },
+     {
       "name": "low",
       "knockback": [
        72,
@@ -3692,7 +4375,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -3700,9 +4383,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
@@ -4005,7 +4761,7 @@
       ],
       "percent": [
        40,
-       120
+       130
       ],
       "inland": [
        -25,
@@ -4013,9 +4769,82 @@
       ],
       "y": [
        70,
-       105
+       110
       ],
-      "weight": 1
+      "weight": 2
+     },
+     {
+      "name": "high",
+      "knockback": [
+       30,
+       55
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -55,
+       -8
+      ],
+      "y": [
+       95,
+       150
+      ],
+      "weight": 4
+     },
+     {
+      "name": "high and far",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       30,
+       70
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "inland": [
+       -100,
+       -55
+      ],
+      "y": [
+       80,
+       135
+      ],
+      "weight": 3
+     },
+     {
+      "name": "high without its jump",
+      "knockback": [
+       30,
+       50
+      ],
+      "angle": [
+       40,
+       90
+      ],
+      "percent": [
+       70,
+       140
+      ],
+      "jump": false,
+      "inland": [
+       -50,
+       -5
+      ],
+      "y": [
+       90,
+       140
+      ],
+      "weight": 2
      },
      {
       "name": "on the ledge",
