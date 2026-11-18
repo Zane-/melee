@@ -41,13 +41,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from native import (HARNESS, Native, NativeError, ROOT,  # noqa: E402
-                    die_with_parent)
+                    WIN32, die_with_parent)
 
 # (MELEE_WINDOW: another window build for every driver and test, as
 # MELEE_HEADLESS is for the headless one: an optimised one beside the
 # shared one, native_build.py --window --out)
 EXE = Path(os.environ.get("MELEE_WINDOW") or
-           ROOT / "build/native-window/melee_native")
+           ROOT / ("build/native-window/melee_native.exe" if WIN32
+                   else "build/native-window/melee_native"))
 
 
 def _started_by(pid):
@@ -68,7 +69,13 @@ def leftovers():
     started and that outlived it: started by this process, or by one that
     is gone. A game someone else has open (the owner playing the client,
     another test) is theirs: it is not listed, and so never killed by what
-    acts on this list. (It once was listed, by executable path alone.)"""
+    acts on this list. (It once was listed, by executable path alone.)
+
+    Windows: none are looked for (there is no /proc). A driver's games go
+    with it there by themselves: each is in a job object that kills it when
+    the driver ends (native.die_with_parent_win32)."""
+    if WIN32:
+        return []
     out = []
     for pid in os.listdir("/proc"):
         if not pid.isdigit():
@@ -108,6 +115,12 @@ class Window(Native):
         if real:
             # the desktop this was started from, and its GPU
             env = dict(os.environ)
+        elif WIN32:
+            # No virtual display on Windows (Xvfb is X11's): the window
+            # opens on the desktop, drawn by the GPU, silent, with its own
+            # shader cache. shot(), key() and close_window() need the
+            # virtual display, so tests that use them do not run here yet.
+            env = self._windows_offscreen(state_dir)
         else:
             env = self._virtual_display(size, state_dir)
             if not gpu:
@@ -142,6 +155,15 @@ class Window(Native):
         except Exception:
             self._kill_x()
             raise
+
+    @staticmethod
+    def _windows_offscreen(state_dir):
+        import tempfile
+        state = Path(state_dir or os.environ.get("CLAUDE_JOB_DIR")
+                     or tempfile.gettempdir()) / "melee-window-state"
+        state.mkdir(parents=True, exist_ok=True)
+        return dict(os.environ, SDL_AUDIO_DRIVER="dummy",
+                    MELEE_STATE_DIR=str(state / "aurora"))
 
     def _virtual_display(self, size, state_dir):
         # A display of our own: Xvfb picks a free number and writes it to

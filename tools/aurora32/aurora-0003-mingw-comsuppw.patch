@@ -1,0 +1,16 @@
+--- a/cmake/aurora_core.cmake
++++ b/cmake/aurora_core.cmake
+@@ -26,7 +26,12 @@
+
+ if (CMAKE_SYSTEM_NAME STREQUAL Windows)
+     # stuff for fetching system info.
+-    target_link_libraries(aurora_core PRIVATE wbemuuid.lib comsuppw.lib ntdll.lib DXGI.lib)
++    # comsuppw is MSVC's (MinGW has none; system_info.cpp's _bstr_t of a
++    # wide string needs nothing from it there)
++    target_link_libraries(aurora_core PRIVATE wbemuuid.lib ntdll.lib DXGI.lib)
++    if (MSVC)
++        target_link_libraries(aurora_core PRIVATE comsuppw.lib)
++    endif ()
+ elseif (APPLE)
+     target_sources(aurora_core PRIVATE lib/system_info_mac.mm)
+ endif ()

@@ -32,11 +32,25 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+if sys.platform == "win32" and not sys.flags.utf8_mode:
+    # Sources are UTF-8 (some hold Japanese text); Windows' default codec
+    # is not. UTF-8 mode makes every file read and pipe decode use it.
+    sys.exit(subprocess.call([sys.executable, "-X", "utf8", *sys.argv]))
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "build" / "native"
 OBJ = OUT / "host"
 AURORA = Path(os.environ.get("AURORA_SRC", ROOT / "build/deps/aurora"))
-MELEE_DAT = ROOT / "build/nix/melee-dat/bin/melee-dat"
+# Windows (MSYS2's i686 MinGW-w64 gcc on PATH): docs/ai/windows.md. The
+# archive tool is built there with cargo, not Nix.
+WIN32 = sys.platform == "win32"
+MELEE_DAT = Path(os.environ.get(
+    "MELEE_DAT",
+    ROOT / ("build/cargo/release/melee-dat.exe" if WIN32
+            else "build/nix/melee-dat/bin/melee-dat")))
+# The POSIX stand-ins the host layer needs on Windows (src/host/win32/).
+WIN32_HOST = [f"-I{ROOT}/src/host/win32",
+              "-include", str(ROOT / "src/host/win32/posix.h")]
 
 # Floating point is done in SSE, in the precision the source asks for, as
 # the console's FPU does; x87 would compute everything in extended precision.
@@ -513,7 +527,9 @@ def cmake(flags):
     if not (OUT / "build.ninja").exists() or not stamp.exists() or \
             stamp.read_text() != cflags:
         env = dict(os.environ, AURORA_SRC=str(AURORA))
-        r = run(["cmake", "--preset", "native", "-B", OUT,
+        toolchain = ([f"-DCMAKE_TOOLCHAIN_FILE={ROOT}/cmake/i686-mingw.cmake"]
+                     if WIN32 else [])
+        r = run(["cmake", "--preset", "native", "-B", OUT, *toolchain,
                  "-DMELEE_DAT_READERS=ON",
                  f"-DMELEE_DAT={MELEE_DAT}", f"-DCMAKE_C_FLAGS={cflags}"],
                 env=env, capture_output=True, text=True)
@@ -579,13 +595,16 @@ def aurora_libs():
     if not ninja.exists():
         sys.exit(f"missing {ninja}: run tools/aurora32/build.sh")
     text = ninja.read_text()
-    at = text.index("build examples/simple:")
+    # (examples/simple.exe on Windows)
+    at = re.search(r"build examples/simple(\.exe)?:", text).start()
     line = re.search(r"^  LINK_LIBRARIES = (.*)$", text[at:], re.M).group(1)
     libs = []
     for item in line.split():
         if item.endswith("libaurora_main.a"):
             continue
+        # absolute (also C:/... on Windows), a flag, or relative to the build
         libs.append(item if item.startswith(("/", "-"))
+                    or re.match(r"^[A-Za-z]:[/\\]", item)
                     else str(AURORA32 / item))
     return libs
 
@@ -622,15 +641,61 @@ def game_state_script():
 def link(objs, out, capture=False):
     libs = [OUT / "libmelee.a", OUT / "dat-readers/libdat_melee.a",
             OUT / "dat-readers/libdat_native.a"]
-    cmd = ["g++" if WINDOW else "gcc", "-m32", "-no-pie", "-rdynamic", "-o",
-           out, *objs, f"-Wl,-T,{game_state_script()}",
-           "-Wl,--start-group", *libs]
+    if WIN32:
+        # The arena sits at the console's addresses, above 2 GB: a 32-bit
+        # Windows program reaches them only when large address aware.
+        # The game's statics are not gathered into one section there (the
+        # linker script is ELF's); see state.c.
+        # --disable-dynamicbase: loaded at a fixed address, as -no-pie on
+        # Linux (no ASLR), so addresses in a crash report or a snapshot
+        # are the same every run.
+        # -static: MinGW's runtime (libgcc, winpthread) linked in, so the
+        # program runs without MSYS2's directory on PATH (else it stops at
+        # once with 0xC0000135, a DLL not found).
+        cmd = ["g++" if WINDOW else "gcc", "-m32", "-static", "-o", out,
+               *objs, "-Wl,--large-address-aware",
+               "-Wl,--disable-dynamicbase", "-Wl,--start-group", *libs]
+    else:
+        cmd = ["g++" if WINDOW else "gcc", "-m32", "-no-pie", "-rdynamic",
+               "-o", out, *objs, f"-Wl,-T,{game_state_script()}",
+               "-Wl,--start-group", *libs]
     if WINDOW:
         cmd += aurora_libs() + ["-pthread"]
     cmd += ["-Wl,--end-group", "-lm"]
+    if WIN32:
+        cmd.append("-lws2_32")  # Winsock (net.c)
+        if WINDOW:
+            cmd += ["-lwinusb", "-lsetupapi"]  # the adapter (gcadapter.c)
     if "native-asan" in str(OUT):
         cmd.append("-fsanitize=address")
     return run(cmd, capture_output=True, text=True)
+
+
+def copy_dlls(exe):
+    """Windows: put the DLLs the program needs beside it (Dawn and SDL3 are
+    built as DLLs, and RmlUi's image and compression libraries are MSYS2's),
+    following each DLL's own imports. System DLLs (found in neither place)
+    are left to Windows."""
+    gcc_bin = Path(subprocess.run(["where", "gcc"], capture_output=True,
+                                  text=True).stdout.split("\n")[0]).parent
+    found = {p.name.lower(): p for p in AURORA32.rglob("*.dll")}
+    todo, done = [exe], set()
+    while todo:
+        r = run(["objdump", "-p", todo.pop()], capture_output=True,
+                text=True)
+        for name in re.findall(r"DLL Name: (\S+)", r.stdout):
+            key = name.lower()
+            if key in done:
+                continue
+            done.add(key)
+            src = found.get(key) or (gcc_bin / name if (gcc_bin / name)
+                                     .exists() else None)
+            if src is None:
+                continue  # a system DLL
+            dest = exe.parent / name
+            if not dest.exists() or dest.stat().st_mtime < src.stat().st_mtime:
+                dest.write_bytes(src.read_bytes())
+            todo.append(dest)
 
 
 def write_stubs(names, path):
@@ -708,6 +773,13 @@ def main():
 
     global OUT, OBJ, WINDOW
     flags = BASE_FLAGS + [f"-O{args.opt}", f"-ffp-contract={args.contract}"]
+    if WIN32:
+        # Aurora's headers declare OSReport, OSPanic and a few more weak.
+        # On ELF the host's definition wins; the PE linker leaves a weak
+        # definition's references unresolved, at address 0 (the game called
+        # 0 at its first OSReport). Not weak, they link normally, and what is
+        # really missing becomes a stub as on Linux.
+        flags.append("-DDECL_WEAK=")
     if args.window:
         WINDOW = True
         OUT = ROOT / "build" / "native-window"
@@ -771,13 +843,25 @@ def main():
     # drill's other opponents with it and the CPU becomes one at once.
     jobs.append((ROOT / "src/melee/tm/rotation/rotation.c",
                  OBJ / "tm" / "rotation.o", common + shim))
-    for src in sorted((ROOT / "src/host").glob("*.c")):
+    host_sources = sorted((ROOT / "src/host").glob("*.c"))
+    if WIN32:
+        host_sources.append(ROOT / "src/host/win32/compat.c")
+        if WINDOW:
+            # the GameCube adapter over WinUSB (gcadapter.c)
+            host_sources.append(ROOT / "src/host/win32/winusb_adapter.c")
+    for src in host_sources:
         extra = common + (heap if src.name == "archive.c" else [])
+        if WIN32:
+            extra = extra + WIN32_HOST
         if src.name == "window.c":
             # Aurora's and SDL's headers need the real `bool` (the game's
             # is an int), and the SDL that Aurora was built with.
             extra = [f for f in common if f != "-Dbool=int"] + [
                 f"-I{AURORA32}/_deps/sdl-src/include"]
+            if WIN32:
+                # SQLite's header: Aurora's own copy, the one linked (Linux
+                # has the system's)
+                extra += [f"-I{AURORA32}/_deps/sqlite3-src"] + WIN32_HOST
         jobs.append((src, OBJ / (src.stem + ".o"), extra))
     if WINDOW:
         # The client's interface: C++, against RmlUi and the patched Aurora
@@ -788,6 +872,12 @@ def main():
             f"-I{AURORA32.parent}/aurora-src/include",
             f"-I{AURORA32}/_deps/rmlui-src/Include",
             f"-I{AURORA32}/_deps/sdl-src/include"]))
+        if WIN32:
+            # 16-byte-aligned operator new (msvcrt's malloc gives 8): see
+            # the file
+            jobs.append((ROOT / "src/host/win32/aligned_new.cpp",
+                         OBJ / "aligned_new.o",
+                         ["-m32", "-std=c++20", "-O2", "-w"]))
     for name in AURORA_C:
         jobs.append((AURORA / "lib/dolphin/mtx" / name,
                      OBJ / "aurora" / (name + ".o"),
@@ -838,6 +928,8 @@ def main():
     if r.returncode:
         sys.exit("\n".join(r.stderr.splitlines()[-30:]))
     (OUT / "melee_headless.trial").unlink(missing_ok=True)
+    if WIN32 and WINDOW:
+        copy_dlls(exe.with_suffix(".exe"))
     (OBJ / "stubs.json").write_text(json.dumps(
         {"functions": [n for n, _ in funcs],
          "objects": [n for n, _ in objects]}, indent=1))

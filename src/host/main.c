@@ -141,12 +141,25 @@ u8 lb_80019894(void)
     return HSD_PadGetRawQueueCount();
 }
 
+#ifdef _WIN32
+/* Windows has no sigaction: a crash comes through an exception filter
+   (src/host/win32/compat.c). */
+void host_win32_on_fault(void (*report)(unsigned code, void* addr));
+void host_win32_binary_output(void);
+
+static void on_fault(unsigned code, void* addr)
+{
+    host_fatal("exception 0x%08X at address %p (frame %u)", code, addr,
+               host.frame);
+}
+#else
 static void on_fault(int sig, siginfo_t* info, void* context)
 {
     (void) context;
     host_fatal("signal %d at address %p (frame %u)", sig, info->si_addr,
                host.frame);
 }
+#endif
 
 /* --- entry ---------------------------------------------------------------- */
 
@@ -197,6 +210,17 @@ int main(int argc, char** argv)
             usage();
         }
     }
+#ifdef _WIN32
+    /* Windows' C library has no line buffering (_IOLBF is full buffering
+       there, and a size of 0 aborts): whoever reads the output line by line
+       gets every line as it is written. */
+    setvbuf(stdout, NULL, _IONBF, 0);
+    /* Output as on Linux, "\n" and not "\r\n": drivers split replies on
+       "\n" (tools/melee_native/native.py). Input stays in text mode, which
+       turns a Windows writer's "\r\n" back into "\n". */
+    host_win32_binary_output();
+    host_win32_on_fault(on_fault);
+#else
     setvbuf(stdout, NULL, _IOLBF, 0);
     {
         struct sigaction sa;
@@ -209,6 +233,7 @@ int main(int argc, char** argv)
         sigaction(SIGILL, &sa, NULL);
         sigaction(SIGABRT, &sa, NULL); /* a library's abort() */
     }
+#endif
     host.pads[0].connected = 1;
     host.int_enabled = 1;
     /* Before anything else maps memory: the arena has to be at the

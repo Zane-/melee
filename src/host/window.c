@@ -32,6 +32,21 @@ void aurora_set_present_hold(bool value);
 
 static int in_frame;
 static int started;
+/// The process is exiting (exit() has begun): Aurora's teardown then
+/// destroys the graphics device, which Dawn reports as a device lost at
+/// the fatal level; that is the end it was asked for, not a failure (it
+/// made every Windows run exit with status 3).
+static int exiting;
+
+static void on_exit_begun(void)
+{
+    exiting = 1;
+#ifdef _WIN32
+    /* Shut Aurora down in order, before the C++ statics go: left to them,
+       the device went first and Aurora aborted (exit status 3) on Windows. */
+    aurora_shutdown();
+#endif
+}
 static SDL_Window* sdl_window;
 static char state_dir[4096];    ///< Aurora's files, and what is remembered
 static int fullscreen_asked;    ///< what was last asked for
@@ -50,7 +65,7 @@ static void on_log(AuroraLogLevel level, const char* module,
     {
         fprintf(stderr, "[aurora %s] %s: %s\n", names[level], module, message);
     }
-    if (level == LOG_FATAL) {
+    if (level == LOG_FATAL && !exiting) {
         host_fatal("aurora: %s: %s", module, message);
     }
 }
@@ -239,7 +254,14 @@ void host_window_init(void)
            executable, not into the home directory. */
         static char state[4096];
         const char* given = getenv("MELEE_STATE_DIR");
+#ifdef _WIN32
+        /* the executable's path from Windows; mkdir takes no mode there */
+        int host_win32_exe_path(char* out, int size);
+        int n = host_win32_exe_path(state, sizeof state - 8);
+#define mkdir(path, mode) mkdir(path)
+#else
         ssize_t n = readlink("/proc/self/exe", state, sizeof state - 8);
+#endif
         char* slash;
 
         if (given != NULL && *given != '\0' && strlen(given) < sizeof state)
@@ -253,6 +275,14 @@ void host_window_init(void)
         } else if (n > 0) {
             state[n] = '\0';
             slash = strrchr(state, '/');
+#ifdef _WIN32
+            {
+                char* back = strrchr(state, '\\');
+                if (back != NULL && (slash == NULL || back > slash)) {
+                    slash = back;
+                }
+            }
+#endif
             if (slash != NULL) {
                 strcpy(slash, "/state");
                 mkdir(state, 0755);
@@ -260,6 +290,9 @@ void host_window_init(void)
                 config.cachePath = state;
             }
         }
+#ifdef _WIN32
+#undef mkdir
+#endif
     }
     {
         /* MELEE_VSYNC=1: present with the display's refresh. Off by
@@ -293,6 +326,8 @@ void host_window_init(void)
         config.startFullscreen = fullscreen_asked != 0;
     }
     info = aurora_initialize(1, argv, &config);
+    /* after Aurora's own exit work is registered, so this runs before it */
+    atexit(on_exit_begun);
     sdl_window = info.window;
     if (fullscreen_asked) {
         SDL_HideCursor();

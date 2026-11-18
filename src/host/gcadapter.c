@@ -30,17 +30,19 @@
 
 #include "host.h"
 
-#include <dirent.h>
 #include <errno.h>
-#include <fcntl.h>
-#include <linux/usbdevice_fs.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ioctl.h>
 #include <time.h>
+#ifndef _WIN32
+#include <dirent.h>
+#include <fcntl.h>
+#include <linux/usbdevice_fs.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
+#endif
 
 #include <dolphin/pad.h>
 
@@ -89,6 +91,96 @@ static void say(const char* fmt, const char* detail)
     pthread_mutex_unlock(&lock);
 }
 
+#ifdef _WIN32
+/* Windows: the same reader over WinUSB (src/host/win32/winusb_adapter.c),
+   as Dolphin reads the adapter there, once Zadig has given it the WinUSB
+   driver. One adapter is open at a time; `fd` is 0 while it is. Decoding,
+   rumble bookkeeping and the status below are shared with Linux. */
+int host_win32_gcc_open(char* why);
+int host_win32_gcc_write(const uint8_t* data, unsigned len);
+int host_win32_gcc_read(uint8_t* data, unsigned len);
+void host_win32_gcc_close(void);
+void host_win32_sleep_ms(unsigned ms);
+
+/// Tell the motors what #motor_want says, if that is news. With #lock held.
+static void motors_send(int fd)
+{
+    uint8_t command[5] = { 0x11 };
+    int news = 0;
+
+    (void) fd;
+    for (int i = 0; i < 4; i++) {
+        command[1 + i] = motor_want[i];
+        news |= motor_told[i] != motor_want[i];
+    }
+    if (news && host_win32_gcc_write(command, sizeof command) ==
+                    (int) sizeof command)
+    {
+        for (int i = 0; i < 4; i++) {
+            motor_told[i] = motor_want[i];
+        }
+    }
+}
+
+static void* reader(void* arg)
+{
+    (void) arg;
+    for (;;) {
+        uint8_t go = 0x13;
+        char why;
+
+        if (!host_win32_gcc_open(&why)) {
+            say(why == 'n' ? "no adapter is plugged in%s"
+                : why == 'b' ? "the adapter is in use by another program "
+                               "(Dolphin?)%s"
+                : why == 'd' ? "the adapter is there but cannot be opened: it "
+                               "needs the WinUSB driver (Zadig, as for "
+                               "Dolphin)%s"
+                             : "the adapter is there but cannot be opened%s",
+                "");
+            host_win32_sleep_ms(1000);
+            continue;
+        }
+        host_win32_gcc_write(&go, 1);
+        say("open%s", "");
+        pthread_mutex_lock(&lock);
+        n_opened++;
+        open_fd = 0;
+        /* a motor may still run from a game that ended without stopping
+           it: every motor is told */
+        for (int i = 0; i < 4; i++) {
+            motor_told[i] = -1;
+        }
+        motors_send(0);
+        pthread_mutex_unlock(&lock);
+        for (;;) {
+            uint8_t report[REPORT];
+            int n = host_win32_gcc_read(report, sizeof report);
+            if (n == REPORT && report[0] == 0x21) {
+                double at = clock_ms();
+                pthread_mutex_lock(&lock);
+                memcpy(latest, report, sizeof latest);
+                have = 1;
+                n_reports++;
+                latest_at = at;
+                motors_send(0);
+                pthread_mutex_unlock(&lock);
+            } else if (n < 0) {
+                pthread_mutex_lock(&lock);
+                n_errors++;
+                pthread_mutex_unlock(&lock);
+                break; /* unplugged */
+            }
+        }
+        pthread_mutex_lock(&lock);
+        have = 0;
+        open_fd = -1;
+        pthread_mutex_unlock(&lock);
+        host_win32_gcc_close();
+    }
+    return NULL;
+}
+#else
 static int read_number(const char* dir, const char* name, int base)
 {
     char path[320], text[32] = "";
@@ -228,6 +320,7 @@ static void* reader(void* arg)
     }
     return NULL;
 }
+#endif /* _WIN32 */
 
 /// For MELEE_TIMING: reports read, failed reads and openings so far, and
 /// how old the newest report is now (ms; -1 if there is none).

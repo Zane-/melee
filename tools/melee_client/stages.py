@@ -288,6 +288,11 @@ def render_later(root=OUT):
     one: a Popen to poll, or None if all is drawn."""
     if not missing(root):
         return None
+    if sys.platform == "win32":
+        # Drawn on a virtual display and photographed from it (window.shot),
+        # which Windows does not have yet: each panel keeps the stage's name
+        # logo (docs/ai/windows.md).
+        return None
     return subprocess.Popen(
         [sys.executable, str(Path(__file__).resolve()), "--root",
          str(root)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
