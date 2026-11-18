@@ -267,14 +267,15 @@ Each test game has its own Aurora state directory.
 |-|-|
 | stage_select 17 of 25, portraits | the stages' and Sheik's pictures, which the client draws on its first runs, were not there yet |
 | input_display | the controller is made from a drawing that is not in the repository (`padart.py`); without it `toggle_column` ended the client: fixed, it now skips the controller |
-| versus | needs a slippi-ai checkout with its models |
 | vselkeys | not a test: keys for other tests |
 
 ## Not done on Windows yet
 
-- **The trained-model opponent:** `opponents.py` is ported (reader thread,
-  job object, `venv\Scripts\python.exe`) but untried: it needs a slippi-ai
-  checkout with its models.
+- **The trained-model opponent works** (2026-11-17): slippi-ai at
+  `275c072` in `~/Games/Melee/slippi-ai`, `python -m venv venv` and
+  `venv\Scripts\python -m pip install -e ".[jax]"` (JAX on the CPU); the
+  models in its `deployed_models`. `tests/client/versus.py` 26 of 26 with
+  `falco_d21_vs_fox_v6.2`. Only a few models are downloaded here.
 - **Rumble:** the shared code, untried with a controller.
 - **Sheik's portraits and the stage previews** are drawn by the client's
   background jobs with `window.shot`, which works; a whole run of them has

@@ -36,8 +36,10 @@ def setup_path():
             sys.path.insert(0, p)
     # the other environment's packages, after our own
     for venv in (os.path.join(ROOT, ".venv"), os.path.join(SLIPPI_AI, "venv")):
-        for sp in glob.glob(os.path.join(venv, "lib", "python*",
-                                         "site-packages")):
+        # Linux: lib/pythonX.Y/site-packages; Windows: Lib/site-packages
+        for sp in (glob.glob(os.path.join(venv, "lib", "python*",
+                                          "site-packages")) +
+                   glob.glob(os.path.join(venv, "Lib", "site-packages"))):
             if sp not in sys.path:
                 sys.path.append(sp)
 
