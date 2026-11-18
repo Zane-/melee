@@ -802,10 +802,11 @@ on press I'd be very happy"; then, of a render cut from its white background, "i
 bit choppy ... let's try it with that instead"): the owner's own drawing of the controller
 (flat colours, black outlines, a transparent background), made into layers by
 `tools/melee_client/padart.py`, the same in the match, on the coach's card and in the
-tutorial's example. The drawing is not in the repository: it is copied once into
-`build/ui/pad/source.png` (`python3 tools/melee_client/padart.py PICTURE`, which needs
-Pillow; the client only reads the layers it makes, and without them the match shows TM-CE's
-model instead). The layers are made at twice the drawing's size and all cover the same box,
+tutorial's example. The drawing and its layers are in the repository, in
+`tools/melee_client/pad/` (the owner, 2026-11-17, asked for them pushed), so a fresh clone
+shows the controller with nothing to make; `python3 tools/melee_client/padart.py PICTURE`
+(needs Pillow) makes the layers again from a new drawing. The client only reads the layers;
+without them the match shows TM-CE's model instead. The layers are made at twice the drawing's size and all cover the same box,
 so they lie on each other exactly: the drawing as it is, slightly see-through, with the
 sticks' caps lifted out (under each, its gate's colour); the caps, which move with the
 sticks; and, for each button, the D-pad's arms and the triggers, that part brightened with

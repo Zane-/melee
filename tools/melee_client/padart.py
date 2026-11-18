@@ -7,11 +7,14 @@ instead": a drawing on a transparent background, its parts outlined).
 
     python3 tools/melee_client/padart.py PICTURE    (once; needs Pillow)
 
-PICTURE is that drawing (600 by 425, transparent around it); it is not in
-the repository, but copied to build/ui/pad/source.png, as the disc's art
-is read from the owner's own copy. The layers, all of one size so that
-they lie on each other exactly (build/ui/pad/), made at twice the
-drawing's size so that the lights' rims are smooth:
+PICTURE is that drawing (600 by 425, transparent around it), kept in the
+repository as tools/melee_client/pad/source.png with the layers made from
+it (the owner, 2026-11-17: "build/ui/pad isn't pushed which is need for the
+input display to work, can you commit and push that"), so a fresh clone
+shows the controller with nothing to make; this script makes them again
+when the drawing or VERSION changes. The layers, all of one size so that
+they lie on each other exactly, made at twice the drawing's size so that
+the lights' rims are smooth:
 
 - BASE: the drawing, its edge as drawn, the sticks' caps lifted out
   (under each, its gate's colour);
@@ -30,7 +33,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "build" / "ui" / "pad"
+OUT = ROOT / "tools" / "melee_client" / "pad"    # in the repository
 SOURCE = OUT / "source.png"
 VERSION = 13            # made again when this changes
 SOURCE_SIZE = (600, 425)
