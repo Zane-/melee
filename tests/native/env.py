@@ -41,6 +41,13 @@ def play(n, seed, frames):
 
 
 def running():
+    if sys.platform == "win32":
+        # no pgrep: tasklist's rows for the executable
+        out = subprocess.run(["tasklist", "/FI",
+                              "IMAGENAME eq melee_headless.exe", "/NH",
+                              "/FO", "CSV"], capture_output=True,
+                             text=True).stdout
+        return out.count("melee_headless.exe")
     out = subprocess.run(["pgrep", "-c", "melee_headless"],
                          capture_output=True, text=True).stdout.strip()
     return int(out or 0)

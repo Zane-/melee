@@ -1,0 +1,12 @@
+--- a/lib/imgui.cpp
++++ b/lib/imgui.cpp
+@@ -88,6 +88,9 @@
+   g_imguiLog = std::string{g_config.cachePath} + "/imgui.log";
+   io.IniFilename = g_imguiSettings.c_str();
+   io.LogFilename = g_imguiLog.c_str();
++  // The cursor is the host's to show or hide: ImGui's SDL3 backend would
++  // otherwise show it again every frame.
++  io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+ }
+ 
+ void initialize() noexcept {

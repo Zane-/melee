@@ -63,6 +63,47 @@ void host_state_sizes(size_t* arena, size_t* statics, size_t* heap)
     *heap = length;
 }
 
+/// What host_state_size() is with a heap of `heap_length` bytes in use: a
+/// state saved by another process of this program (engine.c, Windows) is
+/// checked to be the same program's by it.
+size_t host_state_size_for(uint32_t heap_length)
+{
+    return ARENA_SIZE + STATICS_SIZE + heap_length;
+}
+
+/// The whole state into `dst`, which has room for host_state_size() bytes;
+/// returns the heap's length, for host_state_copy_in. (control.c's
+/// snapshots on Windows keep these outside the address space.)
+uint32_t host_state_copy_out(uint8_t* dst)
+{
+    void* heap;
+    uint32_t heap_length;
+
+    host_game_heap_extent(&heap, &heap_length);
+    memcpy(dst, ARENA, ARENA_SIZE);
+    dst += ARENA_SIZE;
+    memcpy(dst, STATICS, STATICS_SIZE);
+    dst += STATICS_SIZE;
+    memcpy(dst, heap, heap_length);
+    return heap_length;
+}
+
+/// A state host_state_copy_out wrote, back (see host_state_load).
+void host_state_copy_in(const uint8_t* src, uint32_t heap_length)
+{
+    void* heap;
+    uint32_t live_length;
+    int draw = host.draw;
+
+    host_game_heap_extent(&heap, &live_length);
+    memcpy(ARENA, src, ARENA_SIZE);
+    src += ARENA_SIZE;
+    memcpy(STATICS, src, STATICS_SIZE);
+    src += STATICS_SIZE;
+    memcpy(heap, src, heap_length);
+    host.draw = draw; /* the host's, not the game's: host_state_load */
+}
+
 int host_state_save(int slot)
 {
     Snapshot* s;
