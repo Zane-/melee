@@ -29,9 +29,17 @@
 /* From the patch tools/aurora32/build.sh applies (this file is compiled
    against Aurora's own headers, as ui.cpp is). */
 void aurora_set_present_hold(bool value);
+/* tools/aurora32/aurora-0004-frame-capture.patch */
+void aurora_capture_enable(bool on);
+int aurora_capture_read(void (*sink)(const unsigned char* rgba,
+                                     unsigned width, unsigned height,
+                                     unsigned stride, void* ctx),
+                        void* ctx);
 
 static int in_frame;
 static int started;
+static double mouse_moved_at; ///< when the mouse last moved (now_ms)
+static unsigned long mouse_motions; ///< motion events seen, for "cursor"
 /// The process is exiting (exit() has begun): Aurora's teardown then
 /// destroys the graphics device, which Dawn reports as a device lost at
 /// the fatal level; that is the end it was asked for, not a failure (it
@@ -329,6 +337,9 @@ void host_window_init(void)
     /* after Aurora's own exit work is registered, so this runs before it */
     atexit(on_exit_begun);
     sdl_window = info.window;
+    if (getenv("MELEE_CAPTURE") != NULL) {
+        aurora_capture_enable(true); /* "frameshot": tests' pictures */
+    }
     if (fullscreen_asked) {
         SDL_HideCursor();
     }
@@ -762,6 +773,56 @@ static void read_gamepad(SDL_Gamepad* g, HostPad* p)
 /// The keyboard as a controller. Arrows: the stick (with left shift, a
 /// light push). I J K L: the C stick. X: A. Z: B. C and V: Y and X.
 /// A and S: L and R. D: Z. Return: Start. T F G H: the D-pad.
+/// Keys a driver holds down by the control protocol ("vkey NAME 1|0":
+/// control.c), as well as the keyboard: tests on Windows, where a key
+/// posted to the window does not reach SDL's state for every key (left
+/// Shift, the light push, is checked against the physical keyboard).
+static bool vkeys[SDL_SCANCODE_COUNT];
+
+/* --- the frame shown, read back (tests: window.shot on Windows) ----------
+   With MELEE_CAPTURE set, Aurora copies every frame shown into a buffer
+   (aurora_capture_enable); "frameshot PATH" (control.c) writes the last one
+   to PATH as a binary PPM. Nothing is played to take it. */
+static void frameshot_sink(const unsigned char* rgba, unsigned width,
+                           unsigned height, unsigned stride, void* ctx)
+{
+    FILE* f = ctx;
+    fprintf(f, "P6\n%u %u\n255\n", width, height);
+    for (unsigned y = 0; y < height; y++) {
+        const unsigned char* row = rgba + (size_t) y * stride;
+        for (unsigned x = 0; x < width; x++) {
+            fwrite(row + x * 4, 1, 3, f);
+        }
+    }
+}
+
+const char* host_window_frameshot(const char* path)
+{
+    FILE* f;
+    int r;
+
+    if (!started) {
+        return "no window";
+    }
+    f = fopen(path, "wb");
+    if (f == NULL) {
+        return "cannot write there";
+    }
+    r = aurora_capture_read(frameshot_sink, f);
+    fclose(f);
+    return r == 0 ? NULL : "no frame captured (MELEE_CAPTURE not set?)";
+}
+
+const char* host_window_vkey(const char* name, int down)
+{
+    SDL_Scancode sc = SDL_GetScancodeFromName(name);
+    if (sc == SDL_SCANCODE_UNKNOWN) {
+        return "no such key";
+    }
+    vkeys[sc] = down != 0;
+    return NULL;
+}
+
 static void read_keyboard(HostPad* p)
 {
     static const struct {
@@ -782,8 +843,14 @@ static void read_keyboard(HostPad* p)
         { SDL_SCANCODE_H, PAD_BUTTON_RIGHT },
     };
     int count = 0;
-    const bool* k = SDL_GetKeyboardState(&count);
-    int push = k[SDL_SCANCODE_LSHIFT] ? 40 : 100;
+    const bool* sdl = SDL_GetKeyboardState(&count);
+    bool k[SDL_SCANCODE_COUNT];
+    int push;
+
+    for (int i = 0; i < SDL_SCANCODE_COUNT; i++) {
+        k[i] = (i < count && sdl[i]) || vkeys[i];
+    }
+    push = k[SDL_SCANCODE_LSHIFT] ? 40 : 100;
 
     p->buttons = 0;
     for (size_t i = 0; i < sizeof keys / sizeof keys[0]; i++) {
@@ -981,6 +1048,17 @@ static double now_ms(void)
 
     clock_gettime(CLOCK_MONOTONIC, &t);
     return t.tv_sec * 1000.0 + t.tv_nsec / 1e6;
+}
+
+/// "cursor" (control.c): whether SDL shows the cursor, how long since the
+/// mouse last moved (ms), the motion events seen, and whether the window
+/// has the mouse's focus.
+void host_window_cursor(char* out, size_t size)
+{
+    snprintf(out, size, "visible %d idle %.0f motions %lu focus %d",
+             SDL_CursorVisible() ? 1 : 0, now_ms() - mouse_moved_at,
+             mouse_motions,
+             sdl_window != NULL && SDL_GetMouseFocus() == sdl_window);
 }
 
 /// MELEE_TIMING=1: every 60 frames, where a frame's time went. "game" is
@@ -1256,6 +1334,22 @@ void host_window_frame(void)
         {
             host_window_fullscreen(2);
         }
+        if (event->type == AURORA_SDL_EVENT &&
+            event->sdl.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            mouse_moved_at = now_ms();
+            mouse_motions++;
+            if (!SDL_CursorVisible()) {
+                SDL_ShowCursor();
+            }
+        }
+    }
+    /* The mouse cursor goes once the mouse has been still over the game for
+       a moment, windowed or fullscreen, and comes back when it moves (the
+       owner, 2026-11-17: the cursor stayed over the game; hiding it once,
+       on F11, did not keep it hidden on Windows). */
+    if (now_ms() - mouse_moved_at > 1500.0 && SDL_CursorVisible()) {
+        SDL_HideCursor();
     }
     read_live();
     host_ui_frame();

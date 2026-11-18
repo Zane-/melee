@@ -64,8 +64,19 @@ static uint8_t* base;
 static Heap* heap(void)
 {
     if (base == NULL) {
+#ifdef _WIN32
+        /* At a fixed address on Windows: a forked game there is another
+           process loaded with this one's state (engine.c), and every
+           pointer into the heap must mean the same in both. Above the
+           arena (0x80000000 to 0x81800000); the process is large address
+           aware. */
+        base = mmap((void*) HOST_GAME_HEAP_BASE, RESERVE,
+                    PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
+#else
         base = mmap(NULL, RESERVE, PROT_READ | PROT_WRITE,
                     MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+#endif
         if (base == MAP_FAILED) {
             base = NULL;
             host_fatal("game heap: no address space for %u MB",

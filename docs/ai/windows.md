@@ -79,13 +79,15 @@ in `src/host/win32/`, Winsock, and these link options:
 | Linux | Windows | Effect |
 |-|-|-|
 | `mmap`, `mprotect` | `VirtualAlloc`, `VirtualProtect` (`compat.c`) | none |
-| `ucontext` coroutines (`engine.c`'s search) | fibers (`compat.c`) | none intended; not yet exercised |
+| `ucontext` coroutines (`engine.c`'s search) | fibers (`compat.c`) | none (`tests/native/engine.py` 18 of 18) |
 | sockets (`net.c`) | Winsock, in `net.c` behind `_WIN32` | none |
 | `sigaction` crash handler (`main.c`) | unhandled-exception filter (`compat.c`); prints the faulting instruction and callers for `addr2line` | none |
 | stdout line-buffered | unbuffered (Windows' C library has no line buffering) | none for readers of lines |
-| `fork()` snapshots (`control.c`), engine forks (`engine.c`) | `fork()` fails (`posix.h`) | **`snap`/`restore` and `engine fork` answer with an error** |
-| linker script gathering the game's statics (`state.c`) | none: the region is empty (`compat.c`) | **in-process snapshots miss the statics; rollback is off** |
-| `/proc/self/pagemap` dirty-page tracking (`rollback.c`) | none | **netplay does not start** |
+| `fork()` snapshots (`control.c`) | the whole state copied into a page-file section, outside the 32-bit address space (`compat.c` blobs) | none for the game's state; the host's own side goes on, as with `load` |
+| `engine fork` (`engine.c`) | `engine fork-state` + another process of the program, `--fork-child NAME`, loaded at its first frame boundary (`tools/melee_engine/fork.py`) | none |
+| linker script gathering the game's statics | `.data$gs*` section names, sorted by the PE linker (`native_build.py` `gather_win32`) | none |
+| `/proc/self/pagemap` soft-dirty (`rollback.c`) | `MEM_WRITE_WATCH` / `GetWriteWatch` on the fixed mappings; the statics compared page by page with the mirror | none |
+| `-mms-bitfields` (MinGW's default) | `-mno-ms-bitfields` | the Linux build's struct layout |
 | `/dev/bus/usb` GameCube adapter (`gcadapter.c`) | WinUSB (`win32/winusb_adapter.c`), window build only; needs Zadig's WinUSB driver, as Dolphin does | the same reader, decoding and rumble; played with a Lossless adapter (Wii U mode) and a PhobGCC, 2026-11-17 |
 
 ## Status
@@ -183,12 +185,100 @@ the disc as on Linux) and exit cleanly. On Windows:
 - `window.py`: the `.exe`; `Window(real=False)` (tests, `--devices`) opens
   an ordinary window, silent, with its own shader cache, since there is no
   Xvfb; `leftovers()` finds none (the job object ends a driver's games).
-- **Not on Windows yet:** stage previews and Sheik's portraits (drawn on a
-  virtual display and photographed with `window.shot`; the panels keep the
-  name logos and her emblem), the tests that press keys or take pictures
-  (`key()`, `shot()`, `close_window()`), snapshots
-  (and so TM-CE-style instant resets), netplay, the trained-model opponent
-  (`opponents.py` still uses `select()` on a pipe and `os.killpg`).
+## Snapshots, rollback and the engine (branch `port/windows-snapshots`)
 
-Next, in order: the picture, sound and input checked by a person; snapshots without `fork()` (copies of the state inside the process,
-once the statics are gathered); rollback; the adapter over WinUSB.
+- **The statics** are gathered by section name (above). The block is about
+  1.1 MB; `tests/native/state.py` 8 of 8.
+- **Snapshots** (`snap`, `restore`, `drop`): each is the game's whole state
+  (some 70 MB) in a page-file section of its own, mapped only while it is
+  written or read, so many fit beside a 32-bit process.
+- **Rollback** (`rollback.c`): Windows' write watching in place of
+  soft-dirty. `tests/native/rollback.py` 6 of 6, `tests/native/netplay.py`
+  11 of 11 (with lag, loss and jitter: no desync).
+- **The game heap and audio RAM at fixed addresses** (`host.h`:
+  `0x90000000`, `0xA0000000`), so that a forked game, another process, sees
+  the same pointers. The scene loop's `on_frame` is kept in a global too
+  (`native_build.py`, gmscene.c's patch): the child loads the state inside
+  the boot scene's loop. The disc's file table (`dvd.c`) stays the child's
+  own; audio RAM is copied up to the highest address the game reached.
+  `tests/native/engine.py` 18 of 18.
+- **Two bugs found on the way, both fixed:**
+  - MinGW's default bitfield layout (`-mms-bitfields`) gave the game's
+    structs another layout than on Linux (`engine.py`'s jab check read the
+    fighter's flag at `0x2218` as 0).
+  - `dvd.c`'s file table left four fields as the C heap held them, so a
+    `.dat` file could be taken for words and byte-swapped (`EfMnData.dat`,
+    only in some environments). Not Windows' alone: Linux happened to get
+    zeroed memory. Found with the reads and parses `dvd.c` and `archive.c`
+    now remember and print when an archive does not parse;
+    `MELEE_WATCH_FILE=NAME` reports what writes over a file once read
+    (`compat.c`; it makes the page read-only, so a later read into the same
+    page fails: for debugging only).
+
+## The window in tests (`tools/melee_native/win32ui.py`)
+
+There is no virtual display: a test's window opens on the desktop.
+`window.shot()` takes the window's client area from the screen (posting the
+window to the top first; nothing is ever sent to it, since between frames
+the game does not answer its window's messages: a sent `SetWindowPos` or
+`PrintWindow` waited about two minutes). The process is DPI aware, so a
+scaled display gives the window's real pixels. `key()` posts `WM_KEYDOWN`
+and `WM_KEYUP` with scan codes; `close_window()` posts `WM_CLOSE`. Each
+driver gets its own Aurora state directory (two games sharing the shader
+cache found its database locked). The client tests compare pictures with
+ImageMagick: `pacman -S mingw-w64-x86_64-imagemagick` and
+`C:\msys64\mingw64\bin` on PATH.
+
+Checked 2026-11-17: `tests/client/menu.py` 20 of 20, `tests/native/env.py`
+11 of 11 (7,300 frames a second through the driver, a state each: the
+game's stdout is fully buffered and flushed when it waits for a command; it
+was unbuffered, and one write per `printf` gave 1,100).
+
+A GameCube controller on the adapter wins over the keyboard for a port
+whose source is `auto`, as tests' windows are: a controller touched during
+a client test moves the menu too. Unplug it, or leave it alone, for tests.
+
+### Pictures: the game reads its own frame back
+
+A copy of the screen did not reliably hold the game's latest frame (a
+window the GPU presents can be shown by a hardware overlay a screen copy
+does not see): the checks that measure the window's picture passed or not
+from run to run. `tools/aurora32/aurora-0004-frame-capture.patch` lets the
+swapchain be copied from and, while `aurora_capture_enable` is on, copies
+every frame shown into a buffer; `aurora_capture_read` maps it between
+frames. The host turns it on when `MELEE_CAPTURE` is set (test windows on
+Windows: `window.py`) and answers `frameshot PATH` with the last frame as a
+PPM; `window.shot` uses it, and copies the screen only when the game has
+none. Nothing is played to take a picture.
+
+### The client tests on Windows (2026-11-17)
+
+Keys reach the game by the control protocol as well as the window
+(`vkey 1|0 NAME`, `window.c`): a posted left Shift (the light push) never
+reached SDL's state there, so a stand-in dashed where it meant to walk.
+Each test game has its own Aurora state directory.
+
+| Passing | |
+|-|-|
+| all checks | close 5, controls 8, course 22, coach 10, fullscreen 18, menu 20, modes_format 20, online 10, online_lobby 8, online_modes 9, rules 14, settings_menu 55, shine_oos 11, short_hop 16, sound 12, versus_modes 45, versus_select 14, whiff_punish 13 |
+| skipped, as on Linux (their drills not rebuilt yet) | between, loading, pausekeys |
+
+| Not all passing | Why |
+|-|-|
+| stage_select 17 of 25, portraits | the stages' and Sheik's pictures, which the client draws on its first runs, were not there yet |
+| input_display | the controller is made from a drawing that is not in the repository (`padart.py`); without it `toggle_column` ended the client: fixed, it now skips the controller |
+| versus | needs a slippi-ai checkout with its models |
+| vselkeys | not a test: keys for other tests |
+
+## Not done on Windows yet
+
+- **The trained-model opponent:** `opponents.py` is ported (reader thread,
+  job object, `venv\Scripts\python.exe`) but untried: it needs a slippi-ai
+  checkout with its models.
+- **Rumble:** the shared code, untried with a controller.
+- **Sheik's portraits and the stage previews** are drawn by the client's
+  background jobs with `window.shot`, which works; a whole run of them has
+  not been watched through.
+- Most of `tests/client/` has not been run on Windows (only `menu.py`).
+- `tests/native/place.py`'s "same placement after another past" compares
+  the fall counter, which random play can raise (10 of 11).

@@ -722,6 +722,12 @@ class Client:
         self.w.ui("class rail hidden %d" % on)
         for ident in ("gpads", "gboard", "bannerwrap", "pause", "rays",
                       "coach"):
+            if ident == "gpads" and not screens.PAD_ART:
+                # The input display's controller is made from a drawing
+                # that is not in the repository (padart.py): without it
+                # there is no #gpads, and asking for it ended the client
+                # (START held in a drill, on a fresh checkout).
+                continue
             self.w.ui("class %s mid %d" % (ident, on))
         self.w.ui("center %d" % on)
 

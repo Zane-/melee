@@ -215,6 +215,9 @@ class Native:
                  timeout=120, env=None):
         cmd = [str(exe), "--control", "--disc",
                str(disc or ROOT / "build/disc")]
+        # what a forked game on Windows is started as (melee_engine/fork.py)
+        self.exe = Path(exe)
+        self.disc = Path(disc or ROOT / "build/disc")
         if draw:
             cmd.append("--draw")
         if verbose:

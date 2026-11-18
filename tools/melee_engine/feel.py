@@ -746,7 +746,10 @@ def main():
     finally:
         for p in busy:
             try:
-                os.killpg(p.pid, signal.SIGKILL)
+                if sys.platform == "win32":
+                    p.kill()  # (no process groups to kill there)
+                else:
+                    os.killpg(p.pid, signal.SIGKILL)
             except OSError:
                 pass
     if args.json:

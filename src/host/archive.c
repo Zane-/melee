@@ -311,22 +311,59 @@ static void keep_disc_order(void)
 
 /* --- the loader ----------------------------------------------------------- */
 
+/* The last parses, printed with the last disc reads when one fails (dvd.c,
+   host_dvd_history): which buffer, its first word, who asked. */
+#define PARSES 24
+static struct {
+    const u8* src;
+    uint32_t size, first;
+    void* caller;
+    int ok;
+} parses[PARSES];
+static int parse_next;
+void host_dvd_history(void);
+
+static void parse_history(void)
+{
+    host_log("the last archive parses, oldest first:");
+    for (int n = PARSES; n >= 1; n--) {
+        int i = (parse_next - n + PARSES) % PARSES;
+        if (parses[i].src != NULL) {
+            host_log("  parse %p %u bytes, first %08x, by %p: %s",
+                     (void*) parses[i].src, parses[i].size, parses[i].first,
+                     parses[i].caller, parses[i].ok ? "ok" : "FAILED");
+        }
+    }
+    host_dvd_history();
+}
+
 s32 HSD_ArchiveParse(HSD_Archive* archive, u8* src, size_t size)
 {
     const char* error = NULL;
     DatArchive* native;
     DatArchiveData* raw;
+    int slot = parse_next;
 
     if (archive == NULL) {
         return -1;
     }
+    parse_next = (parse_next + 1) % PARSES;
+    parses[slot].src = src;
+    parses[slot].size = (uint32_t) size;
+    parses[slot].first = size >= 4 ? be32(src) : 0;
+    parses[slot].caller = __builtin_return_address(0);
+    parses[slot].ok = 1;
     memset(archive, 0, sizeof(*archive));
     keep_disc_order();
     end_overlapping(src, size);
     native = dat_open(&melee_dat_schema, src, size, &error);
     if (native == NULL) {
-        host_log("archive from %s does not parse: %s",
-                 host_disc_origin(src, NULL), error ? error : "?");
+        host_log("archive from %s does not parse: %s (at %p: first word "
+                 "%08x, %zu bytes given)",
+                 host_disc_origin(src, NULL), error ? error : "?",
+                 (void*) src, size >= 4 ? be32(src) : 0, size);
+        parses[slot].ok = 0;
+        parse_history();
         return -1;
     }
     note_open(native, src, size);
