@@ -24,7 +24,7 @@ sudo pacman -Syu --needed base-devel git cmake ninja python patch wget unzip \
     lib32-vulkan-radeon lib32-vulkan-swrast lib32-libx11 lib32-libxext \
     lib32-libxkbcommon lib32-libdecor lib32-libxcursor lib32-libxi \
     lib32-libxrandr lib32-libxss lib32-wayland lib32-libpulse lib32-alsa-lib \
-    lib32-libusb libxss xorg-server-xvfb
+    lib32-libusb libxss xorg-server-xvfb imagemagick
 ```
 
 Every command below runs inside the container (`distrobox enter
@@ -33,6 +33,9 @@ meleedev`). The home directory is shared with the host, so the checkout,
 `libxss`) is needed by SDL3's configure (`SDL_X11_XSCRNSAVER`);
 `lib32-vulkan-radeon` is the Deck's GPU driver (another GPU wants its own);
 `lib32-vulkan-swrast` is the software Vulkan the tests can use.
+`imagemagick` (its `import`) takes the pictures the client draws for
+itself (portraits, Sheik, the stages: `window.shot`); without it, drawing
+them fails on the first picture.
 
 ## The build, in order
 
