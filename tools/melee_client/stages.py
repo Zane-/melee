@@ -251,7 +251,8 @@ def _render(root, only, log):
     panel = (width, tall, 0, (height - tall) // 2)
     # the card's picture: 16:9 out of the game's middle, a little high
     wide = (width, width * 9 // 16, 0, (height - width * 9 // 16) // 2 - 10)
-    with Window(window=RENDER) as w:
+    # no sound: it draws beside the client, whose music it would play over
+    with Window(window=RENDER, sound=False) as w:
         for s in STAGES:
             if only and s["id"] not in only:
                 continue

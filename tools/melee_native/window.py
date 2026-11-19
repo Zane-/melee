@@ -99,11 +99,14 @@ def leftovers():
 class Window(Native):
     def __init__(self, gpu=False, size=(800, 600), verbose=False,
                  timeout=120, state_dir=None, real=False, vsync=False,
-                 window=(640, 480), fullscreen=None, sound_file=None):
+                 window=(640, 480), fullscreen=None, sound_file=None,
+                 sound=True):
         """`fullscreen`: True or False; None is "as it was last left" on a
         real display and False on a virtual one (a test must not start
         the way someone left their game); "remembered" asks for that on
-        either."""
+        either. `sound`: False for a game nobody listens to (one that
+        draws pictures beside the client's): the window build's sound
+        goes to the speakers, on a virtual display too."""
         if not EXE.exists():
             raise NativeError("no window build: run tools/aurora32/build.sh "
                               "and tools/native_build.py --window")
@@ -149,6 +152,8 @@ class Window(Native):
         if sound_file is not None:
             # what the game sounds like, 16-bit stereo at 32 kHz (tests)
             env["MELEE_AUDIO_RAW"] = str(sound_file)
+        elif not sound:
+            env["MELEE_AUDIO"] = "0"
         try:
             super().__init__(exe=EXE, verbose=verbose, timeout=timeout,
                              env=env)

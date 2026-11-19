@@ -520,7 +520,8 @@ def render_sheik(root=ART, size=(1440, 1080), log=print,
 
     shots = root / "studio"
     shots.mkdir(parents=True, exist_ok=True)
-    with Window(window=size) as w:
+    # no sound: it draws beside the client, whose music it would play over
+    with Window(window=size, sound=False) as w:
         for n in which:
             w.costume(0, n)
             w.start("sheik", None, stage="final-destination")

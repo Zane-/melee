@@ -4908,7 +4908,7 @@ def main():
         import os
         os.environ["MELEE_TIMING"] = "1"
     if args.devices:
-        with window.Window() as w:
+        with window.Window(sound=False) as w:
             w.step(5)
             said = w.devices()
             for _ in range(10):
