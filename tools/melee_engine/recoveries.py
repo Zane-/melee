@@ -35,15 +35,17 @@ TOP = ("fox", "marth", "jigglypuff", "falco", "sheik", "captain-falcon",
 DRILL = "fox-edgeguard"
 
 
-def table(drill=DRILL, scenario=None):
+def table(drill=DRILL, scenario=None, part=-1):
     """The starts the edgeguard drill draws from (its second part's
     scenarios' "launch": TM-CE's hit strengths and more), by name, and
     where its player stands: ({name: hit}, player). `scenario`: the
     opponent's character (its own starts: one that leaves a character no
-    way back is not among them); None: the first's."""
+    way back is not among them); None: the first's. `part`: the part of
+    the drill (0: its first, where the opponent comes back to the ledge
+    with its jump alone)."""
     from melee_drills import format as F
     spec = F.load(drill)
-    part = spec["parts"][-1]["scenario"]
+    part = spec["parts"][part]["scenario"]
     ids = part if isinstance(part, list) else [part]
     scs = [spec["scenarios"][i] for i in ids]
     sc = next((x for x in scs if x["opponent"].get("character") ==
@@ -180,7 +182,7 @@ STANDINS = {c.name: c for c in (Stand, Ledge, Hog, Bair, Wait)}
 # ---- one recovery ---------------------------------------------------------------
 
 def launch(n, rng, kind, side, half, port=1, pin=False, scenario=None,
-           hit=None):
+           hit=None, part=-1):
     """The opponent started off the stage's `side` as the drill starts it:
     the start named `kind` drawn from its ranges (format.draw_launch), the
     player where the drill stands them; `pin`: 15 units in from the ledge
@@ -190,7 +192,7 @@ def launch(n, rng, kind, side, half, port=1, pin=False, scenario=None,
     from melee_engine.recover import air_jumps
     # (`hit`: a start of the caller's own, not one of the drill's)
     if hit is None:
-        hits, player = table(scenario=scenario)
+        hits, player = table(scenario=scenario, part=part)
         hit = hits[kind]
     else:
         player = {"inland": [8, 30], "facing": "either"}
@@ -211,7 +213,7 @@ def launch(n, rng, kind, side, half, port=1, pin=False, scenario=None,
 
 
 def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
-             hit=None):
+             hit=None, part=-1, tools=None, goal=None):
     """Whether the start named `kind`, drawn with `seed`, is one the
     opponent can get back from when its first decision is for `lead` frames
     after the launch (as while a person plays: recover.Pilot.LEAD; it does
@@ -225,6 +227,10 @@ def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
     it; "wait", the frames until then. One that leaves it next to the stage
     is no edgeguard either (the owner, 2026-11-18: "they spawn way too
     close to the stage or even on the ledge which we don't want"): OUT_MIN.
+
+    `part`: the drill's part the start is of; `tools`, `goal`: what the
+    opponent is held to there (the first part's: "jump", to the "ledge":
+    a way back is then one its jump and its drift reach the ledge by).
     """
     from melee_engine import recover as RC
     lead = RC.Pilot.LEAD if lead is None else lead
@@ -232,7 +238,8 @@ def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
     half = abs(n.ledge()[0])
     n.clean()
     n.seed(seed & 0xFFFFFFFF or 1)
-    drawn = launch(n, rng, kind, side, half, scenario=scenario, hit=hit)
+    drawn = launch(n, rng, kind, side, half, scenario=scenario, hit=hit,
+                   part=part)
     n.pad(0)
     n.pad(1)
     n.step()
@@ -258,7 +265,7 @@ def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
     drift = (0, -127 * side, 0, 0, 0, 0, 0)
     pre = [NONE if j < stun else drift for j in range(lead)]
     got = RC.decide(n, 1, 0, pre, [(1, NONE)], random.Random(seed),
-                    budget=budget, predict=False)
+                    budget=budget, predict=False, tools=tools, goal=goal)
     return got["good"], got["tried"], drawn
 
 
@@ -376,6 +383,26 @@ def main():
                               " (TOO NEAR)" if min(outs) < OUT_MIN else "",
                               "; none from: " + "; ".join(none)
                               if none else ""), flush=True)
+                # (the first part's start: back to the ledge by its jump
+                # alone)
+                for kind in table(scenario=ch, part=0)[0]:
+                    none, outs = 0, []
+                    for run in range(args.feasible):
+                        ok, tried, d = feasible(
+                            n, kind, 1 if run % 2 == 0 else -1,
+                            args.seed * 7919 + run * 104729, scenario=ch,
+                            part=0, tools="jump", goal="ledge")
+                        total += 1
+                        good += ok > 0 and d["out"] >= OUT_MIN
+                        outs.append(d["out"])
+                        none += not ok
+                    print("%-15s %-30s %2d of %2d to the ledge by its jump "
+                          "alone, %3.0f to %3.0f past the ledge when it "
+                          "can act%s" % (
+                              ch, "part 1: " + kind, args.feasible - none,
+                              args.feasible, min(outs), max(outs),
+                              " (TOO NEAR)" if min(outs) < OUT_MIN else ""),
+                          flush=True)
         print("%d of %d starts with a way back and %g or more past the "
               "ledge, %.0f s" % (good, total, OUT_MIN, time.time() - t0))
         return 0
