@@ -20,6 +20,9 @@ the archive tool and type table built through Nix:
     build/nix/melee-dat/bin/melee-dat types export \\
         -o build/GALE01/dat/types.bin --dwarf build/nix/dwarf/melee.elf
 
+or without Nix, the archive tool from cargo (build/cargo/release/melee-dat,
+used when Nix's is not there; docs/ai/linux-setup.md).
+
 Usage: python tools/native_build.py [--opt LEVEL] [--no-cmake]
 """
 
@@ -42,12 +45,17 @@ OUT = ROOT / "build" / "native"
 OBJ = OUT / "host"
 AURORA = Path(os.environ.get("AURORA_SRC", ROOT / "build/deps/aurora"))
 # Windows (MSYS2's i686 MinGW-w64 gcc on PATH): docs/ai/windows.md. The
-# archive tool is built there with cargo, not Nix.
+# archive tool is built there with cargo, not Nix; on Linux either works
+# (Nix's first: docs/ai/native-port.md; cargo's without Nix, as on a Steam
+# Deck: docs/ai/linux-setup.md).
 WIN32 = sys.platform == "win32"
+_CARGO_DAT = ROOT / ("build/cargo/release/melee-dat"
+                     + (".exe" if WIN32 else ""))
+_NIX_DAT = ROOT / "build/nix/melee-dat/bin/melee-dat"
 MELEE_DAT = Path(os.environ.get(
     "MELEE_DAT",
-    ROOT / ("build/cargo/release/melee-dat.exe" if WIN32
-            else "build/nix/melee-dat/bin/melee-dat")))
+    _CARGO_DAT if WIN32 or (not _NIX_DAT.exists() and _CARGO_DAT.exists())
+    else _NIX_DAT))
 # The POSIX stand-ins the host layer needs on Windows (src/host/win32/).
 WIN32_HOST = [f"-I{ROOT}/src/host/win32",
               "-include", str(ROOT / "src/host/win32/posix.h")]
@@ -543,8 +551,11 @@ def cmake(flags):
             sys.exit(f"missing {need}: see docs/ai/native-port.md")
     cflags = " ".join(flags)
     stamp = OUT / "host_flags.txt"
+    # the archive tool's path too: CMake keeps it cached, and a tool that
+    # moved (Nix's to cargo's) fails the build until it is configured again
+    configured = f"{cflags}\nMELEE_DAT={MELEE_DAT}"
     if not (OUT / "build.ninja").exists() or not stamp.exists() or \
-            stamp.read_text() != cflags:
+            stamp.read_text() != configured:
         env = dict(os.environ, AURORA_SRC=str(AURORA))
         toolchain = ([f"-DCMAKE_TOOLCHAIN_FILE={ROOT}/cmake/i686-mingw.cmake"]
                      if WIN32 else [])
@@ -555,7 +566,7 @@ def cmake(flags):
         if r.returncode:
             sys.exit(r.stdout + r.stderr)
         OUT.mkdir(parents=True, exist_ok=True)
-        stamp.write_text(cflags)
+        stamp.write_text(configured)
     r = run(["ninja", "-C", OUT, "melee", "dat_melee", "dat_native"],
             capture_output=True, text=True)
     if r.returncode:
