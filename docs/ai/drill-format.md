@@ -290,7 +290,10 @@ its proof, never written into one drill's file.
   (their back to the ledge), "ledge" or "either" (drawn). `format.draw_launch` draws
   one. A start must leave the opponent a way back when it first acts a reaction after
   the launch (`python tools/melee_engine/recoveries.py --feasible 12`): one that
-  leaves none is no edgeguard, and looks as if the opponent gave up. The game's own launch (`launch`, `src/host/setup.c`:
+  leaves none is no edgeguard, and looks as if the opponent gave up. And it must not
+  leave it next to the stage (the same command says how far past the ledge it is when
+  it can first act; the edgeguard drill's least is 45 units, `recoveries.OUT_MIN`),
+  nor on the ledge: there is nothing to guard. The game's own launch (`launch`, `src/host/setup.c`:
   the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
   off the left or the right ledge as the runtime draws the side (the pause menu's CPU
   side: Random, Left, Right). `JsonDrill.launched` is what was drawn.

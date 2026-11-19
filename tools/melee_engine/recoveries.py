@@ -53,6 +53,10 @@ def table(drill=DRILL, scenario=None):
 
 NONE = (0, 0, 0, 0, 0, 0, 0)
 A, B, X, Z, R = 0x100, 0x200, 0x400, 0x10, 0x20
+# the least a start leaves the opponent past the ledge when it can first
+# act, in units (Final Destination's ledge is 85 from its middle, its side
+# blast zone 160 past the ledge)
+OUT_MIN = 45.0
 
 
 def set_pad(n, port, raw):
@@ -214,7 +218,14 @@ def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
     nothing until then but drift once its hitstun is over) and the player
     does nothing: (routes that end well, routes tried, what was drawn). A
     start with none is not an edgeguard: whatever the player does it falls
-    (and looks as if it gave up)."""
+    (and looks as if it gave up).
+
+    What was drawn also says where the start leaves it when it can first
+    act (its hitstun over): "out", units past the ledge, and "up", above
+    it; "wait", the frames until then. One that leaves it next to the stage
+    is no edgeguard either (the owner, 2026-11-18: "they spawn way too
+    close to the stage or even on the ledge which we don't want"): OUT_MIN.
+    """
     from melee_engine import recover as RC
     lead = RC.Pilot.LEAD if lead is None else lead
     rng = random.Random(seed)
@@ -225,9 +236,23 @@ def feasible(n, kind, side, seed, lead=None, budget=64, scenario=None,
     n.pad(0)
     n.pad(1)
     n.step()
-    if drawn["hang"]:
-        return 1, 1, drawn
     me = n.state()["p"][1]
+    if drawn["hang"]:
+        drawn.update(out=abs(me["x"]) - half, up=me["y"], wait=0)
+        return 1, 1, drawn
+    # (where it is when its hitstun is over: played on, and taken back)
+    snap = n.snapshot()
+    now, wait = me, 0
+    while now["state"] in RC.DAMAGE and wait < 200:
+        n.pad(0)
+        n.pad(1)
+        n.step()
+        wait += 1
+        now = n.state()["p"][1]
+    drawn.update(out=round(abs(now["x"]) - half, 1), up=round(now["y"], 1),
+                 wait=wait)
+    n.restore(snap)
+    n.drop(snap)
     stun = int(me.get("hitstun") or 0) if me["state"] in RC.DAMAGE else 0
     lead = max(lead, min(stun, RC.Pilot.LEAD_MOST))
     drift = (0, -127 * side, 0, 0, 0, 0, 0)
@@ -332,23 +357,27 @@ def main():
                 for kind in args.launches.split(","):
                     if kind not in hits:
                         continue
-                    none = []
+                    none, outs = [], []
                     for run in range(args.feasible):
                         ok, tried, d = feasible(
                             n, kind, 1 if run % 2 == 0 else -1,
                             args.seed * 7919 + run * 104729, scenario=ch)
                         total += 1
-                        good += ok > 0
+                        good += ok > 0 and d["out"] >= OUT_MIN
+                        outs.append(d["out"])
                         if not ok:
                             none.append("inland %s y %s kb %s at %s" % (
                                 d["inland"], d["y"], d["knockback"],
                                 d["angle"]))
-                    print("%-15s %-30s %2d of %2d with a way back%s" % (
-                        ch, kind, args.feasible - len(none), args.feasible,
-                        "; none from: " + "; ".join(none) if none else ""),
-                        flush=True)
-        print("%d of %d starts with a way back, %.0f s" % (
-            good, total, time.time() - t0))
+                    print("%-15s %-30s %2d of %2d with a way back, %3.0f to "
+                          "%3.0f past the ledge when it can act%s%s" % (
+                              ch, kind, args.feasible - len(none),
+                              args.feasible, min(outs), max(outs),
+                              " (TOO NEAR)" if min(outs) < OUT_MIN else "",
+                              "; none from: " + "; ".join(none)
+                              if none else ""), flush=True)
+        print("%d of %d starts with a way back and %g or more past the "
+              "ledge, %.0f s" % (good, total, OUT_MIN, time.time() - t0))
         return 0
     for ch in args.chars.split(","):
         with Native() as n:

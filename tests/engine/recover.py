@@ -39,7 +39,10 @@ behaviour; src/host: "launch", "route", "hitboxes"), on the headless game.
 - it is flown as a person flies (the same day: "Humans are naturally
   tricky"): hanging back, in and back out, fast falls, a special pulled
   back before it comes in; every start of the drill leaves a way back, and
-  four of them are high.
+  three of them are high;
+- no start leaves it next to the stage (2026-11-18: "they spawn way too
+  close to the stage or even on the ledge"): 45 units or more past the
+  ledge when it can first act, and none hangs it from the ledge.
 """
 import os
 import random
@@ -218,7 +221,7 @@ def main():
             restart(n, "fox", ch)
             n.start("fox", ch, "final-destination", 1)
             memory, ends, kinds = {}, [], set()
-            for i, kind in enumerate(("weak", "normal", "hard", "shallow",
+            for i, kind in enumerate(("high", "normal", "hard", "shallow",
                                       "normal", "shallow")):
                 r = RV.recover_once(n, ch, kind, 1 if i % 2 == 0 else -1,
                                     1000 + 17 * i, memory=memory)
@@ -249,7 +252,7 @@ def main():
             n.start("fox", ch, "final-destination", 1)
             memory, seen = {}, []
             for i in range(12):
-                r = RV.recover_once(n, ch, ("weak", "normal", "hard",
+                r = RV.recover_once(n, ch, ("shallow", "normal", "hard",
                                             "high")[i % 4],
                                     1 if i % 2 == 0 else -1,
                                     500 + 31 * i, memory=memory)
@@ -258,7 +261,7 @@ def main():
                          ("+" + stall + "+") in k.split(">")[0] or
                          (ch == "jigglypuff" and stall in k)]
             check("%s stalls with %s before it comes in, some of twelve "
-                  "recoveries (weak, normal, hard and high starts)"
+                  "recoveries (shallow, normal, hard and high starts)"
                   % (ch, name), len(seen) >= 1,
                   "%d: %s" % (len(seen), ", ".join(sorted(set(seen)))))
 
@@ -563,9 +566,9 @@ def main():
                   tags, sorted(set(ends)), pulled))
 
         # -- every start leaves a way back -----------------------------------
-        none = []
+        none, near, outs = [], [], []
         total = 0
-        for ch in ("fox", "jigglypuff", "samus"):
+        for ch in ("fox", "jigglypuff", "samus", "pikachu"):
             restart(n, "fox", ch)
             n.start("fox", ch, "final-destination", 1)
             for kind in RV.table(scenario=ch)[0]:
@@ -573,22 +576,36 @@ def main():
                     ok, _, d = RV.feasible(n, kind, 1 if run else -1,
                                            500 + run, scenario=ch)
                     total += 1
+                    outs.append(d["out"])
                     if not ok:
                         none.append((ch, kind, d["inland"], d["y"]))
-        check("the drill's starts, Fox, Jigglypuff and Samus, two draws of "
-              "each: every one leaves it a way back when it first acts a "
-              "reaction after the launch (those that leave none are "
+                    if d["out"] < RV.OUT_MIN:
+                        near.append((ch, kind, d["out"]))
+        check("the drill's starts, Fox, Jigglypuff, Samus and Pikachu, two "
+              "draws of each: every one leaves it a way back when it first "
+              "acts a reaction after the launch (those that leave none are "
               "narrowed or left out, for each character)",
               not none and total >= 70, "%d starts; none from %s" % (
                   total, none))
-        hits = RV.table(scenario="fox")[0]
-        check("its starts are high too: above the edge, high beside the "
-              "stage, high and far out, with its jump and without",
-              all(k in hits for k in ("from above", "high", "high and far",
+        check("none leaves it next to the stage: when it can first act it "
+              "is 45 units or more past the ledge (a weak hit left it 21 "
+              "out, a start above the edge under 20)",
+              not near and min(outs) >= RV.OUT_MIN,
+              "%.0f to %.0f past the ledge; too near: %s" % (
+                  min(outs), max(outs), near))
+        every = [RV.table(scenario=ch)[0] for ch in RV.TOP]
+        hits = every[0]
+        check("no start hangs it from the ledge, for any of the eleven; "
+              "and its starts are high too: high beside the stage, high "
+              "and far out, with its jump and without",
+              not any(h.get("hang") for t in every for h in t.values()) and
+              not any(k in t for t in every
+                      for k in ("weak", "from above", "on the ledge")) and
+              all(k in hits for k in ("high", "high and far",
                                       "high without its jump")) and
               hits["high"]["y"][0] >= 90 and
               sum(h.get("weight", 1) for k, h in hits.items()
-                  if k.startswith(("high", "from above"))) >=
+                  if k.startswith("high")) >=
               0.35 * sum(h.get("weight", 1) for h in hits.values()),
               "%d starts: %s" % (len(hits), ", ".join(hits)))
 
