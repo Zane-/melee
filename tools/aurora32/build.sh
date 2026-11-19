@@ -54,10 +54,15 @@ configure() {
         -DAURORA_ENABLE_DVD=OFF -DAURORA_ENABLE_CARD=OFF \
         -DAURORA_ENABLE_RMLUI=ON \
         -DDAWN_USE_GLFW=OFF -DDAWN_BUILD_PROTOBUF=OFF \
-        -DTINT_BUILD_IR_BINARY=OFF
+        -DTINT_BUILD_IR_BINARY=OFF \
+        -DCMAKE_DISABLE_FIND_PACKAGE_SQLite3=ON
 }
 # DAWN_USE_GLFW=OFF is required: GLFW's Wayland support needs a 32-bit
 # xkbcommon, and Dawn's CMake turns GLFW back on whatever Aurora asked for.
+# SQLite3: Aurora uses the system's if CMake finds it, else builds its own.
+# CMake can find the 64-bit /usr/lib/libsqlite3.so, which a 32-bit program
+# cannot link (seen on SteamOS: "file in wrong format"), so Aurora always
+# builds its own, as 32-bit like the rest.
 configure
 
 # One line of Dawn does not compile for 32-bit: there a raw Vulkan handle is
