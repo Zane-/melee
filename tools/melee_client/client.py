@@ -4133,24 +4133,35 @@ class Client:
         to change them. A or B goes on; Y replays the try (replay)."""
         track = self.track
         saved = self.coach_wait()
+        # whether the game has moved on from COACH_NOW (the demonstration,
+        # a replay) and must be put back. The card itself leaves it as it
+        # was (frozen), and a load also puts the music back to where it
+        # was then: loading after the card for nothing made the music jump
+        # back by as long as the card had been read (the owner's player,
+        # 2026-11-18: "the music will restart when the coach prompt comes
+        # up").
+        moved = [True]
         try:
             target, target_track = self.coach_target(drill, session, result)
             if target is not None and target.get("ui"):
                 target, target_track = None, None
             if saved:
                 self.w.load(self.COACH_NOW)
+                moved[0] = False
             view = self.coach_view(result, track, target or {}, target_track,
                                    drill.guide(session.c))
             view["replay"] = not flowed
 
             def replay():
+                moved[0] = True
                 self.replay(drill, session, result, track, target,
                             target_track)
                 if saved:
                     self.w.load(self.COACH_NOW)
+                    moved[0] = False
             self.coach_card(view, replay)
         finally:
-            self.coach_back(saved)
+            self.coach_back(saved and moved[0])
 
     def coach_card(self, view, replay):
         """The card, its pictures playing, until A or B (Y: `replay`, then
