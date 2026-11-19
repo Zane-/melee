@@ -152,16 +152,20 @@ def main():
         # a model, loading as the characters are locked in
         models = opponents.models("marth", "fox")
         if models:
+            # the default: the specialist for the pairing, else the first
+            first = next((f for f, name, _ in models
+                          if name.endswith("Specialist")), models[0][0])
             vk.set_kind(c, tap, 1, "model")
-            check("P2's card: a trained model, the first for the pairing",
+            check("P2's card: a trained model, the specialist for the "
+                  "pairing if there is one",
                   c.vslots[1]["kind"] == "model" and
-                  c.vslots[1]["model"] == models[0][0],
+                  c.vslots[1]["model"] == first,
                   str(c.vslots[1].get("model")))
             tap("Return", after=10)
             check("locked in: the model's process starts on the stage "
                   "select, before the match", c.screen == "stages" and
                   1 in getattr(c, "vbots", {}) and
-                  c.vbots[1].model == models[0][0])
+                  c.vbots[1].model == first)
             bot = c.vbots[1]
             for _ in range(1800):
                 if bot.ready() is not None:

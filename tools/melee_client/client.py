@@ -1870,14 +1870,20 @@ class Client:
 
     def vpick_model(self, port, step):
         """Port `port`'s model: the one `step` along the list for its
-        character (0: the first, or the one it has)."""
+        character (0: the one it has, or else the specialist for this
+        pairing, trained on that character's players against yours; the
+        first, a rank, when there is none)."""
         sl = self.vslots[port]
         found = self.vmodels(port)
         if not found:
             sl["model"], sl["model_name"] = None, None
             return
         keys = [f for f, _, _ in found]
-        i = keys.index(sl["model"]) if sl.get("model") in keys else 0
+        if sl.get("model") in keys:
+            i = keys.index(sl["model"])
+        else:
+            i = next((n for n, (_, name, _) in enumerate(found)
+                      if name.endswith("Specialist")), 0)
         i = (i + step) % len(found)
         sl["model"], sl["model_name"] = found[i][0], found[i][1]
 
