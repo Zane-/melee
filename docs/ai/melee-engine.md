@@ -639,7 +639,8 @@ the coach's replays the number of the try they show. And the drill draws more
 (`drill-format.md`, `launch`): where the opponent is hit from and where the player
 stands and faces, with its damage, each time; ten starts: TM-CE's four strengths, one
 with the double jump gone, hit low off the edge, already off the stage with its jump or
-without, coming down from above, hanging from the ledge.
+without, coming down from above, hanging from the ledge (the starts as they were that
+day; what they are now is "Not next to the stage" below).
 
 **It fell without a press** (2026-11-17, the owner: "many of the drills the CPU will
 just SD (i.e. do nothing, no side b, no up B, etc.)"). Headless it never did; in the
@@ -692,10 +693,32 @@ family ("jump>stage high fade" with "jump>stage high"), and one that begins with
 stall weighs 2.5 times: among so many ways in, the shine was hardly flown. An opponent
 held to some of its tools (an example's, the first part's) comes straight in.
 
-And the starts are high too (`data/drills/fox-edgeguard.json`, 13 kinds; four of them
-high, 11 of the 26 weights): coming down above the edge, high beside the stage (95 to
-150 up), high and far out, high with the jump gone. They are placed there with a small
-knockback, not thrown: the same knockback sends Jigglypuff three times as high as Fox.
+And the starts are high too (`data/drills/fox-edgeguard.json`; three of its ten kinds,
+9 of the 22 weights): high beside the stage (95 to 150 up), high and far out, high with
+the jump gone. They are placed there with a small knockback, not thrown: the same
+knockback sends Jigglypuff three times as high as Fox.
+
+**Not next to the stage** (2026-11-18, the owner: "some variants are still quite bad,
+either they spawn way too close to the stage or even on the ledge which we don't want").
+Measured for each start, where the opponent is when it can first act:
+
+| Start, as it was | Past the ledge, least to most |
+|-|-|
+| TM-CE's weak hit | 21 to 39 |
+| above the edge | -2 to 19 |
+| high | 21 to 47 |
+| without its jump (thrown, placed, high) | 17 to 50 |
+| on the ledge | on it |
+
+The weak hit, the start above the edge and the one on the ledge are gone, and the rest
+are thrown harder or placed further out: ten kinds (TM-CE's normal, hard and shallow
+hits; one with the double jump gone; low off the edge; already off the stage, with its
+jump or without; the three high ones), and every one leaves it 45 units or more past
+the ledge when it can first act (`recoveries.OUT_MIN`; `feasible` says where a draw
+leaves it, `--feasible N` for all of them: %(feasible)s). It is kept for each
+character together with its way back: where a start cannot be both far enough and
+recoverable it is left out for that character (%(left)s). The first part's start is
+as it was: there the opponent comes back with its jump alone and has to be near.
 
 Not yet: a model of the player beyond "goes on, then lets go", the attacks they have in
 the air and the space they guard on the ground (a run to the ledge, a ledge dropped and
