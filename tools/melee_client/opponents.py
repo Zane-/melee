@@ -106,38 +106,49 @@ def _version(text):
     return [int(x) for x in (text or "1").split(".")]
 
 
-def build_catalog():
-    """Every model file, what it is, and whether it is shown."""
+def _entry(path):
+    """What one model file is, read from its name and training settings."""
     names = {cid: characters.character(cid)["name"]
              for cid in characters.LOOK}
-    entries = []
-    for path in sorted(MODELS.iterdir()):
-        delay, plays = _settings(path)
-        e = dict(file=path.name, delay=delay, shown=False)
-        m, r = NAMED.match(path.name), RANKED.match(path.name)
-        tiers = dict(TIERS)
-        if m and m.group("char") in CHARACTER:
-            me = CHARACTER[m.group("char")]
-            if m.group("kind") == "imitation":
-                e.update(kind="generalist", character=me, against=None,
-                         name="Generalist")
-            else:
-                vs = me if m.group("kind") == "ditto" else \
-                    CHARACTER.get(m.group("vs"))
-                e.update(kind="specialist", character=me, against=vs,
-                         name="%s Specialist" % names[vs])
-            e.update(version=m.group("ver") or "1", tag=m.group("tag"))
-        elif r and r.group("tier") in tiers:
-            tier = r.group("tier")
-            e.update(kind="rank", tier=tier, name=tiers[tier],
-                     version=r.group("ver") or "1",
-                     plays=plays or sorted(set(CHARACTER.values())))
+    delay, plays = _settings(path)
+    e = dict(file=path.name, delay=delay, shown=False)
+    m, r = NAMED.match(path.name), RANKED.match(path.name)
+    tiers = dict(TIERS)
+    if m and m.group("char") in CHARACTER:
+        me = CHARACTER[m.group("char")]
+        if m.group("kind") == "imitation":
+            e.update(kind="generalist", character=me, against=None,
+                     name="Generalist")
         else:
-            e.update(kind="other", name=path.name)
-        if delay:
-            e["about"] = "%d-frame reaction" % delay
-        entries.append(e)
-    # the newest of models alike
+            vs = me if m.group("kind") == "ditto" else \
+                CHARACTER.get(m.group("vs"))
+            e.update(kind="specialist", character=me, against=vs,
+                     name="%s Specialist" % names[vs])
+        e.update(version=m.group("ver") or "1", tag=m.group("tag"))
+    elif r and r.group("tier") in tiers:
+        tier = r.group("tier")
+        e.update(kind="rank", tier=tier, name=tiers[tier],
+                 version=r.group("ver") or "1",
+                 plays=plays or sorted(set(CHARACTER.values())))
+    else:
+        e.update(kind="other", name=path.name)
+    if delay:
+        e["about"] = "%d-frame reaction" % delay
+    return e
+
+
+def build_catalog():
+    """Every model file, what it is, and whether it is shown."""
+    entries = [_entry(path) for path in sorted(MODELS.iterdir())]
+    _mark_newest(entries)
+    return entries
+
+
+def _mark_newest(entries):
+    """Set `shown` on the newest of models alike (of the ranks, only on
+    the tiers the client offers)."""
+    for e in entries:
+        e["shown"] = False
     groups = {}
     for e in entries:
         if e["kind"] == "rank":
@@ -152,7 +163,6 @@ def build_catalog():
             groups[key] = e
     for key, e in groups.items():
         e["shown"] = key[0] != "rank" or key[1] in SHOWN_TIERS
-    return entries
 
 
 def catalog():
@@ -174,6 +184,32 @@ def write_catalog():
     return entries
 
 
+# what _entry() made of a file the catalog does not list: (name, size) -> entry
+_unlisted = {}
+
+
+def present():
+    """The models in deployed_models/ on this machine, `shown` chosen among
+    them: a machine with fewer models, or newer ones, than the one the
+    catalog was made on still offers the newest of each kind it has. The
+    catalog says what each listed file is; a file it does not list is read
+    the way --catalog reads it."""
+    listed = {e["file"]: e for e in catalog()}
+    entries = []
+    for path in sorted(MODELS.iterdir()):
+        if path.name.endswith(".part") or not path.is_file():
+            continue
+        e = listed.get(path.name)
+        if e is None:
+            key = (path.name, path.stat().st_size)
+            if key not in _unlisted:
+                _unlisted[key] = _entry(path)
+            e = _unlisted[key]
+        entries.append(dict(e))
+    _mark_newest(entries)
+    return entries
+
+
 # ---- who can play a pairing ------------------------------------------------------
 
 def models(bot, player):
@@ -185,8 +221,8 @@ def models(bot, player):
         return []
     order = [t for t, _ in TIERS]
     out = []
-    for e in catalog():
-        if not e.get("shown") or not (MODELS / e["file"]).exists():
+    for e in present():
+        if not e.get("shown"):
             continue
         if e["kind"] == "rank" and bot in e.get("plays", ()):
             out.append((0, order.index(e["tier"]), e))

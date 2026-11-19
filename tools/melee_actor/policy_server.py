@@ -97,20 +97,15 @@ def main():
         except ValueError:
             continue
         if "load" in msg:
-            from slippi_ai import eval_lib, saving
             port, opponent = msg.get("port", 1), msg.get("opponent", 0)
             try:
                 player = policy.PolicyPlayer(
                     game, port, opponent,
                     os.path.join(policy.SLIPPI_AI, "deployed_models",
                                  msg["load"]),
-                    stage=msg.get("stage", "final-destination"))
-                # one frame of the answer's own lateness is ours
-                state = saving.load_state_from_disk(os.path.join(
-                    policy.SLIPPI_AI, "deployed_models", msg["load"]))
-                player.agent = eval_lib.build_delayed_agent(
-                    state, console_delay=1, batch_size=1, name=None)
-                player.delay = player.agent.policy.delay
+                    stage=msg.get("stage", "final-destination"),
+                    # one frame of the answer's own lateness is ours
+                    console_delay=1)
                 say(dict(ready=True, delay=int(player.delay)))
             except Exception as e:      # a model that does not load
                 player = None

@@ -62,15 +62,20 @@ class PolicyPlayer:
     """One fighter played by a trained slippi-ai policy."""
 
     def __init__(self, sim, port, opponent, model, stage="final-destination",
-                 name=None):
+                 name=None, console_delay=0):
         from slippi_ai import eval_lib, saving
         self.sim, self.port, self.opponent = sim, port, opponent
         # a stage libmelee does not name (all but the six legal ones: the
         # models learned on those) is told as none at all (NO_STAGE)
         self.stage = STAGES.get(stage, 0)
         state = saving.load_state_from_disk(model)
+        # functionalize: the model is jitted once as a pure function of its
+        # state, instead of Flax walking its graph in Python on every call
+        # (most of a step's time on a slow CPU: on a Steam Deck, 22 ms a
+        # frame became 8)
         self.agent = eval_lib.build_delayed_agent(
-            state, console_delay=0, batch_size=1, name=name)
+            state, console_delay=console_delay, batch_size=1, name=name,
+            jax=dict(functionalize=True))
         self.delay = self.agent.policy.delay
         self.first = True
         self.frames = 0
