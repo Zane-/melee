@@ -152,9 +152,12 @@ def main():
         # a model, loading as the characters are locked in
         models = opponents.models("marth", "fox")
         if models:
-            # the default: the specialist for the pairing, else the first
-            first = next((f for f, name, _ in models
-                          if name.endswith("Specialist")), models[0][0])
+            # the default: the specialist for the pairing (the newest
+            # version), else the first
+            special = [f for f, name, _ in models
+                       if name.endswith("Specialist")]
+            first = max(special, key=opponents.version) if special \
+                else models[0][0]
             vk.set_kind(c, tap, 1, "model")
             check("P2's card: a trained model, the specialist for the "
                   "pairing if there is one",
