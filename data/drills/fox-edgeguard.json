@@ -194,14 +194,14 @@
     "character": "fox",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       171.0,
+       202.0
       ],
       "angle": [
-       42,
-       56
+       74,
+       74
       ],
       "percent": [
        40,
@@ -238,14 +238,14 @@
     "character": "marth",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       130.7,
+       152.0
       ],
       "angle": [
-       42,
-       56
+       58,
+       62
       ],
       "percent": [
        40,
@@ -282,14 +282,14 @@
     "character": "jigglypuff",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       120.0,
+       141.3
       ],
       "angle": [
-       42,
-       56
+       50,
+       62
       ],
       "percent": [
        40,
@@ -326,14 +326,14 @@
     "character": "falco",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       171.0,
+       202.0
       ],
       "angle": [
-       42,
-       56
+       74,
+       74
       ],
       "percent": [
        40,
@@ -370,14 +370,14 @@
     "character": "sheik",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       130.7,
+       141.3
       ],
       "angle": [
-       42,
-       56
+       58,
+       62
       ],
       "percent": [
        40,
@@ -414,14 +414,14 @@
     "character": "captain-falcon",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       141.3,
+       152.0
       ],
       "angle": [
-       42,
-       56
+       62,
+       66
       ],
       "percent": [
        40,
@@ -458,14 +458,14 @@
     "character": "peach",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       141.3,
+       152.0
       ],
       "angle": [
-       42,
-       56
+       62,
+       66
       ],
       "percent": [
        40,
@@ -502,14 +502,14 @@
     "character": "ice-climbers",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       120.0,
+       130.7
       ],
       "angle": [
-       42,
-       56
+       54,
+       58
       ],
       "percent": [
        40,
@@ -546,14 +546,14 @@
     "character": "pikachu",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       120.0,
+       130.7
       ],
       "angle": [
-       42,
-       56
+       54,
+       58
       ],
       "percent": [
        40,
@@ -590,14 +590,14 @@
     "character": "yoshi",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       171.0,
+       202.0
       ],
       "angle": [
-       42,
-       56
+       70,
+       74
       ],
       "percent": [
        40,
@@ -634,14 +634,14 @@
     "character": "samus",
     "launch": [
      {
-      "name": "near",
+      "name": "to the ledge",
       "knockback": [
-       80,
-       94
+       109.3,
+       130.7
       ],
       "angle": [
        42,
-       56
+       46
       ],
       "percent": [
        40,
@@ -956,14 +956,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        171.0,
+        202.0
        ],
        "angle": [
-        42,
-        56
+        74,
+        74
        ],
        "percent": [
         40,
@@ -1254,14 +1254,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        130.7,
+        152.0
        ],
        "angle": [
-        42,
-        56
+        58,
+        62
        ],
        "percent": [
         40,
@@ -1576,14 +1576,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        120.0,
+        141.3
        ],
        "angle": [
-        42,
-        56
+        50,
+        62
        ],
        "percent": [
         40,
@@ -1898,14 +1898,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        171.0,
+        202.0
        ],
        "angle": [
-        42,
-        56
+        74,
+        74
        ],
        "percent": [
         40,
@@ -2220,14 +2220,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        130.7,
+        141.3
        ],
        "angle": [
-        42,
-        56
+        58,
+        62
        ],
        "percent": [
         40,
@@ -2542,14 +2542,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        141.3,
+        152.0
        ],
        "angle": [
-        42,
-        56
+        62,
+        66
        ],
        "percent": [
         40,
@@ -2864,14 +2864,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        141.3,
+        152.0
        ],
        "angle": [
-        42,
-        56
+        62,
+        66
        ],
        "percent": [
         40,
@@ -3186,14 +3186,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        120.0,
+        130.7
        ],
        "angle": [
-        42,
-        56
+        54,
+        58
        ],
        "percent": [
         40,
@@ -3508,14 +3508,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        120.0,
+        130.7
        ],
        "angle": [
-        42,
-        56
+        54,
+        58
        ],
        "percent": [
         40,
@@ -3805,14 +3805,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        171.0,
+        202.0
        ],
        "angle": [
-        42,
-        56
+        70,
+        74
        ],
        "percent": [
         40,
@@ -4127,14 +4127,14 @@
     "example": {
      "launch": [
       {
-       "name": "near",
+       "name": "to the ledge",
        "knockback": [
-        80,
-        94
+        109.3,
+        130.7
        ],
        "angle": [
         42,
-        56
+        46
        ],
        "percent": [
         40,

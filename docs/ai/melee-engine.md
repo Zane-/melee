@@ -672,10 +672,13 @@ test plays two tries at pace):
 
 | The player | Before | Now |
 |-|-|-|
-| stands still | 25 of 33 back, 8 fell without a press | %(passive)s |
-| takes the ledge at once, down smashes at the edge, jumps out and swings, in turn | not measured with these starts | %(active)s |
+| stands still | 25 of 33 back, 8 fell without a press | 33 of 33 back, none without a press |
+| takes the ledge at once, down smashes at the edge, jumps out and swings, in turn | not measured with these starts | 31 of 32 back, none without a press (the one lost: Marth from high and far, a jump and Dolphin Slash that came up short) |
 
-%(first)s
+The first press came a median 10 frames after the hitstun ended (some routes wait on
+purpose: the latest 101), and a decision on the clock played a median 12 routes, 5 at
+the least. That rig draws in software beside the game; on a desktop whose GPU draws
+there is more time for routes.
 
 **Flown as a person flies** (the owner, the same day: "Peaches will bait attacks and
 then drift back to dodge, Captain Falcon will drift back in up B to mix up timings,
@@ -715,10 +718,20 @@ are thrown harder or placed further out: ten kinds (TM-CE's normal, hard and sha
 hits; one with the double jump gone; low off the edge; already off the stage, with its
 jump or without; the three high ones), and every one leaves it 45 units or more past
 the ledge when it can first act (`recoveries.OUT_MIN`; `feasible` says where a draw
-leaves it, `--feasible N` for all of them: %(feasible)s). It is kept for each
+leaves it, `--feasible N` for all of them: ten draws of each start for each character,
+1,075 of 1,080 with a way back and all of them 51 to 129 past the ledge; the five without
+a way back made a step milder, and later 952 of 952 on other draws, the first part's
+among them). It is kept for each
 character together with its way back: where a start cannot be both far enough and
-recoverable it is left out for that character (%(left)s). The first part's start is
-as it was: there the opponent comes back with its jump alone and has to be near.
+recoverable it is left out for that character (Marth's low hit, Yoshi's launch without
+its jump). The first part's start,
+where the opponent comes back to the ledge with its jump alone, was left near at first
+(21 to 35 out) and moved out the same day ("move part 1's start further out too"): for
+each character the knockback and angle that leave it 45 or more out with the ledge
+still in reach of its jump and its drift (54 to 93 out over 88 draws, 88 with a way).
+Fox, Falco and Yoshi are thrown steep (70 to 74 degrees) for it: a fast faller has no
+way from out there by its jump alone unless it is high, and Yoshi's jump reaches the
+ledge from 55 out only from above (at 42 degrees not until 110 out).
 
 Not yet: a model of the player beyond "goes on, then lets go", the attacks they have in
 the air and the space they guard on the ground (a run to the ledge, a ledge dropped and

@@ -42,7 +42,8 @@ behaviour; src/host: "launch", "route", "hitboxes"), on the headless game.
   three of them are high;
 - no start leaves it next to the stage (2026-11-18: "they spawn way too
   close to the stage or even on the ledge"): 45 units or more past the
-  ledge when it can first act, and none hangs it from the ledge.
+  ledge when it can first act, and none hangs it from the ledge; the first
+  part's start too, with the ledge still in reach of its jump alone.
 """
 import os
 import random
@@ -566,7 +567,7 @@ def main():
                   tags, sorted(set(ends)), pulled))
 
         # -- every start leaves a way back -----------------------------------
-        none, near, outs = [], [], []
+        none, near, outs, first = [], [], [], []
         total = 0
         for ch in ("fox", "jigglypuff", "samus", "pikachu"):
             restart(n, "fox", ch)
@@ -581,6 +582,13 @@ def main():
                         none.append((ch, kind, d["inland"], d["y"]))
                     if d["out"] < RV.OUT_MIN:
                         near.append((ch, kind, d["out"]))
+            # (the first part's: back to the ledge by its jump alone)
+            for kind in RV.table(scenario=ch, part=0)[0]:
+                for run in range(3):
+                    ok, _, d = RV.feasible(n, kind, 1 if run % 2 else -1,
+                                           700 + run, scenario=ch, part=0,
+                                           tools="jump", goal="ledge")
+                    first.append((ch, bool(ok), d["out"]))
         check("the drill's starts, Fox, Jigglypuff, Samus and Pikachu, two "
               "draws of each: every one leaves it a way back when it first "
               "acts a reaction after the launch (those that leave none are "
@@ -593,6 +601,16 @@ def main():
               not near and min(outs) >= RV.OUT_MIN,
               "%.0f to %.0f past the ledge; too near: %s" % (
                   min(outs), max(outs), near))
+        check("nor does the first part's start (2026-11-18: \"move part "
+              "1's start further out too\"; it left it 21 to 35 out): 45 "
+              "units or more past the ledge, and the ledge still in reach "
+              "of its jump and its drift alone, a fast faller thrown "
+              "steeper for the height that takes",
+              len(first) == 12 and all(ok and out >= RV.OUT_MIN
+                                       for _, ok, out in first),
+              "; ".join("%s %.0f out%s" % (ch, out, "" if ok else
+                                           " (no way)")
+                        for ch, ok, out in first))
         every = [RV.table(scenario=ch)[0] for ch in RV.TOP]
         hits = every[0]
         check("no start hangs it from the ledge, for any of the eleven; "
