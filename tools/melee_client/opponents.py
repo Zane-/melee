@@ -106,6 +106,12 @@ def _version(text):
     return [int(x) for x in (text or "1").split(".")]
 
 
+def version(file):
+    """A model file's version as a sortable list ([6, 2] for _v6.2)."""
+    m = NAMED.match(file) or RANKED.match(file)
+    return _version(m.group("ver") if m else None)
+
+
 def _entry(path):
     """What one model file is, read from its name and training settings."""
     names = {cid: characters.character(cid)["name"]
@@ -370,12 +376,112 @@ class Bot:
             pass
 
 
+# ---- getting the models ----------------------------------------------------------
+
+# The released models' Drive ids and sizes (the folder slippi-ai's README
+# links), so that the ones a player needs can be fetched by name.
+DRIVE = ROOT / "data" / "models" / "slippi-ai-drive.json"
+
+
+def for_main(main, ranks=False):
+    """The released models to have for playing `main` (a character id):
+    for every character, the newest specialist trained against `main` at
+    each reaction delay (the one Versus starts on), and with `ranks` the
+    rank models the client offers. [(file, Drive id, size)]."""
+    files = json.loads(DRIVE.read_text())["files"]
+    best = {}
+    for name, f in files.items():
+        m, r = NAMED.match(name), RANKED.match(name)
+        if m and m.group("char") in CHARACTER and \
+                m.group("kind") != "imitation":
+            me = CHARACTER[m.group("char")]
+            vs = me if m.group("kind") == "ditto" else \
+                CHARACTER.get(m.group("vs"))
+            if vs != main:
+                continue
+            key = (me, m.group("delay"))
+            ver = _version(m.group("ver"))
+        elif ranks and r and r.group("tier") in SHOWN_TIERS:
+            key, ver = ("rank", r.group("tier")), _version(r.group("ver"))
+        else:
+            continue
+        if key not in best or ver > best[key][0]:
+            best[key] = (ver, name, f)
+    return sorted((name, f["id"], f["size"]) for _, name, f in best.values())
+
+
+def download(wanted, say=print):
+    """Fetch the models in `wanted` ([(file, Drive id, size)]) into
+    deployed_models/, skipping the ones already there whole. Returns the
+    files that could not be fetched."""
+    import urllib.request
+    MODELS.mkdir(parents=True, exist_ok=True)
+    failed = []
+    for i, (name, fid, size) in enumerate(wanted, 1):
+        path = MODELS / name
+        if path.exists() and path.stat().st_size == size:
+            say("[%d/%d] have %s" % (i, len(wanted), name))
+            continue
+        part = path.with_name(name + ".part")
+        url = ("https://drive.usercontent.google.com/download?id=%s"
+               "&export=download&confirm=t" % fid)
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(url, timeout=60) as r, \
+                        open(part, "wb") as out:
+                    while True:
+                        chunk = r.read(1 << 20)
+                        if not chunk:
+                            break
+                        out.write(chunk)
+                if part.stat().st_size == size:
+                    part.replace(path)
+                    say("[%d/%d] got %s (%d MB)" % (i, len(wanted), name,
+                                                     size // 1000000))
+                    break
+                say("  %s: %d bytes, expected %d; again" % (
+                    name, part.stat().st_size, size))
+            except OSError as e:
+                # Drive refuses for a while after many large downloads
+                say("  %s: %s; again" % (name, e))
+            import time
+            time.sleep(10 * (attempt + 1))
+        else:
+            part.unlink(missing_ok=True)
+            failed.append(name)
+            say("[%d/%d] could not fetch %s" % (i, len(wanted), name))
+    return failed
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--catalog", action="store_true",
                     help="write data/models/slippi-ai.json from the models")
+    ap.add_argument("--download", action="store_true",
+                    help="fetch the released models for --main into "
+                         "deployed_models/")
+    ap.add_argument("--main", default="fox",
+                    help="the character you play (a client id: fox, "
+                         "falco, marth, captain-falcon, ...)")
+    ap.add_argument("--ranks", action="store_true",
+                    help="with --download: the rank models too (391 MB "
+                         "each; slow on a weak CPU)")
+    ap.add_argument("--list", action="store_true",
+                    help="with --download: say what would be fetched")
     args = ap.parse_args()
     print("slippi-ai:", "found" if available() else "not found", SLIPPI_AI)
+    if args.download:
+        wanted = for_main(args.main, args.ranks)
+        print("%d models for playing %s, %.1f GB:" % (
+            len(wanted), args.main, sum(s for _, _, s in wanted) / 1e9))
+        if args.list:
+            for name, _, size in wanted:
+                print("  %-28s %4d MB" % (name, size // 1000000))
+            return
+        failed = download(wanted)
+        if failed:
+            sys.exit("not fetched (try again later): " + ", ".join(failed))
+        return
     if args.catalog:
         entries = write_catalog()
         print("%d models, %d shown: %s" % (

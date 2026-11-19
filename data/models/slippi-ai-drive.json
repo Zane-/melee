@@ -1,0 +1,650 @@
+{
+ "about": "The released slippi-ai models in the public Google Drive folder slippi-ai's README links (https://drive.google.com/drive/folders/1etYN_IgVoUPleAsh76s_9443e4XzGKWo, listed 2026-11-18): each file's Drive id and size, for `python tools/melee_client/opponents.py --download`. These models are for offline play, not for the Slippi ladders (slippi-ai's own rule).",
+ "folder": "1etYN_IgVoUPleAsh76s_9443e4XzGKWo",
+ "files": {
+  "SFIL": {
+   "id": "1pRvt-x-JJRrw9IsXujck_frRbgA10iN2",
+   "size": 42331812
+  },
+  "bronze": {
+   "id": "1R7hnErizzPQ2SBs0On31XTLnYgSAQlHW",
+   "size": 391104297
+  },
+  "diamond": {
+   "id": "1oGFSY_36f8xydSHG1b3Psuc831alX51J",
+   "size": 391104413
+  },
+  "dk_d18_imitation_v2": {
+   "id": "1QDPMXavnpCjaE0jS3ga058VS5P46icxi",
+   "size": 42078949
+  },
+  "dk_d18_vs_fox": {
+   "id": "127CulGP80qAauQN5Yp4rJMCN2k0BPcUQ",
+   "size": 42079129
+  },
+  "dk_d21_vs_falcon_v6.1": {
+   "id": "174kMvbDyevzXeQleqBHC2HRMEciXEkOP",
+   "size": 179222762
+  },
+  "dk_d21_vs_falcon_v6.2": {
+   "id": "1NVV7oLda7P-6XFVENNHeNZ6bcGeDO6RM",
+   "size": 179222762
+  },
+  "doc_d18_imitation_v3": {
+   "id": "1-WOuc7B7fr5vYzWBQyuyOkdpThQdg7QH",
+   "size": 42078998
+  },
+  "doc_d18_vs_puff": {
+   "id": "1dWviYGcagl9kCvVmWaNH2mOh64WkNIK6",
+   "size": 42079195
+  },
+  "falco_d18_ditto_v4": {
+   "id": "1P1iSORtYtuizaBsCqGzwm5RTJc4LVmsg",
+   "size": 42332018
+  },
+  "falco_d18_imitation_v3": {
+   "id": "13SN6Qwpuyrc7xnuDLCYIurSYTsDx0u9a",
+   "size": 42330281
+  },
+  "falco_d18_vs_falcon": {
+   "id": "1dXMpDL3ChFD0V3pxCvBpng6GRIaQ-AE-",
+   "size": 42079254
+  },
+  "falco_d18_vs_fox_v4": {
+   "id": "17e3zBU5o2OfB_ftaqpdlzGa_kjH8xxx9",
+   "size": 42330517
+  },
+  "falco_d18_vs_ics": {
+   "id": "1NJRAQCvAl35OHvd9UCOfgzLlp_q4CALe",
+   "size": 42330475
+  },
+  "falco_d18_vs_marth_v3": {
+   "id": "1arnlAbmmTGdYVv-QcFDHy313XtZkPaiU",
+   "size": 42330476
+  },
+  "falco_d18_vs_peach": {
+   "id": "1yb0kxwkpKz_s7CdSE7OMCSXHJy6Mip8x",
+   "size": 42330379
+  },
+  "falco_d18_vs_puff": {
+   "id": "1_2uM5mKoT9N0_8ZdFyOvufQnJfN8tjQv",
+   "size": 42330384
+  },
+  "falco_d18_vs_samus": {
+   "id": "1fCUK8UhG_oxtKUfKspcr6_TYmz9ovQzV",
+   "size": 42330379
+  },
+  "falco_d18_vs_sheik": {
+   "id": "1FIZiJyYCnNi9e082gTrW3k4XH3HTkXw7",
+   "size": 42079253
+  },
+  "falco_d18_vs_yoshi": {
+   "id": "1oFCGbNieOrcnnjeE58oRvYYKDXz_ZsIi",
+   "size": 42330379
+  },
+  "falco_d21_ditto_v4": {
+   "id": "14NnJ0LbQB-3FO0hk0sUwQXrE9IMSM3n2",
+   "size": 42331980
+  },
+  "falco_d21_ditto_v6.1": {
+   "id": "1oGNUlU3W9jauCd6u7ghwtqp_QZ3zO5lA",
+   "size": 178871036
+  },
+  "falco_d21_ditto_v6.2": {
+   "id": "1elsgtiamK1Bh1FG7gDc0fzPXHQR_-HHF",
+   "size": 178870815
+  },
+  "falco_d21_vs_fox_v6.1": {
+   "id": "1Jdv7bNgAg3o5LfSlYpoNMd0uHhbEmw7V",
+   "size": 178869064
+  },
+  "falco_d21_vs_fox_v6.2": {
+   "id": "1-t3S-aGj-CXnGbaqtMb-vW8-obcMhdgs",
+   "size": 178869064
+  },
+  "falco_d21_vs_ganon_v6.1": {
+   "id": "1XjBDYEqumducq-8ZKerxCjZe4xdF8OvS",
+   "size": 178869070
+  },
+  "falco_d21_vs_ics_diamond": {
+   "id": "1sZuVLa8t1Nmgy1NUNZtPZqDPalotTg9P",
+   "size": 95557684
+  },
+  "falco_d21_vs_ics_medium": {
+   "id": "1x6QSPhjYZkL0VzqgwS3Su-6B_Flgz5Ji",
+   "size": 95557684
+  },
+  "falco_d21_vs_ics_plat": {
+   "id": "1UOql_6-01Md3Pd1Nt4TJ23UUN-JKC02P",
+   "size": 95557684
+  },
+  "falco_d21_vs_luigi_v6.1": {
+   "id": "1UuK7oLm8LYmDbU1DvWyyQT8MIahIhvRw",
+   "size": 178868742
+  },
+  "falco_d21_vs_marth_v6.1": {
+   "id": "1eCcwY6eZocP82_b8TOcAuVGoNRflPF2L",
+   "size": 178868742
+  },
+  "falco_d21_vs_marth_v6.2": {
+   "id": "1BkzztkfpnR_eNwtnoY-gMsCVdT5EvTRQ",
+   "size": 178868742
+  },
+  "falco_d21_vs_peach_v6.1": {
+   "id": "1ayYtH86Fjmtsevz43jdNv98oynEwrY7c",
+   "size": 178868841
+  },
+  "falco_d21_vs_peach_v6.2": {
+   "id": "1BOsBZ5DtQpERloWrKn_a82B9ahpCJhFn",
+   "size": 178868843
+  },
+  "falco_d21_vs_puff_v6.1": {
+   "id": "18xJCFssno3sjPJUYWCxXTENgjYt3S7PC",
+   "size": 178868745
+  },
+  "falco_d21_vs_puff_v6.2": {
+   "id": "1Xz1qE-7xwXu4qe_dZMcH_RSr2tIZRp6e",
+   "size": 178868747
+  },
+  "falco_d21_vs_puff_v6.3": {
+   "id": "143weusXaK-VEYdvjX1OHaIhHZEBwIaZC",
+   "size": 178868747
+  },
+  "falcon_d21_ditto_v6.1": {
+   "id": "1W2rlsfz8OS_cjmqxolxfFq2C-5xKqpLq",
+   "size": 179224496
+  },
+  "falcon_d21_vs_dk_v6.1": {
+   "id": "1V1A69fSR3s-AJmO7hLTMfWEyenyribx2",
+   "size": 179222783
+  },
+  "falcon_d21_vs_fox_v6.1": {
+   "id": "1-QlPSzjgYSjPyH71Pn32A0jZAQoMJ5G0",
+   "size": 179222784
+  },
+  "falcon_d21_vs_fox_v6.2": {
+   "id": "1tnhm3gFHEJHomzXeSZpLX96vo9Mrvkw4",
+   "size": 179222784
+  },
+  "fox_d18_ditto_v4": {
+   "id": "1e988WN6GAlxLbSFV7hs-55__aBASJxB5",
+   "size": 42332052
+  },
+  "fox_d18_imitation_v3": {
+   "id": "1K79wIYfDomEwLbaF5GM_OZjsVXHBXIMG",
+   "size": 42078960
+  },
+  "fox_d18_vs_dk": {
+   "id": "1DDh8pFCNo8sULHdxwUOXQiRRtPvwulWv",
+   "size": 42079161
+  },
+  "fox_d18_vs_falco_v4": {
+   "id": "16E-9lP8vxaDshW1bouSExW3gNKtQ1iXF",
+   "size": 42330518
+  },
+  "fox_d18_vs_ics": {
+   "id": "1TR54S4pC-KqHknpw5MepQJlg2cuE3Ruk",
+   "size": 42079147
+  },
+  "fox_d18_vs_marth_v3.1": {
+   "id": "1jza2LA9_viSaaPB3Qmai0dcQIMD_JdU1",
+   "size": 42079148
+  },
+  "fox_d18_vs_peach_v3": {
+   "id": "1hjT3kwPJZilIjSQs1N758H0ou79TExMW",
+   "size": 42079164
+  },
+  "fox_d18_vs_pikachu": {
+   "id": "1a_YIv4VHPnefr79nA0-2rarL3-hSlo2d",
+   "size": 42079150
+  },
+  "fox_d18_vs_puff_v3": {
+   "id": "1IPF8YiN7ynRBPtXrWYQT_8FIENNEy7GJ",
+   "size": 42079169
+  },
+  "fox_d18_vs_samus_v3": {
+   "id": "165b9vhCzDk9YiPP9-CxshB5htnECeUzg",
+   "size": 42079131
+  },
+  "fox_d18_vs_sheik_v3": {
+   "id": "1APi6G5GeOevkURAUkp3kICkYxNdvYWbw",
+   "size": 42079148
+  },
+  "fox_d18_vs_yoshi_v3": {
+   "id": "1mMXK_m9jV9Az0ausZyNEPbfdAWQcvKxU",
+   "size": 42079164
+  },
+  "fox_d21_ditto_hax_v3": {
+   "id": "1WNwwB_69mp9uO3WEVUJsl8VdxPHJXOCB",
+   "size": 42331959
+  },
+  "fox_d21_ditto_v4": {
+   "id": "12CmaijTkOFOO-94GFT0klsmxYIsfaKiT",
+   "size": 42332034
+  },
+  "fox_d21_ditto_v6.1": {
+   "id": "14NzYGcpNQLlhC0zWBHqXPH_v98jhvRZj",
+   "size": 178871620
+  },
+  "fox_d21_ditto_v6.2": {
+   "id": "1cdS22wKbuiaZKR-Sk9V3XTd4J6RZqMv4",
+   "size": 178871058
+  },
+  "fox_d21_vs_falco_v6.1": {
+   "id": "1dRqkybCTgV8VGVZDEKFGZ5a4O1pEtnFt",
+   "size": 178869183
+  },
+  "fox_d21_vs_falco_v6.2": {
+   "id": "1Ztq4lZJkRKnY-cgg_9H4y_ByB-Fpry8s",
+   "size": 178869183
+  },
+  "fox_d21_vs_falcon_v6.1": {
+   "id": "1YiRlEH0lVssoHZ7qDkgSmd1NbKO1uWa6",
+   "size": 178869185
+  },
+  "fox_d21_vs_marth_v6.1": {
+   "id": "1kpDWnnaeMB1x-alYu8GbGd_EZmSZeYMR",
+   "size": 178869155
+  },
+  "fox_d21_vs_marth_v6.2": {
+   "id": "1dErOCNh9C6mMqNp_VW_Qoez6WXUmyCph",
+   "size": 178869155
+  },
+  "fox_d21_vs_peach_v6": {
+   "id": "1VWqBOSvmxcSXGVbxAn7k_HC9T1X0iYwW",
+   "size": 178869183
+  },
+  "fox_d24_ditto_v4": {
+   "id": "1QX1mb5NhPVRtjI-FkNmrx4A1rDqSIhOs",
+   "size": 42332052
+  },
+  "fox_delay_18_vs_falcon": {
+   "id": "1RCkoz_3YM62S_VWljVEEnMjlVtHMMl4m",
+   "size": 42079214
+  },
+  "ganon_d18_ditto": {
+   "id": "1hRPaIl1suOLOZg8WKBHfdCr-KysoVqLT",
+   "size": 42080567
+  },
+  "ganon_d18_imitation_v2": {
+   "id": "1p8mjlcbYTFWx_estsfuH29n9HCf946rN",
+   "size": 42078895
+  },
+  "ganon_d21_vs_falco_v6.1": {
+   "id": "1aNsvtIzGyQCHFTEwB47JzG7O1NhDx8Gh",
+   "size": 179354359
+  },
+  "ganon_d21_vs_falco_v6.2": {
+   "id": "1m-idilwNFOgqIlJG2WEfDwq0V5TM9lxn",
+   "size": 179354359
+  },
+  "ganon_d21_vs_falco_v6.3": {
+   "id": "1bCu3qMyMQYQxtvMwf3Er6-TP5fAv1Qto",
+   "size": 179354361
+  },
+  "gm": {
+   "id": "17h7O5cObr33j_GcFrkS65jhoSg6Juk1F",
+   "size": 391104414
+  },
+  "gm-v1": {
+   "id": "1mFGNspE30Nw0T9SBaurhzMJrWwpreQxE",
+   "size": 42340455
+  },
+  "gold": {
+   "id": "1mzm7Dt165VIDir-SVPvuR0k9uct3ZfoB",
+   "size": 391104479
+  },
+  "ics_d18_ditto_v2": {
+   "id": "1d6hT99rR18RTJGS7sWa1aIenoZpghD0e",
+   "size": 42080569
+  },
+  "ics_d18_vs_falco": {
+   "id": "1Du6AFZZubECfIsuUUYoQeTHmADK6T_-a",
+   "size": 42079069
+  },
+  "ics_d18_vs_fox": {
+   "id": "18LcAmWX1hJG9r7DVGllcGrnKIOPR95IS",
+   "size": 42079067
+  },
+  "ics_d18_vs_marth": {
+   "id": "1vayblk5Kq6jmo1zrtXaS-aAO5ydxE5x6",
+   "size": 42079069
+  },
+  "ics_d18_vs_puff": {
+   "id": "1wF_16RfkbRhI4rX_ZcudsMW0tTKsAxuT",
+   "size": 42079074
+  },
+  "ics_d18_vs_sheik": {
+   "id": "1xvQFehzlKzxdBNNbn-chPPJpDJbdxYNZ",
+   "size": 42079069
+  },
+  "ics_d21_imitation_v5": {
+   "id": "1ovuwluKhOLy2EEoo2qcC-rMJSsRgfeJb",
+   "size": 45534828
+  },
+  "ics_d21_vs_falco_diamond": {
+   "id": "1FL5md-H1iMTr46eWFuDegQNf6vX2KyAu",
+   "size": 45534904
+  },
+  "ics_d21_vs_falco_medium": {
+   "id": "1jjwRNwH7hzDuuTs0OKBTWeT1c6LSxxgr",
+   "size": 45534904
+  },
+  "ics_d21_vs_falco_plat": {
+   "id": "1a4SsAaLE_0kZtS9-TMps-TuxmbpEu9it",
+   "size": 45534904
+  },
+  "ics_d21_vs_falcon_gm": {
+   "id": "1lwRTo2U-N5q6KLaY2wTkytGB__j7Weey",
+   "size": 45534911
+  },
+  "ics_d21_vs_falcon_master": {
+   "id": "1OI3CCvz7u1OvxXwMjXsW34eWaG12-Odp",
+   "size": 45534908
+  },
+  "link_d18_imitation_v2": {
+   "id": "11DnCQf1SI9AbwRrN1Lu5o4CLILaH5z10",
+   "size": 42078903
+  },
+  "luigi_d18_imitation_v2": {
+   "id": "1FYFI-qM-9QE2StI_hRUH0vVPEryy_anR",
+   "size": 42078938
+  },
+  "luigi_d18_vs_falcon": {
+   "id": "1ZMVv0V6wOvZim-KFntIUJIK0c9JADh1M",
+   "size": 42330341
+  },
+  "luigi_d21_vs_falco_v6.1": {
+   "id": "1_NL9bAOCbV8iYhykMsCB4_rk6vxKhakA",
+   "size": 178868631
+  },
+  "luigi_d21_vs_falco_v6.2": {
+   "id": "1B1yh3MzTafqWw2s11Q2HXwlhedTbc7P1",
+   "size": 178868631
+  },
+  "luigi_d21_vs_marth_v6": {
+   "id": "1x4KEMTLp6uEDJaqQ0WpKZ1fs8JKniTOA",
+   "size": 178869017
+  },
+  "marth_d18_ditto_v3": {
+   "id": "17ukqXHbWozde_WK9qHUaX6mLrTkTfqh7",
+   "size": 42331829
+  },
+  "marth_d18_imitation_v3": {
+   "id": "1rmW6tc8BkIv8V5SR3fx9aO9AqB277joN",
+   "size": 42330151
+  },
+  "marth_d18_vs_falco_v3": {
+   "id": "1_8XTIsQhsAM_lVKSW_lY3zCNFonnFecX",
+   "size": 42330347
+  },
+  "marth_d18_vs_falcon": {
+   "id": "1e9h_gcuI4btAF5mpkX7RegWcRHwNPjId",
+   "size": 42330358
+  },
+  "marth_d18_vs_fox_v3.1": {
+   "id": "19wBLPE8p-GQR92_9BY7xuuIjDiZXnWs3",
+   "size": 42330345
+  },
+  "marth_d18_vs_ics": {
+   "id": "1Kn4jDJWBKuIh5SqPtkm_0co51dNXWxn4",
+   "size": 42330353
+  },
+  "marth_d18_vs_peach": {
+   "id": "1mI05E81mhjAJBtTHfnvsIMd2yVklNtg7",
+   "size": 42330354
+  },
+  "marth_d18_vs_pikachu": {
+   "id": "1lqZkkkKlkZahtSLAZgZMeGS6U4mCaC6Z",
+   "size": 42330356
+  },
+  "marth_d18_vs_puff_v3": {
+   "id": "1BMbkis_fBNY2OpoPEat8kG2oin3xBPrc",
+   "size": 42330352
+  },
+  "marth_d18_vs_samus": {
+   "id": "1lXWnoHKwmIbpa8F2ryi6moQ_wHh64b5-",
+   "size": 42330354
+  },
+  "marth_d18_vs_sheik_v3": {
+   "id": "1q8NL1n63M3P7UP0bl5YXnzdGnxS4TBzJ",
+   "size": 42330347
+  },
+  "marth_d18_vs_yoshi_v3": {
+   "id": "1oNtm-xtegOhXhe6P1oS6hqFf7UbxMyPT",
+   "size": 42330354
+  },
+  "marth_d21_ditto_v6.1": {
+   "id": "1ZAGBiKXoeyl2cfzocEfgNb_3uJEoAd43",
+   "size": 178870875
+  },
+  "marth_d21_ditto_v6.2": {
+   "id": "1oyuk1P13CMadDN_Kcmu7Ef_o271Sj0nI",
+   "size": 178870875
+  },
+  "marth_d21_ditto_v6.3": {
+   "id": "1sBwigSM2sl-DZNWBqu5xDb9_fTAVyMha",
+   "size": 178870875
+  },
+  "marth_d21_vs_falco_v6.1": {
+   "id": "1ItVyrT6Ic_Dm582EtATP_2M5yOZeira8",
+   "size": 178868901
+  },
+  "marth_d21_vs_falco_v6.2": {
+   "id": "1nlI6wu5dsujkL6IeFFObsgmpAXkK9KnB",
+   "size": 178868901
+  },
+  "marth_d21_vs_falco_v6.3": {
+   "id": "1M4Bf5WvTWk8C-2s8YSbLdxFhZChlOwkS",
+   "size": 178868901
+  },
+  "marth_d21_vs_fox_v6.1": {
+   "id": "1scU1e5ovdqTI81rANJZsARCnpKvSGCQi",
+   "size": 178869239
+  },
+  "marth_d21_vs_fox_v6.2": {
+   "id": "1-hqtTE_maE74crcYyWsuKBM7E9fcymKD",
+   "size": 178869247
+  },
+  "marth_d21_vs_fox_v6.3": {
+   "id": "1eKXAC8gt4o104qNGWmDG7-lfWW6dNaSN",
+   "size": 178869249
+  },
+  "marth_d21_vs_fox_v6.4": {
+   "id": "1f6v1mj2uQtkZtSfPKtLpHOGSNJ-osTS3",
+   "size": 178869249
+  },
+  "marth_d21_vs_fox_v6.5": {
+   "id": "1ydb8li5OKOX-DdoRIKtz7UlX7Erz-lHV",
+   "size": 178869249
+  },
+  "marth_d21_vs_luigi_v6": {
+   "id": "1xmH19SQLt90XJycvmNgRzt8uhE93R2Je",
+   "size": 178869249
+  },
+  "master": {
+   "id": "1afO4q8TPpLUf1WapSmn6fwXRsVZ_KZof",
+   "size": 391104413
+  },
+  "medium-v1": {
+   "id": "1jKfxHCkfBkkAB2SCZRAex4SNlkU9CVpY",
+   "size": 42340457
+  },
+  "peach_d18_ditto_v3": {
+   "id": "1buJ_0QzmirYFm8kTHDKGNBkbo9JzBjRy",
+   "size": 42331958
+  },
+  "peach_d18_imitation_v3": {
+   "id": "175Fml80lNU5fUmaRerZ7I9Mj__LhI67m",
+   "size": 42330340
+  },
+  "peach_d18_vs_falco": {
+   "id": "1cJK0lTM1kJGCfUisCHfhYF89IvP6jR-j",
+   "size": 42079230
+  },
+  "peach_d18_vs_falcon_v3": {
+   "id": "1a2r8cjLMiGrVzr1SNxK0U6-afrzibTUM",
+   "size": 42330460
+  },
+  "peach_d18_vs_fox_v3": {
+   "id": "1NH3Cx0eCCDUNircXb6C-K5C5yU7r-tMc",
+   "size": 42079233
+  },
+  "peach_d18_vs_marth": {
+   "id": "1QL6xaXN_JBlg1OvkY_jW_saDARkcVaVT",
+   "size": 42079235
+  },
+  "peach_d18_vs_pikachu": {
+   "id": "1b79ogCQh9hKB1QeN40uzKfHVuSzq0E0F",
+   "size": 42330458
+  },
+  "peach_d18_vs_puff": {
+   "id": "1u_DQBNmB3hMc7VAS8BuUc_g_oy_iGUvb",
+   "size": 42079235
+  },
+  "peach_d18_vs_sheik": {
+   "id": "1rYtwpV0i9gEuYO2acUdr0QFUZrV62iZH",
+   "size": 42079235
+  },
+  "peach_d18_vs_yoshi_v3": {
+   "id": "1-6N4eR6p9pxxlJd6_Kkwm-Wf7t3N2IQE",
+   "size": 42330496
+  },
+  "peach_d21_vs_falco_v6.1": {
+   "id": "1vDZyHNfQMFHeNowA0iZc8Tcd-GKqZogF",
+   "size": 178737447
+  },
+  "peach_d21_vs_falco_v6.2": {
+   "id": "1qjsJjq1w9Y70AE8bVoHgjDB6KSeMoTC6",
+   "size": 178737449
+  },
+  "peach_d21_vs_fox_v6.2": {
+   "id": "1vLnpxRsTfE2onqxK5msq7zK3wzDy__s_",
+   "size": 178737447
+  },
+  "plat": {
+   "id": "1zuNOWAf5ftXV8gDgfLRBFVGCmztiaDFE",
+   "size": 391104223
+  },
+  "puff_d21_ditto_v6.1": {
+   "id": "1knDr2_W7CLKrHYnIBQwKA2iqjv1yTrKF",
+   "size": 178739247
+  },
+  "puff_d21_ditto_v6.2": {
+   "id": "11D8oGWQdGxyYJAS2G-Rfp_8uydgeT71J",
+   "size": 178739317
+  },
+  "puff_d21_vs_falco_v6.1": {
+   "id": "1PJ6JcfSYApbflPSpDsLXOnV830GBOLS2",
+   "size": 178737151
+  },
+  "puff_d21_vs_falco_v6.2": {
+   "id": "19YAD8m2KtOn5JtTuZvjg2GVEol-eTFBE",
+   "size": 178737153
+  },
+  "puff_d21_vs_falco_v6.3": {
+   "id": "1cqJOPQAkqLHeCmpP5feyvHa651Pbzn9G",
+   "size": 178737153
+  },
+  "samus_d18_imitation_v3": {
+   "id": "1gU5Ml8CHL1kUiUQedj4DymWb_UVrjU-n",
+   "size": 42078971
+  },
+  "samus_d18_vs_falco": {
+   "id": "1KZ-DNAebQOk6iwZ73BwcH2NPyL2lZNMC",
+   "size": 42079176
+  },
+  "samus_d18_vs_fox_v3": {
+   "id": "1DrE7kYRRc0oh7pyTq0CnO0oqXJGAjTpz",
+   "size": 42079147
+  },
+  "samus_d18_vs_marth": {
+   "id": "1YeMDYYftOEvSpEX2C0leEtILgHXzDYGa",
+   "size": 42079176
+  },
+  "sheik_d18_vs_falco": {
+   "id": "1IKdPn4fheN3c3un1hnb4FYS0njozzDIr",
+   "size": 42079242
+  },
+  "sheik_d18_vs_falcon": {
+   "id": "1t-LR1-alji8Kc6JPlUwUUKAUvFZXgtvg",
+   "size": 42079246
+  },
+  "sheik_d18_vs_fox_v3": {
+   "id": "1O4mSJ-QAVenU7aDeFvi-N779irxdV2LY",
+   "size": 42079240
+  },
+  "sheik_d18_vs_ics": {
+   "id": "1BVBN38AVAOmbGE1XpykxUhixYPkGZ4C6",
+   "size": 42079241
+  },
+  "sheik_d18_vs_marth_v3": {
+   "id": "1jecWA-QMtklqAY0vl7CCR3zfgLbuC9FW",
+   "size": 42079237
+  },
+  "sheik_d18_vs_peach": {
+   "id": "1PteqkYxjSbcOS1a2FzGtSahkhRHnz6gV",
+   "size": 42079242
+  },
+  "sheik_d18_vs_puff": {
+   "id": "1rNobGO3EZOhTQN3K__DmZchLFsgnZhOA",
+   "size": 42079247
+  },
+  "sheik_d18_vs_yoshi": {
+   "id": "15UJ8xJVdibfgJu1_HIXsQxOvbdl9VC7R",
+   "size": 42079242
+  },
+  "sheik_d21_ditto_v6.1": {
+   "id": "12avzKtLtkdTFQZE08AQMicDIRGPss0Dy",
+   "size": 178870728
+  },
+  "sheik_d21_ditto_v6.2": {
+   "id": "1U8Kh52XYJg6dnM-cEI87gi-C9Qi81k1u",
+   "size": 178870793
+  },
+  "silver": {
+   "id": "1eMinf5EFCyMGj86dTZfEiFOnBTqrQzJw",
+   "size": 391105303
+  },
+  "super-gm": {
+   "id": "11hMYPS8rbJLSQexSxszg9tKiycoyo604",
+   "size": 391104483
+  },
+  "yoshi_d18_ditto": {
+   "id": "1d9fXB05YNXid3RDT8khiiV7VZLU1PTHd",
+   "size": 42080766
+  },
+  "yoshi_d18_imitation_v3": {
+   "id": "1Xlbwmd5dZZ-c6tkWuSqEL3ebdNk_GiSJ",
+   "size": 42330350
+  },
+  "yoshi_d18_vs_falco": {
+   "id": "1GA7kJxU4FqoTjE3PMs9qOmfoUqRQlSxq",
+   "size": 42079301
+  },
+  "yoshi_d18_vs_falcon": {
+   "id": "1NqkrpOY-dG7ssi1nnpWacvM0L6Txwyy4",
+   "size": 42079310
+  },
+  "yoshi_d18_vs_fox_v3": {
+   "id": "1qiiM8aKw0Gzvt0L7eh-0XEY6oRie1rio",
+   "size": 42079301
+  },
+  "yoshi_d18_vs_marth_v3": {
+   "id": "1fSzUMBETTopCw4UNk3DdkZbPdScBYGFA",
+   "size": 42079306
+  },
+  "yoshi_d18_vs_peach_v3": {
+   "id": "15YvR1Rzt4PpgkqgOzaxmeXwOJk5cdk0W",
+   "size": 42330489
+  },
+  "yoshi_d18_vs_puff": {
+   "id": "1jbLToedV04XaAqReOHUooyzUwID-YfEI",
+   "size": 42079306
+  },
+  "yoshi_d18_vs_sheik_v4": {
+   "id": "1boS-b3q3WL9i-DLl9K3fv1aLgc8aOJLr",
+   "size": 42330489
+  }
+ }
+}
