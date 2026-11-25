@@ -1,0 +1,842 @@
+{
+ "id": "fox-combo-shine",
+ "name": "Shine out of combos",
+ "part": "defense",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Shine on the first frame after hitstun, between the hits of a string",
+ "why": "A string that is not a true combo leaves a few frames in which Fox can act before the next hit. His shine hits on its first frame: started in that gap, it stops the string and turns it around.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Take the jab, hold the stick down through the hitstun, and press B on the first frame Fox can act.",
+  "expect": "Each string is judged when the shine hits, when the forward smash lands, or once the smash has missed: whether Fox shined, and how soon.",
+  "example": [
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 2,
+    "hold": 40,
+    "from": "start"
+   },
+   {
+    "press": "B",
+    "frame": "FREE",
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: {opp}'s jab hits. Hitstun",
+   "2": "Frame {f}: the stick down, held",
+   "FREE": "Frame {FREE}: Fox can act. B: the shine"
+  },
+  "lessons": [
+   {
+    "title": "A string with a gap",
+    "text": [
+     "Not every string is a combo. {opp}'s jab leaves Fox in hitstun for a few frames; the forward smash after it lands on frame {SMASH}, and Fox can act on frame {FREE}.",
+     "Whatever he starts in those {SMASH-FREE} frames comes before the smash, if it is fast enough."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: {opp}'s jab hits. Hitstun",
+       "FREE": "Frame {FREE}: Fox can act",
+       "SMASH": "Frame {SMASH}: the smash lands"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "Hitstun",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "FREE",
+         "SMASH-1"
+        ],
+        "words": "The gap: Fox can act",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "SMASH",
+         "SMASH+10"
+        ],
+        "words": "Hit again",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The shine",
+    "text": [
+     "Down and B hits on its first frame, all around Fox: nothing else of his is out that fast.",
+     "Hold the stick down through the hitstun and press B as it ends. A press during hitstun does nothing and is not kept: the press has to come on a frame Fox can act."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 2,
+        "hold": 40,
+        "from": "start"
+       },
+       {
+        "press": "B",
+        "frame": "FREE",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: {opp}'s jab hits. Hitstun",
+       "2": "Frame {f}: the stick down, held",
+       "FREE": "Frame {FREE}: Fox can act. B: the shine"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "Hitstun: hold the stick down",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "FREE",
+         "FREE+5"
+        ],
+        "words": "B now: the shine",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "FREE+6",
+         "SMASH-1"
+        ],
+        "words": "The smash is coming",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "FREE": 9,
+    "SMASH": 30
+   }
+  },
+  {
+   "name": "Marth",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "FREE": 9,
+    "SMASH": 36
+   }
+  },
+  {
+   "name": "Jigglypuff",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "FREE": 12,
+    "SMASH": 27
+   }
+  },
+  {
+   "name": "Falco",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "FREE": 9,
+    "SMASH": 30
+   }
+  },
+  {
+   "name": "Sheik",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "FREE": 9,
+    "SMASH": 30
+   }
+  },
+  {
+   "name": "Captain Falcon",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "FREE": 8,
+    "SMASH": 34
+   }
+  },
+  {
+   "name": "Peach",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "FREE": 9,
+    "SMASH": 34
+   }
+  },
+  {
+   "name": "Pikachu",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "FREE": 10,
+    "SMASH": 39
+   }
+  },
+  {
+   "name": "Yoshi",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "FREE": 12,
+    "SMASH": 33
+   }
+  },
+  {
+   "name": "Samus",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     },
+     {
+      "do": "move",
+      "name": "fsmash"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "FREE": 14,
+    "SMASH": 29
+   }
+  }
+ ],
+ "attempt": {
+  "start": "hit",
+  "judge": [
+   {
+    "is": "connects",
+    "to": "shine"
+   },
+   {
+    "is": "hit",
+    "after": {
+     "frame": 2
+    }
+   },
+   {
+    "frame": "SMASH+10"
+   }
+  ],
+  "limit": 120,
+  "within": 120,
+  "missed": "Not counted: {opp}'s jab did not land. Stand still in front of it."
+ },
+ "measures": {
+  "out": {
+   "happened": {
+    "is": "connects",
+    "to": "shine"
+   }
+  },
+  "again": {
+   "happened": {
+    "is": "hit",
+    "after": {
+     "frame": 2
+    }
+   }
+  },
+  "at": {
+   "frame_of": {
+    "enters": "shine"
+   }
+  }
+ },
+ "checks": {
+  "in time": {
+   "measure": "at",
+   "at_most": "FREE+5",
+   "expect": "The shine within 5 frames of the first frame Fox can act",
+   "words": "the shine began on frame {at}; Fox could act on frame {FREE}",
+   "headline": "Late shine",
+   "fix": "Hold the stick down through the hitstun and press B as it ends: frame {FREE} after {opp}'s jab.",
+   "strict": {
+    "at_most": "FREE+1",
+    "expect": "The shine within a frame of the first frame Fox can act",
+    "fix": "Frame {FREE} after {opp}'s jab is the first Fox can act on: B on it, or the one after."
+   }
+  },
+  "shined": {
+   "measure": "out",
+   "equals": true,
+   "expect": "The shine hits it",
+   "words": "the shine did not hit {opp}",
+   "headline": "No shine",
+   "fix": "Down and B once Fox can act, on frame {FREE} after the jab at the earliest. The shine hits on its first frame, all around him."
+  },
+  "not hit": {
+   "measure": "again",
+   "equals": false,
+   "expect": "Not hit by the second attack",
+   "words": "{opp}'s forward smash landed",
+   "headline": "Hit again",
+   "fix": "The smash lands on frame {SMASH}; Fox can act from frame {FREE}. Start the shine in between."
+  }
+ },
+ "verdict": {
+  "success": "Shine on frame {at}; Fox could act on frame {FREE}."
+ },
+ "parts": [
+  {
+   "name": "Break the string",
+   "teach": "{opp} jabs, then forward smashes. Hold the stick down after the jab and press B before the smash lands.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 2,
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": "FREE",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: {opp}'s jab hits. Hitstun",
+    "2": "Frame {f}: the stick down, held",
+    "FREE": "Frame {FREE}: Fox can act. B: the shine"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "Hitstun: hold the stick down",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "FREE",
+      "FREE+5"
+     ],
+     "words": "B now: the shine",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "FREE+6",
+      "SMASH-1"
+     ],
+     "words": "The smash is coming",
+     "kind": "late"
+    }
+   ],
+   "checks": [
+    "shined",
+    "not hit"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Shine (down and B)",
+      "state": "shine",
+      "perfect": [
+       "FREE"
+      ],
+      "window": [
+       "FREE",
+       "SMASH-1"
+      ],
+      "strict_window": [
+       "FREE",
+       "SMASH-1"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the jab's hit. Fox can act on frame {FREE}; the smash lands on frame {SMASH}."
+   }
+  },
+  {
+   "name": "On the first frame",
+   "teach": "The same, on the first frame Fox can act: against faster strings the gap is that small. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 2,
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": "FREE",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: {opp}'s jab hits. Hitstun",
+    "2": "Frame {f}: the stick down, held",
+    "FREE": "Frame {FREE}: Fox can act. B: the shine"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "Hitstun: hold the stick down",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "FREE",
+      "FREE+5"
+     ],
+     "words": "B now: the shine",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "FREE+6",
+      "SMASH-1"
+     ],
+     "words": "The smash is coming",
+     "kind": "late"
+    }
+   ],
+   "checks": [
+    "in time",
+    "shined",
+    "not hit"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "nothing pressed",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "shined"
+  },
+  {
+   "name": "the shine 10 frames late",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 2,
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": "FREE+10",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "in time"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Shine (down and B)",
+    "state": "shine",
+    "perfect": [
+     "FREE"
+    ],
+    "window": [
+     "FREE",
+     "FREE+5"
+    ],
+    "strict_window": [
+     "FREE",
+     "FREE+1"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the jab's hit. Fox can act on frame {FREE}; the smash lands on frame {SMASH}."
+ }
+}
