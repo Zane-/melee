@@ -1,0 +1,1744 @@
+{
+ "id": "fox-shield-then-punish",
+ "name": "Take it on shield",
+ "part": "neutral",
+ "characters": [
+  "fox"
+ ],
+ "shield": "infinite",
+ "goal": "Shield an attack and punish it out of the shield; spot dodge a grab",
+ "why": "Fox does not have to beat an approach: shielding it and shining out of the shield turns it into his combo. A shield does not stop a grab, though, so an opponent that runs up without attacking has to be answered another way: a spot dodge out of the shield lets the grab pass through him.",
+ "switch": "success",
+ "tutorial": {
+  "what": "Hold L or R. Against an attack: on the first frame after shield stun, X or Y with the shield held and down-B as Fox leaves the ground. Against a grab: down on the stick as it reaches.",
+  "expect": "A try begins when the opponent starts its attack or its grab and is judged when Fox hits or grabs it, when it hits or grabs him, or when it can act again. An attack has to be punished; a grab only avoided.",
+  "example": [
+   {
+    "trigger": "R",
+    "frame": -9,
+    "hold": 400
+   },
+   {
+    "press": "jump",
+    "frame": "OJ",
+    "from": {
+     "leaves": "shield_stun"
+    }
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": "OJ+J",
+    "from": {
+     "leaves": "shield_stun"
+    }
+   },
+   {
+    "press": "B",
+    "frame": "OJ+J",
+    "from": {
+     "leaves": "shield_stun"
+    }
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": "SD",
+    "hold": 2,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: its attack starts. Keep the shield up"
+  },
+  "lessons": [
+   {
+    "title": "The attack on the shield",
+    "text": [
+     "{opp} plays footsies and then commits. An attack on Fox's shield leaves it in lag; Fox leaves shield stun and can jump out of the shield at once.",
+     "X or Y with the shield held, and down-B on the first frame in the air: the shine hits {4} frames after shield stun, before the attacker can act."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "trigger": "R",
+        "frame": -9,
+        "hold": 400
+       },
+       {
+        "press": "jump",
+        "frame": "OJ",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "OJ+J",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "press": "B",
+        "frame": "OJ+J",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "SD",
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: its attack starts. Keep the shield up"
+      }
+     }
+    }
+   },
+   {
+    "title": "The grab",
+    "text": [
+     "A grab goes through a shield. When {opp} runs up without attacking, the shield is the wrong answer.",
+     "Down on the stick in the shield is a spot dodge: the grab passes through Fox. From close by its whiff can be punished; from the edge of its reach, not being grabbed is the win."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "trigger": "R",
+        "frame": -9,
+        "hold": 400
+       },
+       {
+        "press": "jump",
+        "frame": "OJ",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "OJ+J",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "press": "B",
+        "frame": "OJ+J",
+        "from": {
+         "leaves": "shield_stun"
+        }
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "SD",
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: it reaches for a grab. Down on the stick: a spot dodge",
+       "8": "Frame {f}: the grab passes through Fox"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Marth attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Jigglypuff attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Falco attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Sheik attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Captain Falcon attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Peach attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Ice Climbers attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Pikachu attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Yoshi attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Samus attacks",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 20
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           8,
+           16
+          ],
+          "for": 24
+         },
+         {
+          "do": "approach",
+          "moves": "jab,ftilt,utilt,dtilt,fsmash,usmash,dsmash,dash_attack,sh_nair,sh_fair,sh_bair,sh_uair,sh_dair",
+          "lands": "shield",
+          "wait": [
+           0,
+           30
+          ],
+          "contract": {
+           "answer": "oos_down_b",
+           "within": 4
+          }
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "does": "attack",
+    "OJ": 1,
+    "SD": 999,
+    "NEED": 1
+   }
+  },
+  {
+   "name": "Fox grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Marth grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Jigglypuff grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Falco grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Sheik grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Captain Falcon grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Peach grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Ice Climbers grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  },
+  {
+   "name": "Pikachu grabs",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 20,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       28,
+       42
+      ],
+      "for": 20
+     },
+     {
+      "do": "approach",
+      "moves": "grab,dash_grab",
+      "lands": "hit",
+      "wait": [
+       0,
+       30
+      ]
+     }
+    ],
+    "loop": true
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "does": "grab",
+    "OJ": 999,
+    "SD": 1,
+    "NEED": 0
+   }
+  }
+ ],
+ "attempt": {
+  "start": "their_attack",
+  "judge": [
+   "connects",
+   {
+    "enters": "holding"
+   },
+   "hit",
+   {
+    "enters": "grabbed"
+   },
+   "they_recover"
+  ],
+  "cancel": [],
+  "limit": 150,
+  "timeout": "judge",
+  "within": 480,
+  "missed": "Not counted: it did not come in. Hold L or R and wait for it."
+ },
+ "measures": {
+  "grabbed": {
+   "happened": {
+    "enters": "grabbed"
+   }
+  },
+  "was_hit": {
+   "happened": "hit"
+  },
+  "punished": {
+   "happened": [
+    "connects",
+    {
+     "enters": "holding"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "punished": {
+   "measure": "punished",
+   "equals": true,
+   "expect": "A hit or a grab before it can act again",
+   "words": "{opp} could act again before the punish",
+   "headline": "No punish",
+   "fix": "Shield its attack. On the first frame after shield stun, X or Y with the shield held, and down-B as Fox leaves the ground: frame {J+1}."
+  },
+  "not hit": {
+   "measure": "was_hit",
+   "equals": false,
+   "expect": "The attack is shielded",
+   "words": "{opp}'s attack hit Fox",
+   "headline": "Hit",
+   "fix": "Hold L or R before it commits, and keep it held until shield stun is over."
+  },
+  "not grabbed": {
+   "measure": "grabbed",
+   "equals": false,
+   "expect": "Not grabbed",
+   "words": "{opp} grabbed Fox in his shield",
+   "headline": "Grabbed",
+   "fix": "A shield does not stop a grab. When it runs up without attacking, press down in the shield as it reaches: the spot dodge. Or jump away."
+  },
+  "answered": {
+   "measure": "punished",
+   "at_least": "NEED",
+   "expect": "Its attack punished before it can act again",
+   "words": "{opp} could act again before the punish",
+   "headline": "No punish",
+   "fix": "After shield stun: X or Y with the shield held, and down-B as Fox leaves the ground."
+  }
+ },
+ "verdict": {
+  "success": "{opp}'s {does}: punished."
+ },
+ "parts": [
+  {
+   "name": "Shield, then shine",
+   "teach": "{opp} comes in with an attack. Shield it, and on the first frame after shield stun: X or Y with the shield held, down-B as Fox leaves the ground.",
+   "example": [
+    {
+     "trigger": "R",
+     "frame": -9,
+     "hold": 400
+    },
+    {
+     "press": "jump",
+     "frame": "OJ",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "press": "B",
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SD",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: its attack starts. Keep the shield up"
+   },
+   "checks": [
+    "not hit",
+    "punished"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
+  },
+  {
+   "name": "A grab is coming",
+   "teach": "{opp} runs up and grabs. Press down in the shield as it reaches: the spot dodge. The grab passes through Fox.",
+   "example": [
+    {
+     "trigger": "R",
+     "frame": -9,
+     "hold": 400
+    },
+    {
+     "press": "jump",
+     "frame": "OJ",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "press": "B",
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SD",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: it reaches for a grab. Down on the stick: a spot dodge",
+    "8": "Frame {f}: the grab passes through Fox"
+   },
+   "checks": [
+    "not grabbed"
+   ],
+   "streak": 3,
+   "scenario": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  },
+  {
+   "name": "Attack or grab",
+   "teach": "It attacks or it grabs: shield the attack and punish it, spot dodge the grab. D-pad left and right: another scenario.",
+   "example": [
+    {
+     "trigger": "R",
+     "frame": -9,
+     "hold": 400
+    },
+    {
+     "press": "jump",
+     "frame": "OJ",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "press": "B",
+     "frame": "OJ+J",
+     "from": {
+      "leaves": "shield_stun"
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SD",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: its attack starts. Keep the shield up"
+   },
+   "checks": [
+    "not grabbed",
+    "answered"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "nothing after the shield",
+   "inputs": [
+    {
+     "trigger": "R",
+     "frame": -9,
+     "hold": 400
+    }
+   ],
+   "fails": "punished"
+  },
+  {
+   "name": "the shield held through the grab",
+   "inputs": [
+    {
+     "trigger": "R",
+     "frame": -9,
+     "hold": 400
+    }
+   ],
+   "fails": "not grabbed"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Shield (R or L)",
+    "button": "shield",
+    "held": true,
+    "perfect": []
+   },
+   {
+    "label": "Spot dodge",
+    "state": "spot_dodge",
+    "perfect": []
+   },
+   {
+    "label": "Shine",
+    "state": "shine",
+    "perfect": []
+   }
+  ],
+  "note": "An attack: shield it and shine out of the shield. A grab: spot dodge it."
+ }
+}
