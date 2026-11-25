@@ -13,31 +13,56 @@
   "seconds": 1
  },
  "tutorial": {
-  "what": "Shine next to the opponent, jump out of the shine and wavedash so Fox can act early. Watch which way it goes, follow, and grab or up smash it as its tech ends.",
-  "expect": "A try begins when the shine hits and is judged when Fox grabs or hits the opponent again, when it hits him, or when it stands free. Which tech it picks changes every try.",
+  "what": "Run at the opponent and shine it. Jump out of the shine and wavedash so Fox can act early. Watch which way it goes, follow, and grab or up smash it as its tech ends.",
+  "expect": "A try begins when the shine hits and is judged when Fox grabs or hits the opponent again, when it hits him, or when it stands free. It moves about until the shine catches it, and which tech it picks changes every try.",
   "example": [
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 1,
+    "hold": 300
+   },
    {
     "stick": [
      0,
      -1
     ],
     "frame": 1,
-    "hold": 3
+    "hold": 3,
+    "from": {
+     "near": "NEAR"
+    }
    },
    {
     "press": "B",
     "frame": 1,
-    "hold": 2
+    "hold": 2,
+    "from": {
+     "near": "NEAR"
+    }
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": 3,
+    "hold": 300,
+    "from": "start"
    },
    {
     "press": "jump",
     "frame": 7,
-    "hold": 1
+    "hold": 1,
+    "from": "start"
    },
    {
     "trigger": "R",
     "frame": "WF",
-    "hold": 2
+    "hold": 2,
+    "from": "start"
    },
    {
     "stick": [
@@ -45,7 +70,17 @@
      "WY"
     ],
     "frame": "WF",
-    "hold": 2
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": "WF+2",
+    "hold": 300,
+    "from": "start"
    },
    {
     "stick": [
@@ -53,7 +88,8 @@
      0
     ],
     "frame": "RF",
-    "hold": 200
+    "hold": 200,
+    "from": "start"
    },
    {
     "press": "jump",
@@ -105,7 +141,8 @@
      1
     ],
     "frame": "UF",
-    "hold": 2
+    "hold": 2,
+    "from": "start"
    }
   ],
   "marks": {
@@ -125,16 +162,39 @@
       "inputs": [
        {
         "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 300
+       },
+       {
+        "stick": [
          0,
          -1
         ],
         "frame": 1,
-        "hold": 3
+        "hold": 3,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "B",
         "frame": 1,
-        "hold": 2
+        "hold": 2,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 3,
+        "hold": 300,
+        "from": "start"
        }
       ],
       "marks": {
@@ -154,26 +214,51 @@
       "inputs": [
        {
         "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 300
+       },
+       {
+        "stick": [
          0,
          -1
         ],
         "frame": 1,
-        "hold": 3
+        "hold": 3,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "B",
         "frame": 1,
-        "hold": 2
+        "hold": 2,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 3,
+        "hold": 300,
+        "from": "start"
        },
        {
         "press": "jump",
         "frame": 7,
-        "hold": 1
+        "hold": 1,
+        "from": "start"
        },
        {
         "trigger": "R",
         "frame": "WF",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
        },
        {
         "stick": [
@@ -181,7 +266,17 @@
          "WY"
         ],
         "frame": "WF",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": "WF+2",
+        "hold": 300,
+        "from": "start"
        },
        {
         "stick": [
@@ -189,7 +284,8 @@
          0
         ],
         "frame": "RF",
-        "hold": 200
+        "hold": 200,
+        "from": "start"
        },
        {
         "press": "jump",
@@ -241,7 +337,8 @@
          1
         ],
         "frame": "UF",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
        }
       ],
       "marks": {
@@ -259,18 +356,23 @@
    "name": "Fox: teched in place",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -23,
+    "x": 10,
     "facing": "player",
+    "react": 15,
+    "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -284,532 +386,74 @@
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "shield",
+      "for": 30
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "in_place",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "WX": 0.95,
     "WY": -0.31,
     "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 10,
-    "GA": 20,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
     "UD": 0,
     "UA": 999,
-    "UF": 999,
+    "UF": 20,
+    "NEAR": 9,
     "opp": "Fox",
     "did": "teched in place"
    }
   },
   {
-   "name": "Fox: teched toward him",
+   "name": "Fox: teched away",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -23,
+    "x": 10,
     "facing": "player",
+    "react": 15,
+    "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
       "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "toward",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0,
-    "WY": -1,
-    "WF": 10,
-    "RUN": 0,
-    "RF": 999,
-    "GD": 0,
-    "GA": 999,
-    "UD": 0,
-    "UA": 999,
-    "UF": 20,
-    "opp": "Fox",
-    "did": "teched toward Fox"
-   }
-  },
-  {
-   "name": "Fox: missed the tech",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "fox",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "none",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 0,
-    "GA": 999,
-    "UD": 14,
-    "UA": 20,
-    "UF": 999,
-    "opp": "Fox",
-    "did": "missed the tech"
-   }
-  },
-  {
-   "name": "Falco: teched in place",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "falco",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "in_place",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 10,
-    "GA": 20,
-    "UD": 0,
-    "UA": 999,
-    "UF": 999,
-    "opp": "Falco",
-    "did": "teched in place"
-   }
-  },
-  {
-   "name": "Falco: teched toward him",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "falco",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "toward",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0,
-    "WY": -1,
-    "WF": 10,
-    "RUN": 0,
-    "RF": 999,
-    "GD": 0,
-    "GA": 999,
-    "UD": 0,
-    "UA": 999,
-    "UF": 20,
-    "opp": "Falco",
-    "did": "teched toward Fox"
-   }
-  },
-  {
-   "name": "Falco: missed the tech",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "falco",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "none",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 0,
-    "GA": 999,
-    "UD": 10,
-    "UA": 20,
-    "UF": 999,
-    "opp": "Falco",
-    "did": "missed the tech"
-   }
-  },
-  {
-   "name": "Jigglypuff: teched in place",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "jigglypuff",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "in_place",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 14,
-    "GA": 20,
-    "UD": 0,
-    "UA": 999,
-    "UF": 999,
-    "opp": "Jigglypuff",
-    "did": "teched in place"
-   }
-  },
-  {
-   "name": "Jigglypuff: teched toward him",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "jigglypuff",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "toward",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0,
-    "WY": -1,
-    "WF": 10,
-    "RUN": 0,
-    "RF": 999,
-    "GD": 0,
-    "GA": 999,
-    "UD": 0,
-    "UA": 999,
-    "UF": 20,
-    "opp": "Jigglypuff",
-    "did": "teched toward Fox"
-   }
-  },
-  {
-   "name": "Jigglypuff: missed the tech",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "jigglypuff",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "none",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 0,
-    "GA": 999,
-    "UD": 14,
-    "UA": 20,
-    "UF": 999,
-    "opp": "Jigglypuff",
-    "did": "missed the tech"
-   }
-  },
-  {
-   "name": "Pikachu: teched in place",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "pikachu",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "in_place",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0.95,
-    "WY": -0.31,
-    "WF": 10,
-    "RUN": 1,
-    "RF": 20,
-    "GD": 10,
-    "GA": 20,
-    "UD": 0,
-    "UA": 999,
-    "UF": 999,
-    "opp": "Pikachu",
-    "did": "teched in place"
-   }
-  },
-  {
-   "name": "Pikachu: teched toward him",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "pikachu",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
-      }
-     },
-     {
-      "do": "tech",
-      "option": "toward",
-      "getup": "stand",
-      "wait": [
-       30,
-       30
-      ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "WX": 0,
-    "WY": -1,
-    "WF": 10,
-    "RUN": 0,
-    "RF": 999,
-    "GD": 0,
-    "GA": 999,
-    "UD": 0,
-    "UA": 999,
-    "UF": 20,
-    "opp": "Pikachu",
-    "did": "teched toward Fox"
-   }
-  },
-  {
-   "name": "Pikachu: teched away",
-   "stage": "final-destination",
-   "player": {
-    "x": -30
-   },
-   "opponent": {
-    "character": "pikachu",
-    "x": -23,
-    "facing": "player",
-    "script": [
-     {
-      "do": "hold",
-      "pad": "stand",
-      "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -823,9 +467,35 @@
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "shield",
+      "for": 30
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "away",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -834,31 +504,37 @@
     "WF": 10,
     "RUN": 1,
     "RF": 20,
-    "GD": 22,
+    "GD": 14,
     "GA": 20,
     "UD": 0,
     "UA": 999,
     "UF": 999,
-    "opp": "Pikachu",
+    "NEAR": 9,
+    "opp": "Fox",
     "did": "teched away"
    }
   },
   {
-   "name": "Pikachu: missed the tech",
+   "name": "Fox: missed the tech",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
-    "character": "pikachu",
-    "x": -23,
+    "character": "fox",
+    "x": 10,
     "facing": "player",
+    "react": 15,
+    "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -872,9 +548,521 @@
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "shield",
+      "for": 30
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "none",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
+    "opp": "Fox",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Falco: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "in_place",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
+    "opp": "Falco",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Falco: teched away",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "away",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "away",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 14,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "NEAR": 9,
+    "opp": "Falco",
+    "did": "teched away"
+   }
+  },
+  {
+   "name": "Falco: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "none",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
+    "opp": "Falco",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Jigglypuff: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "in_place",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
+    "opp": "Jigglypuff",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Jigglypuff: teched away",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "away",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "away",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 14,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "NEAR": 9,
+    "opp": "Jigglypuff",
+    "did": "teched away"
+   }
+  },
+  {
+   "name": "Jigglypuff: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "none",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -885,9 +1073,334 @@
     "RF": 20,
     "GD": 0,
     "GA": 999,
-    "UD": 14,
+    "UD": 10,
     "UA": 20,
     "UF": 999,
+    "NEAR": 9,
+    "opp": "Jigglypuff",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Pikachu: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "in_place",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 24,
+    "NEAR": 9,
+    "opp": "Pikachu",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Pikachu: teched toward him",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "toward",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "toward",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
+    "opp": "Pikachu",
+    "did": "teched toward Fox"
+   }
+  },
+  {
+   "name": "Pikachu: teched away",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "away",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "away",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 14,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "NEAR": 9,
+    "opp": "Pikachu",
+    "did": "teched away"
+   }
+  },
+  {
+   "name": "Pikachu: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 30
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "tech",
+       "option": "none",
+       "getup": "stand",
+       "wait": [
+        30,
+        30
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 30
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "NEAR": 9,
     "opp": "Pikachu",
     "did": "missed the tech"
    }
@@ -917,8 +1430,8 @@
   "cancel": [],
   "limit": 200,
   "timeout": "judge",
-  "within": 600,
-  "missed": "Not counted: the shine did not hit. Stand next to it and press down-B."
+  "within": 1500,
+  "missed": "Not counted: the shine did not hit. Run up to it and press down-B when Fox is on top of it."
  },
  "measures": {
   "punished": {
@@ -984,26 +1497,51 @@
    "example": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
      "frame": 1,
-     "hold": 3
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
      "frame": 1,
-     "hold": 2
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 300,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": 7,
-     "hold": 1
+     "hold": 1,
+     "from": "start"
     },
     {
      "trigger": "R",
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
@@ -1011,7 +1549,17 @@
       "WY"
      ],
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "WF+2",
+     "hold": 300,
+     "from": "start"
     },
     {
      "stick": [
@@ -1019,7 +1567,8 @@
       0
      ],
      "frame": "RF",
-     "hold": 200
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
@@ -1071,7 +1620,8 @@
       1
      ],
      "frame": "UF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "marks": {
@@ -1097,26 +1647,51 @@
    "example": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
      "frame": 1,
-     "hold": 3
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
      "frame": 1,
-     "hold": 2
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 300,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": 7,
-     "hold": 1
+     "hold": 1,
+     "from": "start"
     },
     {
      "trigger": "R",
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
@@ -1124,7 +1699,17 @@
       "WY"
      ],
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "WF+2",
+     "hold": 300,
+     "from": "start"
     },
     {
      "stick": [
@@ -1132,7 +1717,8 @@
       0
      ],
      "frame": "RF",
-     "hold": 200
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
@@ -1184,7 +1770,8 @@
       1
      ],
      "frame": "UF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "marks": {
@@ -1198,10 +1785,10 @@
    ],
    "streak": 3,
    "scenario": [
+    10,
     1,
     4,
     7,
-    10,
     11
    ]
   },
@@ -1211,26 +1798,51 @@
    "example": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
      "frame": 1,
-     "hold": 3
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
      "frame": 1,
-     "hold": 2
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 300,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": 7,
-     "hold": 1
+     "hold": 1,
+     "from": "start"
     },
     {
      "trigger": "R",
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
@@ -1238,7 +1850,17 @@
       "WY"
      ],
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "WF+2",
+     "hold": 300,
+     "from": "start"
     },
     {
      "stick": [
@@ -1246,7 +1868,8 @@
       0
      ],
      "frame": "RF",
-     "hold": 200
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
@@ -1298,7 +1921,8 @@
       1
      ],
      "frame": "UF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "marks": {
@@ -1324,26 +1948,51 @@
    "example": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
      "frame": 1,
-     "hold": 3
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
      "frame": 1,
-     "hold": 2
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 300,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": 7,
-     "hold": 1
+     "hold": 1,
+     "from": "start"
     },
     {
      "trigger": "R",
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
@@ -1351,7 +2000,17 @@
       "WY"
      ],
      "frame": "WF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "WF+2",
+     "hold": 300,
+     "from": "start"
     },
     {
      "stick": [
@@ -1359,7 +2018,8 @@
       0
      ],
      "frame": "RF",
-     "hold": 200
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
@@ -1411,7 +2071,8 @@
       1
      ],
      "frame": "UF",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "marks": {
@@ -1447,16 +2108,39 @@
    "inputs": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
      "frame": 1,
-     "hold": 3
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
      "frame": 1,
-     "hold": 2
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 300,
+     "from": "start"
     }
    ],
    "fails": "punished"

@@ -5,45 +5,82 @@
  "characters": [
   "fox"
  ],
- "goal": "Shine, slide after the opponent and up smash before it can act",
- "why": "The shine sends a standing opponent sliding away, unable to act for about half a second. A wavedash out of the shine keeps Fox next to it, and the up smash lands before it recovers: Fox's kill move, from any hit of the shine.",
+ "goal": "Run in, shine, slide after the opponent and up smash before it can shield",
+ "why": "The shine sends a standing opponent sliding away, unable to act for about half a second. A wavedash out of the shine keeps Fox next to it, and the up smash lands before it recovers: Fox's kill move, from any shine he lands in neutral.",
  "switch": "success",
  "reset": {
   "after": "quiet",
   "seconds": 1
  },
  "tutorial": {
-  "what": "Down-B next to it, X or Y on frame {JC}, an air dodge forward on frame {JC+J}, and the C-stick up as Fox can act.",
-  "expect": "Each try is judged when the up smash lands or when the opponent can act again: whether the shine hit, whether Fox slid after it, and whether the up smash came first. These opponents slide from the shine; lighter ones fall.",
+  "what": "Run at the opponent and press down-B on top of it. X or Y on frame {JC} of the shine, an air dodge toward it as Fox leaves the ground, and the C-stick up as he can act.",
+  "expect": "A try begins when the shine hits and is judged when the up smash lands or the opponent can act: it shields the moment its stun is over. In the last part it moves about; these are the opponents that slide from the shine and do not fall.",
   "example": [
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 1,
+    "hold": 300
+   },
    {
     "stick": [
      0,
      -1
     ],
-    "frame": 1
+    "frame": 1,
+    "hold": 3,
+    "from": {
+     "near": "NEAR"
+    }
    },
    {
     "press": "B",
-    "frame": 1
+    "frame": 1,
+    "hold": 2,
+    "from": {
+     "near": "NEAR"
+    }
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": 3,
+    "hold": 200,
+    "from": "start"
    },
    {
     "press": "jump",
     "frame": "JC",
-    "hold": 1
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "trigger": "R",
+    "frame": "JC+J",
+    "hold": 2,
+    "from": "start"
    },
    {
     "stick": [
-     0.95,
-     -0.31
+     "WX",
+     "WY"
     ],
     "frame": "JC+J",
-    "hold": 2
+    "hold": 2,
+    "from": "start"
    },
    {
-    "press": "R",
-    "frame": "JC+J",
-    "hold": 2
+    "stick": [
+     0,
+     0
+    ],
+    "frame": "JC+J+2",
+    "hold": 200,
+    "from": "start"
    },
    {
     "cstick": [
@@ -51,60 +88,97 @@
      1
     ],
     "frame": "UP",
-    "hold": 2
+    "hold": 2,
+    "from": "start"
    }
   ],
   "marks": {
-   "1": "Frame 1: down-B. The shine hits: {opp} slides away",
+   "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
    "JC": "Frame {JC}: X or Y out of the shine",
-   "JC+J": "Frame {JC+J}: R, the stick forward and a little down. Fox slides after it",
-   "UP": "Frame {UP}: Fox can act. The C-stick up: an up smash"
+   "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it",
+   "UP": "Frame {UP}: the C-stick up: an up smash"
   },
   "lessons": [
    {
     "title": "What the shine leaves",
     "text": [
-     "Hit by the shine on the ground, {opp} slides away about {SLIDE} units and cannot act until frame {FREE}.",
-     "The hit freezes both for 3 frames, so the shine takes a jump from frame {JC}, not frame 4. An air dodge into the ground on the first frame of that jump is a wavedash: with the stick forward Fox slides after it and can act on frame {JC+J+10}."
+     "Hit by the shine on the ground, {opp} slides away and cannot act for about 35 frames.",
+     "The hit freezes both for 3 frames, so the shine takes a jump from frame {JC}, not frame 4. An air dodge into the ground on the first frame of that jump is a wavedash: with the stick toward {opp} Fox slides after it and can act on frame {JC+J+10}."
     ],
     "show": {
      "example": {
       "inputs": [
        {
         "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 300
+       },
+       {
+        "stick": [
          0,
          -1
         ],
-        "frame": 1
+        "frame": 1,
+        "hold": 3,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "B",
-        "frame": 1
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 3,
+        "hold": 200,
+        "from": "start"
        },
        {
         "press": "jump",
         "frame": "JC",
-        "hold": 1
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "trigger": "R",
+        "frame": "JC+J",
+        "hold": 2,
+        "from": "start"
        },
        {
         "stick": [
-         0.95,
-         -0.31
+         "WX",
+         "WY"
         ],
         "frame": "JC+J",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
        },
        {
-        "press": "R",
-        "frame": "JC+J",
-        "hold": 2
+        "stick": [
+         0,
+         0
+        ],
+        "frame": "JC+J+2",
+        "hold": 200,
+        "from": "start"
        }
       ],
       "marks": {
-       "1": "Frame 1: down-B. The shine hits: {opp} slides away",
+       "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
        "JC": "Frame {JC}: X or Y out of the shine",
-       "JC+J": "Frame {JC+J}: R, the stick forward and a little down. Fox slides after it",
-       "JC+J+10": "Frame {JC+J+10}: Fox can act, next to {opp}"
+       "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it"
       },
       "cues": [
        {
@@ -134,7 +208,7 @@
        {
         "frames": [
          "JC+J+1",
-         "JC+J+9"
+         "UP-1"
         ],
         "words": "Sliding after it",
         "kind": "info"
@@ -146,40 +220,77 @@
    {
     "title": "The up smash",
     "text": [
-     "Started as the wavedash's landing ends, the up smash lands by frame {UP+8}: before {opp} can act on frame {FREE}.",
-     "The C-stick up does it from a standstill. A late air dodge, or a short slide, and the up smash comes too late or does not reach."
+     "As the wavedash's landing ends, the C-stick up: the up smash lands before {opp} can shield.",
+     "A late air dodge, or a slide that stops short of it, and the up smash comes too late or does not reach."
     ],
     "show": {
      "example": {
       "inputs": [
        {
         "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 300
+       },
+       {
+        "stick": [
          0,
          -1
         ],
-        "frame": 1
+        "frame": 1,
+        "hold": 3,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "B",
-        "frame": 1
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 3,
+        "hold": 200,
+        "from": "start"
        },
        {
         "press": "jump",
         "frame": "JC",
-        "hold": 1
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "trigger": "R",
+        "frame": "JC+J",
+        "hold": 2,
+        "from": "start"
        },
        {
         "stick": [
-         0.95,
-         -0.31
+         "WX",
+         "WY"
         ],
         "frame": "JC+J",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
        },
        {
-        "press": "R",
-        "frame": "JC+J",
-        "hold": 2
+        "stick": [
+         0,
+         0
+        ],
+        "frame": "JC+J+2",
+        "hold": 200,
+        "from": "start"
        },
        {
         "cstick": [
@@ -187,14 +298,15 @@
          1
         ],
         "frame": "UP",
-        "hold": 2
+        "hold": 2,
+        "from": "start"
        }
       ],
       "marks": {
-       "1": "Frame 1: down-B. The shine hits: {opp} slides away",
+       "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
        "JC": "Frame {JC}: X or Y out of the shine",
-       "JC+J": "Frame {JC+J}: R, the stick forward and a little down. Fox slides after it",
-       "UP": "Frame {UP}: Fox can act. The C-stick up: an up smash"
+       "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it",
+       "UP": "Frame {UP}: the C-stick up: an up smash"
       },
       "cues": [
        {
@@ -224,15 +336,15 @@
        {
         "frames": [
          "JC+J+1",
-         "JC+J+9"
+         "UP-1"
         ],
         "words": "Sliding after it",
         "kind": "info"
        },
        {
         "frames": [
-         "JC+J+10",
-         "JC+J+14"
+         "UP",
+         "UP+3"
         ],
         "words": "Up smash now",
         "kind": "go"
@@ -245,189 +357,850 @@
  },
  "scenarios": [
   {
-   "name": "Peach",
+   "name": "Peach, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Peach",
-    "FREE": 37,
-    "SLIDE": 27,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 20
+    "NEAR": 9,
+    "opp": "Peach"
    }
   },
   {
-   "name": "Captain Falcon",
+   "name": "Captain Falcon, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Captain Falcon",
-    "FREE": 35,
-    "SLIDE": 30,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 20
+    "NEAR": 9,
+    "opp": "Captain Falcon"
    }
   },
   {
-   "name": "Sheik",
+   "name": "Sheik, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Sheik",
-    "FREE": 37,
-    "SLIDE": 33,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 20
+    "NEAR": 9,
+    "opp": "Sheik"
    }
   },
   {
-   "name": "Samus",
+   "name": "Samus, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Samus",
-    "FREE": 35,
-    "SLIDE": 37,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 20
+    "NEAR": 9,
+    "opp": "Samus"
    }
   },
   {
-   "name": "Yoshi",
+   "name": "Yoshi, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "yoshi",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Yoshi",
-    "FREE": 35,
-    "SLIDE": 38,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 20
+    "NEAR": 9,
+    "opp": "Yoshi"
    }
   },
   {
-   "name": "Marth",
+   "name": "Marth, standing",
    "stage": "final-destination",
    "player": {
-    "x": -30
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -23,
+    "x": 10,
     "facing": "player",
-    "inputs": [
+    "react": 15,
+    "loop": true,
+    "script": [
      {
-      "stick": [
-       0,
-       0
-      ],
-      "frame": 1,
-      "hold": 1
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
      }
     ]
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Marth",
-    "FREE": 37,
-    "SLIDE": 44,
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
     "JC": 7,
-    "UP": 21
+    "NEAR": 9,
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Ice Climbers, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 7,
+    "opp": "Ice Climbers"
+   }
+  },
+  {
+   "name": "Peach, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Peach"
+   }
+  },
+  {
+   "name": "Captain Falcon, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Captain Falcon"
+   }
+  },
+  {
+   "name": "Sheik, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Sheik"
+   }
+  },
+  {
+   "name": "Samus, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Samus"
+   }
+  },
+  {
+   "name": "Yoshi, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Yoshi"
+   }
+  },
+  {
+   "name": "Marth, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 9,
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Ice Climbers, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -40
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "until": {
+       "me": "stunned"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 40
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "stunned"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 40
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "UP": 20,
+    "JC": 7,
+    "NEAR": 7,
+    "opp": "Ice Climbers"
    }
   }
  ],
  "attempt": {
   "start": {
-   "enters": "shine_ground"
+   "is": "connects",
+   "to": "shine"
   },
   "judge": [
    {
@@ -441,15 +1214,11 @@
   ],
   "cancel": [],
   "limit": 90,
-  "timeout": "judge"
+  "timeout": "judge",
+  "within": 1500,
+  "missed": "Not counted: the shine did not hit. Run up to it and press down-B when Fox is on top of it."
  },
  "measures": {
-  "shined": {
-   "happened": {
-    "is": "connects",
-    "to": "shine"
-   }
-  },
   "slid": {
    "happened": {
     "enters": "landing_special"
@@ -469,73 +1238,102 @@
   }
  },
  "checks": {
-  "shine hits": {
-   "measure": "shined",
-   "equals": true,
-   "expect": "The shine hits it",
-   "words": "the shine did not hit {opp}",
-   "headline": "The shine missed",
-   "fix": "Stand next to {opp} and press down-B: the shine reaches a little past Fox on every side."
-  },
   "wavedash": {
    "measure": "slid",
    "equals": true,
    "expect": "A wavedash out of the shine",
    "words": "no wavedash: Fox did not slide after it",
    "headline": "No wavedash",
-   "fix": "X or Y on frame {JC} of the shine (the hit freezes Fox for 3 frames: a jump pressed earlier is ignored), then L or R with the stick forward and a little down on frame {JC+J}, the first frame Fox is off the ground."
+   "fix": "X or Y on frame {JC} of the shine (the hit freezes Fox for 3 frames: a jump pressed earlier is ignored), then L or R with the stick toward {opp} and a little down on frame {JC+J}, the first frame Fox is off the ground."
   },
   "up smash": {
    "measure": "smashed",
    "equals": true,
    "expect": "The up smash lands before it can act",
-   "words": "the up smash did not land before {opp} could act",
+   "words": "the up smash did not land before {opp} could shield",
    "headline": "No up smash",
-   "fix": "{opp} can act on frame {FREE}. Fox can act on frame {JC+J+10}: the C-stick up then, from next to {opp}. Aim the air dodge further forward if the up smash does not reach."
+   "fix": "Fox can act on frame {JC+J+10}: the C-stick up then, from next to {opp}. Aim the air dodge further forward if the up smash does not reach."
   }
  },
  "verdict": {
-  "success": "Up smash on frame {at} after the shine; {opp} could act on frame {FREE}."
+  "success": "Up smash on frame {at} after the shine: {opp} had not shielded."
  },
  "parts": [
   {
    "name": "Slide after it",
-   "teach": "Shine {opp}, jump on frame {JC} and air dodge forward on frame {JC+J}: Fox slides after it as it slides away.",
+   "teach": "{opp} stands 50 units away. Run in, shine it, jump on frame {JC} and air dodge toward it on frame {JC+J}: Fox slides after it as it slides away.",
    "example": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": 1
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
-     "frame": 1
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": "JC",
-     "hold": 1
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "JC+J",
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
-      0.95,
-      -0.31
+      "WX",
+      "WY"
      ],
      "frame": "JC+J",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
-     "press": "R",
-     "frame": "JC+J",
-     "hold": 2
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "JC+J+2",
+     "hold": 200,
+     "from": "start"
     }
    ],
    "marks": {
-    "1": "Frame 1: down-B. The shine hits: {opp} slides away",
+    "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
     "JC": "Frame {JC}: X or Y out of the shine",
-    "JC+J": "Frame {JC+J}: R, the stick forward and a little down. Fox slides after it"
+    "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it"
    },
    "cues": [
     {
@@ -565,7 +1363,7 @@
     {
      "frames": [
       "JC+J+1",
-      "JC+J+9"
+      "UP-1"
      ],
      "words": "Sliding after it",
      "kind": "info"
@@ -573,7 +1371,8 @@
    ],
    "attempt": {
     "start": {
-     "enters": "shine_ground"
+     "is": "connects",
+     "to": "shine"
     },
     "judge": [
      {
@@ -586,10 +1385,11 @@
     ],
     "cancel": [],
     "limit": 90,
-    "timeout": "judge"
+    "timeout": "judge",
+    "within": 1500,
+    "missed": "Not counted: the shine did not hit. Run up to it and press down-B when Fox is on top of it."
    },
    "checks": [
-    "shine hits",
     "wavedash"
    ],
    "streak": 3,
@@ -599,42 +1399,80 @@
     2,
     3,
     4,
-    5
+    5,
+    6
    ],
    "success": "Next to {opp}, with it still sliding."
   },
   {
    "name": "Up smash",
-   "teach": "The same, and the C-stick up as Fox can act, frame {JC+J+10}: the up smash lands before {opp} recovers. D-pad left and right: another opponent.",
+   "teach": "The same, and the C-stick up as Fox can act: the up smash lands before {opp} shields. D-pad left and right: another opponent.",
    "example": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": 1
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
-     "frame": 1
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": "JC",
-     "hold": 1
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "JC+J",
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
-      0.95,
-      -0.31
+      "WX",
+      "WY"
      ],
      "frame": "JC+J",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
-     "press": "R",
-     "frame": "JC+J",
-     "hold": 2
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "JC+J+2",
+     "hold": 200,
+     "from": "start"
     },
     {
      "cstick": [
@@ -642,14 +1480,15 @@
       1
      ],
      "frame": "UP",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "marks": {
-    "1": "Frame 1: down-B. The shine hits: {opp} slides away",
+    "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
     "JC": "Frame {JC}: X or Y out of the shine",
-    "JC+J": "Frame {JC+J}: R, the stick forward and a little down. Fox slides after it",
-    "UP": "Frame {UP}: Fox can act. The C-stick up: an up smash"
+    "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it",
+    "UP": "Frame {UP}: the C-stick up: an up smash"
    },
    "cues": [
     {
@@ -679,33 +1518,176 @@
     {
      "frames": [
       "JC+J+1",
-      "JC+J+9"
+      "UP-1"
      ],
      "words": "Sliding after it",
      "kind": "info"
     },
     {
      "frames": [
-      "JC+J+10",
-      "JC+J+14"
+      "UP",
+      "UP+3"
      ],
      "words": "Up smash now",
      "kind": "go"
     }
    ],
    "checks": [
-    "shine hits",
     "wavedash",
     "up smash"
    ],
-   "streak": 5,
+   "streak": 3,
    "scenario": [
     0,
     1,
     2,
     3,
     4,
-    5
+    5,
+    6
+   ]
+  },
+  {
+   "name": "In play",
+   "teach": "{opp} moves about and does not attack. Catch it with the shine out of a run, then the same: wavedash, up smash.",
+   "example": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 200,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JC",
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "JC+J",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "JC+J",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "JC+J+2",
+     "hold": 200,
+     "from": "start"
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UP",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: down-B out of the run. The shine hits: {opp} slides away",
+    "JC": "Frame {JC}: X or Y out of the shine",
+    "JC+J": "Frame {JC+J}: R, the stick toward it and down. Fox slides after it",
+    "UP": "Frame {UP}: the C-stick up: an up smash"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "JC-1"
+     ],
+     "words": "The shine hits: both freeze",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "JC",
+      "JC"
+     ],
+     "words": "Jump now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "JC+J",
+      "JC+J"
+     ],
+     "words": "Air dodge forward now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "JC+J+1",
+      "UP-1"
+     ],
+     "words": "Sliding after it",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "UP",
+      "UP+3"
+     ],
+     "words": "Up smash now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "wavedash",
+    "up smash"
+   ],
+   "streak": 5,
+   "scenario": [
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
    ]
   }
  ],
@@ -715,49 +1697,39 @@
    "inputs": [
     {
      "stick": [
-      0,
-      -1
+      1,
+      0
      ],
-     "frame": 1
+     "frame": 1,
+     "hold": 300
     },
-    {
-     "press": "B",
-     "frame": 1
-    }
-   ],
-   "fails": "wavedash"
-  },
-  {
-   "name": "the jump pressed during the freeze",
-   "inputs": [
     {
      "stick": [
       0,
       -1
      ],
-     "frame": 1
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
-     "frame": 1
-    },
-    {
-     "press": "jump",
-     "frame": 4,
-     "hold": 1
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "stick": [
-      0.95,
-      -0.31
+      0,
+      0
      ],
-     "frame": "J+4",
-     "hold": 2
-    },
-    {
-     "press": "R",
-     "frame": "J+4",
-     "hold": 2
+     "frame": 3,
+     "hold": 200,
+     "from": "start"
     }
    ],
    "fails": "wavedash"
@@ -767,32 +1739,69 @@
    "inputs": [
     {
      "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 300
+    },
+    {
+     "stick": [
       0,
       -1
      ],
-     "frame": 1
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
-     "frame": 1
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 3,
+     "hold": 200,
+     "from": "start"
     },
     {
      "press": "jump",
      "frame": "JC",
-     "hold": 1
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "JC+J",
+     "hold": 2,
+     "from": "start"
     },
     {
      "stick": [
-      0.95,
-      -0.31
+      "WX",
+      "WY"
      ],
      "frame": "JC+J",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     },
     {
-     "press": "R",
-     "frame": "JC+J",
-     "hold": 2
+     "stick": [
+      0,
+      0
+     ],
+     "frame": "JC+J+2",
+     "hold": 200,
+     "from": "start"
     },
     {
      "cstick": [
@@ -800,7 +1809,8 @@
       1
      ],
      "frame": "UP+20",
-     "hold": 2
+     "hold": 2,
+     "from": "start"
     }
    ],
    "fails": "up smash"
@@ -808,17 +1818,6 @@
  ],
  "coach": {
   "rows": [
-   {
-    "label": "Down-B",
-    "button": "B",
-    "perfect": [
-     1
-    ],
-    "window": [
-     1,
-     1
-    ]
-   },
    {
     "label": "Jump",
     "button": "jump",
@@ -861,6 +1860,6 @@
     ]
    }
   ],
-  "note": "Frame 1 is the shine. Fox can act on frame {JC+J+10}; {opp} on frame {FREE}."
+  "note": "Frame 1 is the shine's hit. Fox can act on frame {JC+J+10}."
  }
 }
