@@ -610,19 +610,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -638,13 +653,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -660,13 +690,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -1012,19 +1057,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -1040,13 +1100,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -1062,13 +1137,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -1414,19 +1504,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -1442,13 +1547,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -1464,13 +1584,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -1816,19 +1951,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -1844,13 +1994,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -1866,13 +2031,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -2218,19 +2398,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dsmash"
          }
         ]
        },
@@ -2246,13 +2441,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dsmash"
          }
         ]
        },
@@ -2268,13 +2478,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dsmash"
          }
         ]
        }
@@ -2620,19 +2845,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -2648,13 +2888,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -2670,13 +2925,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -3022,19 +3292,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -3050,13 +3335,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -3072,13 +3372,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -3424,19 +3739,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -3452,13 +3782,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -3474,13 +3819,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        }
@@ -3826,19 +4186,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -3854,13 +4229,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -3876,13 +4266,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        }
@@ -4228,19 +4633,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -4256,13 +4676,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -4278,13 +4713,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -4630,19 +5080,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -4658,13 +5123,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -4680,13 +5160,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -5032,19 +5527,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -5060,13 +5570,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -5082,13 +5607,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -5434,19 +5974,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -5462,13 +6017,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -5484,13 +6054,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -5836,19 +6421,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -5864,13 +6464,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -5886,13 +6501,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -6238,19 +6868,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -6266,13 +6911,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -6288,13 +6948,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -6640,19 +7315,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -6668,13 +7358,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -6690,13 +7395,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -7042,19 +7762,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -7070,13 +7805,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -7092,13 +7842,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        }
@@ -7444,19 +8209,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -7472,13 +8252,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -7494,13 +8289,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        }
@@ -7846,19 +8656,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -7874,13 +8699,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -7896,13 +8736,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -8248,19 +9103,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -8276,13 +9146,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -8298,13 +9183,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -8650,19 +9550,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -8678,13 +9593,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -8700,13 +9630,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -9052,19 +9997,34 @@
           "until": {
            "distance": [
             0,
-            32
+            30
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -9080,13 +10040,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -9102,13 +10077,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -9454,19 +10444,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -9482,13 +10487,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -9504,13 +10524,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        }
@@ -9856,19 +10891,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -9884,13 +10934,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        },
@@ -9906,13 +10971,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "jab",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "jab"
          }
         ]
        }
@@ -10258,19 +11338,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -10286,13 +11381,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -10308,13 +11418,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -11343,19 +12468,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -11371,13 +12511,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -11393,13 +12548,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -11742,19 +12912,34 @@
           "until": {
            "distance": [
             0,
-            38
+            36
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -11770,13 +12955,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        },
@@ -11792,13 +12992,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "run_attack",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 25.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "run_attack"
          }
         ]
        }
@@ -12141,19 +13356,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -12169,13 +13399,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -12191,13 +13436,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -12540,19 +13800,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -12568,13 +13843,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        },
@@ -12590,13 +13880,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "dtilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "dtilt"
          }
         ]
        }
@@ -12939,19 +14244,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -12967,13 +14287,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        },
@@ -12989,13 +14324,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "fsmash",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "fsmash"
          }
         ]
        }
@@ -13338,19 +14688,34 @@
           "until": {
            "distance": [
             0,
-            26
+            24
            ]
           },
           "for": 240
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           30
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -13366,13 +14731,28 @@
           "for": 45
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        },
@@ -13388,13 +14768,28 @@
           "for": 100
          },
          {
-          "do": "approach",
-          "moves": "ftilt",
-          "lands": "any",
-          "wait": [
-           0,
-           20
-          ]
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 16.0,
+          "for": 120
+         },
+         {
+          "do": "move",
+          "name": "ftilt"
          }
         ]
        }

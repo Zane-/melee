@@ -120,6 +120,16 @@ the down air into shine on a crouching opponent holds at 9.0 units and not at 8.
 9.05; a character's idle sway can put a hit a frame later, so an attacker stands a
 little longer first in three scenarios). Each course row says what its drill still
 leaves out.
+Proved in play too (2026-11-25): `check_play.py` showed that a measured answer does not
+survive an opponent that attacks from wherever the engine's `approach` lands its move (a
+jab from its full reach, where Fox's shine does not reach back; a dash attack from so
+near that it runs through the player), nor one begun facing away (`move` then plays it
+with a pivot) or after a walk ended by a condition seen `react` frames late. So an
+opponent with a measured attack keeps out of reach in footsies, turns to face the player
+(`{"me": "facing"}`), walks the last steps in to the measured distance by where both
+stand now (`hold` with `"near"`) and attacks out of the walk: `universal-crouch-cancel`
+(1237 of 1300 runs right over all 26 characters; 75 of 75 for Fox) and `fox-combo-shine`
+(33 strings of ten opponents, each at a low and a high damage of Fox's; 252 of 252).
 
 ## Where things are
 
@@ -127,6 +137,7 @@ leaves out.
 |-|-|
 | A drill | `data/drills/<id>.json`: nothing but the words below |
 | The words, the checking of a file | `tools/melee_drills/format.py` |
+| Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, and says how often the part's checks pass. A scenario that never passes is one the drill teaches wrongly |
 | Playing one | `tools/melee_drills/drill.py`: `JsonDrill`, a course drill on the course runtime (`tools/melee_course/engine.py`: loads with no loading screen, attempts, resets, the demonstration, the input timeline) |
 | Its proof | `python tools/melee_drills/check.py <id>` |
 | In the client | `tools/melee_client/client.py`: the tutorial (`tutorial`, `tutorial_example`), the parts in the drill loop (`course_drill`), the coach (`coach`); `tests/client/short_hop.py` |

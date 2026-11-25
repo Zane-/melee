@@ -109,6 +109,8 @@ they found is kept by the frame it was found on and read on the frame the condit
 | `"retreat"` | the player moves away |
 | `"committed"` | the player cannot act: an attack, landing lag, shield stun, a roll or dodge, hitstun, tumble, lying down, grabbed (built: any state but moving about, a jump squat, a crouch, a shield, the ledge's wait; or frozen in hitlag. A move's interruptible frames count as committed until it ends) |
 | `"free"` | (built beside the scope) the opposite: the player can act |
+| `hold` `near` | (built 2026-11-25) `{"do": "hold", "stick": [0.49, 0], "near": D}`: it walks toward the player and the step is over when it is within D units, by where both are now. A step's `until` sees the player `react` frames late; a walk ended by `{"distance": [0, D]}` overshoots by the frames it is late (measured: Samus walking to 20 units stopped at 12.7, and her dash attack from there ran through the player) |
+| `"facing"` | (built 2026-11-25) the fighter faces the other one; `{"me": "facing"}`: the opponent faces the player. A scripted attack out of footsies waits for it: begun facing away, `move` plays the attack with a pivot (a dash out and a turn), from farther than it was measured |
 | `"stunned"` | (built 2026-11-25) hitstun left, or frozen in a hit: cannot act. The state alone does not say it: a fighter sent flying stays in its flight's state for some frames after its hitstun is over (measured: Marth up thrown at 90%, 9 frames) |
 | `{"state": NAME}` | the player in a state of the drill format's names (`STATES`) |
 | `"shielding"`, `{"shield_below": H}` | the player shields; its health under H |

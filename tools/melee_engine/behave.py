@@ -182,7 +182,11 @@ class Behaviour:
 class Hold(Behaviour):
     """Stands, shields or crouches (`pad`), or holds the control stick
     (`stick`: [toward the player, up], each -1 to 1: its DI through a
-    throw or a hit, away from the player with [-1, 0])."""
+    throw or a hit, away from the player with [-1, 0]). `near`: over when
+    it is within that many units of the player, by where both are now:
+    its own spacing as it walks in (a step's `until` sees the player its
+    reaction time late, and a walk ended by it overshoots by the frames it
+    is late)."""
     name = "hold"
     PADS = {"stand": NONE, "shield": SHIELD, "crouch": CROUCH}
 
@@ -190,8 +194,15 @@ class Hold(Behaviour):
         super().__init__(ctx, spec)
         self.raw = self.PADS[spec.get("pad", "stand")]
         self.stick = spec.get("stick")
+        self.near = spec.get("near")
 
     def step(self, st):
+        if self.near is not None:
+            me, them = st["p"][self.ctx.port], st["p"][self.ctx.target]
+            if me is not None and them is not None and \
+                    abs(them["x"] - me["x"]) <= self.near:
+                self.done = True
+                return self.raw
         if self.stick is None:
             return self.raw
         b, _, _, cx, cy, lt, rt = self.raw
@@ -2001,6 +2012,8 @@ PARAMS = {
                                    "stick or cstick [toward the player, "
                                    "up], frame from 1, hold")},
     "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch"),
+             "near": (lambda v: isinstance(v, (int, float)) and
+                      not isinstance(v, bool) and v >= 0, "units"),
              "stick": (lambda v: isinstance(v, list) and len(v) == 2 and
                        all(isinstance(x, (int, float)) and -1 <= x <= 1
                            for x in v),

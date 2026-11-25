@@ -95,7 +95,7 @@ def committed(f):
 WORDS = ("in_their_range", "out_of_their_range", "in_my_range",
          "out_of_my_range", "approach", "retreat", "committed", "free",
          "stunned", "shielding", "airborne", "grounded", "on_ledge",
-         "offstage", "on_platform")
+         "offstage", "on_platform", "facing")
 # {"key": value}
 KEYS = ("distance", "state", "shield_below", "percent", "lag", "me", "not",
         "any", "all", "after")
@@ -255,6 +255,10 @@ def holds(c, view):
             return abs(s["x"]) > view.half + 1.0 or s["y"] < -8.0
         if c == "on_platform":
             return not s["air"] and s["y"] > 5.0
+        if c == "facing":
+            # it faces the other fighter
+            return o is not None and \
+                s.get("facing", 1) * (o["x"] - s["x"]) > 0
         raise ValueError("unknown condition %r" % c)
     (k, v), = c.items()
     if k == "not":
