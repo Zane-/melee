@@ -79,10 +79,13 @@ robotic spawn and do something (except things like up throw kill confirm that ar
 specific action"): a drill's situation arises as it does in a match. The opponent begins
 at a distance and moves, and a try begins at the event the technique answers (its attack
 hitting the player, the player's shine hitting it), not with the opponent placed next to
-the player doing one thing. Rebuilt so: `universal-crouch-cancel` (the opponent plays
-footsies and dash attacks whoever comes within 44 units; an opponent knocked down beside
-the player that gets up with an attack; the same dash attack at a damage where crouching
-no longer holds), `fox-waveshine-usmash` and `fox-shine-knockdown` (the opponent moves
+the player doing one thing. Rebuilt so: `universal-crouch-cancel` (25 attacks of nine
+opponents, another every try: the opponent keeps out of reach and attacks when the player
+comes in, at once or a moment later, or comes in itself; the player's damage drawn for
+each try up to that attack's measured limit for the character played,
+`data/actor/crouch_cancel.json`; an opponent knocked down beside the player that gets up
+with an attack; six of the attacks at a damage where crouching no longer holds),
+`fox-waveshine-usmash` and `fox-shine-knockdown` (the opponent moves
 about 50 units away; the try begins when the shine hits), `fox-shield-pressure`,
 `fox-vs-crouch-cancel`, `fox-aerial-confirm` and `fox-approach-nair-dair` (the opponent
 moves about and shields, crouches or stands when Fox comes within 40 units, and moves
@@ -413,6 +416,14 @@ its proof, never written into one drill's file.
   the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
   off the left or the right ledge as the runtime draws the side (the pause menu's CPU
   side: Random, Left, Right). `JsonDrill.launched` is what was drawn.
+
+  A player's `"percent"` may be `[LO, HI]` (2026-11-25, for `universal-crouch-cancel`):
+  the damage is drawn for each attempt with the attempt's random numbers, and a
+  demonstration plays HI (what an example shows and `check.py` proves is the most damage a
+  try can have). The damage a try began with is the number `PERCENT` in words and
+  expressions. A scenario's `"numbers_for": {character: {NAME: number}}` gives numbers of
+  its `"numbers"` another value for a character (the damage up to which that character
+  can crouch through the scenario's attack: `"percent": [0, "TOP"]`).
 
   `"knockdown"` (a tech chase's start, 2026-11-25): the opponent begins each attempt
   knocked off its feet where it stands, `{"knockback": 90, "angle": 80, "y": 1}` (the

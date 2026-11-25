@@ -70,6 +70,72 @@ could not be fetched here. A drill generator can compute them from the knockback
 [hitstun-knockback](hitstun-knockback.md): find the smallest percent where
 KB x 0.666667 > 80 (crouch cancel) or KB > 80 (ASDI down alone).
 
+<!-- cc-limits: python tools/melee_drills/cc_limits.py --table -->
+Measured in this build (`python tools/melee_drills/cc_limits.py`, every character in
+`data/actor/crouch_cancel.json`): the most damage, before the hit, at which a crouching
+character stays on its feet. One percent more and the hit tumbles it. Listed for the
+distances (units between the two) the move hit all 26 crouching characters from; where a
+move has a weak and a strong part the least is given, and the last column says how far
+the distances differ.
+
+| Opponent | Move | From | Fox holds to | Pichu | Bowser | By distance |
+|-|-|-|-|-|-|-|
+| Fox | down tilt | 12, 18 | 50% | 43% | 64% | the same from each |
+| Fox | forward smash | 12, 18, 24, 30 | 48% | 41% | 64% | up to 30 more from another |
+| Fox | down smash | 12 | 84% | 73% | 108% | the same from each |
+| Fox | dash attack | 18, 24, 30 | 99% | 87% | 124% | the same from each |
+| Marth | down tilt | 12, 18, 24, 30 | 153% | 134% | 247% | up to 98 more from another |
+| Marth | forward tilt | 12, 18, 24 | 116% | 36% | 146% | up to 83 more from another |
+| Marth | jab | 18, 24 | 200% | 176% | 260+ | up to 84 more from another |
+| Marth | forward smash | 12, 18, 24, 30 | 38% | 32% | 51% | up to 43 more from another |
+| Marth | down smash | 12, 18, 24, 30 | 6% | 3% | 50% | up to 71 more from another |
+| Marth | dash attack | 30 | 131% | 115% | 75% | the same from each |
+| Jigglypuff | down tilt | 12, 18 | 249% | 219% | 260+ | the same from each |
+| Jigglypuff | forward tilt | 12 | 87% | 76% | 111% | the same from each |
+| Jigglypuff | jab | 12 | 260+ | 260+ | 260+ | the same from each |
+| Jigglypuff | forward smash | 12, 18, 24 | 32% | 26% | 44% | the same from each |
+| Jigglypuff | down smash | 12 | 88% | 76% | 112% | the same from each |
+| Jigglypuff | dash attack | 12, 18, 24, 30 | 64% | 56% | 83% | up to 51 more from another |
+| Falco | down tilt | 12, 18 | 35% | 29% | 46% | the same from each |
+| Falco | forward smash | 18, 24, 30 | 29% | 24% | 40% | up to 26 more from another |
+| Falco | down smash | 12, 18 | 70% | 60% | 91% | the same from each |
+| Falco | dash attack | 18, 24, 30 | 77% | 67% | 98% | up to 60 more from another |
+| Sheik | down tilt | 12, 18 | 102% | 89% | 128% | the same from each |
+| Sheik | forward tilt | 18 | 79% | 69% | 99% | the same from each |
+| Sheik | forward smash | 12, 18, 24, 30 | 71% | 61% | 91% | up to 197 more from another |
+| Sheik | down smash | 12, 18 | 60% | 52% | 78% | up to 194 more from another |
+| Sheik | dash attack | 24, 30 | 60% | 52% | 77% | the same from each |
+| Captain Falcon | down tilt | 12, 18, 24 | 85% | 73% | 108% | the same from each |
+| Captain Falcon | dash attack | 12, 18, 24, 30 | 84% | 73% | 107% | up to 168 more from another |
+| Peach | down tilt | 12, 18 | 25% | 21% | 34% | the same from each |
+| Peach | forward tilt | 12 | 55% | 58% | 71% | the same from each |
+| Peach | forward smash | 12 | 88% | 77% | 63% | the same from each |
+| Peach | down smash | 12 | falls at 0% | falls at 0% | 14% | the same from each |
+| Peach | dash attack | 24 | 35% | 30% | 47% | the same from each |
+| Ice Climbers | down tilt | 12, 18 | 119% | 104% | 61% | the same from each |
+| Ice Climbers | forward tilt | 12, 18 | 29% | 68% | 40% | up to 65 more from another |
+| Ice Climbers | jab | 12, 18 | 260+ | 260+ | 236% | up to 33 more from another |
+| Ice Climbers | forward smash | 12, 18 | falls at 0% | 13% | falls at 0% | up to 39 more from another |
+| Ice Climbers | down smash | 12 | falls at 0% | 13% | 27% | the same from each |
+| Pikachu | down tilt | 12, 18 | 117% | 103% | 147% | the same from each |
+| Pikachu | forward tilt | 12, 18 | 106% | 93% | 134% | the same from each |
+| Pikachu | jab | 12, 18 | 260+ | 260+ | 260+ | the same from each |
+| Pikachu | forward smash | 12, 18, 24 | 25% | 20% | 36% | up to 20 more from another |
+| Pikachu | down smash | 12 | falls at 0% | 11% | falls at 0% | the same from each |
+| Pikachu | dash attack | 12, 18, 24, 30 | 112% | 98% | 141% | the same from each |
+| Yoshi | down tilt | 12, 18 | 260+ | 260+ | 260+ | the same from each |
+| Yoshi | forward tilt | 12, 18 | 61% | 52% | 78% | the same from each |
+| Yoshi | jab | 12, 18 | 260+ | 260+ | 260+ | the same from each |
+| Yoshi | forward smash | 12, 18 | 36% | 30% | 49% | the same from each |
+| Yoshi | down smash | 12, 18, 24 | 44% | 38% | 58% | up to 22 more from another |
+| Yoshi | dash attack | 18, 24, 30 | 89% | 78% | 113% | the same from each |
+| Samus | down tilt | 12, 18, 24 | 24% | 19% | 33% | the same from each |
+| Samus | forward tilt | 12 | 85% | 74% | 108% | the same from each |
+| Samus | forward smash | 12, 18 | 39% | 33% | 52% | the same from each |
+| Samus | down smash | 12, 18 | falls at 0% | falls at 0% | falls at 0% | the same from each |
+| Samus | dash attack | 12, 18, 24 | 49% | 42% | 64% | up to 218 more from another |
+<!-- /cc-limits -->
+
 ## Why it matters
 
 - At low percent it beats most single-hit approaches: the attacker hits, the defender

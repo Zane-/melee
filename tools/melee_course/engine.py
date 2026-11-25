@@ -1176,6 +1176,10 @@ class Session:
             self._reset(seed, scenario)
             self.flowing = d.flow
             n.step()                  # the frame the placement takes
+        # (the scenario this try is played in, named now: a verdict that
+        # completes a part turns the deck to the next part's)
+        played = (self.scenario,
+                  d.deck[self.scenario].name if d.deck else d.name)
         if demo_pass:
             ref = d.build_reference(c) or []
             if demo_pass == 1 and (d.live_marks or
@@ -1277,9 +1281,8 @@ class Session:
                    words=words.split("\n")[0], full_words=words,
                    measured=self.measure[0] if self.measure else None,
                    target=self.measure[1] if self.measure else None,
-                   scenario=(d.deck[self.scenario].name if d.deck
-                             else d.name),
-                   scenario_index=self.scenario, report=dict(self.report),
+                   scenario=played[1],
+                   scenario_index=played[0], report=dict(self.report),
                    run=self.run_now,
                    frames=frame, demo=bool(demo_pass), checks=[],
                    messages=list(self.messages),

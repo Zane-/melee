@@ -18,6 +18,7 @@ Start from the skill `.claude/skills/melee-knowledge/SKILL.md` (how to look thin
 | `courses/<id>.md`, `courses/universal.md` | Character courses: the ordered Tech / Neutral / Punish / Defense curriculum and each drill's spec and guide (`courses/README.md`) | `plan-character-course`, `design-training-scenario` skills |
 | `framedata/<id>.json` | Machine-readable frame data and attributes, extracted from the game files | `tools/melee_data/extract.py` |
 | `actor/reach.json` | For each character, how far from a standing Marth a running grab, dash attack and jump-cancelled up smash has to be started to connect (the band that worked, and its middle). Measured by play on the native build, 2026-11-13 | `tools/melee_actor/calibrate.py` |
+| `actor/crouch_cancel.json` | Where crouch cancel stops: for each of the top 11's down tilt, forward tilt, jab, forward smash, down smash and dash attack, from 12, 18, 24 and 30 units, the most damage at which each of the 26 characters crouching stays on its feet (null: not hit from there). Measured by play on the native build, 2026-11-25; the table for Fox, Pichu and Bowser is in `techniques/crouch-cancel.md` | `tools/melee_drills/cc_limits.py` |
 | `resources/README.md`, `resources/library/*.md` | The Melee Library link index, by section | Generator |
 | `resources/meleelibrary.json` | Parsed snapshot of meleelibrary.com (2026-11-11) | `tools/melee_data/library.py` |
 

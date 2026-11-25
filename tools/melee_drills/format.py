@@ -457,6 +457,9 @@ def _problems(spec):
                                                      dict) else ():
         test[m] = 2
         test[m + "_frames"] = "2 frames"
+    # the player's damage at the attempt's start (drawn, where a scenario
+    # gives a range)
+    test["PERCENT"] = 0
     # a scenario's own numbers and words (its "numbers": the hit's frame,
     # its hitlag, the DI that survives it), as the first scenario has them
     own = set(test)
@@ -788,6 +791,23 @@ def _problems(spec):
             first = spec["scenarios"][0].get("numbers", {})
             need(isinstance(first, dict) and set(nb) == set(first), w,
                  "numbers: the same names as the first scenario's")
+        # numbers of its own that differ by character ("numbers_for":
+        # {character: {NAME: number}}, each a name of its "numbers", which
+        # has the value for a character not listed): the damage up to
+        # which a character can crouch through this scenario's attack
+        nf = sc.get("numbers_for", {})
+        if need(isinstance(nf, dict), w, "numbers_for: {character: "
+                "{NAME: number}}"):
+            for cid, theirs in nf.items():
+                need(os.path.exists(os.path.join(ROOT, "data", "framedata",
+                                                 cid + ".json")), w,
+                     "numbers_for: unknown character %r" % cid)
+                need(isinstance(theirs, dict) and isinstance(nb, dict) and
+                     set(theirs) <= set(nb) and all(
+                         isinstance(v, (int, float)) and
+                         not isinstance(v, bool) for v in theirs.values()),
+                     w, "numbers_for[%s]: numbers, each a name of its "
+                     "numbers" % cid)
         pl = sc.get("player", {})
         if need(isinstance(pl, dict), w, "player: {...}"):
             if pl.get("ledge"):
@@ -803,7 +823,14 @@ def _problems(spec):
             else:
                 need("x" in pl, w, 'player: {"x": number}')
             for k in ("x", "y", "above", "percent"):
-                if k in pl:
+                if k == "percent" and isinstance(pl.get(k), list):
+                    # [LO, HI]: drawn for each attempt (a demonstration
+                    # plays HI: the hardest of them is what is proved)
+                    need(len(pl[k]) == 2, w, "player.percent: a number or "
+                         "[LO, HI]")
+                    for v in pl[k]:
+                        num(v, "%s.player.percent" % w)
+                elif k in pl:
                     num(pl[k], "%s.player.%s" % (w, k))
             if "inland" in pl:
                 need(span(pl["inland"], 0, 150), w,

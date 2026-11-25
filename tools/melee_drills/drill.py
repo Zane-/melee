@@ -233,8 +233,14 @@ class JsonDrill(Drill):
         "numbers": the hit's frame, its hitlag, the DI that survives
         it)."""
         out = F.names(c.fd, c.fd.id.replace("-", " ").title())
-        out.update(self.scenario().get("numbers", {}))
+        sc = self.scenario()
+        out.update(sc.get("numbers", {}))
+        # (its numbers that differ by character: format's "numbers_for")
+        out.update(sc.get("numbers_for", {}).get(c.fd.id, {}))
+        out["PERCENT"] = int(round(self.percent))
         return out
+
+    percent = 0.0       # the player's damage at this attempt's start
 
     lesson_scenario = None  # a lesson's own, while the client records it
     scenario_at = None      # the one of a part's list played now
@@ -346,7 +352,18 @@ class JsonDrill(Drill):
         sc = self.scenario()
         nums = self.nums(c)
         pl = sc["player"]
-        pct = float(F.value(pl.get("percent", 0), nums))
+        pct = pl.get("percent", 0)
+        if isinstance(pct, list):
+            # a range: drawn for the attempt (its random numbers: the same
+            # seed, the same damage); a demonstration is played at its top,
+            # the hardest of them (what an example shows and check.py
+            # proves holds at the most damage a try can have)
+            lo, hi = sorted(int(round(float(F.value(v, nums))))
+                            for v in pct)
+            pct = float(hi if c.is_demo else c.rng.randint(lo, hi))
+        else:
+            pct = float(F.value(pct, nums))
+        self.percent = pct
         px = float(F.value(pl.get("x", 0), nums))
         facing = -1 if pl.get("facing") == "left" else 1
         op = sc.get("opponent", "none")
