@@ -117,6 +117,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#ifndef _WIN32
+#include <sys/mman.h>
+#include <sys/resource.h>
+#endif
 #include <time.h>
 #include <ucontext.h>
 #include <unistd.h>
@@ -464,6 +468,60 @@ void host_scene_invalidate_tex(void)
     }
 }
 
+#define DEVICES_MAX 256
+static struct {
+    void* start;
+    size_t length;
+} devices[DEVICES_MAX];
+static int ndevices;
+
+/// The graphics card's memory mapped into this process (the mappings of
+/// device files: with one vendor's driver 343 of the window build's 581
+/// MB) is nothing to a copy, which draws nothing, and a fork copied its
+/// page tables all the same: most of what a copy cost to make (3.3 ms on
+/// the game's own thread; the copy 482 MB resident). Left out of the fork
+/// (`out`), and put back as it was after it: looked up each time, since
+/// the driver maps and unmaps as it goes. A copy that touched that memory
+/// would stop (it shared it with the game until now, and would have
+/// written into the game's own).
+static void devices_in_fork(int out)
+{
+#ifdef _WIN32
+    (void) out; /* (no fork there: its copies are processes of their own) */
+#else
+    if (out) {
+        FILE* f = fopen("/proc/self/maps", "r");
+        char text[512];
+        ndevices = 0;
+        if (f == NULL) {
+            return;
+        }
+        while (fgets(text, sizeof text, f) != NULL && ndevices < DEVICES_MAX)
+        {
+            unsigned long a = 0, b = 0;
+            char path[256] = "";
+            if (sscanf(text, "%lx-%lx %*s %*s %*s %*s %255s", &a, &b,
+                       path) == 3 &&
+                strncmp(path, "/dev/", 5) == 0 &&
+                strncmp(path, "/dev/shm", 8) != 0 &&
+                strcmp(path, "/dev/zero") != 0 &&
+                madvise((void*) a, b - a, MADV_DONTFORK) == 0)
+            {
+                devices[ndevices].start = (void*) a;
+                devices[ndevices].length = b - a;
+                ndevices++;
+            }
+        }
+        fclose(f);
+        return;
+    }
+    for (int i = 0; i < ndevices; i++) {
+        madvise(devices[i].start, devices[i].length, MADV_DOFORK);
+    }
+    ndevices = 0;
+#endif
+}
+
 /// "engine fork IN OUT": a copy of the game, standing at this frame, that
 /// reads commands from IN and replies on OUT. Its pid, here; "@ ok fork"
 /// on OUT, there.
@@ -495,7 +553,13 @@ static const char* engine_fork(const char* line)
     }
     fflush(stdout);
     fflush(stderr);
+    if (!fork_child) {
+        devices_in_fork(1); /* (a copy has none to pass on) */
+    }
     pid = fork();
+    if (pid != 0 && !fork_child) {
+        devices_in_fork(0);
+    }
     if (pid < 0) {
         return "fork failed";
     }
@@ -509,6 +573,12 @@ static const char* engine_fork(const char* line)
         close(r);
         close(w);
         fork_child = 1;
+        /* it thinks beside the game a person plays: what that game and
+           its client need of a processor comes first (its own copies
+           are as nice) */
+#ifndef _WIN32
+        setpriority(PRIO_PROCESS, 0, 10);
+#endif
         /* whoever stops it, it goes quietly */
         signal(SIGPIPE, SIG_DFL);
         printf("@ ok fork\n");

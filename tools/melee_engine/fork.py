@@ -232,7 +232,8 @@ class InFork:
         # until 2026-11-24: measured then, a copy's cost follows the
         # memory of the process forked, 0.3 ms headless at 81 MB, 6.7 ms
         # in the window build drawing in software at 799 MB, 3.7 ms on the
-        # graphics card; the client's Python is 0.4 ms of a frame.)
+        # graphics card, 2.0 since the card's own mappings are left out of
+        # the fork; the client's Python is 0.4 ms of a frame.)
         if sys.getswitchinterval() > 0.0005:
             sys.setswitchinterval(0.0005)
         self.errors = []          # decisions that raised: tracebacks

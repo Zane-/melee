@@ -86,7 +86,7 @@ in `src/host/win32/`, Winsock, and these link options:
 | `fork()` snapshots (`control.c`) | the whole state copied into a page-file section, outside the 32-bit address space (`compat.c` blobs) | none for the game's state; the host's own side goes on, as with `load` |
 | `engine fork` (`engine.c`) | `engine fork-state` + another process of the program, `--fork-child NAME`, loaded at its first frame boundary (`tools/melee_engine/fork.py`) | none |
 | linker script gathering the game's statics | `.data$gs*` section names, sorted by the PE linker (`native_build.py` `gather_win32`) | none |
-| `/proc/self/pagemap` soft-dirty (`rollback.c`) | `MEM_WRITE_WATCH` / `GetWriteWatch` on the fixed mappings; the statics compared page by page with the mirror | none |
+| written pages by userfaultfd and the pagemap's scan, or soft-dirty (`rollback.c`) | `MEM_WRITE_WATCH` / `GetWriteWatch` on the fixed mappings; the statics compared page by page with the mirror | none |
 | `-mms-bitfields` (MinGW's default) | `-mno-ms-bitfields` | the Linux build's struct layout |
 | `/dev/bus/usb` GameCube adapter (`gcadapter.c`) | WinUSB (`win32/winusb_adapter.c`), window build only; needs Zadig's WinUSB driver, as Dolphin does | the same reader, decoding and rumble; played with a Lossless adapter (Wii U mode) and a PhobGCC, 2026-11-17 |
 

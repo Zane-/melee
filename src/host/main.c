@@ -52,6 +52,9 @@ void host_stub_report(void)
 
 void host_frame_tick(void)
 {
+    /* a frame played for real: rollback's mirror, if there is one, is no
+       longer the memory (rollback.c: a forked copy must not keep it) */
+    host_rb_unsync();
     host.int_enabled = 1;
     host_deliver();
     host.frame++;

@@ -853,37 +853,106 @@ drawing its tech anew each time: caught 44 of 88 (a spot dodge on the first free
 frame) and 39 of 88 (a jump). Caught at 15, a mixup at 24 and beyond: the drill's
 opponents react in 24 until the player chooses otherwise (CPU reaction).
 
-What it costs. Headless, in 16 copies of the game: 24 to 37 searches, 0.33 to 0.47 s. In
-the window build drawn by the graphics card, with nothing else running: 37 searches in
-0.6 s, and the same in 6 copies, in 8 and in 16: the copies contend for the memory they
-copy after the fork, and the more there are, the more of the game's own frames come late
-(over 18.5 ms of the 16.7 a frame has: 2 to 4 of 40 with 6 copies, 4 to 8 of 38 with 16;
-the longest 24 to 34 ms). So beside a game a person plays it is searched in 6
-(`Chase.LIVE`). In the client at the console's pace (`tests/client/techchase.py`): drawn
-by the graphics card, the standing row is there 16 to 23 frames after the grab connects
-and the whole table after 48 to 55; drawn in software (the tests' virtual display), 25 to
-33 and 68 to 74. The throw begins on frame 19 (the grab held its 18) and the tech is seen
-on frames 70 to 76: the answers are there in time in both, and on the graphics card the
-whole table 15 frames or more before.
+What it costs, after the work below. Headless, in 16 copies of the game: 20 to 24
+searches and 0.10 to 0.14 s for a player who has shown nothing; 0.23 to 0.28 s where
+reads are searched too. Beside a game at the console's pace in the window build drawn by
+the graphics card: 0.10 s in 12 copies (7 frames), 0.11 to 0.14 s in 6. In the client
+(`tests/client/techchase.py --gpu`): the whole table is back 9 to 14 frames after the
+grab connects, before the opponent throws (it holds its grab 10 to 15 frames for it);
+drawn in software (the tests' virtual display), 15 to 19.
 
-Corrected while here: `fork.py` said a copy of the game costs more beside the client
-because the thinking threads wait for the interpreter. Measured 2026-11-24, a copy's cost
-follows the memory of the process forked (0.3 ms headless at 81 MB, 6.7 ms drawn in
-software at 799 MB, 3.7 ms on the graphics card), and the client's Python is 0.4 ms of a
-frame.
+### Beside a game a person plays (2026-11-24)
+
+The first measurements had the whole table 0.8 to 0.9 s in the client on the graphics
+card, and frames late while it thought. The owner: "build the optimizations to make it
+more optimized beside a live game; this is the entire use-case". Profiled first, one
+answer's search alone in a copy:
+
+| | Headless (85 MB) | Window build, graphics card (950 MB) |
+|-|-|-|
+| One answer's search | 84 ms | 154 ms |
+| Of it, rollback's marks and goings back | 39 ms | 107 ms |
+| A copy of a copy made ready (its mirror) | 33 ms | 33 ms |
+
+So most of a search was not playing frames. What was done, in the order of what it gave:
+
+1. **Which pages a frame wrote, from the game's own memory alone** (`src/host/rollback.c`).
+   Rollback asked the kernel by soft-dirty marks, which can only be cleared for the whole
+   process: every mark and every going back cost by all the process has mapped (0.9 ms and
+   0.8 ms in the window build). Now the 70 MB followed are write-protected through
+   userfaultfd's asynchronous mode (the kernel lifts a page's protection by itself at the
+   first write) and one call lists the pages written and protects them again (the
+   pagemap's PAGEMAP_SCAN, Linux 6.7). A mark: 0.044 ms in both builds. One answer's
+   search: 49 ms in both. Soft-dirty stays for kernels without it (`MELEE_RB=softdirty`
+   asks for it; `rb how` says which). Netplay's rollback, which marks every frame, has
+   the same gain (0.53 to 0.056 ms a frame headless).
+2. **A copy keeps its parent's mirror.** Each copy copied the 70 MB into a mirror of its
+   own before its first frame. The parent's is the same memory: started once
+   (`recover.copies` asks for it first), it comes with the fork, and only the pages a
+   copy goes on to write are copied. 33 ms to 0.2 ms a copy. `host_rb_unsync` says when
+   a game's memory has changed behind its mirror (a frame played for real, a command
+   that places something): a copy made then makes its own. `MELEE_RB_VERIFY=1` compares
+   every mirror kept with the memory, byte for byte; the tests ran with it.
+3. **A read is searched only where the player's history could make it the way to wait**
+   (`chase.EAGER`, `CLOSE`). A read's line and the answers from inside it were the
+   table's longest searches, each waiting for the one before: they, not the number of
+   copies, set how long the table took. 37 searches to 24 for a player who has shown
+   nothing.
+4. **The graphics card's memory is left out of a fork** (`engine.c`, `devices_in_fork`).
+   343 of the window build's 581 MB are the driver's device mappings, and a fork copied
+   their page tables into copies that draw nothing. A copy of the game: 3.3 ms to 2.0 ms
+   of the game's own thread, and 482 MB to 138 MB resident.
+5. **Copies are low priority** (nice 10): what the game and its client need of a
+   processor comes first. With that, 12 copies beside a game are faster than 6 and made
+   no more of its frames late (`Chase.LIVE`: half the machine's processors, 12 at most).
+6. The lookaheads that only find the throw's first frame, or a tech's end, play no
+   further than that.
+
+| | Before | Now |
+|-|-|-|
+| The whole table headless, 16 copies | 0.33 to 0.47 s | 0.10 to 0.14 s |
+| Beside a game at the console's pace, graphics card | 0.60 to 0.74 s (36 to 44 frames) | 0.10 s (7 frames) |
+| In the client, graphics card: the answers / the whole table, frames after the grab | 16 to 23 / 48 to 55 | 9 to 10 / 9 to 14 |
+| In the client, drawn in software | 25 to 33 / 68 to 74 | 14 to 15 / 15 to 19 |
+
+Frames over 18.5 ms (a frame has 16.7) in the client while it thinks: drawn by the
+graphics card 4 of 61, against 14 of 257 at other times (presenting to a virtual display
+is that uneven by itself); drawn in software 9 to 12 of 77 against 1 of 250. Drawn in
+software the game's own process is 900 MB of the renderer's buffers: the fork (5 to 9
+ms) and the pages the renderer writes after it are what cost there, and what the owner
+plays is the graphics card's.
+
+Two readings corrected. `fork.py` said a copy costs more beside the client because the
+thinking threads wait for the interpreter: a copy's cost follows the memory of the
+process forked, and the client's Python is 0.4 ms of a frame. And this section first said
+more than six copies were no faster because "the copies contend for the memory they copy
+after the fork": it was the three things above (the marks, the mirrors, the reads'
+chain).
+
+Why a copy at all (the owner: "Why do we have to run an entire copy?"). The opponent
+thinks by playing the game's own frames ahead, and a frame played changes the game's
+memory: the game's state is one set of globals and one heap, and the game a person
+watches has to go on meanwhile. So the frames are played in another process. A fork is
+that for the least there is: it shares every page with the game and copies only those
+it writes (about 135 for a stretch of frames), and costs 2 ms to make. Several, because
+one game plays one line at a time. The game can also play ahead in itself and go back
+(headless it does: `drill.Here`), but beside a person that has only what is left of each
+frame, and a table is half a second of a processor's work.
 
 The drill: `data/drills/fox-escape-techchase.json` (`drill-format.md`), every try begun
-in the opponent's grab. Proof: `python tests/engine/chase.py` (17 checks: the options,
+in the opponent's grab. Proof: `python tests/native/rollback.py` (9 checks: going back
+against full snapshots, which way the written pages are found, copies and their mirrors),
+`python tests/engine/chase.py` (17 checks: the options,
 the table made held, at the throw's first frame and at its release, the stances, the
 read, both chases against all four, the held direction, the getups, which throws are
 tech chases, the format), `tools/melee_drills/check.py fox-escape-techchase` (92 cases),
 `tests/client/techchase.py` (the drill in the client; `--gpu`: drawn by the graphics
 card).
 
-Not yet: the frames the whole table takes beside a game a person plays (0.8 to 0.9 s in
-the client on the graphics card: the grab's 18 frames are not enough for it, so a fast
-throw's stances begin late; copies kept in step with the game by its inputs, the shadow
-games above, would not pay the fork's copying for each table); what the player does on
+Not yet: thinking without forking the game a person plays at all (a copy kept in step
+by the game's inputs, the shadow games above: the fork is still 2 ms of the game's own
+thread on the graphics card, and 5 to 9 drawn in software); frame times on the owner's
+own display (measured here off screen); what the player does on
 their first free frame as a further level (a spot dodge, a shine, a roll: what a late
 cover is worth is one number, 0.3, for all of them); the chase going on after a regrab
 (a `loop` throws again; the drill's script stops there); several falls tabled at once (a

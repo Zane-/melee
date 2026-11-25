@@ -23,6 +23,7 @@ through the thinker every behaviour shares.
     raw = b.pad(n.state())     # once a frame, before the frame is played
 """
 import math
+import os
 import random
 
 from melee_engine import sense as S
@@ -999,12 +1000,14 @@ class Chase(Punish):
     PATIENCE = (10, 34)       # frames it waits for a getup before it hits
     AGAIN = 2                 # tables made again in one chase, at most
     HOLD = 18                 # frames it holds its grab for its table
-    # copies of the game a table is searched in: beside a game a person
-    # plays, few (measured 2026-11-24 in the window build, drawn by the
-    # graphics card: 37 searches took 0.6 s in 6 copies, in 8 and in 16,
-    # and the game's frames came late more often the more there were:
-    # the copies contend for the memory they copy after the fork)
-    COPIES, LIVE = 16, 6
+    # copies of the game a table is searched in: headless, and beside a
+    # game a person plays (measured 2026-11-24 in the window build drawn
+    # by the graphics card, the copies at low priority: the whole table
+    # in 0.10 s with 12 copies and 0.11 to 0.14 with 6, none of the
+    # game's frames late in nine tables with 12): half the machine's
+    # processors, 12 at most
+    COPIES = max(2, min(16, (os.cpu_count() or 4) - 2))
+    LIVE = max(2, min(12, (os.cpu_count() or 4) // 2))
 
     def __init__(self, ctx, spec):
         super().__init__(ctx, spec)
@@ -1084,12 +1087,14 @@ class Chase(Punish):
             prefix = prefix[:begin - 1]
         early = {}                # its standing row, as soon as it is done
         workers = self.LIVE if live else self.COPIES
+        # (what this player chose before: which reads are worth searching)
+        prior = dict(self.ctx.memory.get("chase", {}).get("tech", {}))
 
         def fn(n):
             return CH.table(n, port, target, react, moves=moves,
                             reads=reads, start=begin, deadline=deadline,
                             prefix=prefix, clock=live, throw=throw,
-                            early=early, workers=workers)
+                            early=early, workers=workers, prior=prior)
         self.tags += 1
         stage = dict(tag=("chase", id(self), self.tags), asked=self.frame,
                      tab=None, back=None, stance=None, option=None,

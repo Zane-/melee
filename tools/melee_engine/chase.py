@@ -41,8 +41,9 @@ who holds no direction; one who does is seen to leave the path
 (`off_path`), and the table is made again. What the player then does is
 answered on the frame the reaction time allows, with nothing left to
 think about. Its standing row, the answers it must have, is handed over
-as soon as it is searched (`early`): beside a game a person plays the
-whole table takes most of a second. Measured (Captain Falcon's down throw
+as soon as it is searched (`early`). Beside a game a person plays the
+whole table takes a tenth to a fifth of a second (melee-engine.md, "Beside
+a game a person plays"). Measured (Captain Falcon's down throw
 on Fox at 20%, reaction 15): standing still he has a sure cover for one
 option of four; dashing 8 to 12 frames toward where Fox lands and then
 standing, for all four.
@@ -95,6 +96,20 @@ SEARCH = dict(scan=1, near=45, enough=3, trial=24)
 THROW_STICK = {"dthrow": (0, -1), "uthrow": (0, 1), "fthrow": (1, 0),
                "bthrow": (-1, 0)}
 NEAR, FAR = 12.0, 24.0        # units to where they land: which stances
+# a read's line (its cover begun at once: the longest scan of the table,
+# and the reads wait for it): every second frame, two lines enough
+LINE = dict(SEARCH, scan=2, enough=2)
+# A read is searched only where it could be the way to wait: what it can
+# be worth at most (the option it reads sure, the others late, by how
+# often this player chose each) against the best of the stances that
+# react. At once from `EAGER` on; else once those are all known, within
+# `CLOSE` of the best (the choice is a softmax: a stance further behind is
+# never taken).
+EAGER, CLOSE = 0.6, 0.15
+PULL = 48                     # frames looked ahead for the grab to settle
+# frames looked ahead past the floor for a tech to be over (a roll: 40),
+# and past the first frame a getup can begin (its attack: about 50)
+TECH_MOST, GETUP_MOST = 64, 90
 AFTER = 70                    # frames after the option is seen an answer has
 LATE_ROOM = 14                # ... and past the frame they are free, at most
 SPARE = 10                    # frames before the option is seen a table that
@@ -192,14 +207,16 @@ def tech_options(n, cpu, player, most=MOST, games=(), throw=None):
         # is no throw) until they are thrown, then let go of
         if not games:
             return None           # (looked for in copies only: `table`)
-        pull = _looks(n, games, [(cpu, player, [(most, {})], None)])[0]
-        wait = 0 if me["state"] == S.CATCH_WAIT else next(
-            (i + 1 for i, r in enumerate(pull)
-             if r.a_state == S.CATCH_WAIT), None)
-        if wait is None:
-            return None
-        press = ([(wait, NONE)] if wait else []) + [(most, throw)]
-        first = _looks(n, games, [(player, cpu, [(most, {})], press)])[0]
+        wait = 0
+        if me["state"] != S.CATCH_WAIT:
+            pull = _looks(n, games, [(cpu, player, [(PULL, {})], None)])[0]
+            wait = next((i + 1 for i, r in enumerate(pull)
+                         if r.a_state == S.CATCH_WAIT), None)
+            if wait is None:
+                return None
+        press = ([(wait, NONE)] if wait else []) + [(PULL, throw)]
+        first = _looks(n, games, [(player, cpu, [(wait + PULL, {})],
+                                   press)])[0]
         throw_at = next((i + 1 for i, r in enumerate(first)
                          if r.a_state in S.THROWN), None)
         if throw_at is None or throw_at <= wait:
@@ -243,7 +260,8 @@ def tech_options(n, cpu, player, most=MOST, games=(), throw=None):
     kinds = (0, -127, 127)
     segs = [[(max(1, land - 3), NONE), (4, (RB, sx, 0, 0, 0, 0, 0)),
              (1, NONE)] for sx in kinds]
-    got = _looks(n, games, [(player, cpu, _plan(s, most), their)
+    # (a tech is over 40 frames after the floor at the latest: no further)
+    got = _looks(n, games, [(player, cpu, _plan(s, TECH_MOST), their)
                             for s in segs])
     options = []
     for sx, seg, r in zip(kinds, segs, got):
@@ -308,7 +326,7 @@ def getup_options(n, cpu, player, most=MOST, games=()):
              ("getup attack", (AB, 0, 0, 0, 0, 0, 0)))
     segs = [([(wait, NONE)] if wait else []) + [(3, raw), (1, NONE)]
             for _, raw in kinds]
-    got = _looks(n, list(games), [(player, cpu, _plan(s, most), None)
+    got = _looks(n, list(games), [(player, cpu, _plan(s, GETUP_MOST), None)
                                   for s in segs])
     options = []
     for (name, _), seg, r in zip(kinds, segs, got):
@@ -371,7 +389,7 @@ def stances(start, see, side, prefix=(), gap=None):
 
 
 def cover(game, cpu, player, pads, option, moves=MOVES, holds=HOLDS,
-          after=AFTER):
+          after=AFTER, scan=None):
     """The opponent's answer to `option` having played `pads` first (its
     stance until it has seen the option: as many frames as that takes):
     the engine's timing scan from there (a hold, then one of `moves`), the
@@ -389,7 +407,7 @@ def cover(game, cpu, player, pads, option, moves=MOVES, holds=HOLDS,
     # (fresh: the throw the stance begins in is no contact of the answer's)
     r = searched(game, cpu, player, option["their"], horizon,
                  then=moves, hold=holds, stop=1, hit=10, held=50, fresh=1,
-                 **SEARCH)
+                 **(scan or SEARCH))
     good = [l for l in r.lines if l.contact in ("grab", "hit") and
             l.taken == 0]
     sure = [l for l in good if l.contact_at < option["free"]]
@@ -417,7 +435,7 @@ def lead_pads(prefix, start):
 
 def table(n, cpu, player, react, moves=MOVES, holds=HOLDS, workers=16,
           deadline=None, reads=True, start=None, every=False, prefix=(),
-          clock=False, throw=None, wide=False, early=None):
+          clock=False, throw=None, wide=False, early=None, prior=None):
     """The stances and, for each, the answer to each of the player's
     options (the module's text), or None where there is nothing to chase.
     dict(kind, land, x, cpu_free, side, path, see (the frames until an
@@ -446,7 +464,10 @@ def table(n, cpu, player, react, moves=MOVES, holds=HOLDS, workers=16,
     a dict that is given the table of the standing row alone ("tab") as
     soon as that row is done: the answers it must have, there while the
     rest is still searched (a table made beside a game a person plays
-    comes when it comes). `start`: the first frame a stance may differ
+    comes when it comes). `prior`: how often this player chose each
+    option before ({name: times}): a read is searched only where that
+    could make it the way to wait (`EAGER`, `CLOSE`; `every`: all of
+    them). `start`: the first frame a stance may differ
     from standing on (the frame the table is expected back by, while a
     person plays; never before the opponent can act). `prefix`: the pads
     already decided for the next frames. The game is untouched."""
@@ -476,19 +497,29 @@ def table(n, cpu, player, react, moves=MOVES, holds=HOLDS, workers=16,
         # at its frame too: none)
         reads = reads and sit["kind"] == "tech"
         k = len(options)
+        # what a read of each option can be worth at most to this player
+        counts = prior or {}
+        total = sum(counts.get(o["name"], 0) + 1.0 for o in options)
+        bound = []
+        for o in options:
+            p = (counts.get(o["name"], 0) + 1.0) / total
+            bound.append(p * SURE + (1.0 - p) * LATE)
+        lined = set()
         queue = collections.deque()
         for j, o in enumerate(options):
             queue.append((("s", 0, j), todo[0][1], o))
         if reads:
             for j, o in enumerate(options):
-                queue.append((("line", j), lead_pads(prefix, start), o))
+                if every or bound[j] >= EAGER:
+                    lined.add(j)
+                    queue.append((("line", j), lead_pads(prefix, start), o))
         for i in range(1, len(todo)):
             for j, o in enumerate(options):
                 queue.append((("s", i, j), todo[i][1], o))
         found = {}
         lock = threading.Condition()
         box = dict(running=0, stop=False, late=False, errors=[], ms=0.0,
-                   count=0)
+                   count=0, lines=False)
 
         def row(i):
             return [found.get(("s", i, j)) for j in range(k)]
@@ -512,11 +543,31 @@ def table(n, cpu, player, react, moves=MOVES, holds=HOLDS, workers=16,
                               covers={o["name"]: c
                                       for o, c in zip(options, r)})])
 
+        def more_lines():
+            """(Under the lock.) Every stance that reacts is known: the
+            reads that could still be the way to wait, their lines first
+            in the queue (the reads wait for them)."""
+            rows = [row(i) for i in range(len(todo))]
+            if not reads or box["lines"] or \
+                    any(c is None for r in rows for c in r):
+                return
+            box["lines"] = True
+            best = max(sum((counts.get(o["name"], 0) + 1.0) / total *
+                           worth(c) for o, c in zip(options, r))
+                       for r in rows)
+            for j in range(k - 1, -1, -1):
+                if j not in lined and bound[j] >= best - CLOSE:
+                    lined.add(j)
+                    queue.appendleft((("line", j),
+                                      lead_pads(prefix, start), options[j]))
+
         def got(key):
             """(Under the lock.) What a result leads to: a read's rows,
             or the end."""
             if key[0] == "s" and key[1] == 0:
                 first_row()
+            if key[0] == "s":
+                more_lines()
             if key[0] == "line" or (key[0] == "s" and key[1] == 0):
                 j = key[-1]
                 line, stand = found.get(("line", j)), found.get(("s", 0, j))
@@ -550,7 +601,8 @@ def table(n, cpu, player, react, moves=MOVES, holds=HOLDS, workers=16,
                     box["running"] += 1
                 c = None
                 try:
-                    c = cover(game, cpu, player, pads, o, moves, holds)
+                    c = cover(game, cpu, player, pads, o, moves, holds,
+                              scan=LINE if key[0] == "line" else None)
                 except Exception as e:
                     box["errors"].append(e)
                 with lock:

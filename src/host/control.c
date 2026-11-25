@@ -545,6 +545,18 @@ static void command(char* line)
 
     sscanf(line, "%31s%n", cmd, &used);
     line += used;
+    if (strcmp(cmd, "state") != 0 && strcmp(cmd, "ahead") != 0 &&
+        strcmp(cmd, "route") != 0 && strcmp(cmd, "routep") != 0 &&
+        strcmp(cmd, "hitboxes") != 0 && strcmp(cmd, "search") != 0 &&
+        strcmp(cmd, "engine") != 0 && strcmp(cmd, "rb") != 0 &&
+        strcmp(cmd, "pad") != 0)
+    {
+        /* anything but what reads the game, or plays it ahead and puts
+           it back: the game's memory may change behind rollback's mirror
+           (rollback.c: a forked copy keeps a mirror only if it is the
+           memory) */
+        host_rb_unsync();
+    }
     if (host_engine_forked() &&
         (strcmp(cmd, "step") == 0 || strcmp(cmd, "tick") == 0 ||
          strcmp(cmd, "quit") == 0 || strcmp(cmd, "snap") == 0 ||
@@ -763,8 +775,11 @@ static void command(char* line)
             char line_out[256];
             host_rb_report(line_out, sizeof line_out);
             printf("@ ok %s\n", line_out);
+        } else if (strcmp(what, "how") == 0) {
+            /* how the written pages are found (rollback.c) */
+            printf("@ ok %s\n", host_rb_how());
         } else {
-            printf("@ error rb start|stop|mark|back N|stats\n");
+            printf("@ error rb start|stop|mark|back N|stats|how\n");
         }
     } else if (strcmp(cmd, "ahead") == 0) {
         /* "ahead PORT TARGET STOP N BUTTONS LX LY CX CY L R [N ...]": the

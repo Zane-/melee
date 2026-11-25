@@ -335,6 +335,8 @@ void host_game_heap_stats(uint32_t* used, uint32_t* top, uint32_t* peak);
 /* rollback.c: what each frame changed, for going back */
 const char* host_rb_start(void);
 void host_rb_stop(void);
+void host_rb_unsync(void);
+const char* host_rb_how(void);
 int host_rb_running(void);
 int host_rb_mark(void);
 int host_rb_rewind(int frames);

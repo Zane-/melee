@@ -11,6 +11,15 @@ the state saved at that boundary; playing on from there with the same
 inputs gives the same game and the same state as the first time, and the
 records made the second time can be gone back through again; and how much
 a frame writes and what the records cost.
+
+Which pages a frame wrote comes from the watched regions alone where the
+kernel has it (userfaultfd's asynchronous write protection and the
+pagemap's scan: "ranged"), else from the whole process's soft-dirty marks
+(MELEE_RB=softdirty asks for those). And a forked copy of a game keeps its
+parent's mirror where that is the memory: a copy of a copy plays the same
+frames ahead as its parent, twice over, and is left as it was; a copy made
+after frames were played for real, the mirror behind, makes its own.
+(MELEE_RB_VERIFY=1: every mirror kept is compared with the memory.)
 """
 import argparse
 import os
@@ -18,10 +27,13 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
+sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from native import Native  # noqa: E402
 from state import inputs, view  # noqa: E402
+from melee_actor.ahead import look  # noqa: E402
+from melee_engine.fork import Fork  # noqa: E402
 
 checks = []
 
@@ -54,10 +66,15 @@ def main():
             n.rb("start")
         except Exception as e:
             why = str(e)
-        check("the kernel marks written pages (soft-dirty)", why is None,
+        check("the kernel says which pages were written", why is None,
               why or "")
         if why is not None:
             return 1
+        how = n._cmd("rb how").split()[-1]
+        want = "soft-dirty" if os.environ.get("MELEE_RB") == "softdirty" \
+            else how
+        check("by the watched regions alone, or by soft-dirty marks",
+              how in ("ranged", "soft-dirty") and how == want, how)
         views = []
         saved = {}             # boundary index -> snapshot slot
         for i, frame in enumerate(script):
@@ -129,6 +146,52 @@ def main():
         stats = n.rb("stats")
         print("     %d rollbacks, %.3f ms each on average" % (
             stats["rewinds"], stats["rewind_ms"] / max(1, stats["rewinds"])))
+
+        # -- copies and their mirrors -------------------------------------
+        plan = [(30, dict(buttons=["A"], stick=(1.0, 0.0))),
+                (30, dict(buttons=[], stick=(-1.0, 0.0)))]
+
+        def ahead(g):
+            return [(r.a_state, round(r.a_x, 3), round(r.a_y, 3),
+                     r.t_state, round(r.t_x, 3))
+                    for r in look(g, 0, 1, plan, stop=0).rows]
+
+        def played(g):
+            """A lookahead twice, the game's state around them."""
+            before = g.state()
+            one = ahead(g)
+            two = ahead(g)
+            return one, two, before == g.state()
+        first = Fork(n)
+        first._cmd("rb start")
+        a1, a2, same_a = played(first)
+        second = Fork(first)          # (keeps the first's mirror)
+        b1, b2, same_b = played(second)
+        check("a copy of a copy plays the same frames ahead as its parent, "
+              "twice over, and is left as it was",
+              len(a1) == 60 and a1 == a2 == b1 == b2 and same_a and same_b,
+              "%d frames; left as they were: %s, %s" % (
+                  len(a1), same_a, same_b))
+        second.close()
+        first.close()
+        # frames played for real with rollback on and no marks: the mirror
+        # is behind, and a copy made now must not keep it
+        for frame in more[:5]:
+            for p in range(2):
+                n.pad(p, **frame[p])
+            n.step()
+        for p in range(2):
+            n.pad(p)
+        third = Fork(n)
+        c1, c2, same_c = played(third)
+        fourth = Fork(third)
+        d1, d2, same_d = played(fourth)
+        check("a copy made after frames were played for real makes its own "
+              "mirror: its lookaheads leave it as it was, and its copy's "
+              "too", len(c1) == 60 and c1 == c2 == d1 == d2 and same_c and
+              same_d, "left as they were: %s, %s" % (same_c, same_d))
+        fourth.close()
+        third.close()
     print("%d of %d checks passed" % (sum(checks), len(checks)))
     return 0 if all(checks) else 1
 

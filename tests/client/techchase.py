@@ -14,9 +14,9 @@ its lessons, then the first part's card. A stand-in plays:
    of the game): a tech away and a jump on the first free frame. It asks
    for its table of answers as its grab connects and holds the grab for
    it: its answers are there before the tech can be seen (the standing
-   row first; with --gpu, the whole table 10 frames or more before
-   that), with nothing wrong in its thinking; caught or not is the game's
-   to say;
+   row first; with --gpu, the whole table before it throws), with
+   nothing wrong in its thinking; caught or not is the game's to say. How
+   many frames came late while it thought, and otherwise, is printed;
 3. at that pace, no tech and nothing after it: a missed tech;
 4. at that pace, a tech in place and nothing after it: the cover lands
    (unless it had read another option: a read loses to the others);
@@ -30,6 +30,7 @@ import os
 import random
 import sys
 import tempfile
+import time
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 sys.path.insert(0, os.path.join(ROOT, "tools", "melee_native"))
@@ -81,6 +82,7 @@ class Player:
         self.names = []               # the scenario each try was played in
         self.reacts = []
         self.chases = []              # each try's tables, as they came
+        self.frames = {}              # frame times, thinking and otherwise
         self.rows = None
         self.turned = None
 
@@ -155,7 +157,7 @@ class Player:
                     g["thrown_at"] is not None:
                 shift = g["thrown_at"] - g["asked"] - tab["throw_at"]
             out.append(dict(
-                back=g["back"], first=g["first"],
+                back=g["back"], first=g["first"], whole=g["whole"],
                 kind=tab and tab["kind"], held=g["held"],
                 thrown=g["thrown_at"] is not None and
                 g["thrown_at"] - g["asked"],
@@ -205,6 +207,15 @@ class Player:
         got = self.tables()
         if got:
             t["tables"] = got
+        if t["kind"] in PACED:
+            # the frames at the console's pace: while it thinks (a table
+            # asked for and not back) and otherwise
+            now = time.perf_counter()
+            if t.get("at") is not None:
+                key = "thinking" if any(not g["whole"] for g in got) \
+                    else "otherwise"
+                self.frames.setdefault(key, []).append(now - t["at"])
+            t["at"] = now
         me, op = game.fighter(0), game.fighter(1)
         kind = t["kind"]
         if kind == "mash" and t["thrown"] is None and t["n"] <= 14:
@@ -377,15 +388,22 @@ def main():
                             g["searches"], g["wall"] or 0,
                             ", not all" if g["partial"] else "")
                         for k, g in first))
+        for key in ("thinking", "otherwise"):
+            v = sorted(p.frames.get(key, []))
+            if v:
+                print("     frames %s: %d, %d of them over 18.5 ms, the "
+                      "longest %.1f ms" % (
+                          "while it thinks" if key == "thinking" else key,
+                          len(v), sum(1 for x in v if x > 0.0185),
+                          v[-1] * 1000), flush=True)
         if args.gpu:
             # (drawn by the graphics card, as a person's game is: the
-            # whole table in time to choose how to wait)
+            # whole table while it still holds its grab)
             check("drawn by the graphics card, the whole table is back "
-                  "in time to choose how to wait: 10 frames or more before "
-                  "the tech is seen",
+                  "before it throws: within the frames it holds its grab",
                   len(first) == len(PACED) and all(
-                      g["back"] is not None and g["back"] + 10 <= g["see"]
-                      for _, g in first), "")
+                      g["back"] is not None and g["thrown"] is not False
+                      and g["back"] <= g["thrown"] for _, g in first), "")
         think = getattr(c.session, "thinker", None)
         errors = list(getattr(think, "errors", []) or [])
         check("nothing wrong in its thinking", not errors,

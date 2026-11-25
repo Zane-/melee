@@ -933,6 +933,14 @@ def copies(n, count):
     from melee_engine.fork import Fork
     from native import NativeError
     games = []
+    try:
+        # its rollback started first: each copy then keeps the mirror of
+        # the game's memory it is forked with, where it made its own (70
+        # MB copied page by page, 33 ms a copy: src/host/rollback.c)
+        if count > 0:
+            n._cmd("rb start")
+    except NativeError:
+        pass
     while len(games) < count:
         parents = ([n] + games)[:count - len(games)]
         new = [None] * len(parents)
