@@ -151,6 +151,7 @@ ninja
 | Versus's classic character select (local): one grid of the characters, a card per port below it (you, then the game's CPU at a level, a trained model, a dummy or a second controller; a card adds a player, up to four), the models loading once the characters are locked in | `screens.versus_select`, `Client.show_vselect`/`on_vsel`/`vfight` in `tools/melee_client/client.py`; the host's `vsslots` (players 3 and 4, CPU levels) in `src/host/control.c`, `match.c`; `tests/client/versus_select.py`, `tests/client/vselkeys.py` (keys for other tests) |
 | A trained slippi-ai model as the opponent in the native client (Versus, the Lab) | `tools/melee_client/opponents.py`, `tools/melee_actor/policy_server.py`; `tests/client/versus.py` |
 | Drills: the drill format (one JSON file per drill: goal, why, the tutorial and its example, the technique in parts, scenarios with whether a CPU is spawned and the camera, checks with their words and fixes, the coach's rows), its proof, the tutorial (how to do it) apart from the coach (what went wrong); the old drills were wiped 2026-11-14 and are rebuilt one at a time with the owner | `docs/ai/drill-format.md`; `data/drills/`, `tools/melee_drills/` (format.py, drill.py, check.py); `python tools/melee_drills/check.py <id>`, `tests/client/short_hop.py` |
+| A drill arises from play (the owner, 2026-11-25: "Every drill is supposed to feel realistic, not just robotic spawn and do something (except things like up throw kill confirm that are a specific action"): the opponent begins at a distance and moves; it attacks when the player comes in, or walks up to its measured distance and attacks, or takes its stance when the player comes close; a try begins at the event the technique answers. Which drills are built so, the ones left as they are and why, the words for it (`knockdown`, `press`, `close`, `they_enter`, `run_attack`) | "From play" in `docs/ai/drill-format.md`; `data/drills/universal-crouch-cancel.json` (the opponent attacks when the player comes in), `universal-asdi.json` (it walks up and attacks), `fox-shield-pressure.json` (it takes its stance); `python -u tests/client/drill_smoke.py DRILL --come D --hold Down --paced` (a stand-in that walks up to the opponent) |
 | Sound in the native build: the AX voices and mixer, music streams, menu sounds and music in the client | `src/host/audio.c`, `tests/native/audio.py`, `tests/client/sound.py`; "Sound" in `docs/ai/native-ai.md` |
 | Loads and resets with no loading screen, as TM-CE's savestates: the opponent swapped in place, a clean slate each attempt (`clean`), matches loaded unseen and unheard (`quiet`) | "Loading like TM-CE" in `docs/ai/native-ai.md`; `src/host/{match,setup,audio,window}.c`; `python tests/native/loading.py`, `tests/client/loading.py` |
 | Make a drill play in the native client | write `data/drills/<id>.json` in the drill format (`docs/ai/drill-format.md`); a word the format lacks goes into `tools/melee_drills/format.py` with its proof; `python tools/melee_drills/check.py <id>` |
@@ -187,6 +188,11 @@ never comes, and then spins until its timeout. So:
   single frame is not seen.
 - If output stops moving, stop the test (`TaskStop`, or kill its process group) and find
   the loop; do not wait out the timeout.
+- A test that plays at the console's speed (`tests/client/*`, `drill_smoke.py --paced`)
+  runs alone: its opponent thinks beside a live game, and other game processes on the
+  machine make its answers late (2026-11-25: `tests/client/shine_oos.py` failed one check
+  beside a sweep of drill proofs and passed 11 of 11 alone). Run such tests one after
+  another, and no proofs or sweeps beside them.
 
 ## Waiting on background work: never wait for a notice that cannot come
 
