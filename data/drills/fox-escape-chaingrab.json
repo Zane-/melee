@@ -1,0 +1,2339 @@
+{
+ "id": "fox-escape-chaingrab",
+ "name": "Escape the chain grab",
+ "part": "defense",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Get out of a chain grab after the first throw",
+ "why": "Thrown at low damage, Fox falls fast and is still in hitstun when the thrower grabs him again: throw after throw, each adding damage. He gets out by acting on the first frame he can, and by turning his flight so that the regrab has further to go.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Hold the stick where the throw should put Fox, and mash X or Y: the jump comes out on the first frame he can act, before the regrab.",
+  "expect": "Each chain is judged {END} frames after the first throw: how many throws Fox took. One is out.",
+  "example": [
+   {
+    "stick": [
+     "SX",
+     "SY"
+    ],
+    "frame": 1,
+    "hold": 110,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 1,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 3,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 5,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 7,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 9,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 11,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 13,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 15,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 17,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 19,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 21,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 23,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 25,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 27,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 29,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 31,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 33,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 35,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 37,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 39,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 41,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 43,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 45,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 47,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 49,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 51,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 53,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 55,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 57,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 59,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 61,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 63,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 65,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 67,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 69,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 71,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 73,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 75,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 77,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 79,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 81,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 83,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 85,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 87,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 89,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 91,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 93,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 95,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 97,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 99,
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the throw starts. The stick {way}, and X or Y again and again"
+  },
+  "lessons": [
+   {
+    "title": "The chain grab",
+    "text": [
+     "A throw at low damage leaves Fox in hitstun on his way down, and he falls fast: the thrower grabs him again before he can act.",
+     "Each throw adds damage. The chain ends when hitstun is over before the regrab comes, or when Fox comes down where the thrower cannot be in time."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts. Nothing pressed"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "END"
+        ],
+        "words": "Nothing pressed: thrown again and again",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The first frame",
+    "text": [
+     "Once the damage is high enough, hitstun ends a few frames before the regrab. Mash X or Y through the throw: the jump comes out on the first frame Fox can act.",
+     "Down and B does the same with the shine, out on its first frame, which also stops his fall."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 3,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 5,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 7,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 9,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 11,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 15,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 17,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 19,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 21,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 23,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 25,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 27,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 29,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 31,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 33,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 35,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 37,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 39,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 41,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 43,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 45,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 47,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 49,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 51,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 53,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 55,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 57,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 59,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 61,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 63,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 65,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 67,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 69,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 71,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 73,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 75,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 77,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 79,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 81,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 83,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 85,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 87,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 89,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 91,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 93,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 95,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 97,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 99,
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts. X or Y again and again"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         40
+        ],
+        "words": "Mash X or Y",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Where the throw puts you",
+    "text": [
+     "The stick held as the throw lets go turns the flight. Away from the thrower, or past it, Fox comes down where the regrab has further to go: a turn or a dash the thrower has no time for.",
+     "Which way depends on the throw and the damage. Here, against {throw} at {PCT}%: {way}."
+    ],
+    "scenario": 2,
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         "SX",
+         "SY"
+        ],
+        "frame": 1,
+        "hold": 110,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 3,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 5,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 7,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 9,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 11,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 15,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 17,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 19,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 21,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 23,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 25,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 27,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 29,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 31,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 33,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 35,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 37,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 39,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 41,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 43,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 45,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 47,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 49,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 51,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 53,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 55,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 57,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 59,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 61,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 63,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 65,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 67,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 69,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 71,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 73,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 75,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 77,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 79,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 81,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 83,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 85,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 87,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 89,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 91,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 93,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 95,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 97,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 99,
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts. The stick {way}, and X or Y again and again"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         40
+        ],
+        "words": "The stick {way}; mash X or Y",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Marth's up throw at 50%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 50,
+    "held": true
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "uthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "throw": "Marth's up throw",
+    "PCT": 50,
+    "SX": 0,
+    "SY": 0,
+    "way": "alone",
+    "BASE": 4,
+    "END": 200
+   }
+  },
+  {
+   "name": "Falco's down throw at 25%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 25,
+    "held": true
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "throw": "Falco's down throw",
+    "PCT": 25,
+    "SX": 0,
+    "SY": 0,
+    "way": "alone",
+    "BASE": 4,
+    "END": 200
+   }
+  },
+  {
+   "name": "Jigglypuff's down throw at 25%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 25,
+    "held": true
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "throw": "Jigglypuff's down throw",
+    "PCT": 25,
+    "SX": -1,
+    "SY": 0,
+    "way": "away from Jigglypuff",
+    "BASE": 2,
+    "END": 200
+   }
+  },
+  {
+   "name": "Peach's up throw at 25%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 25,
+    "held": true
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "uthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "throw": "Peach's up throw",
+    "PCT": 25,
+    "SX": 1,
+    "SY": 0,
+    "way": "toward Peach",
+    "BASE": 4,
+    "END": 200
+   }
+  },
+  {
+   "name": "Ice Climbers's down throw at 25%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 25,
+    "held": true
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "throw": "Ice Climbers's down throw",
+    "PCT": 25,
+    "SX": -1,
+    "SY": 0,
+    "way": "away from the Ice Climbers",
+    "BASE": 5,
+    "END": 200
+   }
+  },
+  {
+   "name": "Yoshi's down throw at 10%",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 10,
+    "held": true
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 12,
+    "facing": "player",
+    "react": 15,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "throw": "Yoshi's down throw",
+    "PCT": 10,
+    "SX": -1,
+    "SY": 0,
+    "way": "away from Yoshi",
+    "BASE": 4,
+    "END": 200
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "thrown"
+  },
+  "cancel": [],
+  "judge": {
+   "frame": "END"
+  },
+  "limit": 260,
+  "within": 200,
+  "missed": "Not counted: the throw did not come."
+ },
+ "measures": {
+  "throws": {
+   "count": {
+    "enters": "thrown"
+   }
+  }
+ },
+ "checks": {
+  "out": {
+   "measure": "throws",
+   "at_most": 1,
+   "expect": "Out after the first throw",
+   "words": "thrown {throws} times",
+   "headline": "Still in the chain",
+   "fix": "Against {throw} at {PCT}%: hold the stick {way} from the throw's start, and mash X or Y so that the jump comes out on the first frame Fox can act. With nothing done he is thrown {BASE} times."
+  }
+ },
+ "verdict": {
+  "success": "Out of {opp}'s chain after one throw."
+ },
+ "parts": [
+  {
+   "name": "Jump out",
+   "teach": "Mash X or Y through the throw. At this damage hitstun is over before the regrab: the jump gets Fox out.",
+   "example": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 3,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 5,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 9,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 11,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 15,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 17,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 19,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 21,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 23,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 25,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 27,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 29,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 31,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 33,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 35,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 37,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 39,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 41,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 43,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 45,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 47,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 49,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 51,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 53,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 55,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 57,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 59,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 61,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 63,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 65,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 67,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 69,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 71,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 73,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 75,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 77,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 79,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 81,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 83,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 85,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 87,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 89,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 91,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 93,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 95,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 97,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 99,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts. X or Y again and again"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      40
+     ],
+     "words": "Mash X or Y",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "out"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1
+   ]
+  },
+  {
+   "name": "Turn the flight",
+   "teach": "Here a jump alone is too late. Hold the stick {way} through the throw, and mash X or Y: Fox comes down where the regrab cannot reach in time.",
+   "example": [
+    {
+     "stick": [
+      "SX",
+      "SY"
+     ],
+     "frame": 1,
+     "hold": 110,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 3,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 5,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 9,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 11,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 15,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 17,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 19,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 21,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 23,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 25,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 27,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 29,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 31,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 33,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 35,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 37,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 39,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 41,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 43,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 45,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 47,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 49,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 51,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 53,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 55,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 57,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 59,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 61,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 63,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 65,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 67,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 69,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 71,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 73,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 75,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 77,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 79,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 81,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 83,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 85,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 87,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 89,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 91,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 93,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 95,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 97,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 99,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts. The stick {way}, and X or Y again and again"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      40
+     ],
+     "words": "The stick {way}; mash X or Y",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "out"
+   ],
+   "streak": 3,
+   "scenario": [
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  {
+   "name": "Any chain",
+   "teach": "Each opponent's throw and its damage have their own way out. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "stick": [
+      "SX",
+      "SY"
+     ],
+     "frame": 1,
+     "hold": 110,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 3,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 5,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 9,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 11,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 15,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 17,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 19,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 21,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 23,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 25,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 27,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 29,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 31,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 33,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 35,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 37,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 39,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 41,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 43,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 45,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 47,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 49,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 51,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 53,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 55,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 57,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 59,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 61,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 63,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 65,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 67,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 69,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 71,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 73,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 75,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 77,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 79,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 81,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 83,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 85,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 87,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 89,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 91,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 93,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 95,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 97,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 99,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts. The stick {way}, and X or Y again and again"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      40
+     ],
+     "words": "The stick {way}; mash X or Y",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "out"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "nothing pressed",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "out"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Control stick",
+    "stick": "any",
+    "perfect": []
+   },
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": []
+   }
+  ],
+  "note": "Frame 1 is the first frame of the first throw. Against {throw} at {PCT}%: the stick {way}, and X or Y mashed."
+ }
+}

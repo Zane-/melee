@@ -828,6 +828,12 @@ class Session:
         """The deck's rotation (tm_rot_Next): a shuffled bag of the
         scenarios the match can play, no repeat across a reshuffle."""
         count = len(self.d.deck)
+        # (a bag is one deck's: another part's deck, with fewer scenarios
+        # or other ones, starts its own; an index left in the bag from a
+        # longer deck was out of range in the next)
+        key = tuple(getattr(e, "data", i) for i, e in enumerate(self.d.deck))
+        if getattr(self, "bag_key", None) != key:
+            self.bag, self.bag_pos, self.bag_key = [], 0, key
         if self.bag_pos >= len(self.bag):
             self.bag = [i for i in range(count) if self.usable(i)] or \
                 list(range(count))
