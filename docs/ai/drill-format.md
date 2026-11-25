@@ -192,12 +192,16 @@ holds. `universal-asdi`: from 0 to 3% under the most at which the example still 
 once (Sheik's down tilt to 36% for Fox, 31% for Pichu, 48% for Bowser; Falco's down tilt
 to 5%; the jabs to 100%, where the range is cut off); the same limits as
 `cc_limits.py --asdi` measured apart from the drill (`data/actor/asdi_down.json`).
+From that table the drill has 14 more attacks, 24 of ten opponents (all of the top 11
+but the Ice Climbers, whose partner hits after the first): each lifts every character at
+0% when nothing is held (Fox's and Falco's forward tilts do not: nothing to ASDI down)
+and freezes every character as long.
 `universal-di`: 20% either side of the damage each attack was built at, proved at both
 ends. `universal-sdi`: from 0 to 21% (Pikachu's down smash against Fox) up to 60%, every
 percent tried (`--step 1`): which hits of a multi-hit attack connect changes from one
 damage to the next, and a binary search had put Falco's top against Jigglypuff's down air
 at 45% or more where it first fails at 43%. `check.py`, every character, lessons included:
-`universal-asdi` 2236 of 2236 cases, `universal-di` 2704 of 2704 (and as many
+`universal-asdi` 5148 of 5148 cases, `universal-di` 2704 of 2704 (and as many
 with every damage at its low end), `universal-sdi` 650 of 650,
 `fox-wavedash-back-punish` 93 of 93.
 

@@ -265,10 +265,11 @@ ASDI_PAGE = os.path.join(ROOT, "data", "techniques", "asdi.md")
 ASDI_OPEN, ASDI_CLOSE = "<!-- asdi-limits", "<!-- /asdi-limits -->"
 
 
-def asdi_table(table, hitlag):
+def asdi_table(table, hitlag, lifts):
     """ASDI down's table for its page: per opponent and move, for the
     distances it hit every character from, the least limit of Fox, Pichu
-    and Bowser, and the hit's freeze."""
+    and Bowser, the hit's freeze, and how many characters it lifts at 0%
+    when they hold nothing."""
     def show(v):
         return "not at 0%" if v < 0 else "%d+" % TOP if v >= TOP else \
             "%d%%" % v
@@ -287,10 +288,15 @@ def asdi_table(table, hitlag):
             lag = sorted({v for d in full
                           for v in hitlag[cpu][move][d].values()
                           if v is not None})
-            rows.append("| %s | %s | %s | %s | %s | %s | %s | %s |" % (
+            up = [sum(1 for v in lifts[cpu][move][d].values() if v)
+                  for d in full]
+            rows.append("| %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
                 NAMES[cpu], WORDS[move], ", ".join(sorted(full, key=int)),
                 show(lo["fox"]), show(lo["pichu"]), show(lo["bowser"]),
                 " or ".join(map(str, lag)),
+                "all" if min(up) == len(chars) else
+                "none" if max(up) == 0 else
+                "%d to %d of %d" % (min(up), max(up), len(chars)),
                 "the same from each" if spread == 0 else
                 "up to %d more from another" % spread))
     words = (
@@ -303,12 +309,16 @@ def asdi_table(table, hitlag):
         "distances (units between the two) the move hit all 26\ncharacters "
         "from. \"%d+\": still held at %d%%, where the search stops (the "
         "weakest jabs);\n\"not at 0%%\": lifted or knocked down even at 0%% "
-        "(the Ice Climbers: the partner's hit\ncomes after the first)."
+        "(the Ice Climbers: the partner's hit\ncomes after the first). "
+        "\"Lifts at 0%%\": how many of the 26 the hit lifts off the floor "
+        "at 0%% when\nthey hold nothing; a hit that lifts none has nothing "
+        "to ASDI down there (a Sakurai-angle\ntilt at low damage)."
         % (TOP, TOP))
     return (ASDI_OPEN + ": python tools/melee_drills/cc_limits.py --asdi "
             "--table -->\n" + words + "\n\n"
             "| Opponent | Move | From | Fox holds to | Pichu | Bowser | "
-            "Freeze (frames) | By distance |\n|-|-|-|-|-|-|-|-|\n" +
+            "Freeze (frames) | Lifts at 0% | By distance |\n"
+            "|-|-|-|-|-|-|-|-|-|\n" +
             "\n".join(rows) + "\n" + ASDI_CLOSE)
 
 
@@ -350,9 +360,9 @@ def page_table(table):
             CLOSE)
 
 
-def write_page(table, hitlag=None):
+def write_page(table, hitlag=None, lifts=None):
     page, a, b, text = (PAGE, OPEN, CLOSE, None) if hitlag is None else (
-        ASDI_PAGE, ASDI_OPEN, ASDI_CLOSE, asdi_table(table, hitlag))
+        ASDI_PAGE, ASDI_OPEN, ASDI_CLOSE, asdi_table(table, hitlag, lifts))
     s = open(page).read()
     if a not in s:
         raise SystemExit("no %s ... %s in %s" % (a, b, page))
@@ -384,7 +394,8 @@ def main():
         ASDI_DISTANCES if args.asdi else DISTANCES)))
     if args.table:
         doc = json.load(open(args.out))
-        write_page(doc["limits"], doc["hitlag"] if args.asdi else None)
+        write_page(doc["limits"], doc["hitlag"] if args.asdi else None,
+                   doc.get("lifts"))
         return
     chars = args.chars.split(",") if args.chars else characters()
     moves = args.moves.split(",")

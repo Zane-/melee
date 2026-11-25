@@ -99,54 +99,56 @@ freeze ends and stays on its feet: band 1 above. One percent more and the hit tu
 or lifts it. Listed for the distances (units between the two) the move hit all 26
 characters from. "260+": still held at 260%, where the search stops (the weakest jabs);
 "not at 0%": lifted or knocked down even at 0% (the Ice Climbers: the partner's hit
-comes after the first).
+comes after the first). "Lifts at 0%": how many of the 26 the hit lifts off the floor at 0% when
+they hold nothing; a hit that lifts none has nothing to ASDI down there (a Sakurai-angle
+tilt at low damage).
 
-| Opponent | Move | From | Fox holds to | Pichu | Bowser | Freeze (frames) | By distance |
-|-|-|-|-|-|-|-|-|
-| Fox | down tilt | 10, 13, 16 | 17% | 13% | 23% | 6 | the same from each |
-| Fox | forward tilt | 10, 13, 16 | 61% | 53% | 78% | 6 | the same from each |
-| Fox | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | the same from each |
-| Fox | dash attack | 13, 16, 24, 30 | 37% | 32% | 48% | 5 | the same from each |
-| Marth | down tilt | 10, 13, 16, 24 | 84% | 73% | 106% | 5 or 6 | up to 100 more from another |
-| Marth | forward tilt | 10, 13, 16, 24 | 51% | 44% | 66% | 6 or 7 | up to 57 more from another |
-| Marth | jab | 10, 13, 16, 24 | 208% | 184% | 259% | 4 or 5 | up to 128 more from another |
-| Marth | dash attack | 30 | 55% | 48% | not at 0% | 6 | the same from each |
-| Jigglypuff | down tilt | 10, 13, 16 | 110% | 96% | 138% | 6 | the same from each |
-| Jigglypuff | forward tilt | 10, 13, 16 | 46% | 39% | 59% | 6 | the same from each |
-| Jigglypuff | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | the same from each |
-| Jigglypuff | dash attack | 10, 13, 16, 24, 30 | 29% | 24% | 38% | 5 or 7 | up to 33 more from another |
-| Falco | down tilt | 10, 13, 16 | 8% | 6% | 13% | 7 | the same from each |
-| Falco | forward tilt | 10, 13, 16, 24 | 61% | 53% | 78% | 6 | the same from each |
-| Falco | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | the same from each |
-| Falco | dash attack | 16, 24, 30 | 27% | 23% | 36% | 5 or 6 | up to 46 more from another |
-| Sheik | down tilt | 10, 13, 16 | 39% | 34% | 51% | 5 | the same from each |
-| Sheik | forward tilt | 10, 13, 16 | 23% | 20% | 30% | 5 | the same from each |
-| Sheik | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | the same from each |
-| Sheik | dash attack | 24, 30 | 19% | 15% | 26% | 6 | the same from each |
-| Captain Falcon | down tilt | 10, 13, 16, 24 | 37% | 31% | 49% | 7 | the same from each |
-| Captain Falcon | forward tilt | 10, 13, 16 | 38% | 33% | 50% | 6 | the same from each |
-| Captain Falcon | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 3 | the same from each |
-| Captain Falcon | dash attack | 10, 13, 16, 24, 30 | 38% | 32% | 49% | 5 or 6 | up to 137 more from another |
-| Peach | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 7 | the same from each |
-| Peach | forward tilt | 10, 13, 16 | 16% | 12% | 23% | 6 or 7 | up to 8 more from another |
-| Peach | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | the same from each |
-| Peach | dash attack | 16, 24, 30 | not at 0% | not at 0% | not at 0% | 6 or 7 | up to 25 more from another |
-| Ice Climbers | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 4 | the same from each |
-| Ice Climbers | forward tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 5 | up to 36 more from another |
-| Ice Climbers | jab | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 3 | up to 187 more from another |
-| Ice Climbers | dash attack | 24, 30 | not at 0% | not at 0% | not at 0% | 11 | the same from each |
-| Pikachu | down tilt | 10, 13, 16 | 62% | 54% | 79% | 5 | the same from each |
-| Pikachu | forward tilt | 10, 13, 16 | 56% | 49% | 72% | 5 | the same from each |
-| Pikachu | jab | 10, 13 | 260+ | 260+ | 260+ | 3 | the same from each |
-| Pikachu | dash attack | 10, 13, 16, 24, 30 | 40% | 35% | 52% | 5 | the same from each |
-| Yoshi | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 6 | the same from each |
-| Yoshi | forward tilt | 10, 13, 16 | 16% | 13% | 23% | 7 | the same from each |
-| Yoshi | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | the same from each |
-| Yoshi | dash attack | 16, 24, 30 | 44% | 38% | 57% | 6 | the same from each |
-| Samus | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 7 | the same from each |
-| Samus | forward tilt | 10, 13, 16, 24 | 44% | 37% | 57% | 6 | the same from each |
-| Samus | jab | 10, 13, 16 | 151% | 134% | 189% | 4 | the same from each |
-| Samus | dash attack | 10, 13, 16, 24, 30 | 18% | 14% | 25% | 7 | the same from each |
+| Opponent | Move | From | Fox holds to | Pichu | Bowser | Freeze (frames) | Lifts at 0% | By distance |
+|-|-|-|-|-|-|-|-|-|
+| Fox | down tilt | 10, 13, 16 | 17% | 13% | 23% | 6 | all | the same from each |
+| Fox | forward tilt | 10, 13, 16 | 61% | 53% | 78% | 6 | none | the same from each |
+| Fox | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | all | the same from each |
+| Fox | dash attack | 13, 16, 24, 30 | 37% | 32% | 48% | 5 | all | the same from each |
+| Marth | down tilt | 10, 13, 16, 24 | 84% | 73% | 106% | 5 or 6 | all | up to 100 more from another |
+| Marth | forward tilt | 10, 13, 16, 24 | 51% | 44% | 66% | 6 or 7 | all | up to 57 more from another |
+| Marth | jab | 10, 13, 16, 24 | 208% | 184% | 259% | 4 or 5 | 0 to 8 of 26 | up to 128 more from another |
+| Marth | dash attack | 30 | 55% | 48% | not at 0% | 6 | all | the same from each |
+| Jigglypuff | down tilt | 10, 13, 16 | 110% | 96% | 138% | 6 | all | the same from each |
+| Jigglypuff | forward tilt | 10, 13, 16 | 46% | 39% | 59% | 6 | all | the same from each |
+| Jigglypuff | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | none | the same from each |
+| Jigglypuff | dash attack | 10, 13, 16, 24, 30 | 29% | 24% | 38% | 5 or 7 | 24 to 26 of 26 | up to 33 more from another |
+| Falco | down tilt | 10, 13, 16 | 8% | 6% | 13% | 7 | all | the same from each |
+| Falco | forward tilt | 10, 13, 16, 24 | 61% | 53% | 78% | 6 | none | the same from each |
+| Falco | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | all | the same from each |
+| Falco | dash attack | 16, 24, 30 | 27% | 23% | 36% | 5 or 6 | all | up to 46 more from another |
+| Sheik | down tilt | 10, 13, 16 | 39% | 34% | 51% | 5 | all | the same from each |
+| Sheik | forward tilt | 10, 13, 16 | 23% | 20% | 30% | 5 | all | the same from each |
+| Sheik | jab | 10, 13, 16 | 125% | 110% | 156% | 4 | all | the same from each |
+| Sheik | dash attack | 24, 30 | 19% | 15% | 26% | 6 | all | the same from each |
+| Captain Falcon | down tilt | 10, 13, 16, 24 | 37% | 31% | 49% | 7 | all | the same from each |
+| Captain Falcon | forward tilt | 10, 13, 16 | 38% | 33% | 50% | 6 | all | the same from each |
+| Captain Falcon | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 3 | all | the same from each |
+| Captain Falcon | dash attack | 10, 13, 16, 24, 30 | 38% | 32% | 49% | 5 or 6 | 20 to 26 of 26 | up to 137 more from another |
+| Peach | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 7 | all | the same from each |
+| Peach | forward tilt | 10, 13, 16 | 16% | 12% | 23% | 6 or 7 | all | up to 8 more from another |
+| Peach | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | all | the same from each |
+| Peach | dash attack | 16, 24, 30 | not at 0% | not at 0% | not at 0% | 6 or 7 | all | up to 25 more from another |
+| Ice Climbers | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 4 | all | the same from each |
+| Ice Climbers | forward tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 5 | all | up to 36 more from another |
+| Ice Climbers | jab | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 3 | all | up to 187 more from another |
+| Ice Climbers | dash attack | 24, 30 | not at 0% | not at 0% | not at 0% | 11 | all | the same from each |
+| Pikachu | down tilt | 10, 13, 16 | 62% | 54% | 79% | 5 | all | the same from each |
+| Pikachu | forward tilt | 10, 13, 16 | 56% | 49% | 72% | 5 | all | the same from each |
+| Pikachu | jab | 10, 13 | 260+ | 260+ | 260+ | 3 | none | the same from each |
+| Pikachu | dash attack | 10, 13, 16, 24, 30 | 40% | 35% | 52% | 5 | all | the same from each |
+| Yoshi | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 6 | all | the same from each |
+| Yoshi | forward tilt | 10, 13, 16 | 16% | 13% | 23% | 7 | all | the same from each |
+| Yoshi | jab | 10, 13, 16 | 260+ | 260+ | 260+ | 4 | none | the same from each |
+| Yoshi | dash attack | 16, 24, 30 | 44% | 38% | 57% | 6 | all | the same from each |
+| Samus | down tilt | 10, 13, 16 | not at 0% | not at 0% | not at 0% | 7 | all | the same from each |
+| Samus | forward tilt | 10, 13, 16, 24 | 44% | 37% | 57% | 6 | all | the same from each |
+| Samus | jab | 10, 13, 16 | 151% | 134% | 189% | 4 | none | the same from each |
+| Samus | dash attack | 10, 13, 16, 24, 30 | 18% | 14% | 25% | 7 | all | the same from each |
 <!-- /asdi-limits -->
 
 ## Why it matters
