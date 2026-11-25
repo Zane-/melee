@@ -93,7 +93,15 @@ player: `fox-wavedash-back-punish`, `fox-combo-shine`, `universal-asdi` and
 attack was measured from, stands 14 frames and attacks, then plays footsies again; the
 walk's stop is calibrated for each opponent so that it stands exactly there, and in the
 two universal drills the frame the hit comes on in a demonstration is measured into each
-scenario's `HIT`, the examples staying as they were). New for them: an opponent's
+scenario's `HIT`, the examples staying as they were), `universal-sdi` (the same; its
+three down airs were measured with the attacker placed on top of the player and pushed
+apart by the game, so it walks into the player, stands while the game pushes them apart
+the same way, and jumps), `fox-ledgedash-attack` (the opponent waiting by the ledge moves
+about). Left as they are, and why: `fox-uthrow-uair`, `fox-uthrow-chaingrab` and
+`fox-kill-confirm` (the owner's exception: "things like up throw kill confirm that are a
+specific action"; the opponent stands next to Fox to be grabbed), `universal-tech`,
+`fox-escape-techchase` and `fox-escape-chaingrab` (a try begins inside the opponent's
+grab), `fox-edgeguard` (it begins with the opponent knocked off the stage). New for them: an opponent's
 `"knockdown"`, the script step `press` (inputs by frame: the attack a drill was measured
 against, played from where the opponent stands), the engine's move `run_attack` (a dash attack from standing), Yoshi's egg
 seen as a shield by the engine's search (`in_shield`, `src/host/engine.c`: an opponent

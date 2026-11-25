@@ -14,7 +14,7 @@
  },
  "tutorial": {
   "what": "From the ledge: the stick down to let go, X or Y at once with the stick toward the stage, then R with the stick down and forward to land on it. As Fox can act, down-B.",
-  "expect": "A try begins when Fox leaves the ledge and is judged when he hits or grabs the opponent, when it hits or grabs him, or two seconds later. The opponent acts when it sees him leave the ledge.",
+  "expect": "A try begins when Fox leaves the ledge and is judged when he hits or grabs the opponent, when it hits or grabs him, or two seconds later. The opponent moves about by the ledge and acts when it sees him leave it.",
   "example": [
    {
     "stick": [
@@ -178,8 +178,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -193,7 +196,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -215,8 +238,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -230,7 +256,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -252,8 +298,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -267,7 +316,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -289,8 +358,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -304,7 +376,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -326,8 +418,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -341,7 +436,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -363,8 +478,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -378,7 +496,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -400,8 +538,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -415,7 +556,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -437,8 +598,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -452,7 +616,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -474,8 +658,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -489,7 +676,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -511,8 +718,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -526,7 +736,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -548,8 +778,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -563,7 +796,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -585,8 +838,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -600,7 +856,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -622,8 +898,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -637,7 +916,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -659,8 +958,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -674,7 +976,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -696,8 +1018,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -711,7 +1036,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -733,8 +1078,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -748,7 +1096,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -770,8 +1138,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -785,7 +1156,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -807,8 +1198,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -822,7 +1216,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -844,8 +1258,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -859,7 +1276,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -881,8 +1318,11 @@
     "loop": true,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       18,
+       30
+      ],
       "until": {
        "not": "on_ledge"
       }
@@ -896,7 +1336,27 @@
       "pad": "stand",
       "until": "on_ledge"
      }
-    ]
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": "on_ledge"
+       }
+      },
+      {
+       "do": "punish",
+       "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "on_ledge"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
