@@ -47,7 +47,8 @@ runs from the throw's first frame to the cover that lands, or `END` frames untou
 The rest of the queue (2026-11-25, built overnight at the owner's word, each passing
 `check.py` and opened in the client by `tests/client/drill_smoke.py`; none played by the
 owner yet, and each course row says what its drill leaves out). Defense: escape the chain
-grab (`fox-escape-chaingrab`), shine out of combos (`fox-combo-shine`). Punish: waveshine
+grab (`fox-escape-chaingrab`), shine out of combos (`fox-combo-shine`), get off the ledge
+(`fox-ledgedash-attack`: an opponent by the ledge that punishes what it sees). Punish: waveshine
 to up smash (`fox-waveshine-usmash`: the frames with the hit's freeze), up throw up air
 (`fox-uthrow-uair`) and kill confirms (`fox-kill-confirm`): the follow-ups searched in the
 game for each opponent, percent and DI, the opponent jumping away the frame its hitstun

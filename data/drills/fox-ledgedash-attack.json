@@ -1,0 +1,1135 @@
+{
+ "id": "fox-ledgedash-attack",
+ "name": "Get off the ledge",
+ "part": "defense",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Get from the ledge onto the stage and hit the opponent waiting there before it can punish",
+ "why": "An opponent standing by the ledge punishes the slow ways up: the getup, the roll, the getup attack all leave Fox open for half a second. A ledgedash has him on the stage in a few frames, still invincible from the ledge, and attacking before the opponent has reacted.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "From the ledge: the stick down to let go, X or Y at once with the stick toward the stage, then R with the stick down and forward to land on it. As Fox can act, down-B.",
+  "expect": "A try begins when Fox leaves the ledge and is judged when he hits or grabs the opponent, when it hits or grabs him, or two seconds later. The opponent acts when it sees him leave the ledge.",
+  "example": [
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 1,
+    "hold": 1
+   },
+   {
+    "press": "jump",
+    "frame": 2,
+    "hold": 1
+   },
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 2,
+    "hold": "LD-2"
+   },
+   {
+    "stick": [
+     0.7,
+     -0.7
+    ],
+    "frame": "LD",
+    "hold": 1
+   },
+   {
+    "press": "R",
+    "frame": "LD",
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": "LD+10",
+    "hold": 3
+   },
+   {
+    "press": "B",
+    "frame": "LD+10",
+    "hold": 2
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the stick down. Fox lets go of the ledge",
+   "2": "Frame {f}: X or Y, the stick toward the stage",
+   "LD": "Frame {LD}: R with the stick down and forward. Fox lands on the stage, still invincible",
+   "LD+10": "Frame {f}: Fox can act. Down-B: the shine"
+  },
+  "lessons": [
+   {
+    "title": "The slow ways up",
+    "text": [
+     "{opp} waits by the ledge. The normal getup takes Fox half a second in which he cannot act, and {opp} has seen him start it: its attack lands as he stands up.",
+     "The roll and the getup attack are no faster."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 3
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the stick toward the stage: the getup"
+      }
+     }
+    }
+   },
+   {
+    "title": "The ledgedash",
+    "text": [
+     "Let go, jump at once, and air dodge into the stage as Fox rises past its edge: he lands on frame {LD} and can act 10 frames later, before {opp} has reacted.",
+     "The ledge's invincibility is still on him as he lands. Down-B then: the shine hits {opp} first."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "press": "jump",
+        "frame": 2,
+        "hold": 1
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 2,
+        "hold": "LD-2"
+       },
+       {
+        "stick": [
+         0.7,
+         -0.7
+        ],
+        "frame": "LD",
+        "hold": 1
+       },
+       {
+        "press": "R",
+        "frame": "LD",
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "LD+10",
+        "hold": 3
+       },
+       {
+        "press": "B",
+        "frame": "LD+10",
+        "hold": 2
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the stick down. Fox lets go of the ledge",
+       "2": "Frame {f}: X or Y, the stick toward the stage",
+       "LD": "Frame {LD}: R with the stick down and forward. Fox lands on the stage, still invincible",
+       "LD+10": "Frame {f}: Fox can act. Down-B: the shine"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Jigglypuff, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Falco, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Sheik, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Captain Falcon, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Peach, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Ice Climbers, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Pikachu, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Yoshi, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Samus, left ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "left"
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "side": "left"
+   }
+  },
+  {
+   "name": "Fox, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Jigglypuff, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Falco, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Sheik, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Captain Falcon, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Peach, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Ice Climbers, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Pikachu, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Yoshi, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "side": "right"
+   }
+  },
+  {
+   "name": "Samus, right ledge",
+   "stage": "final-destination",
+   "player": {
+    "ledge": "right"
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 62.6,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": "on_ledge"
+      }
+     },
+     {
+      "do": "punish",
+      "moves": "fsmash,dsmash,usmash,ftilt,dtilt,utilt,jab,grab,dash_grab,dash_attack,sh_"
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "on_ledge"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "side": "right"
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "leaves": "ledge"
+  },
+  "judge": [
+   "connects",
+   {
+    "enters": "holding"
+   },
+   "hit",
+   {
+    "enters": "grabbed"
+   },
+   {
+    "enters": "dead"
+   },
+   {
+    "frame": 120
+   }
+  ],
+  "cancel": [],
+  "limit": 140,
+  "timeout": "judge"
+ },
+ "measures": {
+  "hit_back": {
+   "happened": [
+    "hit",
+    {
+     "enters": "grabbed"
+    },
+    {
+     "enters": "dead"
+    }
+   ]
+  },
+  "landed": {
+   "happened": [
+    "connects",
+    {
+     "enters": "holding"
+    }
+   ]
+  },
+  "at": {
+   "frame_of": [
+    "connects",
+    {
+     "enters": "holding"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "not hit": {
+   "measure": "hit_back",
+   "equals": false,
+   "expect": "Not hit on the way up",
+   "words": "{opp} hit Fox as he came up",
+   "headline": "Punished",
+   "fix": "The getup, the roll and the getup attack are slow, and it sees them start. Ledgedash: the stick down, X or Y at once, R with the stick down and forward as Fox rises past the edge."
+  },
+  "hit it": {
+   "measure": "landed",
+   "equals": true,
+   "expect": "A hit or a grab on it",
+   "words": "Fox did not hit {opp}",
+   "headline": "No attack",
+   "fix": "Fox can act 10 frames after the air dodge lands. Down-B then: the shine hits on its first frame."
+  }
+ },
+ "verdict": {
+  "success": "On the stage and hitting {opp} on frame {at}."
+ },
+ "parts": [
+  {
+   "name": "Ledgedash and attack",
+   "teach": "{opp} waits by the ledge. Let go, jump at once, air dodge onto the stage, and down-B as Fox can act. D-pad left and right: another opponent or the other ledge.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "jump",
+     "frame": 2,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 2,
+     "hold": "LD-2"
+    },
+    {
+     "stick": [
+      0.7,
+      -0.7
+     ],
+     "frame": "LD",
+     "hold": 1
+    },
+    {
+     "press": "R",
+     "frame": "LD",
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "LD+10",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "LD+10",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the stick down. Fox lets go of the ledge",
+    "2": "Frame {f}: X or Y, the stick toward the stage",
+    "LD": "Frame {LD}: R with the stick down and forward. Fox lands on the stage, still invincible",
+    "LD+10": "Frame {f}: Fox can act. Down-B: the shine"
+   },
+   "checks": [
+    "not hit",
+    "hit it"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the normal getup",
+   "inputs": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 3
+    }
+   ],
+   "fails": "not hit"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Let go (stick down)",
+    "stick": "down",
+    "perfect": [
+     1
+    ],
+    "window": [
+     1,
+     1
+    ]
+   },
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": [
+     2
+    ],
+    "window": [
+     2,
+     3
+    ]
+   },
+   {
+    "label": "Air dodge (L or R)",
+    "button": "shield",
+    "perfect": [
+     "LD"
+    ],
+    "window": [
+     "LD",
+     "LD+2"
+    ]
+   },
+   {
+    "label": "Shine",
+    "state": "shine",
+    "perfect": [
+     "LD+10"
+    ],
+    "window": [
+     "LD+10",
+     "LD+14"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the let-go. Fox lands on frame {LD} and can act 10 frames later."
+ }
+}
