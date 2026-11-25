@@ -1,0 +1,1486 @@
+{
+ "id": "fox-shine-knockdown",
+ "name": "Shine knockdown: tech chase",
+ "part": "punish",
+ "characters": [
+  "fox"
+ ],
+ "goal": "After a shine knocks the opponent down, cover its tech or its missed tech before it can act",
+ "why": "Fox's shine knocks light and fast-falling opponents onto the floor. They choose there: a tech in place, a tech roll to either side, or no tech at all. Each ends somewhere else at another time; the punish is being there with a grab or a hit before they can act.",
+ "switch": "every",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Shine next to the opponent, jump out of the shine and wavedash so Fox can act early. Watch which way it goes, follow, and grab or up smash it as its tech ends.",
+  "expect": "A try begins when the shine hits and is judged when Fox grabs or hits the opponent again, when it hits him, or when it stands free. Which tech it picks changes every try.",
+  "example": [
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 1,
+    "hold": 3
+   },
+   {
+    "press": "B",
+    "frame": 1,
+    "hold": 2
+   },
+   {
+    "press": "jump",
+    "frame": 7,
+    "hold": 1
+   },
+   {
+    "trigger": "R",
+    "frame": "WF",
+    "hold": 2
+   },
+   {
+    "stick": [
+     "WX",
+     "WY"
+    ],
+    "frame": "WF",
+    "hold": 2
+   },
+   {
+    "stick": [
+     "RUN",
+     0
+    ],
+    "frame": "RF",
+    "hold": 200
+   },
+   {
+    "press": "jump",
+    "frame": 1,
+    "from": {
+     "near": "GD",
+     "after": {
+      "frame": "GA"
+     }
+    }
+   },
+   {
+    "press": "Z",
+    "frame": 2,
+    "from": {
+     "near": "GD",
+     "after": {
+      "frame": "GA"
+     }
+    }
+   },
+   {
+    "press": "jump",
+    "frame": 1,
+    "from": {
+     "near": "UD",
+     "after": {
+      "frame": "UA"
+     }
+    }
+   },
+   {
+    "cstick": [
+     0,
+     1
+    ],
+    "frame": 2,
+    "hold": 2,
+    "from": {
+     "near": "UD",
+     "after": {
+      "frame": "UA"
+     }
+    }
+   },
+   {
+    "cstick": [
+     0,
+     1
+    ],
+    "frame": "UF",
+    "hold": 2
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the shine. {opp} is knocked down",
+   "7": "Frame {f}: X or Y out of the shine",
+   "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+  },
+  "lessons": [
+   {
+    "title": "What it can do",
+    "text": [
+     "Shined, {opp} meets the floor as the hit's freeze ends. A tech in place has it standing 26 frames later; a tech roll carries it to one side for 40; with no tech it bounces and lies there.",
+     "A tech cannot be hit for its first 20 frames. The punish lands in what is left: 6 frames in place, 20 at the end of a roll."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 3
+       },
+       {
+        "press": "B",
+        "frame": 1,
+        "hold": 2
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the shine. {opp} is knocked down"
+      }
+     }
+    }
+   },
+   {
+    "title": "Free early, then follow",
+    "text": [
+     "Fox jumps out of the shine on frame 7 and wavedashes: he can act on frame 20, long before {opp} can.",
+     "Then it is a matter of where: next to a tech in place, at the end of a roll, or over the one that lies on the floor, which an up smash hits but a grab does not."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 3
+       },
+       {
+        "press": "B",
+        "frame": 1,
+        "hold": 2
+       },
+       {
+        "press": "jump",
+        "frame": 7,
+        "hold": 1
+       },
+       {
+        "trigger": "R",
+        "frame": "WF",
+        "hold": 2
+       },
+       {
+        "stick": [
+         "WX",
+         "WY"
+        ],
+        "frame": "WF",
+        "hold": 2
+       },
+       {
+        "stick": [
+         "RUN",
+         0
+        ],
+        "frame": "RF",
+        "hold": 200
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "from": {
+         "near": "GD",
+         "after": {
+          "frame": "GA"
+         }
+        }
+       },
+       {
+        "press": "Z",
+        "frame": 2,
+        "from": {
+         "near": "GD",
+         "after": {
+          "frame": "GA"
+         }
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "from": {
+         "near": "UD",
+         "after": {
+          "frame": "UA"
+         }
+        }
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 2,
+        "hold": 2,
+        "from": {
+         "near": "UD",
+         "after": {
+          "frame": "UA"
+         }
+        }
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": "UF",
+        "hold": 2
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the shine. {opp} is knocked down",
+       "7": "Frame {f}: X or Y out of the shine",
+       "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 10,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "opp": "Fox",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Fox: teched toward him",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "toward",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0,
+    "WY": -1,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "opp": "Fox",
+    "did": "teched toward Fox"
+   }
+  },
+  {
+   "name": "Fox: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 0,
+    "GA": 999,
+    "UD": 14,
+    "UA": 20,
+    "UF": 999,
+    "opp": "Fox",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Falco: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 10,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "opp": "Falco",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Falco: teched toward him",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "toward",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0,
+    "WY": -1,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "opp": "Falco",
+    "did": "teched toward Fox"
+   }
+  },
+  {
+   "name": "Falco: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 0,
+    "GA": 999,
+    "UD": 10,
+    "UA": 20,
+    "UF": 999,
+    "opp": "Falco",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Jigglypuff: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 14,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "opp": "Jigglypuff",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Jigglypuff: teched toward him",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "toward",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0,
+    "WY": -1,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "opp": "Jigglypuff",
+    "did": "teched toward Fox"
+   }
+  },
+  {
+   "name": "Jigglypuff: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 0,
+    "GA": 999,
+    "UD": 14,
+    "UA": 20,
+    "UF": 999,
+    "opp": "Jigglypuff",
+    "did": "missed the tech"
+   }
+  },
+  {
+   "name": "Pikachu: teched in place",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "in_place",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 10,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "opp": "Pikachu",
+    "did": "teched in place"
+   }
+  },
+  {
+   "name": "Pikachu: teched toward him",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "toward",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0,
+    "WY": -1,
+    "WF": 10,
+    "RUN": 0,
+    "RF": 999,
+    "GD": 0,
+    "GA": 999,
+    "UD": 0,
+    "UA": 999,
+    "UF": 20,
+    "opp": "Pikachu",
+    "did": "teched toward Fox"
+   }
+  },
+  {
+   "name": "Pikachu: teched away",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "away",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 22,
+    "GA": 20,
+    "UD": 0,
+    "UA": 999,
+    "UF": 999,
+    "opp": "Pikachu",
+    "did": "teched away"
+   }
+  },
+  {
+   "name": "Pikachu: missed the tech",
+   "stage": "final-destination",
+   "player": {
+    "x": -30
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -23,
+    "facing": "player",
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "tech",
+      "option": "none",
+      "getup": "stand",
+      "wait": [
+       30,
+       30
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "WX": 0.95,
+    "WY": -0.31,
+    "WF": 10,
+    "RUN": 1,
+    "RF": 20,
+    "GD": 0,
+    "GA": 999,
+    "UD": 14,
+    "UA": 20,
+    "UF": 999,
+    "opp": "Pikachu",
+    "did": "missed the tech"
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "is": "connects",
+   "to": "shine"
+  },
+  "judge": [
+   {
+    "is": "connects",
+    "after": {
+     "frame": 2
+    }
+   },
+   {
+    "enters": "holding"
+   },
+   "hit",
+   {
+    "enters": "grabbed"
+   },
+   "they_recover"
+  ],
+  "cancel": [],
+  "limit": 200,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: the shine did not hit. Stand next to it and press down-B."
+ },
+ "measures": {
+  "punished": {
+   "happened": [
+    {
+     "is": "connects",
+     "after": {
+      "frame": 2
+     }
+    },
+    {
+     "enters": "holding"
+    }
+   ]
+  },
+  "hit_back": {
+   "happened": [
+    "hit",
+    {
+     "enters": "grabbed"
+    }
+   ]
+  },
+  "at": {
+   "frame_of": [
+    {
+     "is": "connects",
+     "after": {
+      "frame": 2
+     }
+    },
+    {
+     "enters": "holding"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "not hit": {
+   "measure": "hit_back",
+   "equals": false,
+   "expect": "Not hit by it",
+   "words": "{opp} hit Fox",
+   "headline": "Hit",
+   "fix": "A getup attack hits on both sides of it. Stay just out of its reach, or shield, until it is over."
+  },
+  "punished": {
+   "measure": "punished",
+   "equals": true,
+   "expect": "A grab or a hit before it can act",
+   "words": "{opp} {did} and was free before the punish",
+   "headline": "Got away",
+   "fix": "It {did}. Be where that ends: a tech cannot be hit for 20 frames, then a grab or an up smash has it; on the floor only a hit does."
+  }
+ },
+ "verdict": {
+  "success": "{opp} {did}: punished on frame {at}."
+ },
+ "parts": [
+  {
+   "name": "Tech in place",
+   "teach": "{opp} techs where it lands. Jump out of the shine, wavedash after it, and grab as its tech ends.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1
+    },
+    {
+     "trigger": "R",
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "RUN",
+      0
+     ],
+     "frame": "RF",
+     "hold": 200
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": 2,
+     "hold": 2,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UF",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the shine. {opp} is knocked down",
+    "7": "Frame {f}: X or Y out of the shine",
+    "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+   },
+   "checks": [
+    "not hit",
+    "punished"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    3,
+    6,
+    9
+   ]
+  },
+  {
+   "name": "Tech rolls",
+   "teach": "{opp} rolls out of its tech, toward Fox or away. Be at the end of the roll before it is.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1
+    },
+    {
+     "trigger": "R",
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "RUN",
+      0
+     ],
+     "frame": "RF",
+     "hold": 200
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": 2,
+     "hold": 2,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UF",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the shine. {opp} is knocked down",
+    "7": "Frame {f}: X or Y out of the shine",
+    "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+   },
+   "checks": [
+    "not hit",
+    "punished"
+   ],
+   "streak": 3,
+   "scenario": [
+    1,
+    4,
+    7,
+    10,
+    11
+   ]
+  },
+  {
+   "name": "Missed tech",
+   "teach": "{opp} does not tech: it bounces and lies on the floor. A grab does not take it there; an up smash does.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1
+    },
+    {
+     "trigger": "R",
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "RUN",
+      0
+     ],
+     "frame": "RF",
+     "hold": 200
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": 2,
+     "hold": 2,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UF",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the shine. {opp} is knocked down",
+    "7": "Frame {f}: X or Y out of the shine",
+    "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+   },
+   "checks": [
+    "not hit",
+    "punished"
+   ],
+   "streak": 3,
+   "scenario": [
+    2,
+    5,
+    8,
+    12
+   ]
+  },
+  {
+   "name": "Tech chase",
+   "teach": "Any of them: watch which way it goes out of the shine and cover it. Another tech every try.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2
+    },
+    {
+     "press": "jump",
+     "frame": 7,
+     "hold": 1
+    },
+    {
+     "trigger": "R",
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "WF",
+     "hold": 2
+    },
+    {
+     "stick": [
+      "RUN",
+      0
+     ],
+     "frame": "RF",
+     "hold": 200
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": "GD",
+      "after": {
+       "frame": "GA"
+      }
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": 2,
+     "hold": 2,
+     "from": {
+      "near": "UD",
+      "after": {
+       "frame": "UA"
+      }
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UF",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the shine. {opp} is knocked down",
+    "7": "Frame {f}: X or Y out of the shine",
+    "10": "Frame {f}: the wavedash: Fox can act on frame 20"
+   },
+   "checks": [
+    "not hit",
+    "punished"
+   ],
+   "streak": 6,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the shine and nothing after it",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2
+    }
+   ],
+   "fails": "punished"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Jump out of the shine",
+    "button": "jump",
+    "perfect": [
+     7
+    ],
+    "window": [
+     7,
+     10
+    ]
+   },
+   {
+    "label": "Grab or attack",
+    "button": "Z",
+    "perfect": []
+   }
+  ],
+  "note": "Frame 1 is the shine's hit. A tech in place ends on frame 33, a tech roll on frame 47."
+ }
+}

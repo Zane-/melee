@@ -54,20 +54,21 @@ game for each opponent, percent and DI, the opponent jumping away the frame its 
 ends; chain grab fast fallers (`fox-uthrow-chaingrab`: the regrabs searched the same way);
 aerial hit confirm (`fox-aerial-confirm`: it takes the hit or crouch cancels it, shown only
 at the hit); shield pressure (`fox-shield-pressure`: a shield that grabs on its first free
-frame). Neutral: take it on shield (`fox-shield-then-punish`: an attack or a grab), read
+frame); shine knockdown (`fox-shine-knockdown`: an opponent that techs in place, toward
+Fox, away, or misses, the follow-up for each searched in the game). Neutral: take it on shield (`fox-shield-then-punish`: an attack or a grab), read
 the stance (`fox-approach-nair-dair`), running shine (`fox-running-shine`), anti-air
 (`fox-anti-air`), wavedash back punish (`fox-wavedash-back-punish`), lasers force the
 approach (`fox-laser-forcing`), beat crouch cancel (`fox-vs-crouch-cancel`): every row of
 the Neutral part. New for them: the events
 `shield_hit`, the states `throw` and `up_throw`, `"shield": "theirs"`; the opponent's
-`oos`, `jump`, `hold` with a `stick`, `move` with `"lcancel": false`, the condition
-`stunned` (`opponent-vocabulary.md`);
+`oos`, `jump`, `tech`, `hold` with a `stick`, `move` with `"lcancel": false`, the
+condition `stunned` (`opponent-vocabulary.md`); the knockback's speed in a fighter's state
+(`kvx`, `kvy`: where a hit will send it, known through its freeze);
 a check that asks for something only in some scenarios compares a measure to a scenario's
 number (`"at_least": "NEED"`, NEED 1 or 0), and an example input is left out of a scenario
-by a frame number that never comes (999). Not built, and why: the course rows of
-`fox-shine-knockdown` and the floor half of the chain grab (no opponent behaviour that
-techs), `fox-recovery-mixup` (no `edgeguard` behaviour), and the others still listed as
-the first implementation.
+by a frame number that never comes (999). Not built, and why: `fox-recovery-mixup` (no
+`edgeguard` behaviour), and the others still listed as the first implementation in their
+course rows.
 
 ## Where things are
 

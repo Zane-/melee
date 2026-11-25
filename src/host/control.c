@@ -415,6 +415,7 @@ void host_fighter_json(int slot, char* out, size_t size)
              "\"y\":%.9g,\"vx\":%.9g,\"vy\":%.9g,\"facing\":%.9g,"
              "\"air\":%d,\"percent\":%.9g,\"hitlag\":%.9g,"
              "\"hitstun\":%.9g,\"shield\":%.9g,\"gvel\":%.9g,"
+             "\"kvx\":%.9g,\"kvy\":%.9g,"
              "\"kind\":%d,\"jumps\":%d,\"invuln\":%d,\"stocks\":%d,"
              "\"hitbox\":%d,\"costume\":%d,\"falls\":%d}",
              (int) Player_GetPlayerCharacter(slot), (int) fp->motion_id,
@@ -422,7 +423,10 @@ void host_fighter_json(int slot, char* out, size_t size)
              fp->self_vel.y, fp->facing_dir, (int) fp->ground_or_air,
              fp->dmg.x1830_percent, fp->dmg.x195c_hitlag_frames,
              fp->x221C_b6 ? *(float*) &fp->mv : 0.0F, fp->shield_health,
-             fp->gr_vel, (int) fp->kind, (int) fp->x1968_jumpsUsed,
+             /* (kvx, kvy: the knockback's speed, set at the hit and kept
+                through its freeze: where the hit will send it) */
+             fp->gr_vel, fp->x8c_kb_vel.x, fp->x8c_kb_vel.y,
+             (int) fp->kind, (int) fp->x1968_jumpsUsed,
              (fp->x1988 != 0 || fp->x198C != 0) ? 1 : 0,
              (int) Player_GetStocks(slot),
              (fp->x914[0].state != HitCapsule_Disabled ||

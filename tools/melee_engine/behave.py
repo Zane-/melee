@@ -230,6 +230,119 @@ class Jump(Behaviour):
         return [NONE] * k
 
 
+class Tech(Behaviour):
+    """Knocked off its feet, it techs the floor (`option`: "in_place",
+    "toward" the player, "away", or "none": it misses the tech, lies there
+    `wait` frames ([LO, HI], drawn) and gets up by `getup`: "stand",
+    "toward", "away" or "attack"; either may be "mix": drawn when it is
+    hit). A body, not a search: L or R is pressed once, when its flight
+    would meet the floor within REACH frames (its height, its fall speed
+    with the knockback's, and the gravity seen between two frames; the
+    main floor at height 0: not a platform), with the stick held for the
+    roll; a press sooner than 20 frames before the floor is no tech, and a
+    second press within 40 is none either. A hit that puts it on the floor
+    as its freeze ends (Fox's shine) is teched in the freeze's last two
+    frames. Over when it stands and can act again."""
+    name = "tech"
+    R = 0x20
+    A = 0x100
+    OPTIONS = ("in_place", "toward", "away", "none", "mix")
+    GETUPS = ("stand", "toward", "away", "attack", "mix")
+    REACH = 12          # frames ahead the floor is looked for
+    # frames of the hit's freeze left when it may press: measured (Fox's
+    # shine on Falco, who meets the floor on the first frame after it), a
+    # press with 1 or 2 left techs, with 3 or more it does not
+    EARLY = 2
+    FLOOR = 0.0
+    DAMAGE = (75, 91)
+    LYING = (184, 192)      # DownWait, face up and face down
+
+    def __init__(self, ctx, spec):
+        super().__init__(ctx, spec)
+        self.option = spec.get("option", "mix")
+        self.getup = spec.get("getup", "mix")
+        lo, hi = spec.get("wait", [10, 40])
+        self.wait = self.rng.randint(int(lo), int(hi))
+        if self.option == "mix":
+            self.option = self.rng.choice(self.OPTIONS[:4])
+        if self.getup == "mix":
+            self.getup = self.rng.choice(self.GETUPS[:4])
+        self.pressed = None     # the frame L or R was pressed
+        self.vy = None
+        self.down_at = None
+        self.up = False
+        self.seen = False       # it has been in the air, hit
+
+    def _stick(self, st, way):
+        t = toward(st, self.ctx.port, self.ctx.target)
+        return {"toward": 127 * t, "away": -127 * t}.get(way, 0)
+
+    def _floor_in(self, me):
+        """Frames until its flight meets the floor, within REACH (None:
+        not within)."""
+        vy, self.vy = self.vy, me["vy"]
+        g = max((vy - me["vy"]) if vy is not None else 0.1, 0.05)
+        # (kvy: the knockback's own speed, there from the hit on, through
+        # its freeze: a hit that sends it up is not a floor to tech yet)
+        y, v = me["y"] - self.FLOOR, me["vy"] + me.get("kvy", 0.0)
+        for k in range(1, self.REACH + 1):
+            v -= g
+            y += v
+            if y <= 0.0:
+                return k
+        return None
+
+    def step(self, st):
+        me = st["p"][self.ctx.port]
+        if me is None:
+            return NONE
+        state = me["state"]
+        hurt = self.DAMAGE[0] <= state <= self.DAMAGE[1] or \
+            state == S.TUMBLE
+        if hurt and me["air"]:
+            self.seen = True
+        if self.down_at is not None and state not in self.LYING:
+            self.up = True          # (its getup has begun)
+        if self.up or (self.seen and state in S.TECHS):
+            # teching, or getting up: over when it can act
+            self.up = True
+            if S.free(me):
+                self.done = True
+            return NONE
+        if state in S.DOWN:
+            # on the floor: its getup, `wait` frames after it lies still
+            # (DownWait: the bounce before it takes no input)
+            if state not in self.LYING:
+                return NONE
+            if self.down_at is None:
+                self.down_at = self.frame
+            if self.frame - self.down_at >= self.wait:
+                if self.getup == "attack":
+                    return (self.A, 0, 0, 0, 0, 0, 0)
+                if self.getup == "stand":
+                    return (0, 0, 127, 0, 0, 0, 0)
+                return (0, self._stick(st, self.getup), 0, 0, 0, 0, 0)
+            return NONE
+        if not (hurt and me["air"]) or (me.get("hitlag") or 0) > self.EARLY:
+            self.vy = None
+            if self.seen and S.free(me) and not me["air"]:
+                self.done = True        # (it landed on its feet)
+            return NONE
+        lx = self._stick(st, self.option)
+        if self.option == "none":
+            return NONE
+        if self.pressed is None:
+            if self._floor_in(me) is None:
+                return (0, lx, 0, 0, 0, 0, 0)
+            self.pressed = self.frame
+            return (self.R, lx, 0, 0, 0, 0, 255)
+        # (the press was one frame's; the stick stays for the roll)
+        return (0, lx, 0, 0, 0, 0, 0)
+
+    def plan(self, st, k):
+        return [NONE] * k
+
+
 class Oos(Behaviour):
     """Holds its shield and answers every hit on it: `option` on the first
     frame its shield stun is over ("grab": a shield grab, A with the
@@ -1752,7 +1865,8 @@ class Recover(Behaviour):
 # ---- the table --------------------------------------------------------------
 
 BEHAVIOURS = {
-    "hold": Hold, "jump": Jump, "oos": Oos, "footsies": Footsies,
+    "hold": Hold, "jump": Jump, "oos": Oos, "tech": Tech,
+    "footsies": Footsies,
     "retreat": Retreat,
     "approach": Approach, "move": Move, "punish": Punish,
     "pressure": Pressure, "chase": Chase, "chain_grab": ChainGrab,
@@ -1783,6 +1897,10 @@ PARAMS = {
                            for x in v),
                        "[toward the player, up], each -1 to 1")},
     "oos": {"option": (lambda v: v in Oos.OPTIONS, ", ".join(Oos.OPTIONS))},
+    "tech": {"option": (lambda v: v in Tech.OPTIONS,
+                        ", ".join(Tech.OPTIONS)),
+             "getup": (lambda v: v in Tech.GETUPS, ", ".join(Tech.GETUPS)),
+             "wait": (_pair, "[LO, HI] frames")},
     "footsies": {"range": (lambda v: v in ("outside", "edge") or _pair(v),
                            'outside, edge or [LO, HI]')},
     "retreat": {},
