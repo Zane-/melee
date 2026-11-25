@@ -3,11 +3,13 @@ course and played without a person or a desktop: keys on a virtual
 display.
 
     python -u tests/client/drill_smoke.py DRILL [--tries N] [--keys K,K]
+        [--hold K,K]
 
 The drill is found in its part of the course and opened. On first open the
 tutorial: every lesson the file has, then the first part's card. Then N
 tries are let go by with nothing pressed (or with `--keys` tapped now and
-then: X11 key names, "x" is A, "c" jump, "s" L/R), until each has been
+then: X11 key names, "x" is A, "z" B, "c" jump, "s" L/R; `--hold`: keys
+held through each try, "Down" with "z" tapped is a shine), until each has been
 judged or not counted: what a drill's own test would look at closer, here
 only that it comes up, runs, judges and leaves, with no warning from the
 interface and nothing left running. What each try said is printed.
@@ -48,8 +50,9 @@ class Player:
     BUDGET = 90000              # calls before the test is called stuck
     TRY_BUDGET = 2400           # frames a try may take
 
-    def __init__(self, c, w, tries, keys=()):
+    def __init__(self, c, w, tries, keys=(), hold=()):
         self.c, self.w, self.tries, self.keys = c, w, tries, list(keys)
+        self.hold = list(hold)
         self.cards, self.coaches = [], []
         self.release = []
         self.calls = 0
@@ -122,6 +125,9 @@ class Player:
         if self.n > self.TRY_BUDGET:
             raise RuntimeError("try %d stuck after %d frames" % (
                 done + 1, self.n))
+        if self.n == 2:
+            for key in self.hold:
+                game.key(key)
         if self.keys and self.n % 20 == 10:
             self.tap(game, self.keys[(self.n // 20) % len(self.keys)], 3)
 
@@ -132,6 +138,8 @@ def main():
     ap.add_argument("--tries", type=int, default=3)
     ap.add_argument("--keys", default="",
                     help="keys tapped in turn during a try, comma separated")
+    ap.add_argument("--hold", default="",
+                    help="keys held through each try, comma separated")
     ap.add_argument("--seed", type=int, default=5)
     ap.add_argument("--gpu", action="store_true")
     args = ap.parse_args()
@@ -190,7 +198,8 @@ def main():
               c.drills()[c.row[c.part]]["id"] == args.drill,
               str(c.screen))
 
-        p = Player(c, w, args.tries, [k for k in args.keys.split(",") if k])
+        p = Player(c, w, args.tries, [k for k in args.keys.split(",") if k],
+                   [k for k in args.hold.split(",") if k])
         told = []
         show, say = c.show_result, c.banner_say
 
