@@ -59,7 +59,8 @@ PIVOTS = ("jab", "ftilt", "fsmash", "utilt", "usmash", "dtilt", "dsmash",
 PLANNED = tuple("pivot_%s%s" % (a, long) for a in PIVOTS
                 for long in ("", "_long")) + (
     "dash_grab", "jc_grab", "jc_usmash", "boost_grab", "dash_dance",
-    "crouch", "platform_drop", "waveland_in", "waveland_out", "waveland") + \
+    "crouch", "platform_drop", "waveland_in", "waveland_out", "waveland",
+    "run_attack") + \
     tuple("sh_%s_out" % a for a in ("nair", "fair", "bair", "uair", "dair"))
 THROWS = ("fthrow", "bthrow", "uthrow", "dthrow")
 

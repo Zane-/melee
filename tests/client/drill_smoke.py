@@ -3,14 +3,16 @@ course and played without a person or a desktop: keys on a virtual
 display.
 
     python -u tests/client/drill_smoke.py DRILL [--tries N] [--keys K,K]
-        [--hold K,K] [--paced]
+        [--hold K,K] [--come D] [--paced]
 
 The drill is found in its part of the course and opened. On first open the
 tutorial: every lesson the file has, then the first part's card. Then N
 tries are let go by with nothing pressed (or with `--keys` tapped now and
 then: X11 key names, "x" is A, "z" B, "c" jump, "s" L/R; `--hold`: keys
-held through each try, "Down" with "z" tapped is a shine), until each has been
-judged or not counted: what a drill's own test would look at closer, here
+held through each try, "Down" with "z" tapped is a shine; `--come D`: the
+stand-in first walks toward the opponent, Shift held for the light push,
+until it is within D units, and holds and taps its keys from then: a drill
+whose try arises from play), until each has been judged or not counted: what a drill's own test would look at closer, here
 only that it comes up, runs, judges and leaves, with no warning from the
 interface and nothing left running. What each try said is printed.
 """
@@ -50,9 +52,10 @@ class Player:
     BUDGET = 90000              # calls before the test is called stuck
     TRY_BUDGET = 2400           # frames a try may take
 
-    def __init__(self, c, w, tries, keys=(), hold=()):
+    def __init__(self, c, w, tries, keys=(), hold=(), come=0.0):
         self.c, self.w, self.tries, self.keys = c, w, tries, list(keys)
         self.hold = list(hold)
+        self.come, self.walking, self.there = come, None, False
         self.cards, self.coaches = [], []
         self.release = []
         self.calls = 0
@@ -120,12 +123,35 @@ class Player:
             return
         if self.try_at != done:
             self.try_at, self.n = done, 0
+            self.there = False
             return
         self.n += 1
         if self.n > self.TRY_BUDGET:
             raise RuntimeError("try %d stuck after %d frames" % (
                 done + 1, self.n))
-        if self.n == 2:
+        if self.come and not self.there:
+            # walk up to the opponent first, wherever it has moved to
+            me, op = game.fighter(0), game.fighter(1)
+            gap = op.pos[0] - me.pos[0]
+            if abs(gap) > self.come:
+                side = "Right" if gap > 0 else "Left"
+                if side != self.walking:
+                    for key in self.hold + [self.walking]:
+                        if key is not None:
+                            game.key(key, False)
+                    game.key("Shift_L")
+                    game.key(side)
+                    self.walking = side
+                return
+            if self.walking is not None:
+                game.key(self.walking, False)
+                game.key("Shift_L", False)
+                self.walking = None
+            self.there = True
+            for key in self.hold:
+                game.key(key)
+            return
+        if self.n == 2 and not self.come:
             for key in self.hold:
                 game.key(key)
         if self.keys and self.n % 20 == 10:
@@ -140,6 +166,9 @@ def main():
                     help="keys tapped in turn during a try, comma separated")
     ap.add_argument("--hold", default="",
                     help="keys held through each try, comma separated")
+    ap.add_argument("--come", type=float, default=0.0,
+                    help="walk to within this many units of the opponent "
+                         "before the keys of --hold and --keys, each try")
     ap.add_argument("--seed", type=int, default=5)
     ap.add_argument("--gpu", action="store_true")
     ap.add_argument("--paced", action="store_true",
@@ -203,7 +232,7 @@ def main():
               str(c.screen))
 
         p = Player(c, w, args.tries, [k for k in args.keys.split(",") if k],
-                   [k for k in args.hold.split(",") if k])
+                   [k for k in args.hold.split(",") if k], args.come)
         told = []
         show, say = c.show_result, c.banner_say
 

@@ -128,6 +128,11 @@ def holds(e, f, fd):
             return False
     if e.get("in_air") and not f["air"]:
         return False
+    if "close" in e:
+        # only with the fighters within D units of each other
+        if f.get("opp_x") is None or abs(f["x"] - f["opp_x"]) > \
+                F.value(e["close"], f["nums"]):
+            return False
     if "after" in e:
         # an earlier frame of the attempt had it (the frames before, back
         # to the attempt's start)
@@ -383,6 +388,14 @@ class JsonDrill(Drill):
             toward = -1 if x > px else 1
             c.place_cpu(x, -toward if op.get("facing") == "away" else
                         toward, float(F.value(op.get("percent", 0), nums)))
+            if "knockdown" in op and c.s.cpu_port is not None:
+                # knocked off its feet where it stands, away from the
+                # player (format.KNOCKDOWN_KEYS): the game's own launch
+                kd = op["knockdown"]
+                c.n.launch(c.s.cpu_port, x, float(kd.get("y", 1)),
+                           float(F.value(op.get("percent", 0), nums)),
+                           float(kd.get("knockback", 90)),
+                           int(kd.get("angle", 80)), -toward, 1)
             self.op_refs = inputs_to_refs(op.get("inputs", []), nums, 1) \
                 if op.get("inputs") else []
             self.op_toward = toward

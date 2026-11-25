@@ -74,6 +74,21 @@ does not have as moves, and a contract that rules an answer out), `fox-shine-spi
 `fox-escape-pressure` (the engine's `pressure` leaves 15 to 40 frames between hits: a
 scripted string needs its own measurements), `universal-wall-tech` (the player launched at
 a wall), `fox-recovery-mixup` (no `edgeguard` behaviour).
+From play (2026-11-25, the owner: "Every drill is supposed to feel realistic, not just
+robotic spawn and do something (except things like up throw kill confirm that are a
+specific action"): a drill's situation arises as it does in a match. The opponent begins
+at a distance and moves, and a try begins at the event the technique answers (its attack
+hitting the player, the player's shine hitting it), not with the opponent placed next to
+the player doing one thing. Rebuilt so: `universal-crouch-cancel` (the opponent plays
+footsies and dash attacks whoever comes within 44 units; an opponent knocked down beside
+the player that gets up with an attack; the same dash attack at a damage where crouching
+no longer holds), `fox-waveshine-usmash` and `fox-shine-knockdown` (the opponent moves
+about 50 units away; the try begins when the shine hits). New for them: an opponent's
+`"knockdown"`, the engine's move `run_attack` (a dash attack from standing), Yoshi's egg
+seen as a shield by the engine's search (`in_shield`, `src/host/engine.c`: an opponent
+asked for a move that lands on a shield never attacked a shielding Yoshi), and
+`tests/client/drill_smoke.py --come D` (a stand-in that walks up to the opponent before
+its keys). Each course row says which drills are still to be rebuilt.
 
 ## Where things are
 
@@ -175,8 +190,10 @@ its proof, never written into one drill's file.
   `{"enters": S, "from": S2}`, `{"leaves": S, "to": S2}`, `{"pressed": B}`,
   `{"released": B}`, `{"stick": D}` / `{"cstick": D}` (D: `up down forward back neutral`,
   past the game's 0.6625, forward being where the fighter faces), `{"frame": N}` (the
-  attempt's frame N); any of them with `"in_air": true` or `"on_ground": true`; a list is
-  any of its events.
+  attempt's frame N); any of them with `"in_air": true` or `"on_ground": true`, or with
+  `"close": D` (it counts only with the fighters within D units of each other: in a drill
+  that arises from play, a jump starts a try next to the opponent and not on the way to
+  it); a list is any of its events.
 - **Measures**: `"jump_kind"` (short or full), `{"held": B}` (frames held from frame 1),
   `{"frames": [E1, E2]}` (from E1 to the first E2 after it; the same event twice: to its
   next time; `"last": true`: from the last E1 before E2), `{"frame_of": E}`,
@@ -362,6 +379,13 @@ its proof, never written into one drill's file.
   the damage state the knockback gives, its speed and decay, its hitstun, the tumble),
   off the left or the right ledge as the runtime draws the side (the pause menu's CPU
   side: Random, Left, Right). `JsonDrill.launched` is what was drawn.
+
+  `"knockdown"` (a tech chase's start, 2026-11-25): the opponent begins each attempt
+  knocked off its feet where it stands, `{"knockback": 90, "angle": 80, "y": 1}` (the
+  game's own launch from its place, away from the player, at its `percent`; all three
+  optional). What it does on the floor is its script's: the `tech` behaviour (a missed
+  tech and a getup attack after a wait that changes, in `universal-crouch-cancel`). Not
+  with `"launch"`.
 
   `"example"`: what the opponent does in a demonstration (a part's example, a mistake,
   the tutorial's and the coach's replays) in place of its `script`, `launch` and `react`:

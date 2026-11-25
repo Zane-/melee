@@ -187,6 +187,11 @@
 #define MS_GUARD_OFF 180
 #define MS_GUARD_STUN 181
 #define MS_GUARD_REFLECT 182
+/* Yoshi's shield, his egg, has states of its own: the first five after the
+   common ones (ftYs_MS_GuardOn_0 to ftYs_MS_GuardOn_1) */
+#define MS_YS_GUARD_ON 341
+#define MS_YS_GUARD_HOLD 342
+#define MS_YS_GUARD_LAST 345
 #define MS_CATCH_WAIT 216
 #define MS_DAMAGE_FALL 38    /* tumble */
 #define MS_DAMAGE_FIRST 75
@@ -249,6 +254,9 @@ enum {
     /* short hops drifting out: 5 aerials (a spaced aerial) */
     M_SH_OUT_FIRST,
     M_SH_OUT_LAST = M_SH_OUT_FIRST + 4,
+    /* a dash toward the target from standing, and its dash attack (the
+       plain dash attack is offered only out of a dash or a run) */
+    M_RUN_ATTACK,
     M_COUNT
 };
 
@@ -316,6 +324,7 @@ static void name_macros(void)
         snprintf(macro_names[M_SH_OUT_FIRST + a], 24, "sh_%s_out",
                  AERIAL_NAME[a]);
     }
+    snprintf(macro_names[M_RUN_ATTACK], 24, "run_attack");
 }
 
 /* ---- the search's state (not the game's) -------------------------------- */
@@ -763,6 +772,25 @@ static int airborne(Fighter* fp)
     return fp->ground_or_air != 0;
 }
 
+/// Is the fighter's state one of a shield: the common ones, or Yoshi's own?
+static int in_shield(Fighter* fp)
+{
+    int m = (int) fp->motion_id;
+    return (m >= MS_GUARD_ON && m <= MS_GUARD_REFLECT) ||
+           ((int) fp->kind == Ft_Kind_Yoshi && m >= MS_YS_GUARD_ON &&
+            m <= MS_YS_GUARD_LAST);
+}
+
+/// Is it holding its shield, able to act out of it (not putting it down,
+/// not in shield stun)?
+static int holds_shield(Fighter* fp)
+{
+    int m = (int) fp->motion_id;
+    return m == MS_GUARD || m == MS_GUARD_ON ||
+           ((int) fp->kind == Ft_Kind_Yoshi &&
+            (m == MS_YS_GUARD_HOLD || m == MS_YS_GUARD_ON));
+}
+
 /// Whether the game reads Fighter.allow_interrupt in action state `m`: the
 /// IASA callbacks of the jabs, the dash attack, the tilts, the smashes, the
 /// aerials (ftCo_Attack1.c to ftCo_AttackAir.c) and the side taunt
@@ -1002,9 +1030,7 @@ static int play(HostPad pad)
         } else if (m >= MS_CAPTURE_FIRST && m <= MS_CAPTURE_LAST) {
             eng.contact_kind[eng.t] = 4; /* grabbed */
             eng.contact_at[eng.t] = eng.t;
-        } else if (t->dmg.x195c_hitlag_frames > 0 &&
-                   m >= MS_GUARD_ON && m <= MS_GUARD_REFLECT)
-        {
+        } else if (t->dmg.x195c_hitlag_frames > 0 && in_shield(t)) {
             eng.contact_kind[eng.t] = 2; /* on the shield */
             eng.contact_at[eng.t] = eng.t;
         }
@@ -1029,7 +1055,7 @@ static int play(HostPad pad)
     }
     if (eng.contact_kind[eng.t] == 2 && eng.free_at[eng.t] == 0 &&
         eng.t > eng.contact_at[eng.t] && t->dmg.x195c_hitlag_frames <= 0 &&
-        ((int) t->motion_id == MS_GUARD || (int) t->motion_id == MS_GUARD_ON))
+        holds_shield(t))
     {
         /* shield stun over: this frame's input was read in the shield
            (stun_over, behave.py), the first an answer can be pressed on */
@@ -1439,6 +1465,11 @@ static int run_macro(int m)
                play(pad_of(B_X, in, 0, 0, 0, 0)) &&
                press(m == M_JC_GRAB ? pad_of(B_Z, 0, 0, 0, 0, 0)
                                     : pad_of(0, 0, 0, 0, 127, 0));
+    case M_RUN_ATTACK:
+        /* a dash toward the target until a dash attack comes out of it
+           (past its first 4 frames; a run will do), then A */
+        return dash_to(t, DASH_TURNABLE, 1) &&
+               press(pad_of(B_A, in, 0, 0, 0, 0));
     case M_BOOST_GRAB:
         /* a dash attack (out of a dash past its first 4 frames, or a run),
            Z on its next frame: a dash grab with the dash attack's speed
@@ -1770,6 +1801,7 @@ static int moves_here(int* out)
                 for (int i = M_DASH_GRAB; i <= M_BOOST_GRAB; i++) {
                     out[n++] = i;
                 }
+                out[n++] = M_RUN_ATTACK;
             }
             if (!run) {
                 out[n++] = M_DASH_DANCE;

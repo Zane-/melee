@@ -183,8 +183,10 @@ EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
 # for anything but a dash)
 # "not_from": entered from anything but this state (a SHFFL's next jump
 # that is not the jump out of the shine)
+# "close": D: only with the fighters within D units of each other (a jump
+# that starts a try next to the opponent, not one on the way to it)
 EVENT_MODS = ("in_air", "on_ground", "from", "to", "not_to", "not_from",
-              "after")
+              "after", "close")
 DIRECTIONS = ("up", "down", "forward", "back", "neutral")
 EVENTS = SIMPLE_EVENTS + EVENT_KINDS
 MEASURES = ("jump_kind", "held", "frames", "frame_of", "happened", "count",
@@ -245,7 +247,13 @@ PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent",
 # them, this many frames at most (the opponent's script grabs at once)
 HELD_MOST = 40
 OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
-                 "react", "script", "loop", "launch", "example")
+                 "react", "script", "loop", "launch", "example", "knockdown")
+# an opponent's "knockdown": it starts each attempt knocked off its feet
+# where it stands (a tech chase's start: what it does on the floor is its
+# script's, the `tech` behaviour): the game's own launch from its place,
+# away from the player, {"knockback" (90), "angle" (80: degrees above
+# level), "y" (1: its height when hit)}
+KNOCKDOWN_KEYS = ("knockback", "angle", "y")
 # an opponent's "launch": it starts each attempt knocked off the stage (an
 # edgeguard: TM-CE's edgeguard event), by one of these hits drawn by
 # "weight": "knockback" and "angle" (degrees above level) and "percent" (its
@@ -556,6 +564,8 @@ def _problems(spec):
                 state(e[m], where + "." + m)
         if "after" in e:
             event(e["after"], where + ".after")
+        if "close" in e:
+            num(e["close"], where + ".close")
         extra = set(e) - {k} - set(EVENT_MODS)
         need(not extra, where, "unknown %s" % ", ".join(sorted(extra)))
 
@@ -820,6 +830,15 @@ def _problems(spec):
             else:
                 need(isinstance(op.get("x"), (int, float)), w,
                      "opponent.x: a number")
+            if "knockdown" in op:
+                kd = op["knockdown"]
+                need(isinstance(kd, dict) and
+                     set(kd) <= set(KNOCKDOWN_KEYS) and
+                     all(isinstance(v, (int, float)) and
+                         not isinstance(v, bool) for v in kd.values()) and
+                     "launch" not in op, w,
+                     "opponent.knockdown: {%s}, numbers (and no launch)" %
+                     ", ".join(KNOCKDOWN_KEYS))
             if "example" in op:
                 ex = op["example"]
                 if need(isinstance(ex, dict) and ex and
