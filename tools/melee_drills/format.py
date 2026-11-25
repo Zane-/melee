@@ -175,8 +175,11 @@ THEIR_ATTACKS = frozenset(tuple(range(44, 70)) + (212, 214))
 # "is": a simple event with modifiers ({"is": "airborne", "from": "shine"})
 # near: the fighters come within D units (along the stage, centre to
 # centre: the gap D or less, more the frame before)
+# they_enter: the opponent enters a state ("from" / "not_from": the state
+# it was in), as "enters" is the player's: what it did when it was hit
+# ({"they_enter": "damage", "from": "squat"}: it crouch cancelled)
 EVENT_KINDS = ("enters", "leaves", "pressed", "released", "stick", "cstick",
-               "frame", "is", "near")
+               "frame", "is", "near", "they_enter")
 # "after": an event that must have happened on an earlier frame of the
 # attempt (left the ground after a shine, not in the first short hop)
 # "not_to": left a state for anything but this one (a pivot: the turn left
@@ -547,7 +550,7 @@ def _problems(spec):
             return
         k = kinds[0]
         v = e[k]
-        if k in ("enters", "leaves"):
+        if k in ("enters", "leaves", "they_enter"):
             state(v, where)
         elif k in ("pressed", "released"):
             need(v in BUTTONS, where, "unknown button %r" % (v,))
@@ -989,7 +992,9 @@ def _problems(spec):
                      "within: [lo, hi]")
                 for x in c[k] if isinstance(c[k], list) else ():
                     num(x, w + ".within")
-            elif k != "equals":
+            elif k != "equals" and c[k] not in spec["measures"]:
+                # (a measure's name: asked only when that one happened; a
+                # yes counts 1, a no or a never 0)
                 num(c[k], "%s.%s" % (w, k))
         words(c.get("words"), w + ".words")
         words(c.get("fix"), w + ".fix")

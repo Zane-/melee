@@ -14,13 +14,35 @@
   "seconds": 1
  },
  "tutorial": {
-  "what": "Look at what the opponent is doing before Fox commits: standing, crouching or shielding. Then open it up: a neutral air into shine, a down air into shine, or a grab.",
-  "expect": "Each try begins with Fox's jump, grab or shine and is judged when he has a grab, when his shine hits, or when the opponent hits or grabs him.",
+  "what": "The opponent moves about and takes a stance when Fox comes close: standing, crouching or shielding. Look at it before Fox commits. Then open it up: a neutral air into shine, a down air into shine, or a grab.",
+  "expect": "Each try begins with Fox's jump, grab or shine next to it and is judged when he has a grab, when his shine hits, or when the opponent hits or grabs him.",
   "example": [
    {
-    "press": "Z",
+    "stick": [
+     0.3,
+     0
+    ],
     "frame": 1,
-    "hold": 1
+    "hold": 900
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": 1,
+    "hold": 900,
+    "from": {
+     "near": "NEAR"
+    }
+   },
+   {
+    "press": "Z",
+    "frame": 13,
+    "hold": 1,
+    "from": {
+     "near": "NEAR"
+    }
    }
   ],
   "marks": {
@@ -38,48 +60,88 @@
      "example": {
       "inputs": [
        {
-        "press": "jump",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 10,
-        "hold": 6
+        "frame": 22,
+        "hold": 6,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "A",
-        "frame": 16,
-        "hold": 1
+        "frame": 28,
+        "hold": 1,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 17,
-        "hold": 13
+        "frame": 29,
+        "hold": 13,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "L",
-        "frame": 28,
-        "hold": 1
+        "frame": 40,
+        "hold": 1,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "stick": [
          0,
          -1
         ],
-        "frame": 37,
-        "hold": 3
+        "frame": 49,
+        "hold": 3,
+        "from": {
+         "near": "NEAR"
+        }
        },
        {
         "press": "B",
-        "frame": 37,
-        "hold": 2
+        "frame": 49,
+        "hold": 2,
+        "from": {
+         "near": "NEAR"
+        }
        }
       ],
       "marks": {
@@ -102,9 +164,31 @@
      "example": {
       "inputs": [
        {
-        "press": "Z",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": "NEAR"
+        }
+       },
+       {
+        "press": "Z",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": "NEAR"
+        }
        }
       ],
       "marks": {
@@ -121,294 +205,812 @@
    "name": "Fox, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Fox",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Marth, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Marth",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Jigglypuff, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Jigglypuff",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Falco, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Falco",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Sheik, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Sheik",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Captain Falcon, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Captain Falcon",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Peach, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Peach",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Ice Climbers, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "ice-climbers",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Ice Climbers",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Pikachu, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Pikachu",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Yoshi, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "yoshi",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Yoshi",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Samus, standing",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Samus",
     "stance": "standing",
-    "answer": "attack"
+    "answer": "attack",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Fox, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -422,32 +1024,99 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Fox",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Marth, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -461,32 +1130,99 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Marth",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Jigglypuff, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -500,32 +1236,99 @@
       "do": "move",
       "name": "jab"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Jigglypuff",
     "stance": "crouching",
-    "answer": "jab"
+    "answer": "jab",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Falco, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -539,32 +1342,99 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Falco",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Sheik, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -578,32 +1448,99 @@
       "do": "move",
       "name": "jab"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Sheik",
     "stance": "crouching",
-    "answer": "jab"
+    "answer": "jab",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Captain Falcon, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -617,32 +1554,99 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Captain Falcon",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Peach, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -656,32 +1660,99 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Peach",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Ice Climbers, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "ice-climbers",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -695,32 +1766,99 @@
       "do": "move",
       "name": "dsmash"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dsmash"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Ice Climbers",
     "stance": "crouching",
-    "answer": "down smash"
+    "answer": "down smash",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Pikachu, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -734,32 +1872,99 @@
       "do": "move",
       "name": "jab"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Pikachu",
     "stance": "crouching",
-    "answer": "jab"
+    "answer": "jab",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Yoshi, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "yoshi",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -773,32 +1978,99 @@
       "do": "move",
       "name": "jab"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Yoshi",
     "stance": "crouching",
-    "answer": "jab"
+    "answer": "jab",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Samus, crouching",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "loop": true,
     "script": [
      {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "distance": [
+          52,
+          999
+         ]
+        }
+       ]
       }
      },
      {
@@ -812,245 +2084,689 @@
       "do": "move",
       "name": "dtilt"
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "any": [
+         {
+          "me": "committed"
+         },
+         {
+          "distance": [
+           52,
+           999
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "move",
+       "name": "dtilt"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Samus",
     "stance": "crouching",
-    "answer": "down tilt"
+    "answer": "down tilt",
+    "NEAR": 10.0
    }
   },
   {
    "name": "Fox, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Fox",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Marth, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Marth",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Jigglypuff, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Jigglypuff",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Falco, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Falco",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Sheik, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Sheik",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Captain Falcon, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Captain Falcon",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Peach, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Peach",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Pikachu, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Pikachu",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   },
   {
    "name": "Samus, shielding",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -13,
+    "x": 10.0,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
     "opp": "Samus",
     "stance": "shielding",
-    "answer": "grab"
+    "answer": "grab",
+    "NEAR": 8.0
    }
   }
  ],
  "attempt": {
   "start": [
    {
-    "enters": "jump_squat"
+    "enters": "jump_squat",
+    "close": 45
    },
    {
-    "enters": "grab"
+    "enters": "grab",
+    "close": 45
    },
    {
-    "enters": "dash_grab"
+    "enters": "dash_grab",
+    "close": 45
    },
    {
-    "enters": "shine_ground"
+    "enters": "shine_ground",
+    "close": 45
    }
   ],
   "judge": [
@@ -1162,48 +2878,88 @@
    "teach": "{opp} stands. Short hop, drift toward it, A late in the hop, L before landing, and down-B on the first frame after it: the neutral air and then the shine.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": 37,
-     "hold": 3
+     "frame": 49,
+     "hold": 3,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "B",
-     "frame": 37,
-     "hold": 2
+     "frame": 49,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
     }
    ],
    "marks": {
@@ -1238,9 +2994,31 @@
    "teach": "{opp} crouches: it answers a neutral air with its {answer}. Grab it with Z, or down air into shine.",
    "example": [
     {
-     "press": "Z",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     }
    ],
    "marks": {
@@ -1271,9 +3049,31 @@
    "teach": "{opp} shields and grabs after any gap. Grab it with Z: a shield does not stop a grab.",
    "example": [
     {
-     "press": "Z",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     }
    ],
    "marks": {
@@ -1302,9 +3102,31 @@
    "teach": "Standing, crouching or shielding: look first, then the answer for that stance. Another stance every try.",
    "example": [
     {
-     "press": "Z",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     }
    ],
    "marks": {
@@ -1356,19 +3178,47 @@
    "name": "an early neutral air and nothing after it",
    "inputs": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": "NEAR"
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "A",
-     "frame": "J+1",
-     "hold": 1
+     "frame": "J+1+12",
+     "hold": 1,
+     "from": {
+      "near": "NEAR"
+     }
     },
     {
      "press": "L",
-     "frame": 25,
-     "hold": 2
+     "frame": 37,
+     "hold": 2,
+     "from": {
+      "near": "NEAR"
+     }
     }
    ],
    "fails": "unanswered"

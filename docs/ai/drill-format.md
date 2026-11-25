@@ -83,12 +83,23 @@ the player doing one thing. Rebuilt so: `universal-crouch-cancel` (the opponent 
 footsies and dash attacks whoever comes within 44 units; an opponent knocked down beside
 the player that gets up with an attack; the same dash attack at a damage where crouching
 no longer holds), `fox-waveshine-usmash` and `fox-shine-knockdown` (the opponent moves
-about 50 units away; the try begins when the shine hits). New for them: an opponent's
+about 50 units away; the try begins when the shine hits), `fox-shield-pressure`,
+`fox-vs-crouch-cancel`, `fox-aerial-confirm` and `fox-approach-nair-dair` (the opponent
+moves about and shields, crouches or stands when Fox comes within 40 units, and moves
+again when he backs away; each example walks up to it and stops where its sequence was
+measured). New for them: an opponent's
 `"knockdown"`, the engine's move `run_attack` (a dash attack from standing), Yoshi's egg
 seen as a shield by the engine's search (`in_shield`, `src/host/engine.c`: an opponent
-asked for a move that lands on a shield never attacked a shielding Yoshi), and
+asked for a move that lands on a shield never attacked a shielding Yoshi),
 `tests/client/drill_smoke.py --come D` (a stand-in that walks up to the opponent before
-its keys). Each course row says which drills are still to be rebuilt.
+its keys), an event's `"close": D` (a jump starts a try only next to the opponent), the
+event `they_enter` and a check bound that names a measure (a try judged by what a moving
+opponent did when it was hit, not by which scenario it was), and `footsies` with
+`"crouch": false`. A drill that was measured with the opponent placed keeps its
+measurements: in a demonstration the opponent stands still until the player comes in,
+and the example stops at the measured distance (the proofs showed how narrow some are:
+the down air into shine on a crouching opponent holds at 9.0 units and not at 8.95 or
+9.05). Each course row says what its drill still leaves out.
 
 ## Where things are
 
@@ -190,7 +201,9 @@ its proof, never written into one drill's file.
   `{"enters": S, "from": S2}`, `{"leaves": S, "to": S2}`, `{"pressed": B}`,
   `{"released": B}`, `{"stick": D}` / `{"cstick": D}` (D: `up down forward back neutral`,
   past the game's 0.6625, forward being where the fighter faces), `{"frame": N}` (the
-  attempt's frame N); any of them with `"in_air": true` or `"on_ground": true`, or with
+  attempt's frame N), `{"they_enter": S, "from": S2}` (the opponent enters a state, as
+  `enters` is the player's: `{"they_enter": "damage", "from": "squat"}`, it crouch
+  cancelled); any of them with `"in_air": true` or `"on_ground": true`, or with
   `"close": D` (it counts only with the fighters within D units of each other: in a drill
   that arises from play, a jump starts a try next to the opponent and not on the way to
   it); a list is any of its events.
@@ -217,7 +230,11 @@ its proof, never written into one drill's file.
   its window. The proof plays every part's example strictly too: examples are
   frame-perfect.
 - **Expectations**: `equals` (a number, an expression like `"J"`, a word or true/false),
-  `at_most`, `at_least`,
+  `at_most`, `at_least` (a number, an expression of the scenario's numbers, or another
+  measure's name: what is asked then depends on what happened, a yes counting 1 and a no
+  or a never 0. `fox-aerial-confirm`: `"grab": {"measure": "grabbed", "at_least":
+  "cancelled"}`, a grab is asked for only when the opponent crouch cancelled, whichever
+  scenario it was),
   `within: [lo, hi]`.
 - **Inputs**: `{"press": B, "frame": F, "hold": H}`, `{"stick": [x, y], ...}`,
   `{"cstick": [x, y], ...}`, `{"trigger": "L"|"R", "amount": 0..1, ...}`; entries on the

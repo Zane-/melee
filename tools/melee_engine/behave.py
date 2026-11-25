@@ -465,7 +465,7 @@ class Footsies(Behaviour):
         self.width = self.WIDTH if width is None else width
         band = tuple(r) if self.mode == "band" else (30.0, 45.0)
         self.body = Body(ctx.port, ctx.target, band=band, rng=self.rng,
-                         half=ctx.half)
+                         half=ctx.half, crouch=spec.get("crouch", True))
         self.body.keep = self.mode == "band"
         if self.mode == "outside":
             ctx.sense.wants.add("guard")
@@ -1903,7 +1903,8 @@ PARAMS = {
              "getup": (lambda v: v in Tech.GETUPS, ", ".join(Tech.GETUPS)),
              "wait": (_pair, "[LO, HI] frames")},
     "footsies": {"range": (lambda v: v in ("outside", "edge") or _pair(v),
-                           'outside, edge or [LO, HI]')},
+                           'outside, edge or [LO, HI]'),
+                 "crouch": (lambda v: isinstance(v, bool), "true or false")},
     "retreat": {},
     "approach": {
         "moves": (_moves, "engine moves by name prefix, comma separated"),

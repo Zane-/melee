@@ -15,17 +15,42 @@
  },
  "tutorial": {
   "what": "Short hop next to the shield, press A late so the neutral air hits just before Fox lands, L before the landing, and down-B on the first frame after it. Then out of the shine: a jump, and the next aerial.",
-  "expect": "A try begins when something hits its shield and is judged when Fox hits the opponent, or when it grabs or hits him. It grabs on the first frame it can, every time: with no gap in the pressure the grab never lands.",
+  "expect": "The opponent moves about and puts its shield up when Fox comes close; back away and it lets it down. A try begins when something hits its shield and is judged when Fox hits the opponent, or when it grabs or hits him. It grabs on the first frame it can, every time: with no gap in the pressure the grab never lands.",
   "example": [
    {
-    "press": "jump",
+    "stick": [
+     0.3,
+     0
+    ],
     "frame": 1,
-    "hold": 1
+    "hold": 900
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": 1,
+    "hold": 900,
+    "from": {
+     "near": 8.0
+    }
+   },
+   {
+    "press": "jump",
+    "frame": 13,
+    "hold": 1,
+    "from": {
+     "near": 8.0
+    }
    },
    {
     "press": "A",
-    "frame": 16,
-    "hold": 1
+    "frame": 28,
+    "hold": 1,
+    "from": {
+     "near": 8.0
+    }
    },
    {
     "press": "L",
@@ -79,14 +104,39 @@
      "example": {
       "inputs": [
        {
-        "press": "jump",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": 8.0
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": 8.0
+        }
        },
        {
         "press": "A",
-        "frame": 8,
-        "hold": 1
+        "frame": 20,
+        "hold": 1,
+        "from": {
+         "near": 8.0
+        }
        }
       ],
       "marks": {
@@ -125,14 +175,39 @@
      "example": {
       "inputs": [
        {
-        "press": "jump",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": 8.0
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": 8.0
+        }
        },
        {
         "press": "A",
-        "frame": 16,
-        "hold": 1
+        "frame": 28,
+        "hold": 1,
+        "from": {
+         "near": 8.0
+        }
        },
        {
         "press": "L",
@@ -197,18 +272,61 @@
    "name": "Fox, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -219,18 +337,61 @@
    "name": "Marth, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -241,18 +402,61 @@
    "name": "Jigglypuff, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -263,18 +467,61 @@
    "name": "Falco, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -285,18 +532,61 @@
    "name": "Sheik, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -307,18 +597,61 @@
    "name": "Captain Falcon, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -329,18 +662,61 @@
    "name": "Peach, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -351,18 +727,61 @@
    "name": "Pikachu, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -373,18 +792,61 @@
    "name": "Samus, grabs at once",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
      {
-      "do": "oos"
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
+     {
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -395,14 +857,27 @@
    "name": "Fox, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -411,9 +886,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -424,14 +936,27 @@
    "name": "Marth, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -440,9 +965,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -453,14 +1015,27 @@
    "name": "Jigglypuff, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -469,9 +1044,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -482,14 +1094,27 @@
    "name": "Falco, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -498,9 +1123,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -511,14 +1173,27 @@
    "name": "Sheik, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -527,9 +1202,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -540,14 +1252,27 @@
    "name": "Captain Falcon, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -556,9 +1281,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -569,14 +1331,27 @@
    "name": "Peach, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -585,9 +1360,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -598,14 +1410,27 @@
    "name": "Pikachu, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -614,9 +1439,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -627,14 +1489,27 @@
    "name": "Samus, holds one hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -13,
+    "x": 10,
     "facing": "player",
     "loop": true,
     "script": [
+     {
+      "do": "footsies",
+      "range": [
+       42,
+       60
+      ],
+      "until": {
+       "distance": [
+        0,
+        40
+       ]
+      }
+     },
      {
       "do": "hold",
       "pad": "shield",
@@ -643,9 +1518,46 @@
       }
      },
      {
-      "do": "oos"
+      "do": "oos",
+      "until": {
+       "distance": [
+        52,
+        999
+       ]
+      }
      }
-    ]
+    ],
+    "react": 15,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "distance": [
+         0,
+         40
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "oos",
+       "until": {
+        "distance": [
+         52,
+         999
+        ]
+       }
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -668,8 +1580,8 @@
   "cancel": [],
   "limit": 90,
   "timeout": "judge",
-  "within": 600,
-  "missed": "Not counted: nothing hit its shield. Short hop and press A late, so the neutral air hits just before Fox lands."
+  "within": 1500,
+  "missed": "Not counted: nothing hit its shield. Come close: it shields. Short hop next to it and press A late, so the neutral air hits just before Fox lands."
  },
  "measures": {
   "grabbed": {
@@ -722,14 +1634,39 @@
    "teach": "{opp} grabs out of its shield the moment it can. Short hop, A late, L before landing, down-B on the first free frame: the shine hits it out of its grab.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "L",
@@ -834,14 +1771,39 @@
    "teach": "Here it holds its shield through the first hit and grabs after the shine. Jump out of the shine and press A as Fox leaves the ground: the next neutral air hits it out of its grab.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "L",
@@ -998,14 +1960,39 @@
    "teach": "It grabs after the first hit or after the second: play the whole sequence every time. D-pad left and right: another opponent.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "L",
@@ -1123,14 +2110,39 @@
    "name": "the neutral air early in the hop",
    "inputs": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "A",
-     "frame": 8,
-     "hold": 1
+     "frame": 20,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     }
    ],
    "fails": "not grabbed"
@@ -1139,14 +2151,39 @@
    "name": "no shine after the landing",
    "inputs": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 8.0
+     }
     },
     {
      "press": "L",

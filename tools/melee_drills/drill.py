@@ -150,6 +150,16 @@ def holds(e, f, fd):
         return f["i"] == int(F.value(e["frame"], f["nums"])) - 1
     if p is None:
         return False
+    if "they_enter" in e:
+        # the opponent enters a state (a character's own, where it has one)
+        now, was = f.get("opp_state"), p.get("opp_state")
+        if now is None or was is None:
+            return False
+        who = f.get("opp_cid")
+        return _in(now, e["they_enter"], who) and \
+            not _in(was, e["they_enter"], who) and \
+            ("from" not in e or _in(was, e["from"], who)) and \
+            ("not_from" not in e or not _in(was, e["not_from"], who))
     if "near" in e:
         # the fighters come within D units of each other
         if f.get("opp_x") is None or p.get("opp_x") is None:
@@ -588,6 +598,7 @@ class JsonDrill(Drill):
                     opp_percent=c.cpu.percent if c.cpu is not None
                     else None,
                     opp_state=c.cpu.state if c.cpu is not None else None,
+                    opp_cid=c.s.cpu_char if c.cpu is not None else None,
                     opp_x=c.cpu.pos[0] if c.cpu is not None else None,
                     opp_air=c.cpu.airborne if c.cpu is not None else None,
                     opp_shield=c.cpu.shield if c.cpu is not None else None)
@@ -1018,9 +1029,9 @@ class JsonDrill(Drill):
                 want = F.value(want, nums)      # an expression: "J"
             ok = got == want
         elif "at_most" in ck:
-            ok = got <= F.value(ck["at_most"], nums)
+            ok = got <= self._bound(ck["at_most"], nums, measured)
         elif "at_least" in ck:
-            ok = got >= F.value(ck["at_least"], nums)
+            ok = got >= self._bound(ck["at_least"], nums, measured)
         else:
             lo, hi = (F.value(x, nums) for x in ck["within"])
             ok = lo <= got <= hi
@@ -1037,6 +1048,17 @@ class JsonDrill(Drill):
                     fix=F.text(ck["fix"], nums, **more),
                     headline=F.text(ck.get("headline", name.capitalize()),
                                     nums, **more))
+
+    @staticmethod
+    def _bound(x, nums, measured):
+        """A check's bound: a number, an expression of the scenario's
+        numbers, or another measure's name (a yes counts 1; a no, or one
+        that never happened, 0)."""
+        if isinstance(x, str) and x in measured:
+            got = measured[x]
+            return 0 if got is None else int(got) \
+                if isinstance(got, bool) else got
+        return F.value(x, nums)
 
     @staticmethod
     def _named(measured):

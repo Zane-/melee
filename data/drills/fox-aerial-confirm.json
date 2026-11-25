@@ -14,56 +14,99 @@
  },
  "tutorial": {
   "what": "Short hop next to the opponent, drift in, press A late in the hop and L before landing. Watch the hit: if the opponent flinches, down-B as Fox can act; if it stays crouched, Z.",
-  "expect": "A try begins when the aerial hits and is judged when the shine or a grab lands, when Fox is hit or grabbed, or a second later. The opponent stands until Fox jumps: whether it crouch cancels shows only at the hit.",
+  "expect": "A try begins when the aerial hits and is judged when the shine or a grab lands, when Fox is hit or grabbed, or a second later. The opponent moves about. Some crouch as Fox's aerial comes down: whether it crouch cancelled shows only at the hit.",
   "example": [
    {
-    "press": "jump",
+    "stick": [
+     0.3,
+     0
+    ],
     "frame": 1,
-    "hold": 1
+    "hold": 900
+   },
+   {
+    "stick": [
+     0,
+     0
+    ],
+    "frame": 1,
+    "hold": 900,
+    "from": {
+     "near": 10.0
+    }
+   },
+   {
+    "press": "jump",
+    "frame": 13,
+    "hold": 1,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "stick": [
      1,
      0
     ],
-    "frame": 10,
-    "hold": 6
+    "frame": 22,
+    "hold": 6,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "press": "A",
-    "frame": 16,
-    "hold": 1
+    "frame": 28,
+    "hold": 1,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "stick": [
      1,
      0
     ],
-    "frame": 17,
-    "hold": 13
+    "frame": 29,
+    "hold": 13,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "press": "L",
-    "frame": 28,
-    "hold": 1
+    "frame": 40,
+    "hold": 1,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "stick": [
      0,
      -1
     ],
-    "frame": "SF",
-    "hold": 3
+    "frame": "SF+12",
+    "hold": 3,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "press": "B",
-    "frame": "SF",
-    "hold": 2
+    "frame": "SF+12",
+    "hold": 2,
+    "from": {
+     "near": 10.0
+    }
    },
    {
     "press": "Z",
-    "frame": "GF",
-    "hold": 1
+    "frame": "GF+12",
+    "hold": 1,
+    "from": {
+     "near": 10.0
+    }
    }
   ],
   "marks": {
@@ -81,53 +124,96 @@
      "example": {
       "inputs": [
        {
-        "press": "jump",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": 10.0
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 10,
-        "hold": 6
+        "frame": 22,
+        "hold": 6,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "A",
-        "frame": 16,
-        "hold": 1
+        "frame": 28,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 17,
-        "hold": 13
+        "frame": 29,
+        "hold": 13,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "L",
-        "frame": 28,
-        "hold": 1
+        "frame": 40,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          0,
          -1
         ],
-        "frame": "SF",
-        "hold": 3
+        "frame": "SF+12",
+        "hold": 3,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "B",
-        "frame": "SF",
-        "hold": 2
+        "frame": "SF+12",
+        "hold": 2,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "Z",
-        "frame": "GF",
-        "hold": 1
+        "frame": "GF+12",
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        }
       ],
       "marks": {
@@ -165,53 +251,96 @@
      "example": {
       "inputs": [
        {
-        "press": "jump",
+        "stick": [
+         0.3,
+         0
+        ],
         "frame": 1,
-        "hold": 1
+        "hold": 900
+       },
+       {
+        "stick": [
+         0,
+         0
+        ],
+        "frame": 1,
+        "hold": 900,
+        "from": {
+         "near": 10.0
+        }
+       },
+       {
+        "press": "jump",
+        "frame": 13,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 10,
-        "hold": 6
+        "frame": 22,
+        "hold": 6,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "A",
-        "frame": 16,
-        "hold": 1
+        "frame": 28,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          1,
          0
         ],
-        "frame": 17,
-        "hold": 13
+        "frame": 29,
+        "hold": 13,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "L",
-        "frame": 28,
-        "hold": 1
+        "frame": 40,
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "stick": [
          0,
          -1
         ],
-        "frame": "SF",
-        "hold": 3
+        "frame": "SF+12",
+        "hold": 3,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "B",
-        "frame": "SF",
-        "hold": 2
+        "frame": "SF+12",
+        "hold": 2,
+        "from": {
+         "near": 10.0
+        }
        },
        {
         "press": "Z",
-        "frame": "GF",
-        "hold": 1
+        "frame": "GF+12",
+        "hold": 1,
+        "from": {
+         "near": 10.0
+        }
        }
       ],
       "marks": {
@@ -246,19 +375,23 @@
    "name": "Fox takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -276,12 +409,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -298,19 +459,23 @@
    "name": "Marth takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -328,12 +493,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -350,19 +543,23 @@
    "name": "Jigglypuff takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -380,12 +577,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -402,19 +627,23 @@
    "name": "Falco takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -432,12 +661,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -454,19 +711,23 @@
    "name": "Sheik takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -484,12 +745,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -506,19 +795,23 @@
    "name": "Captain Falcon takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -536,12 +829,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -558,19 +879,23 @@
    "name": "Peach takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -588,12 +913,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -610,19 +963,23 @@
    "name": "Pikachu takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -640,12 +997,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -662,19 +1047,23 @@
    "name": "Yoshi takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "yoshi",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -692,12 +1081,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -714,19 +1131,23 @@
    "name": "Samus takes the hit",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
       "until": {
-       "me": "committed"
+       "me": "stunned"
       }
      },
      {
@@ -744,12 +1165,40 @@
        -1,
        0
       ]
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": {
+        "not": {
+         "me": "stunned"
+        }
+       }
+      },
+      {
+       "do": "jump",
+       "stick": [
+        -1,
+        0
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -766,24 +1215,45 @@
    "name": "Fox crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "fox",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -797,12 +1267,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -819,24 +1318,45 @@
    "name": "Marth crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "marth",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -850,12 +1370,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -872,24 +1421,45 @@
    "name": "Jigglypuff crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -903,12 +1473,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -925,24 +1524,45 @@
    "name": "Falco crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "falco",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -956,12 +1576,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -978,24 +1627,45 @@
    "name": "Sheik crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "sheik",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1009,12 +1679,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1031,24 +1730,45 @@
    "name": "Captain Falcon crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1062,12 +1782,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1084,24 +1833,45 @@
    "name": "Peach crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "peach",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1115,12 +1885,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1137,24 +1936,45 @@
    "name": "Pikachu crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "pikachu",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1168,12 +1988,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1190,24 +2039,45 @@
    "name": "Yoshi crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "yoshi",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1221,12 +2091,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1243,24 +2142,45 @@
    "name": "Samus crouch cancels",
    "stage": "final-destination",
    "player": {
-    "x": -20
+    "x": -40
    },
    "opponent": {
     "character": "samus",
-    "x": -11,
+    "x": 9.75,
     "facing": "player",
     "react": 6,
     "script": [
      {
-      "do": "hold",
-      "pad": "stand",
-      "until": "airborne"
+      "do": "footsies",
+      "range": [
+       0,
+       70
+      ],
+      "crouch": false,
+      "until": {
+       "all": [
+        "airborne",
+        {
+         "distance": [
+          0,
+          45
+         ]
+        }
+       ]
+      }
      },
      {
       "do": "hold",
       "pad": "crouch",
       "until": {
-       "me": "committed"
+       "any": [
+        {
+         "me": "committed"
+        },
+        {
+         "not": "airborne"
+        }
+       ]
       }
      },
      {
@@ -1274,12 +2194,41 @@
       "do": "hold",
       "pad": "shield",
       "for": 90
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "until": "airborne"
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "committed"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "crouch",
+       "until": {
+        "me": "free"
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "shield",
+       "for": 90
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -1321,7 +2270,7 @@
   "cancel": [],
   "limit": 80,
   "timeout": "judge",
-  "within": 600,
+  "within": 1500,
   "missed": "Not counted: no aerial hit it. Short hop next to it and press A late in the hop."
  },
  "measures": {
@@ -1358,6 +2307,18 @@
      "enters": "grabbed"
     }
    ]
+  },
+  "cancelled": {
+   "happened": {
+    "they_enter": "damage",
+    "from": "squat"
+   }
+  },
+  "flinched": {
+   "happened": {
+    "they_enter": "damage",
+    "not_from": "squat"
+   }
   }
  },
  "checks": {
@@ -1373,13 +2334,13 @@
    "measure": "any",
    "equals": true,
    "expect": "A follow-up lands",
-   "words": "nothing landed after the neutral air: {opp} {did}, and {right} was the answer",
+   "words": "nothing landed after the neutral air: the shine if {opp} flinched, a grab if it stayed crouched",
    "headline": "No follow-up",
-   "fix": "It {did}: {right} on the first frame Fox can act, {18} frames after the hit."
+   "fix": "The shine if it flinched, a grab if it stayed crouched: on the first frame Fox can act, {18} frames after the hit."
   },
   "shine": {
    "measure": "shined",
-   "at_least": "SH",
+   "at_least": "flinched",
    "expect": "The shine, when it took the hit",
    "words": "{opp} took the hit: the shine was the follow-up",
    "headline": "Wrong follow-up",
@@ -1387,7 +2348,7 @@
   },
   "grab": {
    "measure": "grabbed",
-   "at_least": "GR",
+   "at_least": "cancelled",
    "expect": "A grab, when it crouch cancelled",
    "words": "{opp} crouch cancelled: a grab was the follow-up",
    "headline": "Wrong follow-up",
@@ -1395,61 +2356,104 @@
   }
  },
  "verdict": {
-  "success": "{opp} {did}: {right}."
+  "success": "Confirmed on {opp}: the follow-up for what it did."
  },
  "parts": [
   {
    "name": "It took the hit",
-   "teach": "{opp} stands through the neutral air and flinches. L before landing, then down-B on Fox's first free frame: the shine.",
+   "teach": "{opp} takes the neutral air standing and flinches. L before landing, then down-B on Fox's first free frame: the shine.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 10.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": "SF",
-     "hold": 3
+     "frame": "SF+12",
+     "hold": 3,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "B",
-     "frame": "SF",
-     "hold": 2
+     "frame": "SF+12",
+     "hold": 2,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "Z",
-     "frame": "GF",
-     "hold": 1
+     "frame": "GF+12",
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     }
    ],
    "marks": {
@@ -1498,53 +2502,96 @@
    "teach": "{opp} crouches as Fox jumps and takes the neutral air without flinching. L before landing, then Z: the grab.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 10.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": "SF",
-     "hold": 3
+     "frame": "SF+12",
+     "hold": 3,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "B",
-     "frame": "SF",
-     "hold": 2
+     "frame": "SF+12",
+     "hold": 2,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "Z",
-     "frame": "GF",
-     "hold": 1
+     "frame": "GF+12",
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     }
    ],
    "marks": {
@@ -1593,53 +2640,96 @@
    "teach": "It takes the hit or crouch cancels it, and shows which only at the hit. Shine the one that flinched, grab the one that stayed down.",
    "example": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 10.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": "SF",
-     "hold": 3
+     "frame": "SF+12",
+     "hold": 3,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "B",
-     "frame": "SF",
-     "hold": 2
+     "frame": "SF+12",
+     "hold": 2,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "Z",
-     "frame": "GF",
-     "hold": 1
+     "frame": "GF+12",
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     }
    ],
    "marks": {
@@ -1700,35 +2790,69 @@
    "name": "the neutral air and nothing after it",
    "inputs": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 10.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     }
    ],
    "fails": "follow-up"
@@ -1737,53 +2861,96 @@
    "name": "a grab on the one that took the hit, the shine on the one that crouch cancelled",
    "inputs": [
     {
-     "press": "jump",
+     "stick": [
+      0.3,
+      0
+     ],
      "frame": 1,
-     "hold": 1
+     "hold": 900
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 900,
+     "from": {
+      "near": 10.0
+     }
+    },
+    {
+     "press": "jump",
+     "frame": 13,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 10,
-     "hold": 6
+     "frame": 22,
+     "hold": 6,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "A",
-     "frame": 16,
-     "hold": 1
+     "frame": 28,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       1,
       0
      ],
-     "frame": 17,
-     "hold": 13
+     "frame": 29,
+     "hold": 13,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "L",
-     "frame": 28,
-     "hold": 1
+     "frame": 40,
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "stick": [
       0,
       -1
      ],
-     "frame": "GF",
-     "hold": 3
+     "frame": "GF+12",
+     "hold": 3,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "B",
-     "frame": "GF",
-     "hold": 2
+     "frame": "GF+12",
+     "hold": 2,
+     "from": {
+      "near": 10.0
+     }
     },
     {
      "press": "Z",
-     "frame": "SF",
-     "hold": 1
+     "frame": "SF+12",
+     "hold": 1,
+     "from": {
+      "near": 10.0
+     }
     }
    ],
    "fails": "shine"
