@@ -1,0 +1,2465 @@
+{
+ "id": "fox-kill-confirm",
+ "name": "Kill confirms",
+ "part": "punish",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Take the stock from a grab: up throw into an up air that lands before the opponent can act",
+ "why": "A grab at high damage is a stock if the up air after the up throw is a true combo: the opponent cannot act before it lands, and its second hit sends them off the top. Each opponent here is at the lowest damage where that kills on Final Destination.",
+ "switch": "every",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Grab with Z, press up to throw, jump after the opponent as soon as Fox can act, and press the C-stick up: both hits of the up air.",
+  "expect": "A try begins with the up throw and is judged when the stock is gone, or when the opponent has got away: it double jumps on the first frame its hitstun is over, unless the up air has it.",
+  "example": [
+   {
+    "press": "Z",
+    "frame": 1,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 9,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 11,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 13,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 15,
+    "hold": 1
+   },
+   {
+    "stick": [
+     "SIDE",
+     0
+    ],
+    "frame": "FREE",
+    "hold": 40,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": "JF",
+    "hold": 4,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": "DJ",
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "cstick": [
+     0,
+     1
+    ],
+    "frame": "UA",
+    "hold": 2,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the up throw",
+   "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+   "JF": "Frame {JF}: X or Y, held: a full hop",
+   "UA": "Frame {UA}: the C-stick up. The up air"
+  },
+  "lessons": [
+   {
+    "title": "The confirm",
+    "text": [
+     "At {PCT}%, {opp} is in hitstun from the up throw until frame {OVER}, and Fox can act on frame {FREE}. An up air that lands in between cannot be escaped.",
+     "The up air hits twice. The second hit is the strong one: from this height it takes the stock."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "Z",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 9,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 11,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 13,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 15,
+        "hold": 1
+       },
+       {
+        "stick": [
+         "SIDE",
+         0
+        ],
+        "frame": "FREE",
+        "hold": 40,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "JF",
+        "hold": 4,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "DJ",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": "UA",
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the up throw",
+       "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+       "JF": "Frame {JF}: X or Y, held: a full hop",
+       "UA": "Frame {UA}: the C-stick up. The up air"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "The throw: watch where it goes",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "JF",
+         "JF+2"
+        ],
+        "words": "Jump now",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "UA",
+         "UA+1"
+        ],
+        "words": "Up air now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Where it flies",
+    "text": [
+     "The opponent's DI through the throw sends it to one side. Dash after it for a few frames before the jump, keep the stick toward it in the air, and use the second jump when it is high.",
+     "Under it too early or too late, only the first hit lands, or neither: it survives."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "Z",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 9,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 11,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 13,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 15,
+        "hold": 1
+       },
+       {
+        "stick": [
+         "SIDE",
+         0
+        ],
+        "frame": "FREE",
+        "hold": 40,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "JF",
+        "hold": 4,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "DJ",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": "UA",
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the up throw",
+       "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+       "JF": "Frame {JF}: X or Y, held: a full hop",
+       "UA": "Frame {UA}: the C-stick up. The up air"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "The throw: watch where it goes",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "JF",
+         "JF+2"
+        ],
+        "words": "Jump now",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "UA",
+         "UA+1"
+        ],
+        "words": "Up air now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Marth at 90%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "di": "no DI",
+    "PCT": 90,
+    "SIDE": 0,
+    "FREE": 34,
+    "JF": 34,
+    "DJ": 39,
+    "UA": 40,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Marth at 90%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "di": "DI away",
+    "PCT": 90,
+    "SIDE": 1,
+    "FREE": 34,
+    "JF": 37,
+    "DJ": 999,
+    "UA": 41,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Marth at 90%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "di": "DI behind Fox",
+    "PCT": 90,
+    "SIDE": -1,
+    "FREE": 34,
+    "JF": 40,
+    "DJ": 45,
+    "UA": 46,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Sheik at 90%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "di": "no DI",
+    "PCT": 90,
+    "SIDE": 0,
+    "FREE": 36,
+    "JF": 36,
+    "DJ": 41,
+    "UA": 42,
+    "OVER": 56
+   }
+  },
+  {
+   "name": "Sheik at 90%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "di": "DI away",
+    "PCT": 90,
+    "SIDE": 1,
+    "FREE": 36,
+    "JF": 39,
+    "DJ": 999,
+    "UA": 43,
+    "OVER": 56
+   }
+  },
+  {
+   "name": "Sheik at 90%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "di": "DI behind Fox",
+    "PCT": 90,
+    "SIDE": -1,
+    "FREE": 36,
+    "JF": 42,
+    "DJ": 999,
+    "UA": 46,
+    "OVER": 56
+   }
+  },
+  {
+   "name": "Jigglypuff at 90%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "di": "no DI",
+    "PCT": 90,
+    "SIDE": 0,
+    "FREE": 24,
+    "JF": 24,
+    "DJ": 35,
+    "UA": 40,
+    "OVER": 53
+   }
+  },
+  {
+   "name": "Jigglypuff at 90%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "di": "DI away",
+    "PCT": 90,
+    "SIDE": 1,
+    "FREE": 24,
+    "JF": 27,
+    "DJ": 38,
+    "UA": 39,
+    "OVER": 53
+   }
+  },
+  {
+   "name": "Jigglypuff at 90%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "di": "DI behind Fox",
+    "PCT": 90,
+    "SIDE": -1,
+    "FREE": 24,
+    "JF": 27,
+    "DJ": 38,
+    "UA": 39,
+    "OVER": 53
+   }
+  },
+  {
+   "name": "Pikachu at 90%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "di": "no DI",
+    "PCT": 90,
+    "SIDE": 0,
+    "FREE": 32,
+    "JF": 32,
+    "DJ": 39,
+    "UA": 40,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Pikachu at 90%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "di": "DI away",
+    "PCT": 90,
+    "SIDE": 1,
+    "FREE": 32,
+    "JF": 38,
+    "DJ": 43,
+    "UA": 44,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Pikachu at 90%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "percent": 90,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           105,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         105,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "di": "DI behind Fox",
+    "PCT": 90,
+    "SIDE": -1,
+    "FREE": 32,
+    "JF": 38,
+    "DJ": 45,
+    "UA": 46,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Captain Falcon at 110%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -11,
+    "facing": "player",
+    "percent": 110,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           125,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         125,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "di": "no DI",
+    "PCT": 110,
+    "SIDE": 0,
+    "FREE": 41,
+    "JF": 41,
+    "DJ": 999,
+    "UA": 45,
+    "OVER": 59
+   }
+  },
+  {
+   "name": "Peach at 100%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -11,
+    "facing": "player",
+    "percent": 100,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           115,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         115,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "di": "no DI",
+    "PCT": 100,
+    "SIDE": 0,
+    "FREE": 36,
+    "JF": 36,
+    "DJ": 47,
+    "UA": 48,
+    "OVER": 57
+   }
+  },
+  {
+   "name": "Fox at 100%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 100,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           115,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         115,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "no DI",
+    "PCT": 100,
+    "SIDE": 0,
+    "FREE": 30,
+    "JF": 30,
+    "DJ": 999,
+    "UA": 34,
+    "OVER": 55
+   }
+  },
+  {
+   "name": "Falco at 100%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 100,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "percent": [
+           115,
+           999
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "percent": [
+         115,
+         999
+        ]
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       },
+       {
+        "do": "hold",
+        "pad": "stand"
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "no DI",
+    "PCT": 100,
+    "SIDE": 0,
+    "FREE": 32,
+    "JF": 32,
+    "DJ": 999,
+    "UA": 36,
+    "OVER": 56
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "up_throw"
+  },
+  "judge": [
+   "they_die",
+   "they_recover",
+   {
+    "frame": 240
+   }
+  ],
+  "cancel": [],
+  "limit": 260,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: no up throw. Grab with Z and press up."
+ },
+ "measures": {
+  "hit": {
+   "happened": {
+    "is": "connects",
+    "to": "uair"
+   }
+  },
+  "died": {
+   "happened": "they_die"
+  },
+  "at": {
+   "frame_of": {
+    "is": "connects",
+    "to": "uair"
+   }
+  }
+ },
+ "checks": {
+  "up air": {
+   "measure": "hit",
+   "equals": true,
+   "expect": "The up air hits before it can act",
+   "words": "the up air did not hit {opp} before it could act",
+   "headline": "No up air",
+   "fix": "Fox can act on frame {FREE} of the throw and {opp} on frame {OVER}. Jump at once, toward where it flies, with a second jump if it is high, and the C-stick up as Fox closes in."
+  },
+  "stock": {
+   "measure": "died",
+   "equals": true,
+   "expect": "The stock is taken",
+   "words": "{opp} survived at {PCT}%",
+   "headline": "It survived",
+   "fix": "The up air's second hit takes the stock: be right under {opp} when it comes out, not beside it, and do not fast fall out of the up air."
+  }
+ },
+ "verdict": {
+  "success": "Up air on frame {at}: {opp}'s stock at {PCT}%."
+ },
+ "parts": [
+  {
+   "name": "Straight up",
+   "teach": "{opp} at {PCT}% does not DI. Throw, jump on frame {FREE}, and the up air: both hits.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JF",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "DJ",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UA",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+    "JF": "Frame {JF}: X or Y, held: a full hop",
+    "UA": "Frame {UA}: the C-stick up. The up air"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "JF",
+      "JF+2"
+     ],
+     "words": "Jump now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "UA",
+      "UA+1"
+     ],
+     "words": "Up air now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "up air",
+    "stock"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    13,
+    14,
+    15
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Jump (X or Y)",
+      "button": "jump",
+      "perfect": [
+       "JF"
+      ],
+      "window": [
+       "JF",
+       "JF+2"
+      ]
+     },
+     {
+      "label": "Up air (C-stick up)",
+      "state": "uair",
+      "perfect": [
+       "UA"
+      ],
+      "window": [
+       "UA",
+       "UA+2"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+   }
+  },
+  {
+   "name": "Follow the DI",
+   "teach": "{opp} holds the stick to one side through the throw. Dash after it, jump, the stick toward it, and the up air.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JF",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "DJ",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UA",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+    "JF": "Frame {JF}: X or Y, held: a full hop",
+    "UA": "Frame {UA}: the C-stick up. The up air"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "JF",
+      "JF+2"
+     ],
+     "words": "Jump now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "UA",
+      "UA+1"
+     ],
+     "words": "Up air now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "up air",
+    "stock"
+   ],
+   "streak": 3,
+   "scenario": [
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Jump (X or Y)",
+      "button": "jump",
+      "perfect": [
+       "JF"
+      ],
+      "window": [
+       "JF",
+       "JF+2"
+      ]
+     },
+     {
+      "label": "Up air (C-stick up)",
+      "state": "uair",
+      "perfect": [
+       "UA"
+      ],
+      "window": [
+       "UA",
+       "UA+2"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+   }
+  },
+  {
+   "name": "Any DI",
+   "teach": "Straight up, away or behind Fox: watch where it flies and take the stock. Another opponent or DI every try.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JF",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "DJ",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UA",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it flies",
+    "JF": "Frame {JF}: X or Y, held: a full hop",
+    "UA": "Frame {UA}: the C-stick up. The up air"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "JF",
+      "JF+2"
+     ],
+     "words": "Jump now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "UA",
+      "UA+1"
+     ],
+     "words": "Up air now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "up air",
+    "stock"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    13,
+    14,
+    15,
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the jump 14 frames late",
+   "inputs": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": 40,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JF+14",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "JF+20",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "fails": "up air"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": [
+     "JF"
+    ],
+    "window": [
+     "JF",
+     "JF+2"
+    ]
+   },
+   {
+    "label": "Up air (C-stick up)",
+    "state": "uair",
+    "perfect": [
+     "UA"
+    ],
+    "window": [
+     "UA",
+     "UA+2"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+ }
+}
