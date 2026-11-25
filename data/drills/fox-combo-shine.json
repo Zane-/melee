@@ -13,7 +13,7 @@
   "seconds": 1
  },
  "tutorial": {
-  "what": "Take the jab, hold the stick down through the hitstun, and press B on the first frame Fox can act.",
+  "what": "The opponent plays footsies, then walks up and jabs. Take the jab, hold the stick down through the hitstun, and press B on the first frame Fox can act.",
   "expect": "Each string is judged when the shine hits, when the forward smash lands, or once the smash has missed: whether Fox shined, and how soon.",
   "example": [
    {
@@ -162,14 +162,70 @@
    },
    "opponent": {
     "character": "fox",
-    "x": -11,
+    "x": 37.1,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        14.1
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -178,12 +234,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         14.1
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -201,14 +293,70 @@
    },
    "opponent": {
     "character": "marth",
-    "x": -11,
+    "x": 36.8,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        13.8
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -217,12 +365,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         13.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -240,14 +424,70 @@
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": -11,
+    "x": 32.7,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        9.7
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -256,12 +496,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         9.7
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -279,14 +555,70 @@
    },
    "opponent": {
     "character": "falco",
-    "x": -11,
+    "x": 36.0,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        13.0
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -295,12 +627,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         13.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -318,14 +686,70 @@
    },
    "opponent": {
     "character": "sheik",
-    "x": -11,
+    "x": 34.8,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.8
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -334,12 +758,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -357,14 +817,70 @@
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": -11,
+    "x": 33.6,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        10.6
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -373,12 +889,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         10.6
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -396,14 +948,70 @@
    },
    "opponent": {
     "character": "peach",
-    "x": -11,
+    "x": 33.1,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        10.1
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -412,12 +1020,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         10.1
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -435,14 +1079,70 @@
    },
    "opponent": {
     "character": "pikachu",
-    "x": -11,
+    "x": 34.6,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.6
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -451,12 +1151,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.6
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -474,14 +1210,70 @@
    },
    "opponent": {
     "character": "yoshi",
-    "x": -11,
+    "x": 35.2,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        12.2
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -490,12 +1282,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         12.2
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -513,14 +1341,70 @@
    },
    "opponent": {
     "character": "samus",
-    "x": -11,
+    "x": 34.6,
     "facing": "player",
     "react": 15,
     "script": [
      {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.6
+       ]
+      }
+     },
+     {
       "do": "hold",
       "pad": "stand",
-      "for": 30
+      "for": 14
      },
      {
       "do": "move",
@@ -529,12 +1413,48 @@
      {
       "do": "move",
       "name": "fsmash"
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.6
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "jab"
+      },
+      {
+       "do": "move",
+       "name": "fsmash"
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -562,8 +1482,8 @@
    }
   ],
   "limit": 120,
-  "within": 120,
-  "missed": "Not counted: {opp}'s jab did not land. Stand still in front of it."
+  "within": 900,
+  "missed": "Not counted: {opp}'s jab did not land. Let it walk up, and take the jab."
  },
  "measures": {
   "out": {
@@ -623,7 +1543,7 @@
  "parts": [
   {
    "name": "Break the string",
-   "teach": "{opp} jabs, then forward smashes. Hold the stick down after the jab and press B before the smash lands.",
+   "teach": "{opp} walks up, jabs, then forward smashes. Hold the stick down after the jab and press B before the smash lands.",
    "example": [
     {
      "stick": [

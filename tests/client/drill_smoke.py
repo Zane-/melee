@@ -30,6 +30,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 import client  # noqa: E402
 import courses  # noqa: E402
+import screens  # noqa: E402
 import window  # noqa: E402
 from pausekeys import Chooser  # noqa: E402
 
@@ -217,9 +218,10 @@ def main():
             else None
         tap("x")
         if c.screen == "cats":
-            # (Tech skill: its categories first)
-            for _ in range(4):
-                if args.drill in [d["id"] for d in c.drills()]:
+            # (Tech skill: its categories first; the one the drill is in)
+            for _ in range(len(c.cats())):
+                if args.drill in [d["id"] for d in screens.in_category(
+                        c.course, part, c.cats()[c.cat_at])]:
                     break
                 tap("Down")
             tap("x")

@@ -14,7 +14,7 @@
  },
  "tutorial": {
   "what": "When the opponent jumps at Fox: X or Y, then R with the stick back and a little down as he leaves the ground. As its aerial misses, dash in: X or Y and then Z, the jump-cancelled grab.",
-  "expect": "A try begins when the opponent starts its aerial and is judged when Fox grabs or hits it, when it hits Fox or his shield, or when it can act again. It jumps in after a wait that changes from try to try.",
+  "expect": "A try begins when the opponent starts its aerial and is judged when Fox grabs or hits it, when it hits Fox or his shield, or when it can act again. The opponent plays footsies for a while, then walks up to its range and jumps in.",
   "example": [
    {
     "press": "jump",
@@ -242,7 +242,7 @@
    },
    "opponent": {
     "character": "fox",
-    "x": 4,
+    "x": 37.1,
     "facing": "player",
     "script": [
      {
@@ -251,9 +251,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -261,34 +264,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        29.1
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         29.1
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -299,70 +359,6 @@
    }
   },
   {
-   "name": "Marth",
-   "stage": "final-destination",
-   "player": {
-    "x": -20
-   },
-   "opponent": {
-    "character": "marth",
-    "x": 4,
-    "facing": "player",
-    "script": [
-     {
-      "mix": [
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 80
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
-     },
-     {
-      "do": "hold",
-      "pad": "stand"
-     }
-    ]
-   },
-   "camera": "normal",
-   "numbers": {
-    "opp": "Marth",
-    "attack": "forward air",
-    "GO": 18,
-    "FREE": 67
-   }
-  },
-  {
    "name": "Jigglypuff",
    "stage": "final-destination",
    "player": {
@@ -370,7 +366,7 @@
    },
    "opponent": {
     "character": "jigglypuff",
-    "x": 10,
+    "x": 32.9,
     "facing": "player",
     "script": [
      {
@@ -379,9 +375,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -389,34 +388,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        30.9
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         30.9
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -434,7 +490,7 @@
    },
    "opponent": {
     "character": "falco",
-    "x": 10,
+    "x": 35.4,
     "facing": "player",
     "script": [
      {
@@ -443,9 +499,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -453,34 +512,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_dair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        33.4
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_dair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         33.4
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -498,7 +614,7 @@
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": 10,
+    "x": 33.5,
     "facing": "player",
     "script": [
      {
@@ -507,9 +623,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -517,34 +636,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        31.5
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         31.5
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -562,7 +738,7 @@
    },
    "opponent": {
     "character": "peach",
-    "x": 4,
+    "x": 33.2,
     "facing": "player",
     "script": [
      {
@@ -571,9 +747,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -581,34 +760,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        25.2
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         25.2
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -626,7 +862,7 @@
    },
    "opponent": {
     "character": "ice-climbers",
-    "x": 4,
+    "x": 35.8,
     "facing": "player",
     "script": [
      {
@@ -635,9 +871,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -645,34 +884,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        27.8
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         27.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -690,7 +986,7 @@
    },
    "opponent": {
     "character": "pikachu",
-    "x": 4,
+    "x": 34.6,
     "facing": "player",
     "script": [
      {
@@ -699,9 +995,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -709,34 +1008,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        26.6
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         26.6
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -754,7 +1110,7 @@
    },
    "opponent": {
     "character": "yoshi",
-    "x": 10,
+    "x": 35.3,
     "facing": "player",
     "script": [
      {
@@ -763,9 +1119,12 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 30
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
          }
         ]
        },
@@ -773,34 +1132,91 @@
         "weight": 1,
         "steps": [
          {
-          "do": "hold",
-          "pad": "stand",
-          "for": 55
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "hold",
-          "pad": "stand",
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
           "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
          }
         ]
        }
       ]
      },
      {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        33.3
+       ]
+      }
      },
      {
       "do": "hold",
-      "pad": "stand"
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
      }
-    ]
+    ],
+    "loop": true,
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         33.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
    },
    "camera": "normal",
    "numbers": {
@@ -830,8 +1246,8 @@
   "cancel": [],
   "limit": 150,
   "timeout": "judge",
-  "within": 300,
-  "missed": "Not counted: it did not jump in. Stand where you are and wait for it."
+  "within": 900,
+  "missed": "Not counted: it did not jump in. Hold your ground: it walks up to its range and jumps."
  },
  "measures": {
   "was_hit": {
@@ -969,8 +1385,7 @@
     4,
     5,
     6,
-    7,
-    8
+    7
    ],
    "success": "It missed.",
    "coach": {
@@ -1109,8 +1524,7 @@
     4,
     5,
     6,
-    7,
-    8
+    7
    ]
   }
  ],

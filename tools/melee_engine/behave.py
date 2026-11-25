@@ -205,6 +205,57 @@ class Hold(Behaviour):
         return [self.step(st)] * k
 
 
+class Press(Behaviour):
+    """Plays inputs by frame (`inputs`: [{"press": "A", "frame": N, "hold":
+    H}, {"stick": [toward the player, up], ...}, {"cstick": [...], ...}],
+    frame 1 this step's first): an attack played the same way every time,
+    from where it stands (a drill measured against that one hit), or one
+    the engine has no move for. Over after the last of them."""
+    name = "press"
+    BUTTONS = {"A": 0x100, "B": 0x200, "X": 0x400, "Y": 0x800, "Z": 0x10}
+
+    def __init__(self, ctx, spec):
+        super().__init__(ctx, spec)
+        self.inputs = spec["inputs"]
+        self.end = max(i["frame"] + i.get("hold", 1) - 1
+                       for i in self.inputs)
+
+    def step(self, st):
+        n = self.frame + 1
+        way = toward(st, self.ctx.port, self.ctx.target) \
+            if st["p"][self.ctx.port] is not None and \
+            st["p"][self.ctx.target] is not None else 1
+        b = lx = ly = cx = cy = 0
+        for i in self.inputs:
+            if not i["frame"] <= n < i["frame"] + i.get("hold", 1):
+                continue
+            if "press" in i:
+                b |= self.BUTTONS[i["press"]]
+            elif "stick" in i:
+                lx = self._axis(i["stick"][0]) * way
+                ly = self._axis(i["stick"][1])
+            else:
+                cx = self._axis(i["cstick"][0]) * way
+                cy = self._axis(i["cstick"][1])
+        if n >= self.end:
+            self.done = True
+        return (b, lx, ly, cx, cy, 0, 0)
+
+    @staticmethod
+    def _axis(part):
+        """A stick value of a drill's inputs (1: all the way) as the pad's
+        (80: all the way), as the course runtime plays an opponent's
+        "inputs" (engine.cpu_axis): 0.63 is 50, a tilt; 80 would be a
+        smash."""
+        v = int(round(127 * part))
+        return 0 if v == 0 else int(round(
+            abs(v) * 80.0 / (127.0 if v > 0 else 128.0))) * (1 if v > 0
+                                                             else -1)
+
+    def plan(self, st, k):
+        return [NONE] * k
+
+
 class Jump(Behaviour):
     """Presses jump now, the stick held (`stick`: [toward the player, up],
     [-1, 0] by default: away): a jump from the ground, a double jump in the
@@ -1866,7 +1917,7 @@ class Recover(Behaviour):
 # ---- the table --------------------------------------------------------------
 
 BEHAVIOURS = {
-    "hold": Hold, "jump": Jump, "oos": Oos, "tech": Tech,
+    "hold": Hold, "jump": Jump, "press": Press, "oos": Oos, "tech": Tech,
     "footsies": Footsies,
     "retreat": Retreat,
     "approach": Approach, "move": Move, "punish": Punish,
@@ -1886,8 +1937,28 @@ def _moves(v):
     return isinstance(v, str) and v != "" and not unknown_moves(v)
 
 
+def _presses(v):
+    """`press`'s inputs: each one of a button, the stick or the C-stick,
+    on a frame from 1, held a frame or more."""
+    def axis(a):
+        return isinstance(a, list) and len(a) == 2 and all(
+            isinstance(x, (int, float)) and -1 <= x <= 1 for x in a)
+    return isinstance(v, list) and len(v) > 0 and all(
+        isinstance(i, dict) and
+        sum(k in i for k in ("press", "stick", "cstick")) == 1 and
+        set(i) <= {"press", "stick", "cstick", "frame", "hold"} and
+        i.get("press", "A") in Press.BUTTONS and
+        axis(i.get("stick", [0, 0])) and axis(i.get("cstick", [0, 0])) and
+        isinstance(i.get("frame"), int) and i["frame"] >= 1 and
+        isinstance(i.get("hold", 1), int) and i.get("hold", 1) >= 1
+        for i in v)
+
+
 # each behaviour's own keys: a check of the value, and what it says
 PARAMS = {
+    "press": {"inputs": (_presses, "inputs by frame: press A B X Y or Z, "
+                                   "stick or cstick [toward the player, "
+                                   "up], frame from 1, hold")},
     "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch"),
              "stick": (lambda v: isinstance(v, list) and len(v) == 2 and
                        all(isinstance(x, (int, float)) and -1 <= x <= 1
@@ -1952,7 +2023,8 @@ PARAMS = {
                 "adapt": (lambda v: isinstance(v, bool), "true or false"),
                 "predict": (lambda v: isinstance(v, bool), "true or false")},
 }
-REQUIRED = {"approach": ("moves",), "move": ("name",)}
+REQUIRED = {"approach": ("moves",), "move": ("name",),
+            "press": ("inputs",)}
 
 
 def make(ctx, spec):

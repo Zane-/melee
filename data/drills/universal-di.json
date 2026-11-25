@@ -1,1173 +1,2732 @@
 {
-  "id": "universal-di",
-  "name": "Directional Influence (DI)",
-  "part": "tech",
-  "characters": "all",
-  "goal": "Change your launch angle with the control stick",
-  "why": "DI sets the direction a hit launches you. Against a strong sideways hit, holding the control stick up and toward the stage raises the launch angle by up to 18 degrees, so {char} reaches the side blast zone later and survives to a higher percent; against an upward hit, holding it to the side turns the launch away from the top. With no DI the same hit kills earlier.",
-  "tutorial": {
-    "what": "DI is the control stick's direction on the last frame of hitlag. The game turns the launch angle toward it by up to 18 degrees.",
-    "expect": "Each hit is judged on the first frame of the launch: whether the control stick was held on the last frame of hitlag, and the angle {char} moved at. Gravity makes that angle a few degrees lower than the hit's own.",
-    "example": [
-      {
+ "id": "universal-di",
+ "name": "Directional Influence (DI)",
+ "part": "tech",
+ "characters": "all",
+ "goal": "Change your launch angle with the control stick",
+ "why": "DI sets the direction a hit launches you. Against a strong sideways hit, holding the control stick up and toward the stage raises the launch angle by up to 18 degrees, so {char} reaches the side blast zone later and survives to a higher percent; against an upward hit, holding it to the side turns the launch away from the top. With no DI the same hit kills earlier.",
+ "tutorial": {
+  "what": "DI is the control stick's direction on the last frame of hitlag. The game turns the launch angle toward it by up to 18 degrees.",
+  "expect": "{opp} plays footsies for a while, then walks up and attacks. Each hit is judged on the first frame of the launch: whether the control stick was held on the last frame of hitlag, and the angle {char} moved at. Gravity makes that angle a few degrees lower than the hit's own.",
+  "example": [
+   {
+    "stick": [
+     "DX",
+     "DY"
+    ],
+    "frame": "HIT+1",
+    "hold": "HL+4"
+   }
+  ],
+  "marks": {
+   "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
+   "HIT+1": "Frame {HIT+1}: the control stick is held {way}",
+   "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The game reads the stick",
+   "HIT+HL": "Frame {HIT+HL}: launched at about {FULL} degrees instead of {ANGLE}"
+  },
+  "lessons": [
+   {
+    "title": "Hitlag",
+    "text": [
+     "When a hit connects, both fighters freeze: hitlag. Its length comes from the hit's damage: a third of the damage plus 3 frames, rounded down. The opponent's forward smash deals 15, so hitlag lasts 8 frames.",
+     "{char} cannot move during hitlag, but the game still reads the control stick. Knockback starts on the frame after hitlag."
+    ],
+    "show": {
+     "still": {
+      "inputs": [
+       {
         "stick": [
-          "DX",
-          "DY"
+         0,
+         0
         ],
-        "frame": "HIT+1",
-        "hold": "HL+4"
+        "frame": 1,
+        "hold": 1
+       }
+      ],
+      "frame": 15,
+      "cue": {
+       "words": "Hitlag: 8 frames",
+       "kind": "info"
       }
+     }
+    }
+   },
+   {
+    "title": "How DI works",
+    "text": [
+     "The game reads the control stick on the last frame of hitlag and turns the launch angle toward it by 18 degrees times the square of the stick's component perpendicular to the launch. Perpendicular gives all 18; along the launch line, none.",
+     "The forward smash launches {char} at 44 degrees. Up and toward the opponent is perpendicular to that and turns it to about 62. Straight up, 46 degrees off the line, turns it about 9."
     ],
-    "marks": {
-      "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
-      "HIT+1": "Frame {HIT+1}: the control stick is held {way}",
-      "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The game reads the stick",
-      "HIT+HL": "Frame {HIT+HL}: launched at about {FULL} degrees instead of {ANGLE}"
-    },
-    "lessons": [
-      {
-        "title": "Hitlag",
-        "text": [
-          "When a hit connects, both fighters freeze: hitlag. Its length comes from the hit's damage: a third of the damage plus 3 frames, rounded down. The opponent's forward smash deals 15, so hitlag lasts 8 frames.",
-          "{char} cannot move during hitlag, but the game still reads the control stick. Knockback starts on the frame after hitlag."
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0.7071,
+         0.7071
         ],
-        "show": {
-          "still": {
-            "inputs": [
-              {
-                "stick": [
-                  0,
-                  0
-                ],
-                "frame": 1,
-                "hold": 1
-              }
-            ],
-            "frame": 15,
-            "cue": {
-              "words": "Hitlag: 8 frames",
-              "kind": "info"
-            }
-          }
-        }
-      },
-      {
-        "title": "How DI works",
-        "text": [
-          "The game reads the control stick on the last frame of hitlag and turns the launch angle toward it by 18 degrees times the square of the stick's component perpendicular to the launch. Perpendicular gives all 18; along the launch line, none.",
-          "The forward smash launches {char} at 44 degrees. Up and toward the opponent is perpendicular to that and turns it to about 62. Straight up, 46 degrees off the line, turns it about 9."
-        ],
-        "show": {
-          "example": {
-            "inputs": [
-              {
-                "stick": [
-                  0.7071,
-                  0.7071
-                ],
-                "frame": 13,
-                "hold": 12
-              }
-            ],
-            "marks": {
-              "12": "Frame 12: the forward smash hits. Hitlag begins",
-              "13": "Frame {f}: hitlag. The stick is held up and toward the opponent",
-              "19": "Frame 19: the last frame of hitlag. The game reads the stick",
-              "20": "Frame 20: launched about 18 degrees higher than with no DI"
-            },
-            "cues": [
-              {
-                "frames": [
-                  12,
-                  18
-                ],
-                "words": "Hitlag: hold the stick up and toward the opponent",
-                "kind": "info"
-              },
-              {
-                "frames": [
-                  19,
-                  19
-                ],
-                "words": "Last frame of hitlag: the stick is read now",
-                "kind": "go"
-              },
-              {
-                "frames": [
-                  20,
-                  21
-                ],
-                "words": "Launched: too late to DI",
-                "kind": "late"
-              },
-              {
-                "frames": [
-                  22,
-                  45
-                ],
-                "words": "Launched",
-                "kind": "info"
-              }
-            ]
-          }
-        }
-      },
-      {
-        "title": "Upward hits",
-        "text": [
-          "Fox's up smash launches {char} at 80 degrees: nearly straight up, leaning away from Fox. Perpendicular to that is to the side.",
-          "Held away from Fox, the control stick turns the launch about 18 degrees lower, away from the top blast zone. Held up or down, along the launch, it turns nothing. Every hit has its own angle, and its own DI."
-        ],
-        "scenario": 1,
-        "show": {
-          "example": {
-            "inputs": [
-              {
-                "stick": [
-                  -1,
-                  0
-                ],
-                "frame": 13,
-                "hold": 13
-              }
-            ],
-            "marks": {
-              "12": "Frame 12: the up smash hits. Hitlag: 9 frames",
-              "13": "Frame {f}: hitlag. The stick is held away from Fox",
-              "20": "Frame 20: the last frame of hitlag. The game reads the stick",
-              "21": "Frame 21: launched lower than the up smash's 80 degrees"
-            },
-            "cues": [
-              {
-                "frames": [
-                  12,
-                  19
-                ],
-                "words": "Hitlag: hold the stick away from Fox",
-                "kind": "info"
-              },
-              {
-                "frames": [
-                  20,
-                  20
-                ],
-                "words": "Last frame of hitlag: the stick is read now",
-                "kind": "go"
-              },
-              {
-                "frames": [
-                  21,
-                  22
-                ],
-                "words": "Launched: too late to DI",
-                "kind": "late"
-              },
-              {
-                "frames": [
-                  23,
-                  45
-                ],
-                "words": "Launched",
-                "kind": "info"
-              }
-            ]
-          }
-        }
-      }
-    ]
-  },
-  "scenarios": [
-    {
-      "name": "Fox's forward smash at 110%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 110
-      },
-      "opponent": {
-        "character": "fox",
-        "x": -8,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 14,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Fox's forward smash",
-        "opp": "Fox",
-        "HIT": 12,
-        "HL": 8,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Fox",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Fox, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Fox's up smash at 80%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 80
-      },
-      "opponent": {
-        "character": "fox",
-        "x": -12,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              1
-            ],
-            "frame": 19,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Fox's up smash",
-        "opp": "Fox",
-        "HIT": 12,
-        "HL": 9,
-        "ANGLE": 80,
-        "FULL": 62,
-        "DX": -1,
-        "DY": 0,
-        "HX": -0.7071,
-        "HY": 0.7071,
-        "WX": 0,
-        "WY": 1,
-        "LO": 0,
-        "HI": 76,
-        "FLO": 0,
-        "FHI": 68,
-        "way": "away from Fox",
-        "turn": "lower, away from the top blast zone",
-        "wrong": "Held up or down, along the launch, it turns nothing."
-      }
-    },
-    {
-      "name": "Fox's down smash at 155%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 155
-      },
-      "opponent": {
-        "character": "fox",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              -1
-            ],
-            "frame": 20,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Fox's down smash",
-        "opp": "Fox",
-        "HIT": 12,
-        "HL": 8,
-        "ANGLE": 25,
-        "FULL": 38,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": -0.342,
-        "HY": 0.9397,
-        "WX": -1,
-        "WY": 0,
-        "LO": 25,
-        "HI": 90,
-        "FLO": 35,
-        "FHI": 90,
-        "way": "up and toward Fox",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Fox, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Marth's forward smash at 135%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 135
-      },
-      "opponent": {
-        "character": "marth",
-        "x": -4,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 16,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Marth's forward smash",
-        "opp": "Marth",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Marth",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Marth, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Jigglypuff's forward smash at 85%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 85
-      },
-      "opponent": {
-        "character": "jigglypuff",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 14,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Jigglypuff's forward smash",
-        "opp": "Jigglypuff",
-        "HIT": 12,
-        "HL": 8,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Jigglypuff",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Jigglypuff, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Jigglypuff's back air at 150%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 150
-      },
-      "opponent": {
-        "character": "jigglypuff",
-        "x": -10,
-        "facing": "away",
-        "inputs": [
-          {
-            "press": "X",
-            "frame": 12,
-            "hold": 1
-          },
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 17,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Jigglypuff's back air",
-        "opp": "Jigglypuff",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Jigglypuff",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Jigglypuff, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Falco's forward smash at 95%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 95
-      },
-      "opponent": {
-        "character": "falco",
-        "x": -4,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 14,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Falco's forward smash",
-        "opp": "Falco",
-        "HIT": 12,
-        "HL": 8,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Falco",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Falco, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Falco's down smash at 135%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 135
-      },
-      "opponent": {
-        "character": "falco",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              -1
-            ],
-            "frame": 20,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Falco's down smash",
-        "opp": "Falco",
-        "HIT": 12,
-        "HL": 8,
-        "ANGLE": 25,
-        "FULL": 38,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": -0.342,
-        "HY": 0.9397,
-        "WX": -1,
-        "WY": 0,
-        "LO": 25,
-        "HI": 90,
-        "FLO": 35,
-        "FHI": 90,
-        "way": "up and toward Falco",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Falco, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Falco's up smash at 130%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 130
-      },
-      "opponent": {
-        "character": "falco",
-        "x": -12,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              1
-            ],
-            "frame": 19,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Falco's up smash",
-        "opp": "Falco",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 85,
-        "FULL": 67,
-        "DX": 1,
-        "DY": 0,
-        "HX": 0.7071,
-        "HY": 0.7071,
-        "WX": 0,
-        "WY": 1,
-        "LO": 0,
-        "HI": 81,
-        "FLO": 0,
-        "FHI": 72,
-        "way": "toward Falco",
-        "turn": "lower, away from the top blast zone",
-        "wrong": "Held up or down, along the launch, it turns nothing."
-      }
-    },
-    {
-      "name": "Sheik's up smash at 128%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 128
-      },
-      "opponent": {
-        "character": "sheik",
-        "x": -12,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              1
-            ],
-            "frame": 12,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Sheik's up smash",
-        "opp": "Sheik",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 90,
-        "FULL": 70,
-        "DX": -1,
-        "DY": 0,
-        "HX": -0.7071,
-        "HY": 0.7071,
-        "WX": 0,
-        "WY": 1,
-        "LO": 0,
-        "HI": 84,
-        "FLO": 0,
-        "FHI": 75,
-        "way": "away from Sheik",
-        "turn": "lower, away from the top blast zone",
-        "wrong": "Held up or down, along the launch, it turns nothing."
-      }
-    },
-    {
-      "name": "Sheik's down smash at 145%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 145
-      },
-      "opponent": {
-        "character": "sheik",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              -1
-            ],
-            "frame": 21,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Sheik's down smash",
-        "opp": "Sheik",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 40,
-        "FULL": 56,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 43,
-        "HI": 90,
-        "FLO": 52,
-        "FHI": 90,
-        "way": "up and toward Sheik",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Sheik, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Captain Falcon's forward smash at 78%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 78
-      },
-      "opponent": {
-        "character": "captain-falcon",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              1,
-              0
-            ],
-            "frame": 8,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Captain Falcon's forward smash",
-        "opp": "Captain Falcon",
-        "HIT": 12,
-        "HL": 9,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Captain Falcon",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Captain Falcon, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Captain Falcon's down smash at 85%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 85
-      },
-      "opponent": {
-        "character": "captain-falcon",
-        "x": -8,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              -1
-            ],
-            "frame": 7,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Captain Falcon's down smash",
-        "opp": "Captain Falcon",
-        "HIT": 12,
-        "HL": 9,
-        "ANGLE": 44,
-        "FULL": 60,
-        "DX": 0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": -1,
-        "WY": 0,
-        "LO": 47,
-        "HI": 90,
-        "FLO": 56,
-        "FHI": 90,
-        "way": "up and toward Captain Falcon",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or away from Captain Falcon, it turns the launch lower, toward the side blast zone."
-      }
-    },
-    {
-      "name": "Peach's down smash at 145%",
-      "stage": "final-destination",
-      "player": {
-        "x": -20,
-        "percent": 145
-      },
-      "opponent": {
-        "character": "peach",
-        "x": -10,
-        "facing": "player",
-        "inputs": [
-          {
-            "cstick": [
-              0,
-              -1
-            ],
-            "frame": 21,
-            "hold": 2
-          }
-        ]
-      },
-      "camera": "normal",
-      "trace": "di",
-      "numbers": {
-        "move": "Peach's down smash",
-        "opp": "Peach",
-        "HIT": 12,
-        "HL": 7,
-        "ANGLE": 40,
-        "FULL": 56,
-        "DX": -0.7071,
-        "DY": 0.7071,
-        "HX": 0,
-        "HY": 1,
-        "WX": 1,
-        "WY": 0,
-        "LO": 43,
-        "HI": 90,
-        "FLO": 52,
-        "FHI": 90,
-        "way": "up and away from Peach",
-        "turn": "higher, away from the side blast zone",
-        "wrong": "Held down or toward Peach, it turns the launch lower, toward the side blast zone."
-      }
-    }
-  ],
-  "attempt": {
-    "start": "hit",
-    "judge": {
-      "frame": 28
-    },
-    "within": "HIT+26",
-    "missed": "Not counted: {move} missed. Stand still in front of {opp}."
-  },
-  "measures": {
-    "launch": {
-      "angle": "velocity",
-      "at": "hitlag_end",
-      "from_horizontal": true
-    },
-    "stick": {
-      "angle": "stick",
-      "at": "hitlag_last"
-    },
-    "hitlag": {
-      "frames_while": "hitlag",
-      "from": "start"
-    }
-  },
-  "verdict": {
-    "success": "Launched at {launch} degrees."
-  },
-  "checks": {
-    "stick held": {
-      "measure": "stick",
-      "at_least": -180,
-      "expect": "Control stick held on the last frame of hitlag",
-      "words": "the control stick was in neutral on the last frame of hitlag",
-      "headline": "No DI",
-      "fix": "Tilt the control stick during hitlag and keep it there until {char} is launched. The game reads it only on the last frame of hitlag; a stick let go before then is no DI."
-    },
-    "raised": {
-      "measure": "launch",
-      "within": [
-        "LO",
-        "HI"
-      ],
-      "expect": "Launch turned the way that survives",
-      "words": "launched at {launch} degrees; about {ANGLE} with no DI",
-      "headline": "DI the wrong way",
-      "fix": "Hold the control stick {way}: it turns the launch {turn}. {wrong}"
-    },
-    "full DI": {
-      "measure": "launch",
-      "within": [
-        "FLO",
-        "FHI"
-      ],
-      "expect": "Launch turned most of the 18 degrees",
-      "words": "launched at {launch} degrees; full DI gives about {FULL}",
-      "headline": "Not perpendicular",
-      "fix": "Hold the control stick {way}, perpendicular to the launch. A stick 45 degrees off it gives about half of the 18 degrees."
-    }
-  },
-  "parts": [
-    {
-      "name": "Hitlag",
-      "teach": "Stand still and take {move}. {char} freezes for {HL} frames of hitlag, then flies away at {ANGLE} degrees.",
-      "example": [
-        {
-          "stick": [
-            0,
-            0
-          ],
-          "frame": 1,
-          "hold": 1
-        }
+        "frame": 13,
+        "hold": 12
+       }
       ],
       "marks": {
-        "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
-        "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag",
-        "HIT+HL": "Frame {HIT+HL}: launched at {ANGLE} degrees"
+       "12": "Frame 12: the forward smash hits. Hitlag begins",
+       "13": "Frame {f}: hitlag. The stick is held up and toward the opponent",
+       "19": "Frame 19: the last frame of hitlag. The game reads the stick",
+       "20": "Frame 20: launched about 18 degrees higher than with no DI"
       },
       "cues": [
-        {
-          "frames": [
-            "HIT",
-            "HIT+HL-1"
-          ],
-          "words": "Hitlag",
-          "kind": "info"
-        },
-        {
-          "frames": [
-            "HIT+HL",
-            "HIT+HL+25"
-          ],
-          "words": "Launched",
-          "kind": "info"
-        }
-      ],
-      "checks": [],
-      "success": "Hit: {hitlag_frames} of hitlag, then launched at {launch} degrees.",
-      "streak": 1,
-      "scenario": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13
-      ]
-    },
-    {
-      "name": "Hold the stick until hitlag ends",
-      "teach": "Once {char} freezes, tilt the control stick and keep it there until {char} flies. The game reads the stick only on the last frame of hitlag, and the launch angle changes.",
-      "example": [
-        {
-          "stick": [
-            "DX",
-            "DY"
-          ],
-          "frame": "HIT+1",
-          "hold": "HL+4"
-        }
-      ],
-      "marks": {
-        "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
-        "HIT+1": "Frame {HIT+1}: the control stick is tilted and held",
-        "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The stick is read",
-        "HIT+HL": "Frame {HIT+HL}: launched at a new angle"
-      },
-      "cues": [
-        {
-          "frames": [
-            "HIT",
-            "HIT+HL-2"
-          ],
-          "words": "Hitlag: tilt the stick and hold it",
-          "kind": "info"
-        },
-        {
-          "frames": [
-            "HIT+HL-1",
-            "HIT+HL-1"
-          ],
-          "words": "Last frame of hitlag: the stick is read now",
-          "kind": "go"
-        },
-        {
-          "frames": [
-            "HIT+HL",
-            "HIT+HL+1"
-          ],
-          "words": "Launched: too late to DI",
-          "kind": "late"
-        },
-        {
-          "frames": [
-            "HIT+HL+2",
-            "HIT+HL+25"
-          ],
-          "words": "Launched",
-          "kind": "info"
-        }
-      ],
-      "checks": [
-        "stick held"
-      ],
-      "success": "DI held: launched at {launch} degrees.",
-      "streak": 3,
-      "scenario": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13
-      ]
-    },
-    {
-      "name": "Perpendicular to the launch",
-      "teach": "Hold the control stick {way}, perpendicular to the launch. The launch turns the full 18 degrees, from {ANGLE} to about {FULL}.",
-      "example": [
-        {
-          "stick": [
-            "DX",
-            "DY"
-          ],
-          "frame": "HIT+1",
-          "hold": "HL+4"
-        }
-      ],
-      "marks": {
-        "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
-        "HIT+1": "Frame {HIT+1}: the control stick is held {way}",
-        "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The stick is read",
-        "HIT+HL": "Frame {HIT+HL}: launched at about {FULL} degrees"
-      },
-      "cues": [
-        {
-          "frames": [
-            "HIT",
-            "HIT+HL-2"
-          ],
-          "words": "Hitlag: hold the stick {way}",
-          "kind": "info"
-        },
-        {
-          "frames": [
-            "HIT+HL-1",
-            "HIT+HL-1"
-          ],
-          "words": "Last frame of hitlag: the stick is read now",
-          "kind": "go"
-        },
-        {
-          "frames": [
-            "HIT+HL",
-            "HIT+HL+1"
-          ],
-          "words": "Launched: too late to DI",
-          "kind": "late"
-        },
-        {
-          "frames": [
-            "HIT+HL+2",
-            "HIT+HL+25"
-          ],
-          "words": "Launched",
-          "kind": "info"
-        }
-      ],
-      "checks": [
-        "stick held",
-        "raised",
-        "full DI"
-      ],
-      "success": "Survival DI: launched at {launch} degrees.",
-      "streak": 5,
-      "scenario": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13
-      ]
-    }
-  ],
-  "mistakes": [
-    {
-      "name": "no DI",
-      "inputs": [
-        {
-          "stick": [
-            0,
-            0
-          ],
-          "frame": 1,
-          "hold": 1
-        }
-      ],
-      "fails": "stick held"
-    },
-    {
-      "name": "let go before the last frame of hitlag",
-      "inputs": [
-        {
-          "stick": [
-            "DX",
-            "DY"
-          ],
-          "frame": "HIT+1",
-          "hold": "HL-3"
-        }
-      ],
-      "fails": "stick held"
-    },
-    {
-      "name": "DI the wrong way (away from a sideways launch, along an upward one)",
-      "inputs": [
-        {
-          "stick": [
-            "WX",
-            "WY"
-          ],
-          "frame": "HIT+1",
-          "hold": "HL+4"
-        }
-      ],
-      "fails": "raised"
-    },
-    {
-      "name": "45 degrees off the perpendicular",
-      "inputs": [
-        {
-          "stick": [
-            "HX",
-            "HY"
-          ],
-          "frame": "HIT+1",
-          "hold": "HL+4"
-        }
-      ],
-      "fails": "full DI"
-    }
-  ],
-  "coach": {
-    "rows": [
-      {
-        "label": "Stick held",
-        "stick": "side",
-        "perfect": [
-          2
+       {
+        "frames": [
+         12,
+         18
         ],
-        "window": [
+        "words": "Hitlag: hold the stick up and toward the opponent",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         19,
+         19
+        ],
+        "words": "Last frame of hitlag: the stick is read now",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         20,
+         21
+        ],
+        "words": "Launched: too late to DI",
+        "kind": "late"
+       },
+       {
+        "frames": [
+         22,
+         45
+        ],
+        "words": "Launched",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Upward hits",
+    "text": [
+     "Fox's up smash launches {char} at 80 degrees: nearly straight up, leaning away from Fox. Perpendicular to that is to the side.",
+     "Held away from Fox, the control stick turns the launch about 18 degrees lower, away from the top blast zone. Held up or down, along the launch, it turns nothing. Every hit has its own angle, and its own DI."
+    ],
+    "scenario": 1,
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         -1,
+         0
+        ],
+        "frame": 13,
+        "hold": 13
+       }
+      ],
+      "marks": {
+       "12": "Frame 12: the up smash hits. Hitlag: 9 frames",
+       "13": "Frame {f}: hitlag. The stick is held away from Fox",
+       "20": "Frame 20: the last frame of hitlag. The game reads the stick",
+       "21": "Frame 21: launched lower than the up smash's 80 degrees"
+      },
+      "cues": [
+       {
+        "frames": [
+         12,
+         19
+        ],
+        "words": "Hitlag: hold the stick away from Fox",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         20,
+         20
+        ],
+        "words": "Last frame of hitlag: the stick is read now",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         21,
+         22
+        ],
+        "words": "Launched: too late to DI",
+        "kind": "late"
+       },
+       {
+        "frames": [
+         23,
+         45
+        ],
+        "words": "Launched",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox's forward smash at 110%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 110
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 36.5,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        16.5
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         16.5
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
           1,
-          "HL"
-        ]
+          0
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
       }
-    ],
-    "note": "Frame 1 is the hit. Hitlag lasts {HL} frames; the stick is read on frame {HL}, the last of them."
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Fox's forward smash",
+    "opp": "Fox",
+    "HIT": 85,
+    "HL": 8,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Fox",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Fox, it turns the launch lower, toward the side blast zone."
+   }
   },
-  "switch": "success"
+  {
+   "name": "Fox's up smash at 80%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 80
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 36.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        12.3
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         12.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Fox's up smash",
+    "opp": "Fox",
+    "HIT": 85,
+    "HL": 9,
+    "ANGLE": 80,
+    "FULL": 62,
+    "DX": -1,
+    "DY": 0,
+    "HX": -0.7071,
+    "HY": 0.7071,
+    "WX": 0,
+    "WY": 1,
+    "LO": 0,
+    "HI": 76,
+    "FLO": 0,
+    "FHI": 68,
+    "way": "away from Fox",
+    "turn": "lower, away from the top blast zone",
+    "wrong": "Held up or down, along the launch, it turns nothing."
+   }
+  },
+  {
+   "name": "Fox's down smash at 155%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 155
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 37.2,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        15.2
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         15.2
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Fox's down smash",
+    "opp": "Fox",
+    "HIT": 86,
+    "HL": 8,
+    "ANGLE": 25,
+    "FULL": 38,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": -0.342,
+    "HY": 0.9397,
+    "WX": -1,
+    "WY": 0,
+    "LO": 25,
+    "HI": 90,
+    "FLO": 35,
+    "FHI": 90,
+    "way": "up and toward Fox",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Fox, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Marth's forward smash at 135%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 135
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 38.1,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        22.1
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         22.1
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          1,
+          0
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Marth's forward smash",
+    "opp": "Marth",
+    "HIT": 91,
+    "HL": 7,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Marth",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Marth, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Jigglypuff's forward smash at 85%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 85
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 33.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.0
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          1,
+          0
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Jigglypuff's forward smash",
+    "opp": "Jigglypuff",
+    "HIT": 145,
+    "HL": 8,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Jigglypuff",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Jigglypuff, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Jigglypuff's back air at 150%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 150
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 33.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.0
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "press": "X",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 6,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "press": "X",
+         "frame": 1,
+         "hold": 1
+        },
+        {
+         "cstick": [
+          1,
+          0
+         ],
+         "frame": 6,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Jigglypuff's back air",
+    "opp": "Jigglypuff",
+    "HIT": 145,
+    "HL": 7,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Jigglypuff",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Jigglypuff, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Falco's forward smash at 95%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 95
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 36.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        20.0
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         20.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          1,
+          0
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Falco's forward smash",
+    "opp": "Falco",
+    "HIT": 86,
+    "HL": 8,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Falco",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Falco, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Falco's down smash at 135%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 135
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 35.4,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        13.4
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         13.4
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Falco's down smash",
+    "opp": "Falco",
+    "HIT": 87,
+    "HL": 8,
+    "ANGLE": 25,
+    "FULL": 38,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": -0.342,
+    "HY": 0.9397,
+    "WX": -1,
+    "WY": 0,
+    "LO": 25,
+    "HI": 90,
+    "FLO": 35,
+    "FHI": 90,
+    "way": "up and toward Falco",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Falco, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Falco's up smash at 130%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 130
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 35.7,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.7
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.7
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Falco's up smash",
+    "opp": "Falco",
+    "HIT": 91,
+    "HL": 7,
+    "ANGLE": 85,
+    "FULL": 67,
+    "DX": 1,
+    "DY": 0,
+    "HX": 0.7071,
+    "HY": 0.7071,
+    "WX": 0,
+    "WY": 1,
+    "LO": 0,
+    "HI": 81,
+    "FLO": 0,
+    "FHI": 72,
+    "way": "toward Falco",
+    "turn": "lower, away from the top blast zone",
+    "wrong": "Held up or down, along the launch, it turns nothing."
+   }
+  },
+  {
+   "name": "Sheik's up smash at 128%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 128
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 34.4,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        10.4
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 30
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         10.4
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Sheik's up smash",
+    "opp": "Sheik",
+    "HIT": 116,
+    "HL": 7,
+    "ANGLE": 90,
+    "FULL": 70,
+    "DX": -1,
+    "DY": 0,
+    "HX": -0.7071,
+    "HY": 0.7071,
+    "WX": 0,
+    "WY": 1,
+    "LO": 0,
+    "HI": 84,
+    "FLO": 0,
+    "FHI": 75,
+    "way": "away from Sheik",
+    "turn": "lower, away from the top blast zone",
+    "wrong": "Held up or down, along the launch, it turns nothing."
+   }
+  },
+  {
+   "name": "Sheik's down smash at 145%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 145
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 34.5,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        12.5
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         12.5
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Sheik's down smash",
+    "opp": "Sheik",
+    "HIT": 94,
+    "HL": 7,
+    "ANGLE": 40,
+    "FULL": 56,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 43,
+    "HI": 90,
+    "FLO": 52,
+    "FHI": 90,
+    "way": "up and toward Sheik",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Sheik, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Captain Falcon's forward smash at 78%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 78
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 33.2,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.2
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.2
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          1,
+          0
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Captain Falcon's forward smash",
+    "opp": "Captain Falcon",
+    "HIT": 132,
+    "HL": 9,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Captain Falcon",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Captain Falcon, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Captain Falcon's down smash at 85%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 85
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 33.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        13.3
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         13.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Captain Falcon's down smash",
+    "opp": "Captain Falcon",
+    "HIT": 129,
+    "HL": 9,
+    "ANGLE": 44,
+    "FULL": 60,
+    "DX": 0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": -1,
+    "WY": 0,
+    "LO": 47,
+    "HI": 90,
+    "FLO": 56,
+    "FHI": 90,
+    "way": "up and toward Captain Falcon",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or away from Captain Falcon, it turns the launch lower, toward the side blast zone."
+   }
+  },
+  {
+   "name": "Peach's down smash at 145%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 145
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 33.2,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 40
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 80
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           52
+          ],
+          "for": 120
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.35,
+       0
+      ],
+      "until": {
+       "distance": [
+        0,
+        11.2
+       ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 14
+     },
+     {
+      "do": "press",
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 2
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         11.2
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 14
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 1,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "trace": "di",
+   "numbers": {
+    "move": "Peach's down smash",
+    "opp": "Peach",
+    "HIT": 119,
+    "HL": 7,
+    "ANGLE": 40,
+    "FULL": 56,
+    "DX": -0.7071,
+    "DY": 0.7071,
+    "HX": 0,
+    "HY": 1,
+    "WX": 1,
+    "WY": 0,
+    "LO": 43,
+    "HI": 90,
+    "FLO": 52,
+    "FHI": 90,
+    "way": "up and away from Peach",
+    "turn": "higher, away from the side blast zone",
+    "wrong": "Held down or toward Peach, it turns the launch lower, toward the side blast zone."
+   }
+  }
+ ],
+ "attempt": {
+  "start": "hit",
+  "judge": {
+   "frame": 28
+  },
+  "within": 900,
+  "missed": "Not counted: {move} did not hit. Hold your ground: {opp} walks up and attacks."
+ },
+ "measures": {
+  "launch": {
+   "angle": "velocity",
+   "at": "hitlag_end",
+   "from_horizontal": true
+  },
+  "stick": {
+   "angle": "stick",
+   "at": "hitlag_last"
+  },
+  "hitlag": {
+   "frames_while": "hitlag",
+   "from": "start"
+  }
+ },
+ "verdict": {
+  "success": "Launched at {launch} degrees."
+ },
+ "checks": {
+  "stick held": {
+   "measure": "stick",
+   "at_least": -180,
+   "expect": "Control stick held on the last frame of hitlag",
+   "words": "the control stick was in neutral on the last frame of hitlag",
+   "headline": "No DI",
+   "fix": "Tilt the control stick during hitlag and keep it there until {char} is launched. The game reads it only on the last frame of hitlag; a stick let go before then is no DI."
+  },
+  "raised": {
+   "measure": "launch",
+   "within": [
+    "LO",
+    "HI"
+   ],
+   "expect": "Launch turned the way that survives",
+   "words": "launched at {launch} degrees; about {ANGLE} with no DI",
+   "headline": "DI the wrong way",
+   "fix": "Hold the control stick {way}: it turns the launch {turn}. {wrong}"
+  },
+  "full DI": {
+   "measure": "launch",
+   "within": [
+    "FLO",
+    "FHI"
+   ],
+   "expect": "Launch turned most of the 18 degrees",
+   "words": "launched at {launch} degrees; full DI gives about {FULL}",
+   "headline": "Not perpendicular",
+   "fix": "Hold the control stick {way}, perpendicular to the launch. A stick 45 degrees off it gives about half of the 18 degrees."
+  }
+ },
+ "parts": [
+  {
+   "name": "Hitlag",
+   "teach": "Stand still and take {move}. {char} freezes for {HL} frames of hitlag, then flies away at {ANGLE} degrees.",
+   "example": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
+    "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag",
+    "HIT+HL": "Frame {HIT+HL}: launched at {ANGLE} degrees"
+   },
+   "cues": [
+    {
+     "frames": [
+      "HIT",
+      "HIT+HL-1"
+     ],
+     "words": "Hitlag",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT+HL",
+      "HIT+HL+25"
+     ],
+     "words": "Launched",
+     "kind": "info"
+    }
+   ],
+   "checks": [],
+   "success": "Hit: {hitlag_frames} of hitlag, then launched at {launch} degrees.",
+   "streak": 1,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "name": "Hold the stick until hitlag ends",
+   "teach": "Once {char} freezes, tilt the control stick and keep it there until {char} flies. The game reads the stick only on the last frame of hitlag, and the launch angle changes.",
+   "example": [
+    {
+     "stick": [
+      "DX",
+      "DY"
+     ],
+     "frame": "HIT+1",
+     "hold": "HL+4"
+    }
+   ],
+   "marks": {
+    "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
+    "HIT+1": "Frame {HIT+1}: the control stick is tilted and held",
+    "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The stick is read",
+    "HIT+HL": "Frame {HIT+HL}: launched at a new angle"
+   },
+   "cues": [
+    {
+     "frames": [
+      "HIT",
+      "HIT+HL-2"
+     ],
+     "words": "Hitlag: tilt the stick and hold it",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT+HL-1",
+      "HIT+HL-1"
+     ],
+     "words": "Last frame of hitlag: the stick is read now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "HIT+HL",
+      "HIT+HL+1"
+     ],
+     "words": "Launched: too late to DI",
+     "kind": "late"
+    },
+    {
+     "frames": [
+      "HIT+HL+2",
+      "HIT+HL+25"
+     ],
+     "words": "Launched",
+     "kind": "info"
+    }
+   ],
+   "checks": [
+    "stick held"
+   ],
+   "success": "DI held: launched at {launch} degrees.",
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "name": "Perpendicular to the launch",
+   "teach": "Hold the control stick {way}, perpendicular to the launch. The launch turns the full 18 degrees, from {ANGLE} to about {FULL}.",
+   "example": [
+    {
+     "stick": [
+      "DX",
+      "DY"
+     ],
+     "frame": "HIT+1",
+     "hold": "HL+4"
+    }
+   ],
+   "marks": {
+    "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
+    "HIT+1": "Frame {HIT+1}: the control stick is held {way}",
+    "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The stick is read",
+    "HIT+HL": "Frame {HIT+HL}: launched at about {FULL} degrees"
+   },
+   "cues": [
+    {
+     "frames": [
+      "HIT",
+      "HIT+HL-2"
+     ],
+     "words": "Hitlag: hold the stick {way}",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT+HL-1",
+      "HIT+HL-1"
+     ],
+     "words": "Last frame of hitlag: the stick is read now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "HIT+HL",
+      "HIT+HL+1"
+     ],
+     "words": "Launched: too late to DI",
+     "kind": "late"
+    },
+    {
+     "frames": [
+      "HIT+HL+2",
+      "HIT+HL+25"
+     ],
+     "words": "Launched",
+     "kind": "info"
+    }
+   ],
+   "checks": [
+    "stick held",
+    "raised",
+    "full DI"
+   ],
+   "success": "Survival DI: launched at {launch} degrees.",
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "no DI",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "fails": "stick held"
+  },
+  {
+   "name": "let go before the last frame of hitlag",
+   "inputs": [
+    {
+     "stick": [
+      "DX",
+      "DY"
+     ],
+     "frame": "HIT+1",
+     "hold": "HL-3"
+    }
+   ],
+   "fails": "stick held"
+  },
+  {
+   "name": "DI the wrong way (away from a sideways launch, along an upward one)",
+   "inputs": [
+    {
+     "stick": [
+      "WX",
+      "WY"
+     ],
+     "frame": "HIT+1",
+     "hold": "HL+4"
+    }
+   ],
+   "fails": "raised"
+  },
+  {
+   "name": "45 degrees off the perpendicular",
+   "inputs": [
+    {
+     "stick": [
+      "HX",
+      "HY"
+     ],
+     "frame": "HIT+1",
+     "hold": "HL+4"
+    }
+   ],
+   "fails": "full DI"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Stick held",
+    "stick": "side",
+    "perfect": [
+     2
+    ],
+    "window": [
+     1,
+     "HL"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the hit. Hitlag lasts {HL} frames; the stick is read on frame {HL}, the last of them."
+ },
+ "switch": "success"
 }

@@ -87,8 +87,15 @@ about 50 units away; the try begins when the shine hits), `fox-shield-pressure`,
 `fox-vs-crouch-cancel`, `fox-aerial-confirm` and `fox-approach-nair-dair` (the opponent
 moves about and shields, crouches or stands when Fox comes within 40 units, and moves
 again when he backs away; each example walks up to it and stops where its sequence was
-measured). New for them: an opponent's
-`"knockdown"`, the engine's move `run_attack` (a dash attack from standing), Yoshi's egg
+measured), and, where the technique answers an attack, the opponent comes to the
+player: `fox-wavedash-back-punish`, `fox-combo-shine`, `universal-asdi` and
+`universal-di` (it plays footsies for 40, 80 or 120 frames, walks up to the distance its
+attack was measured from, stands 14 frames and attacks, then plays footsies again; the
+walk's stop is calibrated for each opponent so that it stands exactly there, and in the
+two universal drills the frame the hit comes on in a demonstration is measured into each
+scenario's `HIT`, the examples staying as they were). New for them: an opponent's
+`"knockdown"`, the script step `press` (inputs by frame: the attack a drill was measured
+against, played from where the opponent stands), the engine's move `run_attack` (a dash attack from standing), Yoshi's egg
 seen as a shield by the engine's search (`in_shield`, `src/host/engine.c`: an opponent
 asked for a move that lands on a shield never attacked a shielding Yoshi),
 `tests/client/drill_smoke.py --come D` (a stand-in that walks up to the opponent before
@@ -99,7 +106,9 @@ opponent did when it was hit, not by which scenario it was), and `footsies` with
 measurements: in a demonstration the opponent stands still until the player comes in,
 and the example stops at the measured distance (the proofs showed how narrow some are:
 the down air into shine on a crouching opponent holds at 9.0 units and not at 8.95 or
-9.05). Each course row says what its drill still leaves out.
+9.05; a character's idle sway can put a hit a frame later, so an attacker stands a
+little longer first in three scenarios). Each course row says what its drill still
+leaves out.
 
 ## Where things are
 
