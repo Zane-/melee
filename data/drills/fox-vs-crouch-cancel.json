@@ -1,0 +1,892 @@
+{
+ "id": "fox-vs-crouch-cancel",
+ "name": "Beat crouch cancel",
+ "part": "neutral",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Against a crouching opponent, grab or down air into shine instead of the neutral air",
+ "why": "A crouching opponent takes a weak hit with almost no stun and stays on the ground: after Fox's neutral air it acts before he does and hits him as he lands. A grab ignores the crouch, and the down air's hits keep it in stun until Fox has landed and shined.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "The opponent is crouching next to Fox. Grab it with Z, or short hop a down air onto it and shine as he lands.",
+  "expect": "Each try begins with Fox's jump, grab or shine and is judged when he has it grabbed, when his shine hits, or when it hits him: hit after any opener, the try is lost.",
+  "example": [
+   {
+    "press": "Z",
+    "frame": 1,
+    "hold": 1
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: Z. The grab",
+   "7": "Frame {f}: it has {opp}"
+  },
+  "lessons": [
+   {
+    "title": "What the crouch does",
+    "text": [
+     "{opp} is crouching at 0%. Fox's neutral air hits it and barely moves it: it can act again before Fox has landed and his landing lag is over.",
+     "Its {answer} is already out when he can act. Against a crouch at low damage the neutral air loses."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "press": "A",
+        "frame": "J+1",
+        "hold": 1
+       },
+       {
+        "press": "L",
+        "frame": 25,
+        "hold": 2
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: a short hop",
+       "J+1": "Frame {J+1}: A. The neutral air hits, and {opp} stays down",
+       "25": "Frame {f}: L before the landing"
+      },
+      "cues": [
+       {
+        "frames": [
+         "J+1",
+         24
+        ],
+        "words": "The neutral air: it barely flinches",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         25,
+         60
+        ],
+        "words": "It acts first: its {answer}",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The grab",
+    "text": [
+     "A grab does not care whether its target stands or crouches. Z next to it, or out of a dash: X or Y and then Z, the jump-cancelled grab.",
+     "From the grab, the up throw starts Fox's combos."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "Z",
+        "frame": 1,
+        "hold": 1
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: Z. The grab",
+       "7": "Frame {f}: it has {opp}"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "answer": "down tilt",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Marth",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "answer": "down tilt",
+    "DL": 30,
+    "DS": 41
+   }
+  },
+  {
+   "name": "Jigglypuff",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "answer": "jab",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Falco",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "answer": "down tilt",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Sheik",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "answer": "jab",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Captain Falcon",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "answer": "down tilt",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Peach",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "answer": "down tilt",
+    "DL": 29,
+    "DS": 40
+   }
+  },
+  {
+   "name": "Ice Climbers",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dsmash"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "answer": "down smash",
+    "DL": 0,
+    "DS": 0
+   }
+  },
+  {
+   "name": "Pikachu",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "answer": "jab",
+    "DL": 27,
+    "DS": 38
+   }
+  },
+  {
+   "name": "Yoshi",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "jab"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "answer": "jab",
+    "DL": 29,
+    "DS": 40
+   }
+  },
+  {
+   "name": "Samus",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -11,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "move",
+      "name": "dtilt"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "answer": "down tilt",
+    "DL": 0,
+    "DS": 0
+   }
+  }
+ ],
+ "attempt": {
+  "start": [
+   {
+    "enters": "jump_squat"
+   },
+   {
+    "enters": "grab"
+   },
+   {
+    "enters": "dash_grab"
+   },
+   {
+    "enters": "shine_ground"
+   }
+  ],
+  "judge": [
+   {
+    "enters": "holding"
+   },
+   {
+    "is": "connects",
+    "to": "shine"
+   },
+   "hit",
+   {
+    "enters": "grabbed"
+   },
+   {
+    "frame": 80
+   }
+  ],
+  "cancel": [],
+  "limit": 100,
+  "timeout": "judge"
+ },
+ "measures": {
+  "grabbed": {
+   "happened": {
+    "enters": "holding"
+   }
+  },
+  "shined": {
+   "happened": {
+    "is": "connects",
+    "to": "shine"
+   }
+  },
+  "opened": {
+   "happened": [
+    {
+     "enters": "holding"
+    },
+    {
+     "is": "connects",
+     "to": "shine"
+    }
+   ]
+  },
+  "dair": {
+   "happened": {
+    "is": "connects",
+    "to": "dair"
+   }
+  },
+  "hit_back": {
+   "happened": [
+    "hit",
+    {
+     "enters": "grabbed"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "not hit": {
+   "measure": "hit_back",
+   "equals": false,
+   "expect": "Not hit by its answer",
+   "words": "its {answer} hit Fox",
+   "headline": "Hit back",
+   "fix": "Crouching, it takes a neutral air with almost no stun and acts first. Grab it, or keep it in stun with the down air and shine on the first frame after landing."
+  },
+  "grab": {
+   "measure": "grabbed",
+   "equals": true,
+   "expect": "A grab",
+   "words": "no grab: Fox did not have {opp}",
+   "headline": "No grab",
+   "fix": "Z next to it, or X or Y and then Z out of a dash. The grab reaches a crouching opponent as it does a standing one."
+  },
+  "down air": {
+   "measure": "dair",
+   "equals": true,
+   "expect": "The down air hits it",
+   "words": "the down air did not hit {opp}",
+   "headline": "No down air",
+   "fix": "Short hop and press the C-stick down as Fox leaves the ground: the down air hits all the way down."
+  },
+  "shine": {
+   "measure": "shined",
+   "equals": true,
+   "expect": "The shine hits as Fox lands",
+   "words": "the shine did not hit {opp}",
+   "headline": "No shine",
+   "fix": "L just before landing, then down-B on the first frame after the landing lag: the down air's last hit still has {opp} in stun."
+  },
+  "opened": {
+   "measure": "opened",
+   "equals": true,
+   "expect": "A grab, or a shine that hits",
+   "words": "neither a grab nor a shine landed",
+   "headline": "No opening",
+   "fix": "Z for the grab, or the down air and down-B as Fox lands."
+  }
+ },
+ "verdict": {
+  "success": "{opp} could not answer."
+ },
+ "parts": [
+  {
+   "name": "Grab it",
+   "teach": "{opp} crouches. Press Z next to it: the grab takes a crouching opponent as it does a standing one.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: Z. The grab",
+    "7": "Frame {f}: it has {opp}"
+   },
+   "checks": [
+    "not hit",
+    "grab"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "success": "Grabbed. A crouch does not stop a grab.",
+   "coach": {
+    "rows": [
+     {
+      "label": "Grab (Z)",
+      "button": "Z",
+      "perfect": []
+     }
+    ],
+    "note": "A grab ignores the crouch."
+   }
+  },
+  {
+   "name": "Down air, then shine",
+   "teach": "Short hop, the C-stick down at once, L before landing, and down-B on the first frame after the landing lag. The down air's hits keep {opp} in stun until the shine.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "cstick": [
+      0,
+      -1
+     ],
+     "frame": "J+1",
+     "hold": 2
+    },
+    {
+     "press": "L",
+     "frame": "DL",
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "DS",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "DS",
+     "hold": 2
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: X or Y tapped: a short hop",
+    "J+1": "Frame {J+1}: the C-stick down. The down air",
+    "DL": "Frame {DL}: L, just before landing",
+    "DS": "Frame {DS}: down-B on the first free frame"
+   },
+   "checks": [
+    "not hit",
+    "down air",
+    "shine"
+   ],
+   "streak": 3,
+   "scenario": [
+    1,
+    6,
+    8,
+    9
+   ],
+   "success": "Down air into shine: {opp} never got to act.",
+   "coach": {
+    "rows": [
+     {
+      "label": "Jump (X or Y)",
+      "button": "jump",
+      "perfect": [
+       1
+      ],
+      "window": [
+       1,
+       1
+      ]
+     },
+     {
+      "label": "Down air (C-stick down)",
+      "state": "dair",
+      "perfect": [
+       "J+1"
+      ],
+      "window": [
+       "J+1",
+       "J+4"
+      ]
+     },
+     {
+      "label": "Shine (down and B)",
+      "state": "shine",
+      "perfect": [
+       "DS"
+      ],
+      "window": [
+       "DS",
+       "DS+2"
+      ]
+     }
+    ],
+    "note": "The shine comes on the first frame after the landing lag: frame {DS} here."
+   }
+  },
+  {
+   "name": "Either answer",
+   "teach": "Any of them, crouching: grab it, or down air into shine. A neutral air is answered. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: Z. The grab",
+    "7": "Frame {f}: it has {opp}"
+   },
+   "checks": [
+    "not hit",
+    "opened"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "a neutral air and nothing after it",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": "J+1",
+     "hold": 1
+    },
+    {
+     "press": "L",
+     "frame": 25,
+     "hold": 2
+    }
+   ],
+   "fails": "not hit"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Grab (Z)",
+    "button": "Z",
+    "perfect": []
+   },
+   {
+    "label": "Down air",
+    "state": "dair",
+    "perfect": []
+   },
+   {
+    "label": "Shine",
+    "state": "shine",
+    "perfect": []
+   }
+  ],
+  "note": "A crouching opponent answers a neutral air. A grab, or the down air into a shine, leaves it no answer."
+ }
+}
