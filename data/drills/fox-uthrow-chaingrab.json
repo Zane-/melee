@@ -1,0 +1,2043 @@
+{
+ "id": "fox-uthrow-chaingrab",
+ "name": "Chain grab fast fallers",
+ "part": "punish",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Regrab Fox and Falco out of the up throw before they can act",
+ "why": "Fox and Falco fall fast: thrown up at low damage they are back at Fox's height while still in hitstun, and a grab timed to meet them cannot be escaped. Each regrab is another throw and more damage, until an up air finishes it.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Grab with Z, press up to throw, step under where the opponent falls and press Z again as it comes down.",
+  "expect": "A try begins with each up throw and is judged when Fox has it grabbed again, or when it has acted: it jumps away on the first frame it can. One throw and one regrab is a try; the opponents come at 10%, 30% and 50%, as a chain would have them.",
+  "example": [
+   {
+    "press": "Z",
+    "frame": 1,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 9,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 11,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 13,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     1
+    ],
+    "frame": 15,
+    "hold": 1
+   },
+   {
+    "stick": [
+     "SIDE",
+     0
+    ],
+    "frame": "FREE",
+    "hold": "RUNF",
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": "JX",
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "Z",
+    "frame": "ZF",
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the up throw",
+   "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+   "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+  },
+  "lessons": [
+   {
+    "title": "Why it works",
+    "text": [
+     "At {PCT}%, {opp} is in hitstun from the up throw until frame {OVER}. Fox can act on frame {FREE}, and by then it is already falling back to him.",
+     "A grab takes 7 frames to come out. Pressed on frame {ZF}, it is out as {opp} passes in front of Fox, before its hitstun is over."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "Z",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 9,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 11,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 13,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 15,
+        "hold": 1
+       },
+       {
+        "stick": [
+         "SIDE",
+         0
+        ],
+        "frame": "FREE",
+        "hold": "RUNF",
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "JX",
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "Z",
+        "frame": "ZF",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the up throw",
+       "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+       "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "The throw: watch where it goes",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "FREE",
+         "ZF-1"
+        ],
+        "words": "Under it",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "ZF",
+         "ZF+1"
+        ],
+        "words": "Grab now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Following the DI",
+    "text": [
+     "The opponent's DI through the throw moves where it comes down: in front of Fox, or behind him. Dash that way for a few frames, then X or Y and Z on the next frame: the jump-cancelled grab, out of the dash.",
+     "As its damage goes up it flies higher and the grab comes later: frame {ZF} here, at {PCT}%."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "Z",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 9,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 11,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 13,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         1
+        ],
+        "frame": 15,
+        "hold": 1
+       },
+       {
+        "stick": [
+         "SIDE",
+         0
+        ],
+        "frame": "FREE",
+        "hold": "RUNF",
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": "JX",
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "press": "Z",
+        "frame": "ZF",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the up throw",
+       "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+       "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "FREE-1"
+        ],
+        "words": "The throw: watch where it goes",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "FREE",
+         "ZF-1"
+        ],
+        "words": "Under it",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "ZF",
+         "ZF+1"
+        ],
+        "words": "Grab now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox at 10%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "no DI",
+    "PCT": 10,
+    "SIDE": 0,
+    "FREE": 30,
+    "RUNF": 1,
+    "JX": 999,
+    "ZF": 34,
+    "OVER": 44
+   }
+  },
+  {
+   "name": "Fox at 10%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI away",
+    "PCT": 10,
+    "SIDE": 1,
+    "FREE": 30,
+    "RUNF": 2,
+    "JX": 32,
+    "ZF": 33,
+    "OVER": 43
+   }
+  },
+  {
+   "name": "Fox at 10%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI behind Fox",
+    "PCT": 10,
+    "SIDE": -1,
+    "FREE": 30,
+    "RUNF": 2,
+    "JX": 32,
+    "ZF": 33,
+    "OVER": 43
+   }
+  },
+  {
+   "name": "Fox at 30%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 30,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI away",
+    "PCT": 30,
+    "SIDE": 1,
+    "FREE": 30,
+    "RUNF": 2,
+    "JX": 32,
+    "ZF": 33,
+    "OVER": 46
+   }
+  },
+  {
+   "name": "Fox at 30%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 30,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI behind Fox",
+    "PCT": 30,
+    "SIDE": -1,
+    "FREE": 30,
+    "RUNF": 2,
+    "JX": 32,
+    "ZF": 33,
+    "OVER": 46
+   }
+  },
+  {
+   "name": "Fox at 50%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 50,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI away",
+    "PCT": 50,
+    "SIDE": 1,
+    "FREE": 30,
+    "RUNF": 2,
+    "JX": 36,
+    "ZF": 37,
+    "OVER": 49
+   }
+  },
+  {
+   "name": "Fox at 50%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "percent": 50,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "di": "DI behind Fox",
+    "PCT": 50,
+    "SIDE": -1,
+    "FREE": 30,
+    "RUNF": 4,
+    "JX": 36,
+    "ZF": 37,
+    "OVER": 49
+   }
+  },
+  {
+   "name": "Falco at 10%, no DI",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "no DI",
+    "PCT": 10,
+    "SIDE": 0,
+    "FREE": 32,
+    "RUNF": 1,
+    "JX": 999,
+    "ZF": 36,
+    "OVER": 45
+   }
+  },
+  {
+   "name": "Falco at 10%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI away",
+    "PCT": 10,
+    "SIDE": 1,
+    "FREE": 32,
+    "RUNF": 2,
+    "JX": 34,
+    "ZF": 35,
+    "OVER": 44
+   }
+  },
+  {
+   "name": "Falco at 10%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 10,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI behind Fox",
+    "PCT": 10,
+    "SIDE": -1,
+    "FREE": 32,
+    "RUNF": 2,
+    "JX": 34,
+    "ZF": 35,
+    "OVER": 44
+   }
+  },
+  {
+   "name": "Falco at 30%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 30,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI away",
+    "PCT": 30,
+    "SIDE": 1,
+    "FREE": 32,
+    "RUNF": 2,
+    "JX": 34,
+    "ZF": 35,
+    "OVER": 47
+   }
+  },
+  {
+   "name": "Falco at 30%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 30,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI behind Fox",
+    "PCT": 30,
+    "SIDE": -1,
+    "FREE": 32,
+    "RUNF": 2,
+    "JX": 35,
+    "ZF": 36,
+    "OVER": 47
+   }
+  },
+  {
+   "name": "Falco at 50%, DI away",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 50,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       -1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI away",
+    "PCT": 50,
+    "SIDE": 1,
+    "FREE": 32,
+    "RUNF": 2,
+    "JX": 37,
+    "ZF": 38,
+    "OVER": 50
+   }
+  },
+  {
+   "name": "Falco at 50%, DI behind Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "percent": 50,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": {
+        "state": "grabbed"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       1,
+       0
+      ],
+      "until": {
+       "me": {
+        "state": "damage"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "any": [
+        {
+         "not": {
+          "me": "stunned"
+         }
+        },
+        {
+         "me": {
+          "state": "grabbed"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "if": {
+       "me": {
+        "state": "grabbed"
+       }
+      },
+      "then": [
+       {
+        "do": "hold",
+        "pad": "stand",
+        "for": 1
+       }
+      ],
+      "else": [
+       {
+        "do": "jump",
+        "stick": [
+         -1,
+         0
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "di": "DI behind Fox",
+    "PCT": 50,
+    "SIDE": -1,
+    "FREE": 32,
+    "RUNF": 4,
+    "JX": 37,
+    "ZF": 38,
+    "OVER": 50
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "up_throw"
+  },
+  "judge": [
+   {
+    "enters": "holding"
+   },
+   "they_recover",
+   {
+    "frame": 100
+   }
+  ],
+  "cancel": [],
+  "limit": 120,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: no up throw. Grab with Z and press up."
+ },
+ "measures": {
+  "regrab": {
+   "happened": {
+    "enters": "holding"
+   }
+  },
+  "at": {
+   "frame_of": {
+    "enters": "holding"
+   }
+  }
+ },
+ "checks": {
+  "regrab": {
+   "measure": "regrab",
+   "equals": true,
+   "expect": "A regrab before it can act",
+   "words": "{opp} got away before the grab",
+   "headline": "Dropped",
+   "fix": "{opp} can act on frame {OVER} of the throw; the grab takes 7 frames. Be under where it falls and press Z on frame {ZF}: out of a dash, X or Y first and Z on the next frame."
+  }
+ },
+ "verdict": {
+  "success": "Regrab on frame {at}; {opp} could act on frame {OVER}."
+ },
+ "parts": [
+  {
+   "name": "Regrab",
+   "teach": "{opp} at {PCT}% does not DI: it comes straight back down. Throw it up and press Z on frame {ZF}.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": "RUNF",
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JX",
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "Z",
+     "frame": "ZF",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+    "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "FREE",
+      "ZF-1"
+     ],
+     "words": "Under it",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "ZF",
+      "ZF+1"
+     ],
+     "words": "Grab now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "regrab"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    7
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Grab (Z)",
+      "button": "Z",
+      "perfect": [
+       "ZF"
+      ],
+      "window": [
+       "ZF",
+       "ZF+2"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+   }
+  },
+  {
+   "name": "Follow the DI",
+   "teach": "{opp} holds the stick to one side through the throw. Dash under where it falls, then X or Y and Z: the jump-cancelled grab.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": "RUNF",
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JX",
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "Z",
+     "frame": "ZF",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+    "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "FREE",
+      "ZF-1"
+     ],
+     "words": "Under it",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "ZF",
+      "ZF+1"
+     ],
+     "words": "Grab now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "regrab"
+   ],
+   "streak": 3,
+   "scenario": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Grab (Z)",
+      "button": "Z",
+      "perfect": [
+       "ZF"
+      ],
+      "window": [
+       "ZF",
+       "ZF+2"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+   }
+  },
+  {
+   "name": "Any DI",
+   "teach": "Any DI, at 10%, 30% or 50%: watch where it flies out of the throw and be there with the grab. D-pad left and right: another scenario.",
+   "example": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": "RUNF",
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JX",
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "Z",
+     "frame": "ZF",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the up throw",
+    "FREE": "Frame {FREE}: Fox can act. Toward where it falls",
+    "ZF": "Frame {ZF}: Z. The grab is out as {opp} comes down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "FREE-1"
+     ],
+     "words": "The throw: watch where it goes",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "FREE",
+      "ZF-1"
+     ],
+     "words": "Under it",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "ZF",
+      "ZF+1"
+     ],
+     "words": "Grab now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "regrab"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    7,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the grab 12 frames late",
+   "inputs": [
+    {
+     "press": "Z",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 9,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 11,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 13,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      1
+     ],
+     "frame": 15,
+     "hold": 1
+    },
+    {
+     "stick": [
+      "SIDE",
+      0
+     ],
+     "frame": "FREE",
+     "hold": "RUNF",
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": "JX+12",
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "Z",
+     "frame": "ZF+12",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "regrab"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Grab (Z)",
+    "button": "Z",
+    "perfect": [
+     "ZF"
+    ],
+    "window": [
+     "ZF",
+     "ZF+2"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the up throw. Fox can act on frame {FREE}; {opp} on frame {OVER}."
+ }
+}
