@@ -1,0 +1,1229 @@
+{
+ "id": "fox-escape-techchase",
+ "name": "Escape the tech chase",
+ "part": "defense",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Tech a throw at the floor and get out before the cover lands",
+ "why": "A throw at the floor leaves {char} in hitstun until he lands: he techs or lies there, and the opponent covers what it sees. It reacts, so the same tech twice is read. Varied techs and an action on the first free frame are the way out.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Press L or R as {char} comes down to tech: in place, or rolling with the stick held left or right. Act on the first frame after it.",
+  "expect": "Each throw is judged when the opponent's cover lands, or once {char} has stayed untouched after the tech. The opponent sees the tech about 24 frames after it starts.",
+  "example": [
+   {
+    "press": "R",
+    "frame": "TR",
+    "hold": 3,
+    "from": "start"
+   },
+   {
+    "stick": [
+     -1,
+     0
+    ],
+    "frame": "TR",
+    "hold": 6,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 1,
+    "hold": 12,
+    "from": {
+     "leaves": "tech"
+    }
+   },
+   {
+    "stick": [
+     -1,
+     0
+    ],
+    "frame": 1,
+    "hold": 30,
+    "from": {
+     "leaves": "tech"
+    }
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the throw starts",
+   "TR": "Frame {TR}: R, and the stick away",
+   "FLOOR": "Frame {FLOOR}: the floor. A tech"
+  },
+  "lessons": [
+   {
+    "title": "The tech",
+    "text": [
+     "Thrown at the floor, {char} is in hitstun until he lands. L or R pressed in the 20 frames before the floor is a tech: back on his feet after 26 frames, or 40 with a roll, the stick held left or right.",
+     "No press, or one too early, is a missed tech: {char} bounces and lies there, open for longer."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "TR",
+        "hold": 3,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts",
+       "TR": "Frame {TR}: R",
+       "FLOOR": "Frame {FLOOR}: the floor. A tech in place"
+      },
+      "cues": [
+       {
+        "frames": [
+         "T0",
+         "T1"
+        ],
+        "words": "L or R now: a tech",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "FLOOR",
+         "FI-1"
+        ],
+        "words": "Tech: {char} cannot act",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The chase",
+    "text": [
+     "The opponent waits to see where {char} goes and covers it with a grab or an attack. It sees a tech a fraction of a second after it starts, and it remembers: the same tech again is covered before it is seen.",
+     "Vary it: in place, toward the opponent, away, and now and then no tech at all."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "TR",
+        "hold": 3,
+        "from": "start"
+       },
+       {
+        "stick": [
+         -1,
+         0
+        ],
+        "frame": "TR",
+        "hold": 6,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts",
+       "TR": "Frame {TR}: R, and the stick away",
+       "FLOOR": "Frame {FLOOR}: the floor. A tech"
+      },
+      "cues": [
+       {
+        "frames": [
+         "T0",
+         "T1"
+        ],
+        "words": "L or R, the stick away",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "FLOOR",
+         "FR-1"
+        ],
+        "words": "A tech away: the roll",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The first free frame",
+    "text": [
+     "A tech in place ends after 26 frames, a roll after 40. A cover that comes a few frames late still lands on a {char} who stands there.",
+     "Act on the first frame {char} can: a jump away, a spot dodge, a roll, a shine. The opponent's late answers then miss."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "TR",
+        "hold": 3,
+        "from": "start"
+       },
+       {
+        "stick": [
+         -1,
+         0
+        ],
+        "frame": "TR",
+        "hold": 6,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 12,
+        "from": {
+         "leaves": "tech"
+        }
+       },
+       {
+        "stick": [
+         -1,
+         0
+        ],
+        "frame": 1,
+        "hold": 30,
+        "from": {
+         "leaves": "tech"
+        }
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts",
+       "TR": "Frame {TR}: R, and the stick away",
+       "FLOOR": "Frame {FLOOR}: the floor. A tech",
+       "FR": "Frame {FR}: free. Jump away"
+      },
+      "cues": [
+       {
+        "frames": [
+         "FLOOR",
+         "FR-1"
+        ],
+        "words": "A tech away: the roll",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "FR",
+         "FR+2"
+        ],
+        "words": "Free: act now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 34,
+    "TR": 31,
+    "T0": 15,
+    "T1": 33,
+    "FI": 60,
+    "FR": 74,
+    "END": 119,
+    "throw": "Fox's down throw"
+   }
+  },
+  {
+   "name": "Marth",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 30,
+    "held": true
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "fthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "fthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "fthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 28,
+    "TR": 25,
+    "T0": 9,
+    "T1": 27,
+    "FI": 54,
+    "FR": 68,
+    "END": 113,
+    "throw": "Marth's forward throw"
+   }
+  },
+  {
+   "name": "Jigglypuff",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 30,
+    "held": true
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "fthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "fthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "fthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 33,
+    "TR": 30,
+    "T0": 14,
+    "T1": 32,
+    "FI": 59,
+    "FR": 73,
+    "END": 118,
+    "throw": "Jigglypuff's forward throw"
+   }
+  },
+  {
+   "name": "Falco",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 55,
+    "held": true
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "fthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "fthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "fthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 30,
+    "TR": 27,
+    "T0": 11,
+    "T1": 29,
+    "FI": 56,
+    "FR": 70,
+    "END": 115,
+    "throw": "Falco's forward throw"
+   }
+  },
+  {
+   "name": "Sheik",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 61,
+    "TR": 58,
+    "T0": 42,
+    "T1": 60,
+    "FI": 87,
+    "FR": 101,
+    "END": 146,
+    "throw": "Sheik's down throw"
+   }
+  },
+  {
+   "name": "Captain Falcon",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 37,
+    "TR": 34,
+    "T0": 18,
+    "T1": 36,
+    "FI": 63,
+    "FR": 77,
+    "END": 122,
+    "throw": "Captain Falcon's down throw"
+   }
+  },
+  {
+   "name": "Peach",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 60,
+    "TR": 57,
+    "T0": 41,
+    "T1": 59,
+    "FI": 86,
+    "FR": 100,
+    "END": 145,
+    "throw": "Peach's down throw"
+   }
+  },
+  {
+   "name": "Ice Climbers",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 49,
+    "TR": 46,
+    "T0": 30,
+    "T1": 48,
+    "FI": 75,
+    "FR": 89,
+    "END": 134,
+    "throw": "Ice Climbers's down throw"
+   }
+  },
+  {
+   "name": "Pikachu",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 41,
+    "TR": 38,
+    "T0": 22,
+    "T1": 40,
+    "FI": 67,
+    "FR": 81,
+    "END": 126,
+    "throw": "Pikachu's down throw"
+   }
+  },
+  {
+   "name": "Yoshi",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 90,
+    "held": true
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "fthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "fthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "fthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 39,
+    "TR": 36,
+    "T0": 20,
+    "T1": 38,
+    "FI": 65,
+    "FR": 79,
+    "END": 124,
+    "throw": "Yoshi's forward throw"
+   }
+  },
+  {
+   "name": "Samus",
+   "stage": "final-destination",
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 12,
+    "facing": "player",
+    "react": 24,
+    "script": [
+     {
+      "do": "chain_grab",
+      "throw": "dthrow",
+      "chase": true
+     },
+     {
+      "do": "chase",
+      "throw": "dthrow"
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "chain_grab",
+       "throw": "dthrow",
+       "times": 1
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "FLOOR": 40,
+    "TR": 37,
+    "T0": 21,
+    "T1": 39,
+    "FI": 66,
+    "FR": 80,
+    "END": 125,
+    "throw": "Samus's down throw"
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "thrown"
+  },
+  "judge": [
+   {
+    "is": "hit",
+    "after": [
+     {
+      "enters": "tech"
+     },
+     {
+      "enters": "missed_tech"
+     }
+    ]
+   },
+   {
+    "enters": "grabbed"
+   },
+   {
+    "frame": "END"
+   }
+  ],
+  "limit": 260,
+  "timeout": "judge",
+  "within": 200,
+  "missed": "Not counted: the throw did not come."
+ },
+ "measures": {
+  "teched": {
+   "happened": {
+    "enters": "tech"
+   }
+  },
+  "caught": {
+   "happened": [
+    {
+     "is": "hit",
+     "after": [
+      {
+       "enters": "tech"
+      },
+      {
+       "enters": "missed_tech"
+      }
+     ]
+    },
+    {
+     "enters": "grabbed"
+    }
+   ]
+  },
+  "idle": {
+   "frames_while": {
+    "in": "wait"
+   },
+   "from": {
+    "leaves": "tech"
+   }
+  },
+  "tech_frame": {
+   "frame_of": {
+    "enters": "tech"
+   }
+  }
+ },
+ "checks": {
+  "teched": {
+   "measure": "teched",
+   "equals": true,
+   "expect": "A tech as {char} lands",
+   "words": "no tech: {char} bounced off the floor",
+   "headline": "Missed tech",
+   "fix": "Press L or R as {char} comes down, within 20 frames of the floor. A press earlier than that locks the tech out for 40 frames."
+  },
+  "acted": {
+   "measure": "idle",
+   "at_most": 4,
+   "expect": "An action within 4 frames of the tech's end",
+   "words": "{char} stood for {frames} after the tech",
+   "headline": "Stood still after the tech",
+   "fix": "Act as the tech ends: a jump away, a spot dodge, a roll or a shine. A tech in place ends after 26 frames, a roll after 40.",
+   "strict": {
+    "at_most": 2,
+    "expect": "An action within 2 frames of the tech's end",
+    "fix": "Act on the first frame after the tech: 26 frames after a tech in place, 40 after a roll."
+   }
+  },
+  "escaped": {
+   "measure": "caught",
+   "equals": false,
+   "expect": "Untouched after the throw",
+   "words": "the opponent's cover landed",
+   "headline": "Caught",
+   "fix": "Change the tech: in place, toward the opponent, away, or none. It covers what it has seen you choose, and what it sees in time. Act on the first free frame."
+  }
+ },
+ "verdict": {
+  "success": "Escaped {throw}."
+ },
+ "parts": [
+  {
+   "name": "Tech",
+   "teach": "Press L or R as {char} comes down, within 20 frames of the floor. {char} techs instead of bouncing.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "TR",
+     "hold": 3,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "TR": "Frame {TR}: R",
+    "FLOOR": "Frame {FLOOR}: the floor. A tech in place"
+   },
+   "cues": [
+    {
+     "frames": [
+      "T0",
+      "T1"
+     ],
+     "words": "L or R now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched"
+   ],
+   "success": "Teched.",
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "attempt": {
+    "start": {
+     "enters": "thrown"
+    },
+    "judge": [
+     {
+      "enters": "tech"
+     },
+     {
+      "enters": "missed_tech"
+     }
+    ],
+    "limit": 260,
+    "timeout": "judge",
+    "within": 200,
+    "missed": "Not counted: the throw did not come."
+   },
+   "coach": {
+    "rows": [
+     {
+      "label": "L or R",
+      "button": "shield",
+      "held": false,
+      "perfect": [
+       "TR"
+      ],
+      "window": [
+       "T0",
+       "T1"
+      ]
+     },
+     {
+      "label": "Tech",
+      "state": "tech",
+      "perfect": [
+       "FLOOR"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the first frame of the throw. {char} lands on frame {FLOOR}: L or R on frames {T0} to {T1} is a tech."
+   }
+  },
+  {
+   "name": "Choose where",
+   "teach": "Hold the stick left or right as you tech to roll, or leave it for a tech in place. Vary it: the opponent covers what it has seen you choose.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "TR",
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -1,
+      0
+     ],
+     "frame": "TR",
+     "hold": 6,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 12,
+     "from": {
+      "leaves": "tech"
+     }
+    },
+    {
+     "stick": [
+      -1,
+      0
+     ],
+     "frame": 1,
+     "hold": 30,
+     "from": {
+      "leaves": "tech"
+     }
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "TR": "Frame {TR}: R, and the stick away",
+    "FLOOR": "Frame {FLOOR}: the floor. A tech"
+   },
+   "cues": [
+    {
+     "frames": [
+      "T0",
+      "T1"
+     ],
+     "words": "L or R, the stick where you go",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched",
+    "escaped"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
+  },
+  {
+   "name": "Act at once",
+   "teach": "Act on the first frame after the tech: a jump away, a spot dodge, a roll or a shine. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "TR",
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -1,
+      0
+     ],
+     "frame": "TR",
+     "hold": 6,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 12,
+     "from": {
+      "leaves": "tech"
+     }
+    },
+    {
+     "stick": [
+      -1,
+      0
+     ],
+     "frame": 1,
+     "hold": 30,
+     "from": {
+      "leaves": "tech"
+     }
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "TR": "Frame {TR}: R, and the stick away",
+    "FLOOR": "Frame {FLOOR}: the floor. A tech",
+    "FR": "Frame {FR}: free. Jump away"
+   },
+   "cues": [
+    {
+     "frames": [
+      "T0",
+      "T1"
+     ],
+     "words": "L or R, the stick where you go",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "FR",
+      "FR+2"
+     ],
+     "words": "Free: act now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched",
+    "acted",
+    "escaped"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "no tech",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "teched"
+  },
+  {
+   "name": "a tech, then standing still",
+   "inputs": [
+    {
+     "press": "R",
+     "frame": "TR",
+     "hold": 3,
+     "from": "start"
+    }
+   ],
+   "fails": "acted"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "L or R",
+    "button": "shield",
+    "held": false,
+    "perfect": [
+     "TR"
+    ],
+    "window": [
+     "T0",
+     "T1"
+    ]
+   },
+   {
+    "label": "Control stick",
+    "stick": "side",
+    "perfect": []
+   },
+   {
+    "label": "Tech",
+    "state": "tech",
+    "perfect": [
+     "FLOOR"
+    ]
+   },
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": []
+   }
+  ],
+  "note": "Frame 1 is the first frame of the throw. {char} lands on frame {FLOOR}; a tech in place is over on frame {FI}, a roll on frame {FR}."
+ }
+}

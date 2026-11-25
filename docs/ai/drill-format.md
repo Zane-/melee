@@ -36,6 +36,14 @@ game, one of the best taken, another when it sees what the player commits to, it
 reaction time after they do; by the ledge and up from it, after every hit, with stalls
 and late timings. A try runs until its stock is gone or it stands on the stage again. The reaction time is the player's to set (CPU reaction, in the pause menu and
 Settings), for this and every drill whose opponent is a script.
+Defense (2026-11-24): Fox's escape from the tech chase (`fox-escape-techchase`): the
+same eleven, each with the throw of its own that leaves Fox in hitstun until the floor
+(the down throw of Fox, Sheik, Captain Falcon, Peach, the Ice Climbers, Pikachu and
+Samus; the forward throw of Marth and Jigglypuff at 30%, Falco at 55% and Yoshi at 90%:
+measured, `tests/engine/chase.py`), chasing by the engine's `chase` (`melee-engine.md`,
+"Answers ready before the player chooses"): its answers to each of Fox's options worked
+out before he chooses. Every try begins in the opponent's grab (the player's `held`) and
+runs from the throw's first frame to the cover that lands, or `END` frames untouched.
 
 ## Where things are
 
@@ -103,7 +111,9 @@ its proof, never written into one drill's file.
   Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
   shine_ground`; `holding` (CatchPull, CatchDashPull, CatchWait: the player's grab caught)
   and `grabbed` (the player held by the opponent's grab, which deals no damage: not a
-  `hit`). Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
+  `hit`); `thrown` (in the opponent's throw, until it lets go) and, on the floor after
+  it, `tech` (`tech_in_place`, `tech_roll`: its rolls), `missed_tech` (the bounce) and
+  `down` (lying there, getting up). Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
   frame shield stun's animation ends is the first a new X or Y works on (Guard reads it on
   that frame), and the record of that frame is the first that has left `shield_stun`.
 - **Events** (when something happens, frame by frame): `start`, `end`, `airborne`, `lands`,
@@ -224,7 +234,8 @@ its proof, never written into one drill's file.
   on the ledge, whose intangibility runs from the placement: there the runtime's own 3
   neutral frames are skipped too, so frame 1 is the hang's second), `player` (`{"x"}` on the ground, `"above": Y` on
   what is below (x, Y): a platform, `"air": true` with `"y"`: falling with the double jump,
-  `"ledge": "left"` hanging; `"facing"`, `"percent"`), `opponent`, `camera`, `trace`,
+  `"ledge": "left"` hanging; `"facing"`, `"percent"`; `"held": true`: in the opponent's
+  grab from the start, below), `opponent`, `camera`, `trace`,
   `numbers`. A part names its scenario by index (`"scenario"`).
 
   `"numbers"`: the scenario's own numbers and words, named in the drill's expressions
@@ -253,6 +264,14 @@ its proof, never written into one drill's file.
   flight's to the hundredth on every frame (y is drawn at the middle of the body).
   `JsonDrill.setup` turns it on or off for each scenario; the client turns it off when the
   drill is left. `universal-di` uses it.
+  `"held": true` (the player's): every attempt begins in the opponent's grab. The
+  opponent stands at its grab's reach (`x`) and its script grabs at once (`chain_grab`); a
+  person's pad is kept from the game from the reset until the grab has them
+  (`format.HELD_MOST`, 40 frames at most: a jump, a roll or a shield at the reset would
+  get out of the grab's way), then handed back (`JsonDrill._withhold`, the window build's
+  `script`). A demonstration's pad is the example's, which presses nothing before the
+  throw. `fox-escape-techchase` uses it; in the client, `tests/client/techchase.py`: jump
+  mashed from the reset, and the throw still comes.
 - **Opponents**: `"none"`: no CPU in the drill (none is spawned; one a match already has
   from another drill sleeps: out of play, out of the picture). Or `{"character", "x",
   "facing": "player"|"away", "percent", "inputs", "every"}`: a CPU that plays `inputs` from
@@ -431,6 +450,13 @@ ends at the ledge; the edgeguard's ends only on the stock, the stage, or Fox los
 person (it gets back when nothing is done, changes its route when it sees a commitment,
 later with a longer reaction time) is `tests/engine/recover.py`'s and
 `tools/melee_engine/recoveries.py`'s to show.
+
+`fox-escape-techchase`: 92 of 92 cases in 15 seconds: each part's example and both
+mistakes (no tech; a tech, then standing still) against each of the eleven opponents'
+example script (its throw, then standing: `chain_grab` with `times` 1). What its opponent
+does against a person (it covers each tech at the frame its reaction allows, holds its
+grab until its answers are back, reads a habit) is `tests/engine/chase.py`'s and
+`tools/melee_engine/chases.py`'s to show.
 
 A drill generated from a description is done when `check.py` passes and the owner has
 played it.

@@ -745,3 +745,150 @@ Not yet: the other drills on the engine (E5: wavedash back, shine out of shield,
 rest, each with its contract); the slippi-ai body and model of the player in the drills;
 several futures of the player (a jump-in that lands whether they stop or go on); faster
 searches (an optimised build, fewer rollback pages scanned); TT and history; E6, E7.
+
+## Answers ready before the player chooses: the tech chase (2026-11-24)
+
+The owner: "does our engine do tree searches? For example from any given state, does it
+form the optimal inputs from the possible predicted inputs? ... With this we could
+possibly precompute a bunch of optimal reactions from likely inputs from a state". Then:
+"Yes let's implement this now for escape the tech chase. I want to explore this
+technology so we get a solid engine before implementing more drills".
+
+Until then the search found the opponent's lines against one future of the player, given
+beforehand. `chase`, the step that covers a tech, stood still until it had seen the
+player's option, its reaction time late, and only then searched: the answer came the
+search's time later still, from wherever it stood. Against stand-ins who tech and jump on
+their first free frame it caught 23 of 96 (Sheik and Captain Falcon, reactions of 15
+to 30 frames).
+
+### The tree
+
+Thrown at the floor, the player has four options and no others: a tech in place, a tech
+rolling toward the opponent or away, no tech. That is the tree's middle level, and it is
+small enough to search whole before the player chooses (`tools/melee_engine/chase.py`):
+
+1. **How the opponent waits** until it has seen the option (a stance): standing; a dash
+   or a walk toward where they land for some frames, then standing; a dash away
+   (`stances`: five or six, those that fit how far it has to go); or a read, the cover of
+   one option begun without waiting to see it.
+2. **The player's option**, each played ahead in the game (`tech_options`): where it
+   leaves them and the first frame they can act again are the game's own, for this throw
+   at this damage. It shows on the frame they land and is seen `react` frames later.
+3. **The answer** from the frame it is seen: the engine's timing scan (a hold, then a
+   grab or an attack) with the stance as the search's pre-roll and the option as the
+   player's inputs. "sure": it connects before the player can act again, whatever they
+   press then; "late": only if they do nothing in time.
+
+`table` is that tree as a table: each stance, and under it the answer to each option.
+`choose` takes a stance by what it is worth against this player (sure 1, late 0.3,
+weighed by how often they chose each option before, one more for each so that nothing is
+ruled out; a softmax: the best most often, never one only). When the option is seen its
+answer is played from that frame: the reaction is the reaction time, with nothing left to
+think about. The opponent's step is `chase` (`behave.Chase`); what the player chose is
+kept in its memory from try to try.
+
+    python tools/melee_engine/chases.py --cpu captain-falcon --react 15 --show
+
+What the table says (Fox at 20% on Final Destination; `tests/engine/chase.py`): Sheik,
+reacting in 15 frames, covers all four surely standing still. Captain Falcon standing
+still covers one of the four surely; dashing 8 or 12 frames toward where Fox lands and
+then standing, all four. Sheik reacting in 30 has no stance that covers all four; where
+no stance covers an option by reacting (the tech in place), its read is in the table, and
+loses to the other three: chosen 40 times of 40 against a player who has teched in place
+eight times, never against one who has shown nothing.
+
+### When it is made
+
+The answers are wanted before the opponent can first act after its throw, so the table
+is asked for as soon as the situation is known: **when its grab connects**. The throw has
+not begun; it is played ahead as the opponent's own next pads (the lookahead's `| pads`,
+`src/host/ahead.c`; the stick pressed once the grab has settled, since one held from
+before is no throw), and every stance begins with it. The search's `fresh=1`
+(`src/host/engine.c`) keeps the throw itself from counting as the answer's contact. The
+opponent holds its grab until the table is back, 18 frames at most (a held player mashes
+out), then throws; the table's frames count from the frame they are thrown, whenever that
+is. `chain_grab` with `chase` ends when the grab has them and leaves the throw to `chase`
+(its `throw`).
+
+The table is anytime (`early`): its standing row, the answers it must have, is handed
+over as soon as it is searched, and the opponent reacts by it if the rest is not back;
+the whole table, when it comes, replaces it unless an answer is already being played.
+
+A direction held through the throw changes the fall. The table is for a player who holds
+none; one who does is seen to leave the path it was made for (`off_path`), and the table
+is made again from there (twice at most).
+
+A missed tech is a second stage of the same kind (`getup_options`): lying there, the
+player gets up, rolls either way, attacks or stays. Its table is asked for when the
+bounce shows and acted on once the missed tech has been seen; each getup is tabled from
+the first frame it can begin, and while the opponent stands waiting the answers hold for
+a later one. One who stays down is hit after a patience of 10 to 34 frames.
+
+### What is a tech chase
+
+Hitstun must last to the floor: tumbling without it the player can jump, attack or air
+dodge on the way down, and nothing is forced. The lookahead's rows carry the hitstun left
+(`a_hitstun`), and `tech_options` gives none where it ends before the landing. Measured
+for the top 11's throws on Fox: Falco's down throw and Yoshi's are no tech chase at any
+damage; the drill's eleven (`chases.THROWS`: the down throw of Fox, Sheik, Captain
+Falcon, Peach, the Ice Climbers, Pikachu and Samus; the forward throw of Marth and
+Jigglypuff at 30%, Falco at 55% and Yoshi at 90%) each have all four options.
+
+### Measured
+
+Sheik and Captain Falcon against stand-ins who tech one way (each of the four) and jump
+on their first free frame, three chases each (`chases.py`; the first version:
+`--ahead 0`):
+
+| Reaction (frames) | The first version | Now |
+|-|-|-|
+| 15 | 8 of 24 | 24 of 24 |
+| 20 | 5 of 24 | 23 of 24 |
+| 24 | 7 of 24 | 19 of 24 |
+| 30 | 3 of 24 | 14 of 24 |
+
+All four together: 23 of 96 before, 80 of 96 now (Sheik 44 of 48, Captain
+Falcon 36 of 48). All eleven with their throws at a reaction of 24, the stand-in
+drawing its tech anew each time: caught 44 of 88 (a spot dodge on the first free
+frame) and 39 of 88 (a jump). Caught at 15, a mixup at 24 and beyond: the drill's
+opponents react in 24 until the player chooses otherwise (CPU reaction).
+
+What it costs. Headless, in 16 copies of the game: 24 to 37 searches, 0.33 to 0.47 s. In
+the window build drawn by the graphics card, with nothing else running: 37 searches in
+0.6 s, and the same in 6 copies, in 8 and in 16: the copies contend for the memory they
+copy after the fork, and the more there are, the more of the game's own frames come late
+(over 18.5 ms of the 16.7 a frame has: 2 to 4 of 40 with 6 copies, 4 to 8 of 38 with 16;
+the longest 24 to 34 ms). So beside a game a person plays it is searched in 6
+(`Chase.LIVE`). In the client at the console's pace (`tests/client/techchase.py`): drawn
+by the graphics card, the standing row is there 16 to 23 frames after the grab connects
+and the whole table after 48 to 55; drawn in software (the tests' virtual display), 25 to
+33 and 68 to 74. The throw begins on frame 19 (the grab held its 18) and the tech is seen
+on frames 70 to 76: the answers are there in time in both, and on the graphics card the
+whole table 15 frames or more before.
+
+Corrected while here: `fork.py` said a copy of the game costs more beside the client
+because the thinking threads wait for the interpreter. Measured 2026-11-24, a copy's cost
+follows the memory of the process forked (0.3 ms headless at 81 MB, 6.7 ms drawn in
+software at 799 MB, 3.7 ms on the graphics card), and the client's Python is 0.4 ms of a
+frame.
+
+The drill: `data/drills/fox-escape-techchase.json` (`drill-format.md`), every try begun
+in the opponent's grab. Proof: `python tests/engine/chase.py` (17 checks: the options,
+the table made held, at the throw's first frame and at its release, the stances, the
+read, both chases against all four, the held direction, the getups, which throws are
+tech chases, the format), `tools/melee_drills/check.py fox-escape-techchase` (92 cases),
+`tests/client/techchase.py` (the drill in the client; `--gpu`: drawn by the graphics
+card).
+
+Not yet: the frames the whole table takes beside a game a person plays (0.8 to 0.9 s in
+the client on the graphics card: the grab's 18 frames are not enough for it, so a fast
+throw's stances begin late; copies kept in step with the game by its inputs, the shadow
+games above, would not pay the fork's copying for each table); what the player does on
+their first free frame as a further level (a spot dodge, a shine, a roll: what a late
+cover is worth is one number, 0.3, for all of them); the chase going on after a regrab
+(a `loop` throws again; the drill's script stops there); several falls tabled at once (a
+direction held through the throw is seen only once it has changed the fall); techs on
+platforms and walls, knockdowns by a hit (the options are worked out for any fall in
+hitstun, tested for throws), ledge options (still the first version). The same tree fits
+other small sets of options: what a player does out of shield, from the ledge, out of
+hitstun.

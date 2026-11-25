@@ -79,6 +79,13 @@ STATES = {
     # caught by the opponent's grab: CapturePulledHi to CaptureWaitLw (no
     # damage: not a "hit")
     "grabbed": tuple(range(223, 233)),
+    # thrown: in the opponent's throw, until it lets go (ThrownF to
+    # ThrownLwWomen); on the floor after it: a tech (Passive in place,
+    # PassiveStandF and B: its rolls), a missed one (DownBound: the
+    # bounce), lying there and getting up (DownBoundU to DownSpotD)
+    "thrown": (239, 240, 241, 242, 243),
+    "tech": (199, 200, 201), "tech_in_place": 199, "tech_roll": (200, 201),
+    "missed_tech": (183, 191), "down": tuple(range(183, 199)),
     "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),
     "roll": (233, 234), "spot_dodge": 235,
     # the shield's own (in "shield" too): stun after a hit on it,
@@ -205,7 +212,11 @@ SHIELDS = ("infinite",)
 # success too"); the pause menu's Swap changes it
 SWITCHES = ("manual", "success", "every")
 PLAYER_KEYS = ("x", "y", "air", "above", "ledge", "facing", "percent",
-               "inland")
+               "inland", "held")
+# a player who begins each attempt in the opponent's grab ("held": true):
+# a person's pad is kept from the game from the reset until the grab has
+# them, this many frames at most (the opponent's script grabs at once)
+HELD_MOST = 40
 OPPONENT_KEYS = ("character", "x", "facing", "percent", "inputs", "every",
                  "react", "script", "loop", "launch", "example")
 # an opponent's "launch": it starts each attempt knocked off the stage (an
@@ -757,6 +768,13 @@ def _problems(spec):
                                       else ("left", "right")), w,
                      "player.facing: left or right (with inland: stage, "
                      "ledge or either)")
+            if "held" in pl:
+                # in the opponent's grab from the start: its script's to
+                # grab (a scripted opponent, standing at its grab's reach)
+                need(pl["held"] is True and
+                     isinstance(sc.get("opponent"), dict) and
+                     "script" in sc["opponent"], w,
+                     "player.held: true, with a scripted opponent")
             extra = set(pl) - set(PLAYER_KEYS)
             need(not extra, w, "player: unknown %s" % ", ".join(sorted(extra)))
         op = sc.get("opponent", "none")

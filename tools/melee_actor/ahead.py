@@ -40,7 +40,8 @@ class Row:
     """The state after one frame played ahead."""
     __slots__ = ("a_state", "a_x", "a_y", "a_air", "a_percent", "a_hitlag",
                  "a_hitbox", "a_facing", "t_state", "t_x", "t_y", "t_air",
-                 "t_percent", "t_shield", "t_hitlag", "gap", "gx")
+                 "t_percent", "t_shield", "t_hitlag", "gap", "gx",
+                 "a_hitstun")
 
     def __init__(self, text):
         v = text.split()
@@ -53,6 +54,8 @@ class Row:
                                float(v[5]), float(v[7]), float(v[9]),
                                float(v[10]), float(v[12]), float(v[13]),
                                float(v[14]), float(v[15]), float(v[16]))
+        # frames of hitstun left (0: none)
+        self.a_hitstun = float(v[17]) if len(v) > 17 else 0.0
 
 
 class Outlook:
@@ -117,17 +120,23 @@ def pad_words(buttons=(), stick=(0, 0), cstick=(0, 0), l=0, r=0):
                                      int(r * 255))
 
 
-def look(n, port, target, plan, stop=1):
+def look(n, port, target, plan, stop=1, their=None):
     """Play `plan` ([(frames, pad), ...]) for `port` ahead, everyone else
     holding their pads, and undo it. `stop`: frames to go on after the
-    first contact (0: all of the plan). The game is exactly as it was
-    afterwards; the state `n` had read stays good."""
+    first contact (0: all of the plan). `their`: the target's pads too
+    ([(frames, raw pad)], the last held on: a throw it is about to make).
+    The game is exactly as it was afterwards; the state `n` had read stays
+    good."""
     segs = []
     for frames, pad in plan:
         if frames > 0:
             segs.append("%d %s" % (frames, pad_words(**pad)))
     me, them = n.fighter(port), n.fighter(target)
     state = n.state()
+    if their:
+        segs.append("|")
+        segs += ["%d %x %d %d %d %d %d %d" % ((k,) + tuple(raw))
+                 for k, raw in their if k > 0]
     reply = n._cmd("ahead %d %d %d %s" % (port, target, stop,
                                           " ".join(segs)))
     n._state = state                      # nothing changed

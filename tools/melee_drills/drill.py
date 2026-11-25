@@ -387,6 +387,7 @@ class JsonDrill(Drill):
             self._script(c, None)
         self.camera(c.n, c.s.person)
         self.trace(c.n, c.s.person)
+        self._withhold(c, bool(pl.get("held")))
         if self.spec.get("shield") == "infinite":
             # kept by the game at every frame boundary: what the opponent's
             # searches foresee is the shield the player has (the client
@@ -516,6 +517,39 @@ class JsonDrill(Drill):
 
     # ---- an attempt, frame by frame ------------------------------------------------
 
+    withheld = False
+
+    def _withhold(self, c, on):
+        """A scenario whose player begins in the opponent's grab
+        ("held"): a person's pad is kept from the game from the reset
+        (`on`) until the grab has them, format.HELD_MOST frames at most,
+        so that every try begins held (a jump or a roll at the reset
+        would get out of the grab's way). Nothing to do for a
+        demonstration or headless: their pad is the example's."""
+        n = c.n
+        if not hasattr(n, "scripted") or not getattr(c.s, "live", False):
+            self.withheld = False
+            return
+        if c.is_demo:
+            self.withheld = False     # (the client's own: left as it is)
+            return
+        if on:
+            # (said again each reset: the client's own demonstrations
+            # hand the port back when they end)
+            n.scripted(c.s.person, True)
+            n.pad(c.s.person)
+        elif self.withheld:
+            n.scripted(c.s.person, False)
+        self.withheld = on
+
+    def _held_yet(self, c):
+        """Hand the pad back once the grab has the player (or it never
+        came)."""
+        if self.withheld and (
+                c.me.state in F.STATES["grabbed"] + F.STATES["thrown"] or
+                c.timer > F.HELD_MOST):
+            self._withhold(c, False)
+
     def _frame(self, c):
         """This frame as the events and measures read it."""
         me = c.me
@@ -578,6 +612,7 @@ class JsonDrill(Drill):
         shield kept full in a shield drill."""
         if self.spec.get("shield") == "infinite":
             c.n.shield(c.s.person, 60.0)
+        self._withhold(c, False)
         if self.op_script is not None:
             self._opponent(c)
 
@@ -735,6 +770,7 @@ class JsonDrill(Drill):
         a = self.attempt()
         v = self.v
         v["nums"] = v.get("nums") or self.nums(c)
+        self._held_yet(c)
         if self.spec.get("shield") == "infinite":
             # the shield kept full: a hit's stun and push come from its
             # damage, not the shield's health, so nothing else changes (the

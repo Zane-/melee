@@ -127,6 +127,7 @@ typedef struct Row {
     float a_x, a_y, a_percent, a_hitlag, a_facing;
     float t_x, t_y, t_percent, t_shield, t_hitlag;
     float gap, gx;
+    float a_hitstun; /* frames of hitstun left (0: none; as "state" has it) */
 } Row;
 
 static struct {
@@ -285,6 +286,7 @@ static void record(Row* row)
     row->a_air = (int) a->ground_or_air;
     row->a_percent = a->dmg.x1830_percent;
     row->a_hitlag = a->dmg.x195c_hitlag_frames;
+    row->a_hitstun = a->x221C_b6 ? *(float*) &a->mv : 0.0F;
     row->a_hitbox = any_hitbox(a);
     row->a_facing = a->facing_dir;
     row->t_state = (int) t->motion_id;
@@ -406,6 +408,22 @@ const char* host_ahead_begin(const char* line)
     if (ahead.total > AHEAD_MAX) {
         ahead.total = AHEAD_MAX;
     }
+    /* "| N BUTTONS ...": TARGET's pads too (a throw it is about to make,
+       played ahead with the fighter it holds: tools/melee_engine/chase.py);
+       without them it holds its pad (none, set here: a route's are not
+       this lookahead's). */
+    ahead.ntsegs = 0;
+    while (*line == ' ') {
+        line++;
+    }
+    if (*line == '|') {
+        int ttotal = 0;
+        line++;
+        ahead.ntsegs = read_segs(&line, ahead.tsegs, &ttotal);
+        if (ahead.ntsegs < 0) {
+            return "each pad is held 1 frame or more, 160 pads at most";
+        }
+    }
     a = fighter_of(ahead.port);
     t = fighter_of(ahead.target);
     if (a == NULL || t == NULL) {
@@ -430,6 +448,9 @@ const char* host_ahead_begin(const char* line)
     ahead.active = 1;
     host.draw = 0; /* undone with the rest */
     host.pads[ahead.port] = *pad_for(0);
+    if (ahead.ntsegs > 0) {
+        host.pads[ahead.target] = *seg_pad(ahead.tsegs, ahead.ntsegs, 0);
+    }
     return NULL;
 }
 
@@ -444,11 +465,11 @@ static void reply(void)
     for (int i = 0; i < ahead.played; i++) {
         Row* r = &ahead.rows[i];
         printf("%s%d %.3f %.3f %d %.2f %.0f %d %.0f %d %.3f %.3f %d %.2f "
-               "%.2f %.0f %.2f %.2f",
+               "%.2f %.0f %.2f %.2f %.0f",
                i ? ";" : "", r->a_state, r->a_x, r->a_y, r->a_air,
                r->a_percent, r->a_hitlag, r->a_hitbox, r->a_facing,
                r->t_state, r->t_x, r->t_y, r->t_air, r->t_percent,
-               r->t_shield, r->t_hitlag, r->gap, r->gx);
+               r->t_shield, r->t_hitlag, r->gap, r->gx, r->a_hitstun);
     }
     printf("\n");
     fflush(stdout);
@@ -493,6 +514,10 @@ int host_ahead_boundary(void)
         host_anchor_frame();
         host_rng_frame();
         host.pads[ahead.port] = *pad_for(ahead.played);
+        if (ahead.ntsegs > 0) {
+            host.pads[ahead.target] =
+                *seg_pad(ahead.tsegs, ahead.ntsegs, ahead.played);
+        }
         return 1;
     }
     host_rb_mark();

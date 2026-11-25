@@ -88,6 +88,11 @@
  * the pre-roll ("engine preroll") alone as one line, "plan": what a plan
  * does against the target's inputs as given (the lookahead's question,
  * with "engine player").
+ * fresh=1: what happens during the pre-roll is no contact of the line's (a
+ * throw played out first: the target held, its damage): the pre-roll is
+ * played to its end whatever it does, and the line's contacts and damage
+ * count from there (answers searched from the first frame of a throw:
+ * tools/melee_engine/chase.py).
  *
  * A forked game ("engine fork IN OUT"): the process forks at the frame
  * boundary, and the copy reads its commands from the pipe IN and replies on
@@ -386,6 +391,8 @@ static struct {
     /* norun=1: a hold on the ground ends where it would run, past the
        target or near the ledge */
     int norun;
+    /* fresh=1: the pre-roll's contacts and damage are not the line's */
+    int fresh;
     int connected;
     /* want=S,S...: only a contact with PORT in one of these action states
        counts toward enough (what a drill counts as its answer) */
@@ -2316,10 +2323,28 @@ static void search_main(void)
         /* PORT's move still playing out first; the branching starts where
            it ends */
         int ok = 1, i, np = eng.npreroll;
+        int stop = eng.stop_contact;
+        if (eng.fresh && !eng.eval) {
+            eng.stop_contact = 0; /* played to its end */
+        }
         for (i = 0; i < np && ok; i++) {
             ok = play(eng.preroll[i]);
         }
+        eng.stop_contact = stop;
         eng.npreroll = 0;
+        if (eng.fresh && !eng.eval && ok) {
+            /* the line's contacts and damage count from here */
+            a = fighter_of(eng.port);
+            t = fighter_of(eng.target);
+            if (a != NULL && t != NULL) {
+                eng.pct_a = a->dmg.x1830_percent;
+                eng.pct_t = t->dmg.x1830_percent;
+            }
+            eng.contact_at[eng.t] = 0;
+            eng.contact_kind[eng.t] = 0;
+            eng.contact_air[eng.t] = 0;
+            eng.contact_state[eng.t] = 0;
+        }
         if (eng.eval) {
             /* a plan, scored as it is (against the target's inputs as
                given): "plan"; with front=, followed on (its own pads, then
@@ -2484,6 +2509,7 @@ const char* host_engine_begin(const char* line)
     eng.trial = (int) parse_weight(line, "trial", 0.0F);
     eng.enough = (int) parse_weight(line, "enough", 0.0F);
     eng.norun = (int) parse_weight(line, "norun", 0.0F);
+    eng.fresh = (int) parse_weight(line, "fresh", 0.0F);
     /* "front=4": a line only if PORT stays on its side of the target
        until its move is over and a frame-4 answer out of the shield hits
        (front_ok) */

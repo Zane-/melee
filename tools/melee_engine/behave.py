@@ -22,6 +22,7 @@ through the thinker every behaviour shares.
     b = make(ctx, {"do": "footsies", "range": "outside"})
     raw = b.pad(n.state())     # once a frame, before the frame is played
 """
+import math
 import random
 
 from melee_engine import sense as S
@@ -965,24 +966,378 @@ class Punish(Driven):
 
 
 class Chase(Punish):
-    """Waits (standing) for the player's tech, getup, missed tech or ledge
-    option, seen `react` frames late, then punishes it, until they can act
-    again. First version: covering is the punish's search from where the
-    option is seen, the player going on with it."""
+    """Covers the player's tech, getup, missed tech or ledge option, seen
+    `react` frames late, until they can act again or are caught.
+
+    Thrown or knocked at the floor, the player's options are known before
+    they choose (a tech in place, a roll either way, none), so the answers
+    are worked out before they do (chase.py: the owner, 2026-11-24,
+    "precompute a bunch of optimal reactions from likely inputs from a
+    state"). Begun with the player in its grab (`chain_grab` with `chase`
+    leaves them there), it makes the throw itself (`throw`): the table is
+    asked for as the grab connects, in copies of the game, the throw
+    played ahead; it holds the grab until the table is back (`HOLD` frames
+    at most: a held player mashes out) and then throws, its answers ready
+    before the throw begins. Then one of the table's stances is taken (how
+    to wait: where to stand, or a read where reacting cannot cover an
+    option), weighed by what this player has chosen before; and when the
+    option is seen, its answer is played from that frame on: the reaction
+    is the reaction time, with no search after it. A missed tech is a
+    second stage of the same kind (the getups). `ahead` false, an option
+    the table has not got, or a table that is not back in time: the first
+    version, which stands until the option is seen and then searches
+    (`Punish`). `reads` false: no stance commits before the option is
+    seen. Over when they are held again (the next step's), or free."""
     name = "chase"
+    kind = "chase"
     OPTIONS = S.TECHS + S.DOWN + S.LEDGE_OPTIONS + (S.CLIFF_CATCH,)
+    ROOM = 1.2                # seconds a table may take while a person plays
+    #                           (and no longer than the throw leaves it:
+    #                           chase.table's clock)
+    LATEST = 150              # frames a table is waited for
+    GIVE_UP = 40              # frames past the reaction with nothing seen
+    PATIENCE = (10, 34)       # frames it waits for a getup before it hits
+    AGAIN = 2                 # tables made again in one chase, at most
+    HOLD = 18                 # frames it holds its grab for its table
+    # copies of the game a table is searched in: beside a game a person
+    # plays, few (measured 2026-11-24 in the window build, drawn by the
+    # graphics card: 37 searches took 0.6 s in 6 copies, in 8 and in 16,
+    # and the game's frames came late more often the more there were:
+    # the copies contend for the memory they copy after the fork)
+    COPIES, LIVE = 16, 6
 
     def __init__(self, ctx, spec):
         super().__init__(ctx, spec)
         self.started = None
+        self.ahead = spec.get("ahead", True)
+        self.reads = spec.get("reads", True)
+        self.throw = spec.get("throw", "dthrow")
+        self.mode = "look"        # look, table, throw, live
+        # a stage: the table asked for at one moment and what came of it
+        # (the tech; then, after a missed one, the getup)
+        self.stage = None
+        self.coming = None        # the next stage, asked for ahead
+        self.stages = []          # every stage, for a test and a tool
+        self.tags = 0
+        self.again = 0            # tables made again (they left the path)
+        self.throw_raw = None
+
+    # (what a tool and a test read: of the stage that answered, else of
+    # the one it is in)
+    def _told(self):
+        told = [g for g in self.stages if g["option"] is not None and
+                g["cover"] is not None]
+        return told[-1] if told else self.stage or (
+            self.stages[-1] if self.stages else None)
+
+    @property
+    def tab(self):
+        g = self._told()
+        return g["tab"] if g else None
+
+    @property
+    def stance(self):
+        g = self._told()
+        return g["stance"] if g else None
+
+    @property
+    def option(self):
+        g = self._told()
+        return g["option"] if g else None
+
+    @property
+    def cover(self):
+        g = self._told()
+        return g["cover"] if g else None
+
+    @property
+    def back(self):
+        g = self.stages[0] if self.stages else None
+        return g["back"] if g else None
+
+    # -- the tables -----------------------------------------------------------
+
+    def _ask(self, prefix=(), start=None, cut=False, throw=None):
+        """A stage: its table asked for now. `prefix`: the pads already
+        decided for the next frames (the stance it is in; `cut`: only
+        until the table is expected back); `start`: the first frame a
+        stance may differ from standing on; `throw`: its own throw's pad,
+        the player in its grab (the table is then of the throw it has not
+        begun: its frames count from the throw, whenever it comes)."""
+        from melee_engine import chase as CH
+        think = self.ctx.think
+        port, target, react = self.ctx.port, self.ctx.target, self.ctx.react
+        moves = self.moves or CH.MOVES
+        reads = self.reads
+        prefix = [tuple(x) for x in prefix]
+        live = bool(think.lead_for(self.kind))
+        # while a person plays the table comes back some frames later: its
+        # stances begin on the frame it is expected by (as long as the
+        # last ones took, kept by the thinker), and it has that long;
+        # with its own throw still to come, less the frames the grab is
+        # held for it
+        took = getattr(think, "chase_frames", 16.0)
+        begin = max(start or 1, int(math.ceil(took)) + 2 - (
+            self.HOLD if throw is not None else 0) if live else 1)
+        deadline = self.ROOM if live else None
+        if cut:
+            prefix = prefix[:begin - 1]
+        early = {}                # its standing row, as soon as it is done
+        workers = self.LIVE if live else self.COPIES
+
+        def fn(n):
+            return CH.table(n, port, target, react, moves=moves,
+                            reads=reads, start=begin, deadline=deadline,
+                            prefix=prefix, clock=live, throw=throw,
+                            early=early, workers=workers)
+        self.tags += 1
+        stage = dict(tag=("chase", id(self), self.tags), asked=self.frame,
+                     tab=None, back=None, stance=None, option=None,
+                     shown=None, answer=None, cover=None, seen_at=None,
+                     played=[], prefix=prefix, throw=throw, thrown_at=None,
+                     held=0, early=early, whole=False, first=None,
+                     patience=self.rng.randint(*self.PATIENCE))
+        think.submit(stage["tag"], fn, self.kind)
+        self.stages.append(stage)
+        return stage
+
+    def _k(self, g):
+        """The stage's frame now as its table counts them, or None (its
+        own throw not begun, or begun with the table not back: not known
+        yet)."""
+        if g["throw"] is None:
+            return self.frame - g["asked"]
+        if g["thrown_at"] is None or g["tab"] is None:
+            return None
+        return g["tab"]["throw_at"] + self.frame - g["thrown_at"]
+
+    def _table_back(self, g, tab=None):
+        """The stage's table, back: kept, and a stance chosen (`tab`: its
+        standing row alone, come first: the whole table replaces it when
+        it comes, unless an answer is already being played). False: there
+        is none (nothing to chase, or it failed)."""
+        from melee_engine import chase as CH
+        think = self.ctx.think
+        whole = tab is None
+        if whole:
+            tab = think.result(g["tag"])
+            g["whole"] = True
+            if tab is None or not tab["stances"]:
+                return g["tab"] is not None
+            g["back"] = self.frame - g["asked"]
+            if think.lead_for(self.kind):
+                was = getattr(think, "chase_frames", 16.0)
+                think.chase_frames = max(4.0, 0.5 * was + 0.5 * g["back"])
+            if g["answer"] is not None:
+                return True       # (too late to change how it waits)
+        if g["first"] is None:
+            g["first"] = self.frame - g["asked"]
+        g["tab"] = tab
+        prior = self.ctx.memory.get("chase", {}).get(tab["kind"], {})
+        played = g["played"]
+        if g["throw"] is not None:
+            # (of the table's frames: the throw, then standing since)
+            k = self._k(g)
+            at = tab["throw_at"]
+            played = [] if k is None else \
+                list(tab["lead"]) + [NONE] * (k - at)
+        stance = CH.choose(tab, played, dict(prior), self.rng)
+        if stance is None:
+            return g["stance"] is not None
+        g["stance"] = stance
+        self.log.append((self.frame, "%s: waits %s (worth %.2f; %d "
+                         "searches, %.0f ms%s)" % (
+                             tab["kind"], g["stance"]["name"],
+                             g["stance"]["worth"], tab["searches"],
+                             tab["wall"],
+                             ", its standing row" if not whole else
+                             ", not all" if tab["partial"] else "")))
+        return True
+
+    def _note(self, g, them):
+        """What the player chose, for the next time (the opponent's
+        memory: the stance is weighed by it)."""
+        if g["tab"] is None or g["shown"] is not None:
+            return None
+        from melee_engine import chase as CH
+        o = CH.option_of(g["tab"], them["state"])
+        if o is None:
+            return None
+        g["shown"] = self.frame
+        seen = self.ctx.memory.setdefault("chase", {}).setdefault(
+            g["tab"]["kind"], {})
+        seen[o["name"]] = seen.get(o["name"], 0) + 1
+        return o
+
+    def _table(self, st):
+        """This frame's pad from the stage's table, or None: the first
+        version takes over."""
+        from melee_engine import chase as CH
+        think = self.ctx.think
+        them = st["p"][self.ctx.target]
+        g = self.stage
+        if not g["whole"] and think.ready(g["tag"]):
+            if not self._table_back(g):
+                return None
+        elif g["tab"] is None and g["early"].get("tab") is not None:
+            self._table_back(g, g["early"]["tab"])
+        if g["throw"] is not None and g["thrown_at"] is None:
+            # its own grab: held until the table is back, then the throw
+            if them["state"] in S.THROWN:
+                g["thrown_at"] = self.frame
+                if g["whole"] and g["back"] is not None:
+                    self.log.append((self.frame, "thrown, its table back "
+                                     "%d frames before" % (
+                                         self.frame - g["asked"] -
+                                         g["back"])))
+            elif them["state"] not in S.CAPTURED:
+                return None           # they got out of the grab
+            else:
+                g["held"] += 1
+                me = st["p"][self.ctx.port]
+                # (pressed once the grab has settled: a stick held from
+                # before that is no throw)
+                if (g["whole"] or g["held"] > self.HOLD) and \
+                        me["state"] == S.CATCH_WAIT:
+                    return g["throw"]
+                return NONE
+        k = self._k(g)
+        if k is None:
+            # thrown, the table not back yet: it stands
+            if self.frame - g["asked"] > self.LATEST:
+                return None
+            return NONE
+        if g["tab"] is None:
+            if k > self.LATEST:
+                return None           # it never came: the first version
+            # not back yet: what was decided before, then it stands
+            raw = g["prefix"][k] if k < len(g["prefix"]) else NONE
+        else:
+            tab, see = g["tab"], g["tab"]["see"]
+            if g["shown"] is None and g["answer"] is None and \
+                    self.again < self.AGAIN and CH.off_path(tab, k, them):
+                # they held a direction through the throw: another fall
+                # than the one its answers are for
+                self.again += 1
+                self.log.append((self.frame, "off the path: the table "
+                                 "again"))
+                self.stage = self._ask(prefix=g["stance"]["pads"][k:],
+                                       cut=True)
+                return self._table(st)
+            shown = self._note(g, them)
+            if shown is not None and shown["name"] == "none" and \
+                    self.coming is None:
+                c = g["stance"]["covers"].get("none")
+                if not c or c["kind"] != "sure":
+                    # a missed tech it has no sure hit for: the getup is
+                    # the next thing to cover, thought about from now (it
+                    # acts on it only once it has seen the missed tech)
+                    self.coming = self._ask(
+                        prefix=g["stance"]["pads"][k:see],
+                        start=see - k + 1)
+            if g["answer"] is None and k >= see:
+                _, seen, _ = self.ctx.sense.seen()
+                o = CH.option_of(tab, seen["state"]) if seen else None
+                if o is None and tab["kind"] == "getup" and seen and \
+                        seen["state"] in CH.DOWN_WAIT and \
+                        k >= see + g["patience"]:
+                    o = next(x for x in tab["options"]
+                             if x["name"] == "stay")
+                if o is not None:
+                    c = g["stance"]["covers"].get(o["name"])
+                    g["option"] = o["name"]
+                    if o["name"] == "none" and self.coming is not None:
+                        # (seen now: on to the getup, already asked for)
+                        self.log.append((self.frame, "none seen: the getup"))
+                        self.stage, self.coming = self.coming, None
+                        return self._table(st)
+                    if not c or not c.get("pads"):
+                        self.log.append((self.frame, "%s seen: no answer "
+                                         "ready" % o["name"]))
+                        return None
+                    g["answer"], g["cover"] = list(c["pads"]), c["kind"]
+                    g["seen_at"] = k
+                    self.log.append((self.frame, "%s seen: %s (%s, on "
+                                     "frame %s)" % (o["name"], c["line"],
+                                                    c["kind"], c["at"])))
+                elif k >= see + self.GIVE_UP + g["patience"]:
+                    return None       # they did something else
+            if g["answer"] is not None:
+                i = k - g["seen_at"]
+                if i >= len(g["answer"]):
+                    return None       # played out: on from here by search
+                raw = g["answer"][i]
+            else:
+                pads = g["stance"]["pads"]
+                raw = pads[k] if k < len(pads) else NONE
+        raw = tuple(raw)
+        for x in self.stages:
+            if x["tab"] is None or x is g:
+                x["played"].append(raw)
+        return raw
+
+    # -- each frame -----------------------------------------------------------
 
     def step(self, st):
+        from melee_engine import chase as CH
+        them = self.watch(st)
+        g = self.stage
+        ours = self.mode == "throw" or (
+            g is not None and g["throw"] is not None and
+            g["thrown_at"] is None)
+        if them["state"] in S.CAPTURED and self.mode != "look" and not ours:
+            self.done = True          # held again: the next step's
+            return NONE
+        if self.mode == "look":
+            held = them["state"] in S.CAPTURED
+            down = them["state"] in S.THROWN or (
+                them.get("air") and not S.free(them))
+            if held:
+                me = st["p"][self.ctx.port]
+                self.throw_raw = CH.throw_pad(self.throw,
+                                              me.get("facing", 1))
+            if self.ahead and (held or down):
+                self.stage = self._ask(throw=self.throw_raw if held
+                                       else None)
+                self.mode = "table"
+            else:
+                self.mode = "throw" if held else "live"
+        if self.mode == "throw":
+            # (the first version: the throw at once)
+            if them["state"] in S.CAPTURED:
+                me = st["p"][self.ctx.port]
+                return self.throw_raw if me["state"] == S.CATCH_WAIT \
+                    else NONE
+            self.mode = "live"
+        if self.mode == "table":
+            g = self.stage
+            k = self._k(g)
+            busy = g["answer"] is not None and k is not None and \
+                k - g["seen_at"] < len(g["answer"])
+            if k is not None and S.free(them) and g["tab"] is not None and \
+                    not busy and k > g["tab"]["land"]:
+                self.done = True      # they got away
+                return NONE
+            raw = self._table(st)
+            if raw is not None:
+                return raw
+            self.mode = "live"
+            self.started = self.frame \
+                if any(x["option"] for x in self.stages) else None
         if self.started is None:
             _, seen, _ = self.ctx.sense.seen()
             if seen is None or seen["state"] not in self.OPTIONS:
+                if S.free(them) and self.frame > 0 and self.stages:
+                    self.done = True
                 return NONE
             self.started = self.frame
         return super().step(st)
+
+    def stop(self):
+        for g in self.stages:
+            if not g["whole"]:
+                self.ctx.think.forget(g["tag"])
+        super().stop()
 
 
 class Pressure(Driven):
@@ -1091,8 +1446,16 @@ class ChainGrab(Driven):
         super().__init__(ctx, spec)
         self.throw = spec.get("throw", "dthrow")
         self.regrab = spec.get("regrab", self.REGRABS)
+        # over when the grab has them: the next step, `chase`, makes the
+        # throw (it asks for its answers as the grab connects, and holds
+        # the grab until it has them)
+        self.chase = spec.get("chase", False)
+        # throws at most (`times`: 1, a throw and no regrab: what a
+        # drill's example opponent does)
+        self.most = spec.get("times", self.MOST)
         self.grabs = self.throws = 0
         self._held = self._threw = False
+        self._thrown = False
 
     def _count(self, st):
         me, them = st["p"][self.ctx.port], st["p"][self.ctx.target]
@@ -1104,6 +1467,10 @@ class ChainGrab(Driven):
         if threw and not self._threw:
             self.throws += 1
         self._threw = threw
+        thrown = them["state"] in S.THROWN
+        if self.chase and (held or thrown):
+            self.released = True      # held: the throw is the chase's
+        self._thrown = thrown
 
     def job(self, st, pre):
         port, target = self.ctx.port, self.ctx.target
@@ -1123,7 +1490,7 @@ class ChainGrab(Driven):
         if me["state"] in S.CATCHING:
             return None           # the grab or the throw still going on
         them = st["p"][target]
-        if self.throws >= self.MOST or (self.grabs > 0 and them["state"] in
+        if self.throws >= self.most or (self.grabs > 0 and them["state"] in
                                         S.DOWN + S.TECHS):
             # (on the ground, a tech or a missed one: a tech chase, not a
             # chain grab: `chase`)
@@ -1158,8 +1525,14 @@ class ChainGrab(Driven):
         if out.get("end") and self.grabs > 0:
             self.finished = True
 
+    released = False
+
     def step(self, st):
         self._count(st)
+        if self.released:
+            self.stop()
+            self.done = True
+            return NONE
         raw = self.drive(st)
         if self.finished and self.pending is None and not self.queue:
             self.done = True
@@ -1286,9 +1659,17 @@ PARAMS = {
                       "an engine move's name")},
     "punish": {"moves": (_moves, "engine moves by name prefix")},
     "pressure": {"moves": (_moves, "engine moves by name prefix")},
-    "chase": {"moves": (_moves, "engine moves by name prefix")},
+    "chase": {"moves": (_moves, "engine moves by name prefix"),
+              "throw": (lambda v: v in THROWS, ", ".join(THROWS)),
+              "ahead": (lambda v: isinstance(v, bool), "true or false"),
+              "reads": (lambda v: isinstance(v, bool), "true or false")},
     "chain_grab": {"throw": (lambda v: v in THROWS, ", ".join(THROWS)),
-                   "regrab": (_moves, "engine moves by name prefix")},
+                   "regrab": (_moves, "engine moves by name prefix"),
+                   "chase": (lambda v: isinstance(v, bool),
+                             "true or false"),
+                   "times": (lambda v: isinstance(v, int) and
+                             not isinstance(v, bool) and 1 <= v <= 8,
+                             "1 to 8")},
     "play": {},
     "recover": {"budget": (lambda v: isinstance(v, int) and 8 <= v <= 200,
                            "routes a decision plays ahead, 8 to 200"),

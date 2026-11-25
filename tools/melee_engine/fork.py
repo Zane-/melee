@@ -224,11 +224,15 @@ class InFork:
         self.leads = {}           # kind: its lead
         # The thinking is threads of this process, beside the client's
         # own (its interface, drawn in Python each frame), and all of them
-        # take turns at the interpreter. A thread that has waited for the
+        # take turns at the interpreter: a thread that has waited for the
         # game's answer waits again for its turn, up to the interpreter's
-        # switch interval each time (5 ms: a copy of the game made, 3 ms
-        # alone, took 13 beside the client, and a decision three times as
-        # long as alone). A tenth of that: the turns come round at once.
+        # switch interval each time (5 ms by default). A tenth of that:
+        # the turns come round at once. (It is not why a copy of the game
+        # costs more beside the client than alone, as this comment said
+        # until 2026-11-24: measured then, a copy's cost follows the
+        # memory of the process forked, 0.3 ms headless at 81 MB, 6.7 ms
+        # in the window build drawing in software at 799 MB, 3.7 ms on the
+        # graphics card; the client's Python is 0.4 ms of a frame.)
         if sys.getswitchinterval() > 0.0005:
             sys.setswitchinterval(0.0005)
         self.errors = []          # decisions that raised: tracebacks
