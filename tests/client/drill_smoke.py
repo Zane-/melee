@@ -3,7 +3,7 @@ course and played without a person or a desktop: keys on a virtual
 display.
 
     python -u tests/client/drill_smoke.py DRILL [--tries N] [--keys K,K]
-        [--hold K,K]
+        [--hold K,K] [--paced]
 
 The drill is found in its part of the course and opened. On first open the
 tutorial: every lesson the file has, then the first part's card. Then N
@@ -142,6 +142,10 @@ def main():
                     help="keys held through each try, comma separated")
     ap.add_argument("--seed", type=int, default=5)
     ap.add_argument("--gpu", action="store_true")
+    ap.add_argument("--paced", action="store_true",
+                    help="at the console's speed, as a person plays it: an "
+                         "opponent's thinking is then done in copies of "
+                         "the game, beside it")
     args = ap.parse_args()
     random.seed(args.seed)
     spec = json.load(open(os.path.join(ROOT, "data", "drills",
@@ -169,7 +173,7 @@ def main():
         c.settings["coach"] = 0
         c.settings["delay"] = 0
         w.delay(0)
-        w.pace(False)
+        w.pace(args.paced)
         frames(6)
         tap("x")
         tap("x")

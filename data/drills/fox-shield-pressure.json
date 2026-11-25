@@ -1,0 +1,1210 @@
+{
+ "id": "fox-shield-pressure",
+ "name": "Shield pressure",
+ "part": "punish",
+ "characters": [
+  "fox"
+ ],
+ "shield": "theirs",
+ "goal": "Keep the gaps on a shield too small for a shield grab",
+ "why": "A shielding opponent grabs the moment it can. A neutral air that hits the shield late in Fox's fall leaves him a few frames behind; the shine on his first free frame is out before the grab lands, and hits the opponent out of it. If it holds its shield instead, a jump out of the shine and the next aerial do the same again.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Short hop next to the shield, press A late so the neutral air hits just before Fox lands, L before the landing, and down-B on the first frame after it. Then out of the shine: a jump, and the next aerial.",
+  "expect": "A try begins when something hits its shield and is judged when Fox hits the opponent, or when it grabs or hits him. It grabs on the first frame it can, every time: with no gap in the pressure the grab never lands.",
+  "example": [
+   {
+    "press": "jump",
+    "frame": 1,
+    "hold": 1
+   },
+   {
+    "press": "A",
+    "frame": 16,
+    "hold": 1
+   },
+   {
+    "press": "L",
+    "frame": 10,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 19,
+    "hold": 3,
+    "from": "start"
+   },
+   {
+    "press": "B",
+    "frame": 19,
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 25,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "press": "A",
+    "frame": 28,
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the neutral air hits its shield, late in the fall",
+   "10": "Frame {f}: L, before the landing",
+   "19": "Frame {f}: down-B on the first frame after the landing lag",
+   "25": "Frame {f}: X or Y out of the shine",
+   "28": "Frame {f}: in the air: A. The next neutral air"
+  },
+  "lessons": [
+   {
+    "title": "The gap it is waiting for",
+    "text": [
+     "{opp} holds its shield and presses grab the moment its shield stun is over: {14} frames after the neutral air's hit, and the grab lands {7} frames later.",
+     "A neutral air that hits early in the hop leaves Fox in the air and then in landing lag all that time: the grab has him as he lands."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "press": "A",
+        "frame": 8,
+        "hold": 1
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the neutral air hits its shield, early in the hop",
+       "15": "Frame {f}: its stun is over. It grabs",
+       "21": "Frame {f}: the grab lands"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         14
+        ],
+        "words": "Its shield stun",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         15,
+         30
+        ],
+        "words": "It grabs",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Late, then the shine",
+    "text": [
+     "Press A late in the short hop, so the neutral air hits just before Fox lands. L-cancelled, he can act {18} frames after the hit; its grab would land {20} frames after it.",
+     "The shine hits on its first frame. On Fox's first free frame it is out before the grab: it hits the opponent out of its grab, or its shield if it kept shielding."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "press": "A",
+        "frame": 16,
+        "hold": 1
+       },
+       {
+        "press": "L",
+        "frame": 10,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 19,
+        "hold": 3,
+        "from": "start"
+       },
+       {
+        "press": "B",
+        "frame": 19,
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the neutral air hits its shield, late in the fall",
+       "10": "Frame {f}: L, before the landing",
+       "19": "Frame {f}: down-B on the first frame after the landing lag"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         11
+        ],
+        "words": "Hit its shield late in the fall",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         12,
+         18
+        ],
+        "words": "Landing lag",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         19,
+         20
+        ],
+        "words": "Shine now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox"
+   }
+  },
+  {
+   "name": "Marth, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Jigglypuff, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff"
+   }
+  },
+  {
+   "name": "Falco, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco"
+   }
+  },
+  {
+   "name": "Sheik, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik"
+   }
+  },
+  {
+   "name": "Captain Falcon, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon"
+   }
+  },
+  {
+   "name": "Peach, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach"
+   }
+  },
+  {
+   "name": "Pikachu, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu"
+   }
+  },
+  {
+   "name": "Samus, grabs at once",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus"
+   }
+  },
+  {
+   "name": "Fox, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox"
+   }
+  },
+  {
+   "name": "Marth, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Jigglypuff, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff"
+   }
+  },
+  {
+   "name": "Falco, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco"
+   }
+  },
+  {
+   "name": "Sheik, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik"
+   }
+  },
+  {
+   "name": "Captain Falcon, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon"
+   }
+  },
+  {
+   "name": "Peach, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach"
+   }
+  },
+  {
+   "name": "Pikachu, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu"
+   }
+  },
+  {
+   "name": "Samus, holds one hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -13,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "shield",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "oos"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus"
+   }
+  }
+ ],
+ "attempt": {
+  "start": "shield_hit",
+  "judge": [
+   "connects",
+   {
+    "enters": "grabbed"
+   },
+   "hit",
+   {
+    "frame": 70
+   }
+  ],
+  "cancel": [],
+  "limit": 90,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: nothing hit its shield. Short hop and press A late, so the neutral air hits just before Fox lands."
+ },
+ "measures": {
+  "grabbed": {
+   "happened": {
+    "enters": "grabbed"
+   }
+  },
+  "was_hit": {
+   "happened": "hit"
+  },
+  "caught": {
+   "happened": "connects"
+  },
+  "at": {
+   "frame_of": "connects"
+  }
+ },
+ "checks": {
+  "not grabbed": {
+   "measure": "grabbed",
+   "equals": false,
+   "expect": "No gap for its grab",
+   "words": "{opp} grabbed Fox out of its shield",
+   "headline": "Shield grabbed",
+   "fix": "Its stun is over {14} frames after the neutral air and its grab lands {7} frames later. Hit the shield later in the fall, press L before landing, and down-B on the first frame after the landing lag."
+  },
+  "not hit": {
+   "measure": "was_hit",
+   "equals": false,
+   "expect": "Not hit",
+   "words": "{opp} hit Fox",
+   "headline": "Hit",
+   "fix": "Leave no gap: the shine on the first frame after the landing lag, and out of the shine a jump on its first frame that takes one."
+  },
+  "caught": {
+   "measure": "caught",
+   "equals": true,
+   "expect": "A hit on it as it tries to grab",
+   "words": "nothing hit {opp}",
+   "headline": "The pressure stopped",
+   "fix": "Keep hitting its shield. After the shine: X or Y, and A as Fox leaves the ground. It grabs after one hit or after two, and the hit that comes before its grab lands."
+  }
+ },
+ "verdict": {
+  "success": "Hit out of its grab on frame {at}."
+ },
+ "parts": [
+  {
+   "name": "Late aerial, shine",
+   "teach": "{opp} grabs out of its shield the moment it can. Short hop, A late, L before landing, down-B on the first free frame: the shine hits it out of its grab.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "press": "L",
+     "frame": 10,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 19,
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": 19,
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits its shield, late in the fall",
+    "10": "Frame {f}: L, before the landing",
+    "19": "Frame {f}: down-B on the first frame after the landing lag"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      11
+     ],
+     "words": "Hit its shield late in the fall",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      12,
+      18
+     ],
+     "words": "Landing lag",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      20
+     ],
+     "words": "Shine now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not grabbed",
+    "not hit",
+    "caught"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "L-cancel",
+      "button": "lcancel",
+      "perfect": [
+       10
+      ],
+      "window": [
+       5,
+       11
+      ]
+     },
+     {
+      "label": "Shine (down and B)",
+      "state": "shine",
+      "perfect": [
+       19
+      ],
+      "window": [
+       19,
+       20
+      ]
+     }
+    ],
+    "note": "Frame 1 is the neutral air on its shield. Its stun is over on frame 15 and its grab lands on frame 21: the shine has to be out before that."
+   }
+  },
+  {
+   "name": "Shine, jump, aerial",
+   "teach": "Here it holds its shield through the first hit and grabs after the shine. Jump out of the shine and press A as Fox leaves the ground: the next neutral air hits it out of its grab.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "press": "L",
+     "frame": 10,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 19,
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": 19,
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 25,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "A",
+     "frame": 28,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits its shield, late in the fall",
+    "10": "Frame {f}: L, before the landing",
+    "19": "Frame {f}: down-B on the first frame after the landing lag",
+    "25": "Frame {f}: X or Y out of the shine",
+    "28": "Frame {f}: in the air: A. The next neutral air"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      11
+     ],
+     "words": "Hit its shield late in the fall",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      12,
+      18
+     ],
+     "words": "Landing lag",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      20
+     ],
+     "words": "Shine now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      25,
+      27
+     ],
+     "words": "Jump out of the shine",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      28,
+      29
+     ],
+     "words": "Aerial now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not grabbed",
+    "not hit",
+    "caught"
+   ],
+   "streak": 3,
+   "scenario": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "L-cancel",
+      "button": "lcancel",
+      "perfect": [
+       10
+      ],
+      "window": [
+       5,
+       11
+      ]
+     },
+     {
+      "label": "Shine (down and B)",
+      "state": "shine",
+      "perfect": [
+       19
+      ],
+      "window": [
+       19,
+       20
+      ]
+     },
+     {
+      "label": "Jump (X or Y)",
+      "button": "jump",
+      "perfect": [
+       25
+      ],
+      "window": [
+       25,
+       27
+      ]
+     },
+     {
+      "label": "Aerial (A)",
+      "button": "A",
+      "perfect": [
+       28
+      ],
+      "window": [
+       28,
+       30
+      ]
+     }
+    ],
+    "note": "Frame 1 is the neutral air on its shield. Its stun is over on frame 15 and its grab lands on frame 21: the shine has to be out before that."
+   }
+  },
+  {
+   "name": "Either",
+   "teach": "It grabs after the first hit or after the second: play the whole sequence every time. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "press": "L",
+     "frame": 10,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 19,
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "press": "B",
+     "frame": 19,
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 25,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "press": "A",
+     "frame": 28,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits its shield, late in the fall",
+    "10": "Frame {f}: L, before the landing",
+    "19": "Frame {f}: down-B on the first frame after the landing lag",
+    "25": "Frame {f}: X or Y out of the shine",
+    "28": "Frame {f}: in the air: A. The next neutral air"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      11
+     ],
+     "words": "Hit its shield late in the fall",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      12,
+      18
+     ],
+     "words": "Landing lag",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      20
+     ],
+     "words": "Shine now",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      25,
+      27
+     ],
+     "words": "Jump out of the shine",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      28,
+      29
+     ],
+     "words": "Aerial now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not grabbed",
+    "not hit",
+    "caught"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the neutral air early in the hop",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": 8,
+     "hold": 1
+    }
+   ],
+   "fails": "not grabbed"
+  },
+  {
+   "name": "no shine after the landing",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "press": "L",
+     "frame": 10,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "not grabbed"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "L-cancel",
+    "button": "lcancel",
+    "perfect": [
+     10
+    ],
+    "window": [
+     5,
+     11
+    ]
+   },
+   {
+    "label": "Shine (down and B)",
+    "state": "shine",
+    "perfect": [
+     19
+    ],
+    "window": [
+     19,
+     20
+    ]
+   },
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": [
+     25
+    ],
+    "window": [
+     25,
+     27
+    ]
+   },
+   {
+    "label": "Aerial (A)",
+    "button": "A",
+    "perfect": [
+     28
+    ],
+    "window": [
+     28,
+     30
+    ]
+   }
+  ],
+  "note": "Frame 1 is the neutral air on its shield. Its stun is over on frame 15 and its grab lands on frame 21: the shine has to be out before that."
+ }
+}

@@ -82,6 +82,11 @@ def holds(e, f, fd):
             return f.get("opp_percent") is not None and \
                 p.get("opp_percent") is not None and \
                 f["opp_percent"] > p["opp_percent"]
+        if e == "shield_hit":
+            # the opponent's shield took the player's attack
+            now, was = f.get("opp_shield"), p.get("opp_shield")
+            return now is not None and was is not None and \
+                was - now > F.SHIELD_HIT
         if e in ("their_attack", "they_recover", "they_die", "they_ledge",
                  "they_return"):
             now, was = f.get("opp_state"), p.get("opp_state")
@@ -571,7 +576,8 @@ class JsonDrill(Drill):
                     else None,
                     opp_state=c.cpu.state if c.cpu is not None else None,
                     opp_x=c.cpu.pos[0] if c.cpu is not None else None,
-                    opp_air=c.cpu.airborne if c.cpu is not None else None)
+                    opp_air=c.cpu.airborne if c.cpu is not None else None,
+                    opp_shield=c.cpu.shield if c.cpu is not None else None)
 
     def _script(self, c, op):
         """The scenario's scripted opponent (`op`: its "script", "react",
@@ -620,6 +626,11 @@ class JsonDrill(Drill):
         """The opponent's inputs this frame: its script's pad, or its
         "inputs" (frame 1 the first after the reset, again every "every"
         frames; stick x toward the player)."""
+        if self.spec.get("shield") == "theirs" and c.phase != ATTEMPT and \
+                c.cpu is not None and c.cpu.shield >= F.SHIELD_WORN:
+            # (a shield held while it waits for the try does not wear; one
+            # that has been hit is left as it is: the hit begins the try)
+            c.n.shield(c.s.cpu_port, 60.0)
         if self.op_script is not None:
             from melee_course.react import player_raw, put_raw
             put_raw(c, self.op_script.pad(c.n.state(), player_raw(c)))
@@ -709,6 +720,8 @@ class JsonDrill(Drill):
                    opp_state=r.t_state if s.cpu_port is not None else None,
                    opp_x=r.t_x if s.cpu_port is not None else None,
                    opp_air=bool(r.t_air) if s.cpu_port is not None
+                   else None,
+                   opp_shield=r.t_shield if s.cpu_port is not None
                    else None)
         return rec
 

@@ -194,6 +194,99 @@ class Hold(Behaviour):
         return [self.raw] * k
 
 
+class Oos(Behaviour):
+    """Holds its shield and answers every hit on it: `option` on the first
+    frame its shield stun is over ("grab": a shield grab, A with the
+    shield held). The frame is found by playing the stun ahead in the game
+    from the hit (the shield held, the player holding what they hold): the
+    press comes on it exactly, as from a player who has the timing. A hit
+    on the shield before that asks again. If the answer is not back in
+    time (thinking beside a live game), the press comes on the first frame
+    it is seen out of the stun. Over when its answer has been played and it
+    can act again, or it has been hit or grabbed out of its shield: a
+    script loops it."""
+    name = "oos"
+    kind = "oos"
+    OPTIONS = ("grab",)
+    A = 0x100
+    LOST = 0.5          # health a shield loses in a frame only to a hit
+    MOST = 40           # frames of stun played ahead
+
+    def __init__(self, ctx, spec):
+        super().__init__(ctx, spec)
+        self.health = None
+        self.hit_at = None      # the frame the last hit on it was seen
+        self.tag = None
+        self.asked = 0
+        self.press_at = None    # the frame of this behaviour's to press on
+        self.out = False
+
+    def _ask(self):
+        port, target, most = self.ctx.port, self.ctx.target, self.MOST
+
+        def fn(n):
+            from melee_actor.ahead import look
+            out = look(n, port, target, [(most, raw_pad(SHIELD))], stop=0)
+            for i, row in enumerate(out.rows):
+                if row.a_state in (S.GUARD, S.GUARD_ON, S.GUARD_REFLECT) \
+                        and row.a_hitlag <= 0:
+                    return dict(k=i + 1, ms=out.ms)
+                if row.a_state not in S.SHIELDING:
+                    break
+            return dict(k=None, ms=out.ms)
+        self.stop()
+        self.asked += 1
+        self.tag = ("oos", id(self), self.asked)
+        self.press_at = None
+        self.ctx.think.submit(self.tag, fn, self.kind)
+
+    def step(self, st):
+        me = st["p"][self.ctx.port]
+        if me is None:
+            return SHIELD
+        if self.out:
+            if S.free(me) and me["state"] not in S.SHIELDING:
+                self.done = True
+            return NONE
+        health, self.health = self.health, me["shield"]
+        if me["state"] in S.CATCHING or me["state"] in S.CAPTURED or \
+                75 <= me["state"] <= 91:
+            # its grab is out, or it was grabbed or hit out of the shield
+            self.stop()
+            self.out = True
+            return NONE
+        if health is not None and health - me["shield"] > self.LOST:
+            self.hit_at = self.frame
+            self._ask()
+        if self.hit_at is None:
+            return SHIELD
+        think = self.ctx.think
+        if self.tag is not None and think.ready(self.tag):
+            out = think.result(self.tag)
+            self.tag = None
+            if out is not None and out.get("k"):
+                # frame k from the one asked on, 1 the next: this step's
+                # pad is that frame's when self.frame == hit_at + k - 1
+                self.press_at = self.hit_at + out["k"] - 1
+        late = self.press_at is None and self.tag is None or \
+            self.press_at is not None and self.frame > self.press_at
+        if self.frame == self.press_at or (
+                (late or self.tag is not None) and
+                me["state"] in (S.GUARD, S.GUARD_ON, S.GUARD_REFLECT) and
+                not me.get("hitlag")):
+            b, lx, ly, cx, cy, lt, rt = SHIELD
+            return (b | self.A, lx, ly, cx, cy, lt, rt)
+        return SHIELD
+
+    def plan(self, st, k):
+        return [SHIELD] * k
+
+    def stop(self):
+        if self.tag is not None:
+            self.ctx.think.forget(self.tag)
+            self.tag = None
+
+
 class Footsies(Behaviour):
     """Dash dances, walks, stops and crouches in a band of distances from
     the player (drill.Footsies): `range` [LO, HI] in units; "outside", just
@@ -1618,7 +1711,7 @@ class Recover(Behaviour):
 # ---- the table --------------------------------------------------------------
 
 BEHAVIOURS = {
-    "hold": Hold, "footsies": Footsies, "retreat": Retreat,
+    "hold": Hold, "oos": Oos, "footsies": Footsies, "retreat": Retreat,
     "approach": Approach, "move": Move, "punish": Punish,
     "pressure": Pressure, "chase": Chase, "chain_grab": ChainGrab,
     "play": Play, "recover": Recover,
@@ -1639,6 +1732,7 @@ def _moves(v):
 # each behaviour's own keys: a check of the value, and what it says
 PARAMS = {
     "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch")},
+    "oos": {"option": (lambda v: v in Oos.OPTIONS, ", ".join(Oos.OPTIONS))},
     "footsies": {"range": (lambda v: v in ("outside", "edge") or _pair(v),
                            'outside, edge or [LO, HI]')},
     "retreat": {},

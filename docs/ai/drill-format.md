@@ -124,7 +124,10 @@ its proof, never written into one drill's file.
   `apex` (the first frame not rising), `fast_fall`, `hit` (damage taken), `hitlag_last`
   (the last frozen frame, whose stick DI and ASDI read: `Fighter_procHitlag` runs before the
   frame's input), `hitlag_end`, `shot` (an item more than the frame before: a laser),
-  `connects` (the opponent took damage: the player's attack landed), `their_attack` (the
+  `connects` (the opponent took damage: the player's attack landed), `shield_hit` (the
+  player's attack landed on the opponent's shield: the shield lost more health in a frame
+  than a held shield wears by itself; 2026-11-25, for `fox-shield-pressure`),
+  `their_attack` (the
   opponent starts a ground attack, an aerial, a grab or a dash grab: states 44 to 69, 212
   and 214, `format.THEIR_ATTACKS`; not its specials, numbered from 341 with other states:
   Peach's forward smash is one), `they_recover` (the opponent can act again: it enters a
@@ -232,7 +235,10 @@ its proof, never written into one drill's file.
   the native build's eight fighters: the rest load a match when turned to);
   the pause menu's Swap changes it. A drill's `"shield": "infinite"` keeps the
   player's shield full every frame (a shield drill: never shrunk, poked through or broken;
-  the owner, 2026-11-15). A scenario facing left on a platform, the stage or in
+  the owner, 2026-11-15); `"shield": "theirs"` keeps the opponent's full until the try
+  begins (an opponent that holds its shield while it waits: held, a shield wears out in
+  seven seconds; one that has been hit is left as it is, and in the try it wears and is
+  hit as the game has it; 2026-11-25). A scenario facing left on a platform, the stage or in
   the air plays the examples mirrored: forward is the way it faces; `"inland": D`, with an
   opponent's `launch`: standing D units in from the ledge the opponent is knocked off, their
   back to it as TM-CE's edgeguard event leaves them, `"facing": "ledge"` to face it), `lead` (frames from the reset to

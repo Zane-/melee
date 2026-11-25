@@ -153,14 +153,18 @@ BUTTON_WORDS = {"jump": "X or Y", "shield": "L or R",
 # their_attack: the opponent starts an attack (a ground attack, an aerial, a
 # grab or a dash grab: THEIR_ATTACKS); they_recover: the opponent can act
 # again (enters a state of sense.FREE from one outside it: its attack over)
+# shield_hit: the player's attack landed on the opponent's shield (its
+# shield lost more health in a frame than a held shield wears by itself)
 # they_die: the opponent loses its stock (enters a state of "dead");
 # they_ledge: it catches the ledge (CliffCatch); they_return: it is back on
 # the stage, on the ground and free to act (out of the air or a landing's
 # lag): an edgeguard's ends
 SIMPLE_EVENTS = ("start", "end", "airborne", "lands", "apex", "fast_fall",
                  "hit", "hitlag_last", "hitlag_end", "shot", "connects",
-                 "their_attack", "they_recover", "they_die", "they_ledge",
-                 "they_return")
+                 "shield_hit", "their_attack", "they_recover", "they_die",
+                 "they_ledge", "they_return")
+# health a shield loses in a frame only to a hit (held, it wears 0.14)
+SHIELD_HIT = 0.5
 # the opponent's attacks, for their_attack: Attack11 to AttackLw4 (jab to
 # down smash, the dash attack), the aerials, Catch and CatchDash; not its
 # specials (a character's own states, numbered from 341, are not all
@@ -219,8 +223,14 @@ OPTIONAL = {"characters": (str, list), "mistakes": list, "switch": str,
 # Session.reset_rule), one without when judged
 RESET_AFTER = ("quiet", "judged", "hand")
 # a drill's "shield": "infinite": the player's shield full every frame (a
-# shield drill: it never shrinks, is never poked through, never breaks)
-SHIELDS = ("infinite",)
+# shield drill: it never shrinks, is never poked through, never breaks);
+# "theirs": the opponent's shield full until the try begins (an opponent
+# that holds its shield while it waits: held, a shield wears out in seven
+# seconds; in the try it wears and is hit as the game has it)
+SHIELDS = ("infinite", "theirs")
+# "theirs": a shield with this much health or more has only worn by being
+# held since it was last filled (0.14 a frame), and is filled again
+SHIELD_WORN = 58.0
 # a drill's `switch`: how a part's scenarios change by themselves (the
 # owner, 2026-11-14: ledge work on "both sides of the stage so players
 # don't overtrain one side! It should have options to swap ledges on
