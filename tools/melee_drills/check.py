@@ -41,12 +41,15 @@ def play(session, drill, inputs, part, strict=False, scenario=None):
     drill.set_part(part)
     drill.strict = strict
     drill.scenario_at = scenario
-    session.scenario = -1 if scenario is None else \
+    at = None if scenario is None else \
         drill._part_scenarios().index(scenario)
+    session.scenario = -1 if at is None else at
     drill.build_reference = lambda c, i=inputs: inputs_to_refs(
         i, drill.nums(c), drill.ref_start)
     try:
-        return session.run(demo=True)
+        # (the scenario named: a deck that turns after every try, the
+        # drill's "switch": "every", would have turned on to the next)
+        return session.run(demo=True, scenario=at)
     finally:
         del drill.build_reference
 

@@ -845,7 +845,8 @@
   "limit": 260,
   "timeout": "judge",
   "within": 200,
-  "missed": "Not counted: the throw did not come."
+  "missed": "Not counted: the throw did not come.",
+  "cancel": []
  },
  "measures": {
   "teched": {
@@ -979,7 +980,8 @@
     "limit": 260,
     "timeout": "judge",
     "within": 200,
-    "missed": "Not counted: the throw did not come."
+    "missed": "Not counted: the throw did not come.",
+    "cancel": []
    },
    "coach": {
     "rows": [

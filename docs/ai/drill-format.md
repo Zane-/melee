@@ -98,7 +98,11 @@ its proof, never written into one drill's file.
   down on `SA` for 3 frames), `SHD` (how far a short hop goes with the stick held forward:
   a player placed `SHD` from an edge lands at it), `SPF` / `SPD` (the first frame of a
   forward drift with which a short hop and a neutral air on `SA` fit on a Battlefield side
-  platform, 33 units at most, and how far that hop goes: 1 for most; Jigglypuff 14). Any
+  platform, 33 units at most, and how far that hop goes: 1 for most; Jigglypuff 14),
+  `KF` / `KW` / `KI` / `KR` (Fox's down throw on the character, the throw's first frame
+  counted as 1: the frame they touch the floor; the last frame up to which an L or R
+  press is a tech, since a press in the freeze of the throw's last hit is none; the first
+  frame they can act after a tech in place and after a tech's roll: `universal-tech`). Any
   number numbers.json measures may be named; a new one needs no word in format.py.
 - **States** (`STATES`): the game's action states by name, a tuple being a group any of whose
   states counts: `wait turn dash run run_brake jump_squat jump double_jump (Kirby's and Jigglypuff's extra jumps included, `CHAR_STATES`) fall special_fall
@@ -185,7 +189,9 @@ its proof, never written into one drill's file.
 - **Attempt**: `start` and `judge` (events), `cancel` (events that drop it uncounted; by
   default, leaving the start's state on the ground), `limit` (frames, default 150),
   `timeout` (`judge` or `drop` at the limit), `within` (frames after the reset by which the
-  start must come, or the scenario is reset uncounted, the banner saying `missed`: the
+  start must come, or the scenario is reset uncounted, the banner saying `missed`; `cancel`
+  may be `[]`, nothing drops it: an attempt begun on entering `thrown` would by default be
+  dropped where the throw puts its victim on the floor as it lets go: the
   opponent's attack whiffed because the player jumped behind it; the owner: "If the hit
   doesn't connect, the scenario should be reset"). A part may change any of them
   (`attempt`). Events take `"not_to": S` beside `to` (left a state for anything but S: a
@@ -265,7 +271,9 @@ its proof, never written into one drill's file.
   `JsonDrill.setup` turns it on or off for each scenario; the client turns it off when the
   drill is left. `universal-di` uses it.
   `"held": true` (the player's): every attempt begins in the opponent's grab. The
-  opponent stands at its grab's reach (`x`) and its script grabs at once (`chain_grab`); a
+  opponent stands at its grab's reach (`x`) and grabs at once (its script's `chain_grab`,
+  or plain `inputs`: Z a few frames after the reset, then down pressed anew a few times,
+  the same grab from the same spot every time: `universal-tech`); a
   person's pad is kept from the game from the reset until the grab has them
   (`format.HELD_MOST`, 40 frames at most: a jump, a roll or a shield at the reset would
   get out of the grab's way), then handed back (`JsonDrill._withhold`, the window build's
@@ -457,6 +465,19 @@ example script (its throw, then standing: `chain_grab` with `times` 1). What its
 does against a person (it covers each tech at the frame its reaction allows, holds its
 grab until its answers are back, reads a habit) is `tests/engine/chase.py`'s and
 `tools/melee_engine/chases.py`'s to show.
+
+`universal-tech`: 325 of 325 cases for 25 characters in 9 seconds (not the Ice
+Climbers: Fox's grab takes whichever of the two is nearer). Its last part is a deck that
+turns after every try (`"switch": "every"`: the tech that is called), each of whose
+scenarios has its own numbers for the same example (`["SX", 0]`: the stick for the tech
+called); the proof plays the scenario it names, and a demonstration shows the last try's
+scenario again, not the next (`Session.run`). Its lockout is proven as a mistake: a press
+too early, then one in time, and no tech. A placement now clears the game's own record of
+the last L or R press as a spawn does (`still`, `src/host/setup.c`): a press late in one
+attempt locked out the tech of the next, begun at once.
+
+Any drill in the client, without a test of its own: `python tests/client/drill_smoke.py
+<id>` opens it from the course, answers its tutorial, lets some tries go by and leaves.
 
 A drill generated from a description is done when `check.py` passes and the owner has
 played it.

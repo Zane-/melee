@@ -406,7 +406,12 @@ def _problems(spec):
             "LD": 5, "NL": 22, "NFL": 18, "SHD": 12, "char": "Fox",
             "measure": "x", "frames": "2 frames", "f": 1}
     # (and every number numbers.json measures, as names() gives them in a
-    # drill: a new one needs no word here)
+    # drill: a new one needs no word here. Fox's own values where he has
+    # them: a frame counted back from one, "TF-8", is checked as it will
+    # be, not against a 1)
+    for k, v in measured().get("fox", {}).items():
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            test.setdefault(k, v)
     for numbers in measured().values():
         for k in numbers:
             test.setdefault(k, 1)
@@ -769,12 +774,12 @@ def _problems(spec):
                      "player.facing: left or right (with inland: stage, "
                      "ledge or either)")
             if "held" in pl:
-                # in the opponent's grab from the start: its script's to
-                # grab (a scripted opponent, standing at its grab's reach)
+                # in the opponent's grab from the start: the opponent's
+                # to grab (its script or its inputs, from its grab's
+                # reach)
                 need(pl["held"] is True and
-                     isinstance(sc.get("opponent"), dict) and
-                     "script" in sc["opponent"], w,
-                     "player.held: true, with a scripted opponent")
+                     isinstance(sc.get("opponent"), dict), w,
+                     "player.held: true, with an opponent")
             extra = set(pl) - set(PLAYER_KEYS)
             need(not extra, w, "player: unknown %s" % ", ".join(sorted(extra)))
         op = sc.get("opponent", "none")
@@ -858,7 +863,11 @@ def _problems(spec):
     a = spec["attempt"]
     event(a.get("start"), "attempt.start")
     event(a.get("judge"), "attempt.judge")
-    if "cancel" in a:
+    # ([]: nothing drops it, where the default would: an attempt begun on
+    # entering a state is dropped when that state is left on the ground,
+    # and a throw that puts its victim on the floor as it lets go is left
+    # that way)
+    if "cancel" in a and a["cancel"] != []:
         event(a["cancel"], "attempt.cancel")
     if "limit" in a:
         need(isinstance(a["limit"], int) and a["limit"] > 0,
@@ -973,7 +982,7 @@ def _problems(spec):
         if "attempt" in p:
             pa = p["attempt"]
             for k in ("start", "judge", "cancel"):
-                if k in pa:
+                if k in pa and not (k == "cancel" and pa[k] == []):
                     event(pa[k], "%s.attempt.%s" % (w, k))
             extra = set(pa) - set(ATTEMPT_KEYS)
             need(not extra, w + ".attempt", "unknown %s" %

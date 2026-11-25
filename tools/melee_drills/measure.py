@@ -21,6 +21,14 @@ measured in the game (headless), into data/drills/numbers.json:
   how far it goes. SPF is 1 where the whole hop's drift fits; the floaty
   characters drift later: Samus 11, Jigglypuff 14.
 
+- KF, KW, KI, KR: Fox's down throw on the character at 20% (the drill
+  universal-tech's knockdown: it puts all 26 on the floor in hitstun), the
+  throw's first frame counted as 1. KF: the frame they touch the floor;
+  KW: the last frame an L or R press is a tech (the throw's last hit
+  freezes them, and a press in the freeze is none: the Ice Climbers fly 5
+  frames after it); KI, KR: the first frame they can act after a tech in
+  place and after a tech's roll.
+
 format.names() adds them to a character's numbers. Each is measured with
 the drills' own scenarios (data/drills/universal-*.json), as a player's
 inputs are played there.
@@ -147,11 +155,75 @@ def ledgedash_frame(game, ch):
     return None
 
 
+def throw_floor(ch, percent=20.0):
+    """KF, KW, KI, KR: Fox's down throw on `ch` (the module's text)."""
+    from melee_actor.ahead import look
+    from melee_engine import chase as C
+    from melee_engine import sense as S
+    none = (0, 0, 0, 0, 0, 0, 0)
+
+    def put(n, port, raw):
+        b, lx, ly, cx, cy, lt, rt = raw
+        n.h.pads[port].update(buttons=b, lx=lx, ly=ly, cx=cx, cy=cy, lt=lt,
+                              rt=rt, connected=True)
+        n._dirty.add(port)
+    with Native() as n:
+        n.start(ch, "fox", "final-destination", 1)
+        thrown = False
+        for gap in (12.0, 9.0, 15.0, 18.0):
+            n.clean()
+            n.seed(1)
+            n.place(0, 0.0, 0.0, 1, False, percent)
+            n.place(1, gap, 0.0, -1, False, 0.0)
+            put(n, 0, none)
+            put(n, 1, none)
+            n.step(3)
+            for f in range(200):
+                st = n.state()
+                if st["p"][0]["state"] in S.THROWN:
+                    thrown = True
+                    break
+                raw = none
+                if f in (2, 3):
+                    raw = (0x10, 0, 0, 0, 0, 0, 0)          # Z: the grab
+                elif st["p"][1]["state"] == S.CATCH_WAIT:
+                    raw = (0, 0, -127, 0, 0, 0, 0)          # down: the throw
+                put(n, 1, raw)
+                put(n, 0, none)
+                n.step()
+            if thrown:
+                break
+        if not thrown:
+            return {}
+        sit = C.tech_options(n, 1, 0)
+        if sit is None:
+            return {}
+        o = {x["name"].split(" (")[0]: x for x in sit["options"]}
+        land = sit["land"]
+        rolls = [x["free"] for k, x in o.items() if k in ("in", "away")]
+        # the last frame of the throw up to which every L or R press is a
+        # tech (a frame played ahead is the attempt's frame one later; a
+        # press in the freeze of the throw's last hit is none, and one
+        # after it may be again: the frames before the freeze are meant)
+        last = None
+        for k in range(max(1, land - 8), land + 1):
+            plan = [(k - 1, {}), (2, dict(buttons=["R"])), (40, {})]
+            rows = look(n, 0, 1, [x for x in plan if x[0] > 0], stop=0).rows
+            if not any(r.a_state in C.TECH_STATES for r in rows[:land + 6]):
+                break
+            last = k
+        if last is None or "in place" not in o or not rolls:
+            return {}
+        return dict(KF=land + 1, KW=last, KI=o["in place"]["free"] + 1,
+                    KR=max(rolls) + 1)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--chars")
     ap.add_argument("--only", help="numbers to measure, comma separated "
-                    "(the others kept): DASH,SL,LD,NL,NFL,SHD,SPF,SPD")
+                    "(the others kept): DASH,SL,LD,NL,NFL,SHD,SPF,SPD,KF,"
+                    "KW,KI,KR")
     args = ap.parse_args()
     only = set(args.only.split(",")) if args.only else None
 
@@ -179,6 +251,8 @@ def main():
         if want("SPF", "SPD"):
             with Native() as game:
                 nums.update(side_platform_drift(game, ch))
+        if want("KF", "KW", "KI", "KR"):
+            nums.update(throw_floor(ch))
         have[ch] = nums
         print("%-18s %s" % (ch, nums), flush=True)
     with open(OUT, "w") as f:

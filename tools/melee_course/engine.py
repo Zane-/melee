@@ -1117,6 +1117,12 @@ class Session:
         seed = (self.seed * 1000003 + run * 7919) & 0x7FFFFFFF
         if scenario is None and getattr(self, "_forced", None) is not None:
             scenario, self._forced = self._forced, None
+        if scenario is None and demo and self.scenario >= 0 and self.d.deck:
+            # a demonstration shows the last try's situation again: its
+            # scenario too (a deck that turns by itself, after every try
+            # or after a success, turned on to the next one for it, and
+            # once more for the try after)
+            scenario = self.scenario
         if demo and (d.reference or type(d).build_reference is not
                      Drill.build_reference):
             self.demo_count += 1

@@ -92,6 +92,13 @@ static void still(Fighter* fp, float facing)
     fp->x74_self_accel = zero;
     fp->x8c_kb_vel = zero;
     fp->gr_vel = 0.0F;
+    /* and no L or R pressed lately, as a spawn leaves it (Fighter's input
+       timers, 255: never): the game techs on a press within 20 frames
+       that had none in the 40 before it (ftCo_800986B0), and a press late
+       in one attempt locked out the tech of the next, begun at once
+       (universal-tech's proof, 2026-11-25) */
+    fp->x680 = 255;
+    fp->x684 = 255;
 }
 
 /// Let go of whoever it holds, and of it if it is held, the way the game

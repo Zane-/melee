@@ -1,0 +1,839 @@
+{
+ "id": "universal-tech",
+ "name": "Tech the ground",
+ "part": "defense",
+ "characters": [
+  "bowser",
+  "captain-falcon",
+  "donkey-kong",
+  "dr-mario",
+  "falco",
+  "fox",
+  "ganondorf",
+  "jigglypuff",
+  "kirby",
+  "link",
+  "luigi",
+  "mario",
+  "marth",
+  "mewtwo",
+  "mr-game-and-watch",
+  "ness",
+  "peach",
+  "pichu",
+  "pikachu",
+  "roy",
+  "samus",
+  "sheik",
+  "yoshi",
+  "young-link",
+  "zelda"
+ ],
+ "goal": "Tech in place, behind the opponent and away, on call",
+ "why": "A missed tech leaves {char} lying on the floor, open to a free hit. A tech has {char} up in 26 frames, intangible for the first 20, and where it goes is what the opponent has to guess or react to.",
+ "switch": "every",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Press L or R within 20 frames of the floor: a tech. With the stick held left or right it rolls that way.",
+  "expect": "Fox throws {char} at the floor. Each throw is judged as {char} lands: a tech or not, and in the last part whether it is the tech that was called.",
+  "example": [
+   {
+    "press": "R",
+    "frame": "KF-8",
+    "hold": 4,
+    "from": "start"
+   },
+   {
+    "stick": [
+     "SX",
+     0
+    ],
+    "frame": "KF-8",
+    "hold": 14,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the throw starts",
+   "KF-8": "Frame {KF-8}: L or R",
+   "KF": "Frame {KF}: the floor. A tech"
+  },
+  "lessons": [
+   {
+    "title": "The tech",
+    "text": [
+     "Thrown or hit at the floor, {char} is in hitstun until the landing. L or R pressed in the 20 frames before the floor is a tech: back up after 26 frames, intangible for the first 20.",
+     "Without it {char} bounces and lies there, open to whatever comes next."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "KF-8",
+        "hold": 4,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts",
+       "KF-8": "Frame {KF-8}: L or R",
+       "KF": "Frame {KF}: the floor. A tech"
+      },
+      "cues": [
+       {
+        "frames": [
+         "KF-19",
+         "KW"
+        ],
+        "words": "L or R now: a tech",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "KF",
+         "KI-1"
+        ],
+        "words": "A tech in place",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The lockout",
+    "text": [
+     "A press earlier than 20 frames before the floor is no tech, and it locks the tech out for 40 frames: a second press, in time, does nothing.",
+     "So one press, late. Fox's down throw puts {char} on the floor on frame {KF}: the press belongs on frames {KF-19} to {KW}."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "KF-26",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "press": "R",
+        "frame": "KF-4",
+        "hold": 3,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "KF-26": "Frame {KF-26}: L or R, too early",
+       "KF-4": "Frame {KF-4}: L or R again: locked out",
+       "KF": "Frame {KF}: the floor. No tech"
+      },
+      "cues": [
+       {
+        "frames": [
+         "KF-26",
+         "KF-20"
+        ],
+        "words": "Too early: locked out for 40 frames",
+        "kind": "late"
+       },
+       {
+        "frames": [
+         "KF",
+         "KF+25"
+        ],
+        "words": "A missed tech",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Where to go",
+    "text": [
+     "The stick held left or right as {char} lands makes the tech a roll that way: 40 frames, intangible for the first 20.",
+     "In place, behind the opponent or away: an opponent who waits has to see which before it can cover it, and one who guesses has to guess right."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "R",
+        "frame": "KF-8",
+        "hold": 4,
+        "from": "start"
+       },
+       {
+        "stick": [
+         -1,
+         0
+        ],
+        "frame": "KF-8",
+        "hold": 14,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the throw starts",
+       "KF-8": "Frame {KF-8}: L or R, the stick away",
+       "KF": "Frame {KF}: the floor. A tech away"
+      },
+      "cues": [
+       {
+        "frames": [
+         "KF-19",
+         "KW"
+        ],
+        "words": "L or R now: a tech",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "KF",
+         "KR-1"
+        ],
+        "words": "A tech away: the roll",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox's down throw",
+   "stage": "final-destination",
+   "lead": 0,
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 12,
+    "facing": "player",
+    "inputs": [
+     {
+      "press": "Z",
+      "frame": 6,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 16,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 20,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 24,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 28,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 32,
+      "hold": 2
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "ask": "any tech",
+    "SX": 0,
+    "WX": 0,
+    "LO": -300,
+    "HI": 300
+   }
+  },
+  {
+   "name": "Tech in place",
+   "stage": "final-destination",
+   "lead": 0,
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 12,
+    "facing": "player",
+    "inputs": [
+     {
+      "press": "Z",
+      "frame": 6,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 16,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 20,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 24,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 28,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 32,
+      "hold": 2
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "ask": "a tech in place",
+    "SX": 0,
+    "WX": 1,
+    "LO": 0,
+    "HI": 24
+   }
+  },
+  {
+   "name": "Tech behind Fox",
+   "stage": "final-destination",
+   "lead": 0,
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 12,
+    "facing": "player",
+    "inputs": [
+     {
+      "press": "Z",
+      "frame": 6,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 16,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 20,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 24,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 28,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 32,
+      "hold": 2
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "ask": "a tech behind Fox",
+    "SX": 1,
+    "WX": -1,
+    "LO": 35,
+    "HI": 300
+   }
+  },
+  {
+   "name": "Tech away from Fox",
+   "stage": "final-destination",
+   "lead": 0,
+   "player": {
+    "x": 0,
+    "percent": 20,
+    "held": true
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 12,
+    "facing": "player",
+    "inputs": [
+     {
+      "press": "Z",
+      "frame": 6,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 16,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 20,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 24,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 28,
+      "hold": 2
+     },
+     {
+      "stick": [
+       0,
+       -1
+      ],
+      "frame": 32,
+      "hold": 2
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "ask": "a tech away from Fox",
+    "SX": -1,
+    "WX": 0,
+    "LO": -300,
+    "HI": -10
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "thrown"
+  },
+  "judge": [
+   {
+    "enters": "tech"
+   },
+   {
+    "enters": "missed_tech"
+   }
+  ],
+  "cancel": [],
+  "limit": 150,
+  "within": 200,
+  "missed": "Not counted: the throw did not come."
+ },
+ "measures": {
+  "teched": {
+   "happened": {
+    "enters": "tech"
+   }
+  },
+  "kind": {
+   "value": "state",
+   "at": {
+    "enters": "tech"
+   }
+  },
+  "where": {
+   "value": "x",
+   "at": {
+    "leaves": "tech"
+   }
+  },
+  "before": {
+   "frames": [
+    {
+     "pressed": "shield"
+    },
+    [
+     {
+      "enters": "tech"
+     },
+     {
+      "enters": "missed_tech"
+     }
+    ]
+   ],
+   "last": true
+  }
+ },
+ "checks": {
+  "teched": {
+   "measure": "teched",
+   "equals": true,
+   "expect": "A tech as {char} lands",
+   "words": "no tech: {char} bounced off the floor",
+   "headline": "Missed tech",
+   "fix": "Press L or R once, within 20 frames of the floor: for this throw on frames {KF-19} to {KW}. A press earlier than that locks the tech out for 40 frames."
+  },
+  "rolled": {
+   "measure": "kind",
+   "within": [
+    200,
+    201
+   ],
+   "expect": "A tech that rolls",
+   "words": "a tech in place",
+   "headline": "No roll",
+   "fix": "Hold the stick left or right as {char} lands, from before the floor until the roll has begun."
+  },
+  "as called": {
+   "measure": "where",
+   "within": [
+    "LO",
+    "HI"
+   ],
+   "expect": "The tech that was called",
+   "words": "another tech than the one called: {ask}",
+   "headline": "Another tech",
+   "fix": "The tech is named before each throw: {ask}. In place: leave the stick alone. Behind Fox or away from him: hold the stick that way as {char} lands."
+  }
+ },
+ "verdict": {
+  "success": "Teched: L or R {before_frames} before the floor."
+ },
+ "parts": [
+  {
+   "name": "Tech",
+   "teach": "Fox throws {char} at the floor. Press L or R once, within 20 frames of it: {char} techs instead of bouncing.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "KF-8",
+     "hold": 4,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "KF-8": "Frame {KF-8}: L or R",
+    "KF": "Frame {KF}: the floor. A tech"
+   },
+   "cues": [
+    {
+     "frames": [
+      "KF-19",
+      "KW"
+     ],
+     "words": "L or R now: a tech",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched"
+   ],
+   "streak": 3,
+   "scenario": 0,
+   "coach": {
+    "rows": [
+     {
+      "label": "L or R",
+      "button": "shield",
+      "held": false,
+      "perfect": [
+       "KF-8"
+      ],
+      "window": [
+       "KF-19",
+       "KW"
+      ]
+     },
+     {
+      "label": "Tech",
+      "state": "tech",
+      "perfect": [
+       "KF"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the first frame of the throw. {char} is on the floor on frame {KF}: L or R on frames {KF-19} to {KW} is a tech."
+   }
+  },
+  {
+   "name": "Roll",
+   "teach": "Hold the stick left or right as {char} lands: the tech rolls that way. Either way counts.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "KF-8",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -1,
+      0
+     ],
+     "frame": "KF-8",
+     "hold": 14,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "KF-8": "Frame {KF-8}: L or R, the stick away",
+    "KF": "Frame {KF}: the floor. A tech"
+   },
+   "cues": [
+    {
+     "frames": [
+      "KF-19",
+      "KW"
+     ],
+     "words": "L or R, the stick left or right",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched",
+    "rolled"
+   ],
+   "streak": 3,
+   "scenario": 0,
+   "success": "A tech that rolled."
+  },
+  {
+   "name": "On call",
+   "teach": "Each throw names a tech: in place, behind Fox, or away from him. Do that one.",
+   "example": [
+    {
+     "press": "R",
+     "frame": "KF-8",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "stick": [
+      "SX",
+      0
+     ],
+     "frame": "KF-8",
+     "hold": 14,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the throw starts",
+    "KF-8": "Frame {KF-8}: L or R, and the stick for {ask}",
+    "KF": "Frame {KF}: the floor. A tech"
+   },
+   "cues": [
+    {
+     "frames": [
+      "KF-19",
+      "KW"
+     ],
+     "words": "{ask}",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "teched",
+    "as called"
+   ],
+   "streak": 6,
+   "scenario": [
+    1,
+    2,
+    3
+   ],
+   "attempt": {
+    "start": {
+     "enters": "thrown"
+    },
+    "judge": [
+     {
+      "leaves": "tech"
+     },
+     {
+      "enters": "missed_tech"
+     }
+    ],
+    "cancel": [],
+    "limit": 150,
+    "within": 200,
+    "missed": "Not counted: the throw did not come."
+   },
+   "success": "The tech that was called."
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "no press",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "fails": "teched"
+  },
+  {
+   "name": "pressed too early, and again in time",
+   "inputs": [
+    {
+     "press": "R",
+     "frame": "KF-26",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "press": "R",
+     "frame": "KF-4",
+     "hold": 3,
+     "from": "start"
+    }
+   ],
+   "fails": "teched"
+  },
+  {
+   "name": "a tech in place where a roll is asked",
+   "inputs": [
+    {
+     "press": "R",
+     "frame": "KF-8",
+     "hold": 4,
+     "from": "start"
+    }
+   ],
+   "fails": "rolled"
+  },
+  {
+   "name": "another tech than the one called",
+   "inputs": [
+    {
+     "press": "R",
+     "frame": "KF-8",
+     "hold": 4,
+     "from": "start"
+    },
+    {
+     "stick": [
+      "WX",
+      0
+     ],
+     "frame": "KF-8",
+     "hold": 14,
+     "from": "start"
+    }
+   ],
+   "fails": "as called"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "L or R",
+    "button": "shield",
+    "held": false,
+    "perfect": [
+     "KF-8"
+    ],
+    "window": [
+     "KF-19",
+     "KW"
+    ]
+   },
+   {
+    "label": "Control stick",
+    "stick": "side",
+    "perfect": []
+   },
+   {
+    "label": "Tech",
+    "state": "tech",
+    "perfect": [
+     "KF"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the first frame of the throw. {char} is on the floor on frame {KF}; a tech in place is over on frame {KI}, a roll on frame {KR}."
+ }
+}

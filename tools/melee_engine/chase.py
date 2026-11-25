@@ -110,6 +110,9 @@ PULL = 48                     # frames looked ahead for the grab to settle
 # frames looked ahead past the floor for a tech to be over (a roll: 40),
 # and past the first frame a getup can begin (its attack: about 50)
 TECH_MOST, GETUP_MOST = 64, 90
+# a tech's R and stick: from this many frames before the floor, for this
+# many frames
+TECH_LEAD, TECH_HELD = 8, 14
 AFTER = 70                    # frames after the option is seen an answer has
 LATE_ROOM = 14                # ... and past the frame they are free, at most
 SPARE = 10                    # frames before the option is seen a table that
@@ -258,17 +261,26 @@ def tech_options(n, cpu, player, most=MOST, games=(), throw=None):
     cx = mine[min(cpu_free, len(mine)) - 1].a_x
     side = 1 if lx >= cx else -1
     kinds = (0, -127, 127)
-    segs = [[(max(1, land - 3), NONE), (4, (RB, sx, 0, 0, 0, 0, 0)),
-             (1, NONE)] for sx in kinds]
+    # (R and the stick from some frames before the floor until well after
+    # it. Not just before: a throw's last hit freezes them both, and a
+    # press during that freeze is no tech (Fox's down throw on the Ice
+    # Climbers: the press must come while he still holds them). And a
+    # stick held as a throw lets go is DI too: the floor then comes a
+    # frame sooner or later (the same throw on Mario).)
+    segs = [[(max(1, land - TECH_LEAD), NONE),
+             (TECH_HELD, (RB, sx, 0, 0, 0, 0, 0)), (1, NONE)]
+            for sx in kinds]
     # (a tech is over 40 frames after the floor at the latest: no further)
     got = _looks(n, games, [(player, cpu, _plan(s, TECH_MOST), their)
                             for s in segs])
     options = []
     for sx, seg, r in zip(kinds, segs, got):
-        if len(r) < land or r[land - 1].a_state not in TECH_STATES:
+        at = next((i for i in range(max(0, land - 4), min(len(r), land + 6))
+                   if r[i].a_state in TECH_STATES), None)
+        if at is None:
             continue              # (no tech came of it: left out)
-        state = r[land - 1].a_state
-        free = _free_at(r, land - 1)
+        state = r[at].a_state
+        free = _free_at(r, at)
         end = r[free - 1].a_x
         name = "in place" if sx == 0 else \
             "in" if (end - lx) * (cx - lx) > 0 else "away"
