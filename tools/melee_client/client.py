@@ -3475,6 +3475,11 @@ class Client:
         skipped = False     # START: out of the tutorial, to the drill
         while k < len(lessons):
             le = lessons[k]
+            # (a lesson is played in its own scenario: the drill's first,
+            # whichever part the player is on; its words' numbers are that
+            # scenario's too)
+            drill.lesson_scenario = le.get("scenario", 0)
+            nums = drill.nums(session.c)
             show = le.get("show") or {}
             text = le["text"]
             view = dict(title=T(le["title"]), sub="LESSON %d OF %d" % (
@@ -3482,9 +3487,6 @@ class Client:
                     text if isinstance(text, list) else [text])])
             seq, ex, still = [], show.get("example"), show.get("still")
             cid = session.c.fd.id
-            # (a lesson is played in its own scenario: the drill's first,
-            # whichever part the player is on)
-            drill.lesson_scenario = le.get("scenario", 0)
             if ex is not None:
                 result, seq = self.tutorial_seq(
                     drill, session, fmt.pick(ex, "inputs", cid),
@@ -3539,6 +3541,8 @@ class Client:
                 skipped = True
                 break
         drill.lesson_scenario = None    # (the drill plays the part's own)
+        self.first_scenario(drill, session)
+        nums = drill.nums(session.c)
         while not skipped:
             part = drill.part_now
             n, i = len(drill.parts), drill.part_index
@@ -3644,14 +3648,19 @@ class Client:
         drill.build_reference = lambda c: inputs_to_refs(
             inputs, drill.nums(c), drill.ref_start)
         drill.filming = True        # the tutorial's camera, if it has one
+        at, was = self.shown_at(drill), session.scenario
         try:
-            out = session.run(each_frame=each, demo=True)
+            out = session.run(each_frame=each, demo=True, scenario=at)
             if st["drawn"]:
                 session.set_player_pad()
                 self.w.step(coach.AFTER)    # how it goes on
         except NativeError:
             return None, None
         finally:
+            if at is not None and drill.lesson_scenario is not None:
+                # (a lesson's scenario is its own: the deck where it was.
+                # A part card's is the deck's: the first try is that one)
+                session.scenario = was
             vars(drill).pop("build_reference", None)
             drill.filming = False
             try:
@@ -3664,6 +3673,33 @@ class Client:
             session.live = True
             self.restore_session(session, kept)
         return out, track
+
+    @staticmethod
+    def first_scenario(drill, session):
+        """Before the first try of a drill with a deck: the scenario the
+        deck draws first, drawn now, so that the part's card shows the one
+        the first try will be: its opponent, its numbers, its words. (The
+        card's recording used to draw it, and showed that scenario's
+        opponent under the first scenario's numbers.)"""
+        if session.scenario >= 0 or not getattr(drill, "deck", None) or \
+                not hasattr(drill, "shown_entry"):
+            return
+        state = session.rng.getstate()
+        at = session._pick()
+        session.rng.setstate(state)     # (a recording's draws are undone)
+        session.scenario = at
+        drill.scenario_at = drill.deck[at].data
+
+    @staticmethod
+    def shown_at(drill):
+        """The deck entry the tutorial's recordings are played on: the one
+        of the scenario they show (a lesson's own; a part card's the one
+        whose numbers its words and captions use). Its opponent is the one
+        the session loads: on whichever entry the deck had drawn, the
+        pictures were of that entry's opponent under this scenario's
+        script, numbers and captions. None: a drill with no deck."""
+        entry = getattr(drill, "shown_entry", None)
+        return entry() if entry is not None else None
 
     def tutorial_card(self, view, seq, keys):
         """The card, its example playing (Play, panel "e"), until a key of
@@ -3880,8 +3916,9 @@ class Client:
         self.w.scripted(self.port, True)
         session.live = False
         drill.build_reference = lambda c: inputs_to_refs(inputs, nums)
+        lesson, was = self.shown_at(drill), session.scenario
         try:
-            res = session.run(each_frame=each, demo=True)
+            res = session.run(each_frame=each, demo=True, scenario=lesson)
             # the rest of the example after the drill's judgement (the hop
             # to its top): the frames go on, still shown and stepped, from
             # the one the judgement stopped before playing
@@ -3914,6 +3951,8 @@ class Client:
                 return "back"
             raise
         finally:
+            if lesson is not None and drill.lesson_scenario is not None:
+                session.scenario = was      # (the deck where it was)
             del drill.build_reference
 
     # ---- the coach ---------------------------------------------------------------

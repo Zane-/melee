@@ -186,7 +186,8 @@ class Hold(Behaviour):
     it is within that many units of the player, by where both are now:
     its own spacing as it walks in (a step's `until` sees the player its
     reaction time late, and a walk ended by it overshoots by the frames it
-    is late)."""
+    is late). `far`: over when it is at least that many units away, the
+    same way: a step back, the stick away, before it comes in."""
     name = "hold"
     PADS = {"stand": NONE, "shield": SHIELD, "crouch": CROUCH}
 
@@ -195,12 +196,16 @@ class Hold(Behaviour):
         self.raw = self.PADS[spec.get("pad", "stand")]
         self.stick = spec.get("stick")
         self.near = spec.get("near")
+        self.far = spec.get("far")
 
     def step(self, st):
-        if self.near is not None:
+        if self.near is not None or self.far is not None:
             me, them = st["p"][self.ctx.port], st["p"][self.ctx.target]
-            if me is not None and them is not None and \
-                    abs(them["x"] - me["x"]) <= self.near:
+            gap = abs(them["x"] - me["x"]) if me is not None and \
+                them is not None else None
+            if gap is not None and (
+                    self.near is not None and gap <= self.near or
+                    self.far is not None and gap >= self.far):
                 self.done = True
                 return self.raw
         if self.stick is None:
@@ -2014,6 +2019,8 @@ PARAMS = {
     "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch"),
              "near": (lambda v: isinstance(v, (int, float)) and
                       not isinstance(v, bool) and v >= 0, "units"),
+             "far": (lambda v: isinstance(v, (int, float)) and
+                     not isinstance(v, bool) and v >= 0, "units"),
              "stick": (lambda v: isinstance(v, list) and len(v) == 2 and
                        all(isinstance(x, (int, float)) and -1 <= x <= 1
                            for x in v),

@@ -264,13 +264,30 @@ class JsonDrill(Drill):
         sc = self.part_now.get("scenario", 0)
         return list(sc) if isinstance(sc, list) else [sc]
 
+    def _lesson_elsewhere(self):
+        """Is a lesson being recorded whose scenario the part now does not
+        have?"""
+        ls = self.lesson_scenario
+        return ls is not None and ls not in self._part_scenarios()
+
+    def _deck_scenarios(self):
+        """The scenarios the runtime's deck is of: the part's; while the
+        client records a lesson of a scenario the part does not have, those
+        of the first part that has it (the part it is judged as), or that
+        scenario alone: its opponent is then the one the session loads."""
+        if not self._lesson_elsewhere():
+            return self._part_scenarios()
+        sc = self.judged_part().get("scenario", 0)
+        sc = list(sc) if isinstance(sc, list) else [sc]
+        return sc if self.lesson_scenario in sc else [self.lesson_scenario]
+
     @property
     def deck(self):
         """A part with several scenarios (the ledgedash from either ledge)
         as the runtime's deck: D-pad left and right, and the pause menu's
         Scenario, change it."""
-        idx = self._part_scenarios()
-        if len(idx) < 2:
+        idx = self._deck_scenarios()
+        if len(idx) < 2 and not self._lesson_elsewhere():
             return None
         return [Entry(self.op_char(i), i, self.spec["scenarios"][i]["name"])
                 for i in idx]
@@ -311,6 +328,28 @@ class JsonDrill(Drill):
         idx = self._part_scenarios()
         at = self.scenario_at if self.scenario_at in idx else idx[0]
         return self.spec["scenarios"][at]
+
+    def shown_entry(self):
+        """The place in the part's deck of the scenario the tutorial shows
+        now (`scenario()`): a lesson's own while the client records one,
+        else the part's (the one the player has, else its first). None: no
+        deck (one scenario). A lesson of a scenario the part does not have
+        has the deck of the first part that has it while it is recorded
+        (`_deck_scenarios`). The
+        client turns the session to it for a recording: the deck's entry is
+        the opponent the session loads, and a recording on whichever entry
+        the deck drew was played by that entry's opponent under this
+        scenario's script, numbers and words (universal-asdi's first
+        lesson, "Sheik's down tilt", by Falco: his freezes 7 frames, the
+        lesson held the C-stick for Sheik's 5 and showed a miss)."""
+        idx = self._deck_scenarios()
+        if len(idx) < 2 and not self._lesson_elsewhere():
+            return None
+        ls = self.lesson_scenario
+        if ls is not None:
+            return idx.index(ls)
+        return idx.index(self.scenario_at if self.scenario_at in idx
+                         else idx[0])
 
     @property
     def ref_start(self):

@@ -4,9 +4,10 @@
 which does one thing (its `example` script). A person plays against the
 scenario's `script`: it moves, chooses its moment, comes from another
 distance. This plays the example against that one, several times a
-scenario (its choices change from one run to the next), and says how
-often the part's checks pass and which failed when they did not: whether
-what the drill teaches still works when the situation arises from play.
+scenario (each run with a seed of its own: its choices change from one
+run to the next), and says how often the part's checks pass and which
+failed when they did not: whether what the drill teaches still works when
+the situation arises from play.
 
     python tools/melee_drills/check_play.py DRILL|FILE [--part N]
         [--runs R] [--chars a,b] [--scenarios i,j] [--quiet]
@@ -74,7 +75,7 @@ def main():
                                seed=1, dpad=False)
             for k in scen:
                 won, said = 0, {}
-                for _ in range(args.runs):
+                for n in range(args.runs):
                     drill.set_part(part)
                     drill.strict = False
                     drill.scenario_at = k
@@ -83,7 +84,10 @@ def main():
                     drill.build_reference = lambda c: inputs_to_refs(
                         example, drill.nums(c), drill.ref_start)
                     try:
-                        r = s.run(demo=True, scenario=at)
+                        # (its own seed: a demonstration otherwise
+                        # replays the last try's, the same run again)
+                        r = s.run(demo=True, scenario=at,
+                                  run=1000 * k + n)
                     finally:
                         del drill.build_reference
                     if r.get("success"):

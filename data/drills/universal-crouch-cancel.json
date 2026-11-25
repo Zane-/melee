@@ -355,6 +355,10 @@
      "{opp} keeps its distance and attacks when {char} comes into its reach, at once or after a moment; sometimes it comes in itself. There is no time to see the attack and crouch: the stick goes down as {char} arrives, before it.",
      "A walk stops into a crouch at once. A dash does not: let go of the stick first."
     ],
+    "checks": [
+     "crouched",
+     "grounded"
+    ],
     "show": {
      "example": {
       "inputs": [
@@ -400,6 +404,10 @@
      "Knockback grows with damage, and every attack has its own. Measured, {char} stays on its feet through {opp}'s {move} up to {HOLD}%; a jab holds far longer than a smash.",
      "Here every try begins at a damage the crouch still holds at and a punish still lands at: the more damage, the farther the hit pushes {char} and the longer it takes to act."
     ],
+    "checks": [
+     "crouched",
+     "grounded"
+    ],
     "show": {
      "example": {
       "inputs": [
@@ -444,6 +452,10 @@
     "text": [
      "The attacker is still in its move when {char} can act again, a few frames after the freeze.",
      "The C-stick down is a down smash, A with the stick still down a down tilt, Z a grab. Which reaches depends on where the attack left the attacker: a dash attack often ends on top of {char}, or past."
+    ],
+    "checks": [
+     "crouched",
+     "grounded"
     ],
     "show": {
      "example": {
@@ -491,6 +503,10 @@
      "Standing over it crouching covers that choice: the attack is crouch cancelled, and it is open for as long as the attack lasts. It pushes {char} back a little: the punish has to reach."
     ],
     "scenario": 25,
+    "checks": [
+     "crouched",
+     "grounded"
+    ],
     "show": {
      "example": {
       "inputs": [

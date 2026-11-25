@@ -79,6 +79,11 @@
      "{opp} jumps in with its {attack}, aimed at where Fox stands. A wavedash back is a jump and an air dodge into the ground on Fox's first frame in the air: he slides away, still facing {opp}.",
      "The aerial comes down on empty ground."
     ],
+    "checks": [
+     "out of range",
+     "no shield",
+     "wavedash"
+    ],
     "show": {
      "example": {
       "inputs": [
@@ -134,6 +139,11 @@
     "text": [
      "An aerial that lands has landing lag: {opp} cannot act until frame {FREE} of its {attack}.",
      "Dash back in on frame {GO}, once its hitbox is past, and within reach press X or Y and then Z: the jump-cancelled grab comes out at once, sliding with the dash."
+    ],
+    "checks": [
+     "out of range",
+     "no shield",
+     "punished"
     ],
     "show": {
      "example": {
@@ -254,52 +264,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 33.4,
           "for": 60
          },
          {
@@ -319,13 +305,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -340,13 +335,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -362,13 +447,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -383,10 +477,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -405,13 +518,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -489,52 +611,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 33.4,
           "for": 60
          },
          {
@@ -554,13 +652,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -575,13 +682,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -597,13 +794,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -618,10 +824,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -640,13 +865,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -724,52 +958,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_bair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 33.4,
           "for": 60
          },
          {
@@ -789,13 +999,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -810,13 +1029,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -832,13 +1141,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -853,10 +1171,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -875,13 +1212,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 28.0
+          "for": 160,
+          "near": 30.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -959,52 +1305,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_nair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 34.6,
           "for": 60
          },
          {
@@ -1024,13 +1346,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1045,13 +1376,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -1067,13 +1488,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1088,10 +1518,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
          },
          {
           "do": "hold",
@@ -1110,13 +1559,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1194,52 +1652,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 34.6,
           "for": 60
          },
          {
@@ -1259,13 +1693,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1280,13 +1723,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -1302,13 +1835,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1323,10 +1865,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 34.6,
+          "for": 60
          },
          {
           "do": "hold",
@@ -1345,13 +1906,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 27.4
+          "for": 160,
+          "near": 31.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 23.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1429,52 +1999,28 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           44,
-           58
-          ],
+          "far": 47.4,
           "for": 60
          },
          {
@@ -1494,13 +2040,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1515,13 +2070,103 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           50,
+           64
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -1537,13 +2182,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1558,10 +2212,29 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -1580,13 +2253,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1664,52 +2346,28 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           44,
-           58
-          ],
+          "far": 47.4,
           "for": 60
          },
          {
@@ -1729,13 +2387,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1750,13 +2417,103 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           50,
+           64
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -1772,13 +2529,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1793,10 +2559,29 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 47.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -1815,13 +2600,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.8
+          "for": 160,
+          "near": 44.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 36.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1899,52 +2693,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 21.6
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_bair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 31.4,
           "for": 60
          },
          {
@@ -1964,13 +2734,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 21.6
+          "for": 160,
+          "near": 28.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -1985,13 +2764,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 28.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -2007,13 +2876,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 21.6
+          "for": 160,
+          "near": 28.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2028,10 +2906,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.4,
+          "for": 60
          },
          {
           "do": "hold",
@@ -2050,13 +2947,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 21.6
+          "for": 160,
+          "near": 28.4
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.4,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2134,52 +3040,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 26.9
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 33.0,
           "for": 60
          },
          {
@@ -2199,13 +3081,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.9
+          "for": 160,
+          "near": 30.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2220,13 +3111,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 30.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -2242,13 +3223,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.9
+          "for": 160,
+          "near": 30.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2263,10 +3253,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 33.0,
+          "for": 60
          },
          {
           "do": "hold",
@@ -2285,13 +3294,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.9
+          "for": 160,
+          "near": 30.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 22.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2369,52 +3387,28 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 34.2
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           36,
-           50
-          ],
+          "far": 41.2,
           "for": 60
          },
          {
@@ -2434,13 +3428,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 34.2
+          "for": 160,
+          "near": 38.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 30.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2455,13 +3458,103 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 41.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 38.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 30.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           42,
+           56
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 41.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -2477,13 +3570,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 34.2
+          "for": 160,
+          "near": 38.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 30.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2498,10 +3600,29 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 41.2,
+          "for": 60
          },
          {
           "do": "hold",
@@ -2520,13 +3641,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 34.2
+          "for": 160,
+          "near": 38.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 30.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2604,52 +3734,28 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 37.6
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           40,
-           54
-          ],
+          "far": 44.3,
           "for": 60
          },
          {
@@ -2669,13 +3775,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.6
+          "for": 160,
+          "near": 41.3
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.3,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2690,13 +3805,103 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.3,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 41.3
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.3,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           46,
+           60
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.3,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -2712,13 +3917,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.6
+          "for": 160,
+          "near": 41.3
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.3,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2733,10 +3947,29 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.3,
+          "for": 60
          },
          {
           "do": "hold",
@@ -2755,13 +3988,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.6
+          "for": 160,
+          "near": 41.3
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.3,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2839,52 +4081,28 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 35.0
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           40,
-           54
-          ],
+          "far": 43.6,
           "for": 60
          },
          {
@@ -2904,13 +4122,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 35.0
+          "for": 160,
+          "near": 40.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 32.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2925,13 +4152,103 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 43.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 40.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 32.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           46,
+           60
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 43.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -2947,13 +4264,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 35.0
+          "for": 160,
+          "near": 40.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 32.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -2968,10 +4294,29 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 43.6,
+          "for": 60
          },
          {
           "do": "hold",
@@ -2990,13 +4335,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 35.0
+          "for": 160,
+          "near": 40.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 32.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3074,52 +4428,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 23.0
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_uair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 31.6,
           "for": 60
          },
          {
@@ -3139,13 +4469,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 23.0
+          "for": 160,
+          "near": 28.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3160,13 +4499,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 28.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_uair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.6,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -3182,13 +4611,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 23.0
+          "for": 160,
+          "near": 28.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3203,10 +4641,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 31.6,
+          "for": 60
          },
          {
           "do": "hold",
@@ -3225,13 +4682,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 23.0
+          "for": 160,
+          "near": 28.6
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 20.6,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3309,52 +4775,28 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_nair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           32,
-           46
-          ],
+          "far": 35.5,
           "for": 60
          },
          {
@@ -3374,13 +4816,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3395,13 +4846,103 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           38,
+           52
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -3417,13 +4958,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3438,10 +4988,29 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
          },
          {
           "do": "hold",
@@ -3460,13 +5029,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3544,52 +5122,28 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           32,
-           46
-          ],
+          "far": 35.5,
           "for": 60
          },
          {
@@ -3609,13 +5163,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3630,13 +5193,103 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           38,
+           52
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -3652,13 +5305,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3673,10 +5335,29 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 35.5,
+          "for": 60
          },
          {
           "do": "hold",
@@ -3695,13 +5376,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 26.3
+          "for": 160,
+          "near": 32.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 24.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3779,52 +5469,28 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 37.2
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           40,
-           54
-          ],
+          "far": 45.2,
           "for": 60
          },
          {
@@ -3844,13 +5510,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.2
+          "for": 160,
+          "near": 42.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 34.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3865,13 +5540,103 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 45.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 42.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 34.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           46,
+           60
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 45.2,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -3887,13 +5652,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.2
+          "for": 160,
+          "near": 42.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 34.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -3908,10 +5682,29 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 45.2,
+          "for": 60
          },
          {
           "do": "hold",
@@ -3930,13 +5723,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 37.2
+          "for": 160,
+          "near": 42.2
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 34.2,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4014,52 +5816,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_nair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 32.9,
           "for": 60
          },
          {
@@ -4079,13 +5857,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4100,13 +5887,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -4122,13 +5999,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4143,10 +6029,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
          },
          {
           "do": "hold",
@@ -4165,13 +6070,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4249,52 +6163,28 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_dair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           28,
-           42
-          ],
+          "far": 32.9,
           "for": 60
          },
          {
@@ -4314,13 +6204,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4335,13 +6234,103 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           34,
+           48
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -4357,13 +6346,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4378,10 +6376,29 @@
          {
           "do": "footsies",
           "range": [
-           28,
-           42
+           34,
+           48
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 32.9,
+          "for": 60
          },
          {
           "do": "hold",
@@ -4400,13 +6417,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 25.5
+          "for": 160,
+          "near": 29.9
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 21.9,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4484,52 +6510,28 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 33.1
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           36,
-           50
-          ],
+          "far": 40.5,
           "for": 60
          },
          {
@@ -4549,13 +6551,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 33.1
+          "for": 160,
+          "near": 37.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 29.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4570,13 +6581,103 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 40.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 37.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 29.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           42,
+           56
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 40.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -4592,13 +6693,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 33.1
+          "for": 160,
+          "near": 37.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 29.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4613,10 +6723,29 @@
          {
           "do": "footsies",
           "range": [
-           36,
-           50
+           42,
+           56
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 40.5,
+          "for": 60
          },
          {
           "do": "hold",
@@ -4635,13 +6764,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 33.1
+          "for": 160,
+          "near": 37.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 29.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4719,52 +6857,28 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 36.5
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_nair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           40,
-           54
-          ],
+          "far": 44.1,
           "for": 60
          },
          {
@@ -4784,13 +6898,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 36.5
+          "for": 160,
+          "near": 41.1
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.1,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4805,13 +6928,103 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 41.1
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           46,
+           60
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -4827,13 +7040,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 36.5
+          "for": 160,
+          "near": 41.1
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.1,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4848,10 +7070,29 @@
          {
           "do": "footsies",
           "range": [
-           40,
-           54
+           46,
+           60
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 44.1,
+          "for": 60
          },
          {
           "do": "hold",
@@ -4870,13 +7111,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 36.5
+          "for": 160,
+          "near": 41.1
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 33.1,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -4954,52 +7204,28 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 40.3
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_bair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           44,
-           58
-          ],
+          "far": 48.5,
           "for": 60
          },
          {
@@ -5019,13 +7245,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 40.3
+          "for": 160,
+          "near": 45.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 37.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -5040,13 +7275,103 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 48.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 45.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 37.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           50,
+           64
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 48.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -5062,13 +7387,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 40.3
+          "for": 160,
+          "near": 45.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 37.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -5083,10 +7417,29 @@
          {
           "do": "footsies",
           "range": [
-           44,
-           58
+           50,
+           64
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 48.5,
+          "for": 60
          },
          {
           "do": "hold",
@@ -5105,13 +7458,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 40.3
+          "for": 160,
+          "near": 45.5
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 37.5,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -5189,52 +7551,28 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 30
          },
          {
           "do": "hold",
-          "stick": [
-           0.49,
-           0
-          ],
-          "for": 14,
+          "pad": "stand",
+          "for": 30,
           "until": {
-           "me": "facing"
+           "me": {
+            "state": "wait"
+           }
           }
          },
          {
           "do": "hold",
           "stick": [
-           0.49,
+           -0.49,
            0
           ],
-          "for": 120,
-          "near": 29.5
-         },
-         {
-          "do": "hold",
-          "pad": "stand",
-          "for": 8
-         },
-         {
-          "do": "move",
-          "name": "sh_fair_in",
-          "lcancel": false
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           32,
-           46
-          ],
+          "far": 37.0,
           "for": 60
          },
          {
@@ -5254,13 +7592,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 29.5
+          "for": 160,
+          "near": 34.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 26.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -5275,13 +7622,103 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 37.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 160,
+          "near": 34.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 26.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 10
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           38,
+           52
           ],
           "for": 100
          },
          {
           "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 37.0,
+          "for": 60
+         },
+         {
+          "do": "hold",
           "stick": [
            0.49,
            0
@@ -5297,13 +7734,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 29.5
+          "for": 160,
+          "near": 34.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 26.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",
@@ -5318,10 +7764,29 @@
          {
           "do": "footsies",
           "range": [
-           32,
-           46
+           38,
+           52
           ],
           "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 37.0,
+          "for": 60
          },
          {
           "do": "hold",
@@ -5340,13 +7805,22 @@
            0.49,
            0
           ],
-          "for": 120,
-          "near": 29.5
+          "for": 160,
+          "near": 34.0
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 26.0,
+          "for": 60
          },
          {
           "do": "hold",
           "pad": "stand",
-          "for": 8
+          "for": 10
          },
          {
           "do": "move",

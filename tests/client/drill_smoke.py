@@ -58,6 +58,9 @@ class Player:
         self.hold = list(hold)
         self.come, self.walking, self.there = come, None, False
         self.cards, self.coaches = [], []
+        # the opponent each card's pictures were of, and the opponent of
+        # the scenario the drill was on while the card was shown
+        self.shown = []
         self.release = []
         self.calls = 0
         self.since, self.here = 0, None
@@ -102,6 +105,12 @@ class Player:
                                   self.cards[-1]["sub"]) != (v["title"],
                                                              v["sub"]):
                 self.cards.append(v)
+                # (what the session loaded for the card's recording)
+                op = c.session.d.scenario().get("opponent", "none") \
+                    if c.session else None
+                self.shown.append((
+                    c.session.cpu_char if c.session else None,
+                    op["character"] if isinstance(op, dict) else None))
             self.tap(game, "x")                 # A: next, or start
             return
         if frame == -4:
@@ -269,6 +278,16 @@ def main():
               sum(s.startswith("LESSON") for s in subs) == lessons and
               any(s.startswith("PART 1 OF") for s in subs),
               "; ".join(s.replace("\n", " ") for s in subs))
+        # a card's pictures are of the scenario its words are about: a
+        # lesson's own, a part card's the one the drill is on (the
+        # session's deck used to draw the opponent: "Sheik's down tilt"
+        # played by Falco)
+        got = [pair for pair, v in zip(p.shown, p.cards)
+               if v.get("pic") or v.get("timeline")]
+        check("each card's pictures are of its own scenario's opponent",
+              all(a == b for a, b in got),
+              "; ".join("%s%s" % (a, "" if a == b else ", wanted %s" % b)
+                        for a, b in got) if got else "no pictures")
         check("%d tries, each judged or not counted" % args.tries,
               len(told) + len(p.skipped) >= args.tries,
               "%d judged, %d not counted" % (len(told), len(p.skipped)))

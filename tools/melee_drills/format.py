@@ -35,7 +35,9 @@ The words:
   frame captioned) or {"still": {"inputs", "frame", "cue"}} (one picture
   of that example: its frame `frame`, a cue {"words", "kind"} on it); and
   "characters": NUMBER (every character's NUMBER in a table below, the
-  player's marked: "jump_squat")
+  player's marked: "jump_squat"); "checks": [names] (the checks its example
+  passes, judged as the first part that counts them all: check.py proves
+  it, in the lesson's own scenario)
 - cues (on a lesson's example or a part's): {"frames": [lo, hi], "words",
   "kind": "go" | "late" | "info"}: a colour and words on the picture for
   those frames ("let go now", "too late"); {f} in them is the frame shown
@@ -704,6 +706,20 @@ def _problems(spec):
                  0 <= le["scenario"] < len(spec["scenarios"]), w,
                  "scenario: an index of the drill's scenarios")
         show = le.get("show")
+        if "checks" in le:
+            # what its example shows, to be proved (check.py): the checks
+            # it passes, all of them counted by one part
+            ok = need(isinstance(le["checks"], list) and le["checks"] and
+                      all(c in spec.get("checks", {}) for c in le["checks"]),
+                      w, "checks: names of the drill's checks")
+            need(isinstance(show, dict) and "example" in show, w,
+                 "checks: of a lesson that shows an example")
+            if ok:
+                need(any(all(c in p.get("checks", []) for c in le["checks"])
+                         for p in spec.get("parts", [])
+                         if isinstance(p, dict)), w,
+                     "checks: no part counts all of %s" % ", ".join(
+                         le["checks"]))
         if show is None:
             continue
         if not need(isinstance(show, dict) and len(show) == 1 and

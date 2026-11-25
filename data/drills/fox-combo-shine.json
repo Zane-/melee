@@ -97,6 +97,11 @@
      "Down and B hits on its first frame, all around Fox: nothing else of his is out that fast.",
      "Hold the stick down through the hitstun and press B as it ends. A press during hitstun does nothing and is not kept: the press has to come on a frame Fox can act."
     ],
+    "checks": [
+     "in time",
+     "shined",
+     "not hit"
+    ],
     "show": {
      "example": {
       "inputs": [

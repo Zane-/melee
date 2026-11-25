@@ -6,6 +6,9 @@
 For every character the drill allows (or those named), headless:
 - the tutorial's example and each part's example pass that part's checks;
 - each mistake fails, on the check it names;
+- each lesson's example passes the checks the lesson names (`"checks"`),
+  played as the tutorial plays it: in the lesson's own scenario, against
+  that scenario's opponent;
 - a part whose scenarios are a deck of opponents (each scenario another
   opponent: fox-shine-oos's deck) plays its example, its frame-perfect
   example and the mistakes judged as it in every scenario of the deck;
@@ -52,6 +55,31 @@ def play(session, drill, inputs, part, strict=False, scenario=None):
         return session.run(demo=True, scenario=at)
     finally:
         del drill.build_reference
+
+
+def play_lesson(session, drill, le, ch):
+    """A lesson's example as the tutorial records it: in the lesson's own
+    scenario, on that scenario's deck entry, judged as the first part that
+    counts every check the lesson names. (result, that scenario's
+    numbers)."""
+    spec = drill.spec
+    part = next(i for i, p in enumerate(spec["parts"])
+                if all(c in p.get("checks", []) for c in le["checks"]))
+    drill.set_part(part)
+    drill.strict = False
+    drill.scenario_at = None
+    drill.lesson_scenario = le.get("scenario", 0)
+    inputs = F.pick(le["show"]["example"], "inputs", ch)
+    at = drill.shown_entry()
+    session.scenario = -1 if at is None else at
+    drill.build_reference = lambda c: inputs_to_refs(
+        inputs, drill.nums(c), drill.ref_start)
+    try:
+        r = session.run(demo=True, scenario=at)
+        return r, drill.nums(session.c)
+    finally:
+        del drill.build_reference
+        drill.lesson_scenario = None
 
 
 def deck(spec, part):
@@ -170,6 +198,19 @@ def main():
                 say(what, "%-34s %s%s" % (
                     what, r["words"], " | fix: " + r["fix"]
                     if r.get("fix") else ""))
+            for li, le in enumerate(spec["tutorial"].get("lessons", [])):
+                if "checks" not in le:
+                    continue
+                total += 1
+                what = "lesson %d example" % (li + 1)
+                r, lnums = play_lesson(s, drill, le, ch)
+                got = {c["expect"]: c["passed"] for c in r.get("checks", [])}
+                missed = [name for name in le["checks"] if not got.get(
+                    F.text(spec["checks"][name].get("expect", name), lnums))]
+                if missed:
+                    problems.append("%s, %s: %s (should pass %s)" % (
+                        ch, what, r["words"], ", ".join(missed)))
+                say(what, "%-34s %s" % (what, r["words"]))
         if not args.quiet:
             print("  %-16s J=%d  %s" % (ch, nums["J"], "ok" if not any(
                 p.startswith(ch + ",") for p in problems) else "FAIL"))
