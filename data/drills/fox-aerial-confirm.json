@@ -1,0 +1,1830 @@
+{
+ "id": "fox-aerial-confirm",
+ "name": "Aerial hit confirm",
+ "part": "punish",
+ "characters": [
+  "fox"
+ ],
+ "goal": "After a neutral air lands, shine the opponent that took it and grab the one that crouch cancelled it",
+ "why": "The same neutral air does two different things. An opponent that takes it standing is in hitstun when Fox lands: the shine continues the combo. One that crouch cancels it is already shielding by then: the shine does nothing, and only a grab opens it. The half second between the hit and the landing is for seeing which.",
+ "switch": "every",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Short hop next to the opponent, drift in, press A late in the hop and L before landing. Watch the hit: if the opponent flinches, down-B as Fox can act; if it stays crouched, Z.",
+  "expect": "A try begins when the aerial hits and is judged when the shine or a grab lands, when Fox is hit or grabbed, or a second later. The opponent stands until Fox jumps: whether it crouch cancels shows only at the hit.",
+  "example": [
+   {
+    "press": "jump",
+    "frame": 1,
+    "hold": 1
+   },
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 10,
+    "hold": 6
+   },
+   {
+    "press": "A",
+    "frame": 16,
+    "hold": 1
+   },
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 17,
+    "hold": 13
+   },
+   {
+    "press": "L",
+    "frame": 28,
+    "hold": 1
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": "SF",
+    "hold": 3
+   },
+   {
+    "press": "B",
+    "frame": "SF",
+    "hold": 2
+   },
+   {
+    "press": "Z",
+    "frame": "GF",
+    "hold": 1
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+   "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+  },
+  "lessons": [
+   {
+    "title": "It took the hit",
+    "text": [
+     "Standing, {opp} flinches and slides back: hitstun. Fox lands, and on his first free frame, {18} frames after the hit, the shine reaches it before it can jump away.",
+     "From the shine his combos start: this is the follow-up to choose when the hit was clean."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 10,
+        "hold": 6
+       },
+       {
+        "press": "A",
+        "frame": 16,
+        "hold": 1
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 17,
+        "hold": 13
+       },
+       {
+        "press": "L",
+        "frame": 28,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "SF",
+        "hold": 3
+       },
+       {
+        "press": "B",
+        "frame": "SF",
+        "hold": 2
+       },
+       {
+        "press": "Z",
+        "frame": "GF",
+        "hold": 1
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+       "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         18
+        ],
+        "words": "Did it flinch, or stay crouched?",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         19,
+         21
+        ],
+        "words": "Now: shine or grab",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "It crouch cancelled",
+    "text": [
+     "Crouching at the hit, an opponent barely moves and is out of hitstun long before Fox lands. It shields: the shine would hit the shield and leave Fox open.",
+     "A grab goes through the shield. Press Z instead of down-B when it stayed down."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 10,
+        "hold": 6
+       },
+       {
+        "press": "A",
+        "frame": 16,
+        "hold": 1
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 17,
+        "hold": 13
+       },
+       {
+        "press": "L",
+        "frame": 28,
+        "hold": 1
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": "SF",
+        "hold": 3
+       },
+       {
+        "press": "B",
+        "frame": "SF",
+        "hold": 2
+       },
+       {
+        "press": "Z",
+        "frame": "GF",
+        "hold": 1
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+       "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         18
+        ],
+        "words": "Did it flinch, or stay crouched?",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         19,
+         21
+        ],
+        "words": "Now: shine or grab",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Marth takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Jigglypuff takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Falco takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Sheik takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Captain Falcon takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Peach takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Pikachu takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Yoshi takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Samus takes the hit",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": {
+       "not": {
+        "me": "stunned"
+       }
+      }
+     },
+     {
+      "do": "jump",
+      "stick": [
+       -1,
+       0
+      ]
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "did": "took the hit",
+    "right": "the shine",
+    "SH": 1,
+    "GR": 0,
+    "SF": 37,
+    "GF": 999
+   }
+  },
+  {
+   "name": "Fox crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Marth crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Jigglypuff crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Falco crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Sheik crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Captain Falcon crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Peach crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Pikachu crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Yoshi crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  },
+  {
+   "name": "Samus crouch cancels",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": -11,
+    "facing": "player",
+    "react": 6,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand",
+      "until": "airborne"
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "committed"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "crouch",
+      "until": {
+       "me": "free"
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "shield",
+      "for": 90
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "did": "crouch cancelled",
+    "right": "a grab",
+    "SH": 0,
+    "GR": 1,
+    "SF": 999,
+    "GF": 37
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "is": "connects",
+   "to": "aerial"
+  },
+  "judge": [
+   {
+    "is": "connects",
+    "to": "shine"
+   },
+   {
+    "is": "connects",
+    "to": "up_smash"
+   },
+   {
+    "enters": "holding"
+   },
+   "hit",
+   {
+    "enters": "grabbed"
+   },
+   {
+    "frame": 60
+   }
+  ],
+  "cancel": [],
+  "limit": 80,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: no aerial hit it. Short hop next to it and press A late in the hop."
+ },
+ "measures": {
+  "shined": {
+   "happened": {
+    "is": "connects",
+    "to": "shine"
+   }
+  },
+  "grabbed": {
+   "happened": {
+    "enters": "holding"
+   }
+  },
+  "any": {
+   "happened": [
+    {
+     "is": "connects",
+     "to": "shine"
+    },
+    {
+     "is": "connects",
+     "to": "up_smash"
+    },
+    {
+     "enters": "holding"
+    }
+   ]
+  },
+  "hit_back": {
+   "happened": [
+    "hit",
+    {
+     "enters": "grabbed"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "not hit": {
+   "measure": "hit_back",
+   "equals": false,
+   "expect": "Not hit or grabbed by it",
+   "words": "{opp} hit Fox back",
+   "headline": "Hit back",
+   "fix": "Act on the first frame after the landing lag: L before landing, then down-B or Z at once."
+  },
+  "follow-up": {
+   "measure": "any",
+   "equals": true,
+   "expect": "A follow-up lands",
+   "words": "nothing landed after the neutral air: {opp} {did}, and {right} was the answer",
+   "headline": "No follow-up",
+   "fix": "It {did}: {right} on the first frame Fox can act, {18} frames after the hit."
+  },
+  "shine": {
+   "measure": "shined",
+   "at_least": "SH",
+   "expect": "The shine, when it took the hit",
+   "words": "{opp} took the hit: the shine was the follow-up",
+   "headline": "Wrong follow-up",
+   "fix": "It flinched and slid back: it is in hitstun. Down-B on the first frame Fox can act starts the combo; a grab there gives less."
+  },
+  "grab": {
+   "measure": "grabbed",
+   "at_least": "GR",
+   "expect": "A grab, when it crouch cancelled",
+   "words": "{opp} crouch cancelled: a grab was the follow-up",
+   "headline": "Wrong follow-up",
+   "fix": "It stayed crouched through the hit and is shielding when Fox lands. Z: a grab goes through the shield."
+  }
+ },
+ "verdict": {
+  "success": "{opp} {did}: {right}."
+ },
+ "parts": [
+  {
+   "name": "It took the hit",
+   "teach": "{opp} stands through the neutral air and flinches. L before landing, then down-B on Fox's first free frame: the shine.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 10,
+     "hold": 6
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 17,
+     "hold": 13
+    },
+    {
+     "press": "L",
+     "frame": 28,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SF",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "SF",
+     "hold": 2
+    },
+    {
+     "press": "Z",
+     "frame": "GF",
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+    "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      18
+     ],
+     "words": "Did it flinch, or stay crouched?",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      21
+     ],
+     "words": "Now: shine or grab",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not hit",
+    "follow-up",
+    "shine"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "name": "It crouch cancelled",
+   "teach": "{opp} crouches as Fox jumps and takes the neutral air without flinching. L before landing, then Z: the grab.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 10,
+     "hold": 6
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 17,
+     "hold": 13
+    },
+    {
+     "press": "L",
+     "frame": 28,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SF",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "SF",
+     "hold": 2
+    },
+    {
+     "press": "Z",
+     "frame": "GF",
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+    "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      18
+     ],
+     "words": "Did it flinch, or stay crouched?",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      21
+     ],
+     "words": "Now: shine or grab",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not hit",
+    "follow-up",
+    "grab"
+   ],
+   "streak": 3,
+   "scenario": [
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  },
+  {
+   "name": "Confirm it",
+   "teach": "It takes the hit or crouch cancels it, and shows which only at the hit. Shine the one that flinched, grab the one that stayed down.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 10,
+     "hold": 6
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 17,
+     "hold": 13
+    },
+    {
+     "press": "L",
+     "frame": 28,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "SF",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "SF",
+     "hold": 2
+    },
+    {
+     "press": "Z",
+     "frame": "GF",
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the neutral air hits. Watch what {opp} does",
+    "19": "Frame {f}: Fox can act: the shine if it flinched, a grab if it stayed down"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      18
+     ],
+     "words": "Did it flinch, or stay crouched?",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      19,
+      21
+     ],
+     "words": "Now: shine or grab",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "not hit",
+    "follow-up",
+    "shine",
+    "grab"
+   ],
+   "streak": 6,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "the neutral air and nothing after it",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 10,
+     "hold": 6
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 17,
+     "hold": 13
+    },
+    {
+     "press": "L",
+     "frame": 28,
+     "hold": 1
+    }
+   ],
+   "fails": "follow-up"
+  },
+  {
+   "name": "a grab on the one that took the hit, the shine on the one that crouch cancelled",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 10,
+     "hold": 6
+    },
+    {
+     "press": "A",
+     "frame": 16,
+     "hold": 1
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 17,
+     "hold": 13
+    },
+    {
+     "press": "L",
+     "frame": 28,
+     "hold": 1
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": "GF",
+     "hold": 3
+    },
+    {
+     "press": "B",
+     "frame": "GF",
+     "hold": 2
+    },
+    {
+     "press": "Z",
+     "frame": "SF",
+     "hold": 1
+    }
+   ],
+   "fails": "shine"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "L-cancel",
+    "button": "lcancel",
+    "perfect": [
+     10
+    ],
+    "window": [
+     5,
+     11
+    ]
+   },
+   {
+    "label": "Shine",
+    "state": "shine",
+    "perfect": [
+     19
+    ],
+    "window": [
+     19,
+     22
+    ]
+   },
+   {
+    "label": "Grab (Z)",
+    "button": "Z",
+    "perfect": [
+     19
+    ],
+    "window": [
+     19,
+     24
+    ]
+   }
+  ],
+  "note": "Frame 1 is the neutral air's hit. Fox can act on frame 19: the shine if it flinched, a grab if it stayed crouched."
+ }
+}

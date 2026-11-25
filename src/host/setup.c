@@ -25,6 +25,7 @@
 #include <melee/ft/ftcoll.h>
 #include <melee/ft/kinds/ftCommon/ftCo_CliffWait.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Damage.h>
+#include <melee/ft/kinds/ftCommon/ftCo_DamageFall.h>
 #include <melee/ft/ftcommon.h>
 #include <melee/ft/inlines.h>
 #include <melee/ft/kinds/ftCommon/ftCo_Fall.h>
@@ -99,6 +100,23 @@ static void still(Fighter* fp, float facing)
        (universal-tech's proof, 2026-11-25) */
     fp->x680 = 255;
     fp->x684 = 255;
+    /* and not frozen in a hit: a fighter placed in the middle of its
+       hitlag stood frozen for what was left of it in the next attempt (a
+       try judged at a hit and reset at once: fox-aerial-confirm's proof,
+       2026-11-25, where the opponent then counted as hit and ran its
+       answer before anything touched it). Ended as the game ends it
+       (Fighter_procUpdate). */
+    if (fp->dmg.x195c_hitlag_frames > 0.0F) {
+        fp->dmg.x195c_hitlag_frames = 0.0F;
+        if (fp->x221A_b3) {
+            ftCo_80090718(fp);
+            fp->x221A_b3 = 0;
+        }
+        if (!fp->dmg.x1954 && !fp->x2219_b7) {
+            Fighter_8006D10C(fp->gobj);
+        }
+        fp->allow_sdi = 0;
+    }
 }
 
 /// Let go of whoever it holds, and of it if it is held, the way the game
