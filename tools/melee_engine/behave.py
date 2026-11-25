@@ -179,19 +179,55 @@ class Behaviour:
 # ---- bodies -----------------------------------------------------------------
 
 class Hold(Behaviour):
-    """Stands, shields or crouches (`pad`)."""
+    """Stands, shields or crouches (`pad`), or holds the control stick
+    (`stick`: [toward the player, up], each -1 to 1: its DI through a
+    throw or a hit, away from the player with [-1, 0])."""
     name = "hold"
     PADS = {"stand": NONE, "shield": SHIELD, "crouch": CROUCH}
 
     def __init__(self, ctx, spec):
         super().__init__(ctx, spec)
         self.raw = self.PADS[spec.get("pad", "stand")]
+        self.stick = spec.get("stick")
 
     def step(self, st):
-        return self.raw
+        if self.stick is None:
+            return self.raw
+        b, _, _, cx, cy, lt, rt = self.raw
+        way = toward(st, self.ctx.port, self.ctx.target) \
+            if st["p"][self.ctx.port] is not None and \
+            st["p"][self.ctx.target] is not None else 1
+        return (b, int(round(127 * self.stick[0])) * way,
+                int(round(127 * self.stick[1])), cx, cy, lt, rt)
 
     def plan(self, st, k):
-        return [self.raw] * k
+        return [self.step(st)] * k
+
+
+class Jump(Behaviour):
+    """Presses jump now, the stick held (`stick`: [toward the player, up],
+    [-1, 0] by default: away): a jump from the ground, a double jump in the
+    air, on this frame exactly (a body, not a search: out of hitstun the
+    first frame it can). Over two frames later."""
+    name = "jump"
+    X = 0x400
+
+    def __init__(self, ctx, spec):
+        super().__init__(ctx, spec)
+        self.stick = spec.get("stick", [-1, 0])
+
+    def step(self, st):
+        way = toward(st, self.ctx.port, self.ctx.target) \
+            if st["p"][self.ctx.port] is not None and \
+            st["p"][self.ctx.target] is not None else 1
+        if self.frame >= 2:
+            self.done = True
+        return (self.X if self.frame < 2 else 0,
+                int(round(127 * self.stick[0])) * way,
+                int(round(127 * self.stick[1])), 0, 0, 0, 0)
+
+    def plan(self, st, k):
+        return [NONE] * k
 
 
 class Oos(Behaviour):
@@ -1711,7 +1747,8 @@ class Recover(Behaviour):
 # ---- the table --------------------------------------------------------------
 
 BEHAVIOURS = {
-    "hold": Hold, "oos": Oos, "footsies": Footsies, "retreat": Retreat,
+    "hold": Hold, "jump": Jump, "oos": Oos, "footsies": Footsies,
+    "retreat": Retreat,
     "approach": Approach, "move": Move, "punish": Punish,
     "pressure": Pressure, "chase": Chase, "chain_grab": ChainGrab,
     "play": Play, "recover": Recover,
@@ -1731,7 +1768,15 @@ def _moves(v):
 
 # each behaviour's own keys: a check of the value, and what it says
 PARAMS = {
-    "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch")},
+    "hold": {"pad": (lambda v: v in Hold.PADS, "stand, shield or crouch"),
+             "stick": (lambda v: isinstance(v, list) and len(v) == 2 and
+                       all(isinstance(x, (int, float)) and -1 <= x <= 1
+                           for x in v),
+                       "[toward the player, up], each -1 to 1")},
+    "jump": {"stick": (lambda v: isinstance(v, list) and len(v) == 2 and
+                       all(isinstance(x, (int, float)) and -1 <= x <= 1
+                           for x in v),
+                       "[toward the player, up], each -1 to 1")},
     "oos": {"option": (lambda v: v in Oos.OPTIONS, ", ".join(Oos.OPTIONS))},
     "footsies": {"range": (lambda v: v in ("outside", "edge") or _pair(v),
                            'outside, edge or [LO, HI]')},

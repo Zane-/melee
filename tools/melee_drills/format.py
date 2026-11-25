@@ -87,6 +87,8 @@ STATES = {
     # PassiveStandF and B: its rolls), a missed one (DownBound: the
     # bounce), lying there and getting up (DownBoundU to DownSpotD)
     "thrown": (239, 240, 241, 242, 243),
+    # the player's own throws (ThrowF, ThrowB, ThrowHi, ThrowLw)
+    "throw": (219, 220, 221, 222), "up_throw": 221,
     "tech": (199, 200, 201), "tech_in_place": 199, "tech_roll": (200, 201),
     "missed_tech": (183, 191), "down": tuple(range(183, 199)),
     "air_dodge": 236, "platform_drop": 244, "teeter": (245, 246),

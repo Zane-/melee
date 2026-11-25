@@ -115,7 +115,9 @@ its proof, never written into one drill's file.
   Fox's `laser illusion illusion_dash illusion_end firefox_charge firefox firefox_any shine
   shine_ground`; `holding` (CatchPull, CatchDashPull, CatchWait: the player's grab caught)
   and `grabbed` (the player held by the opponent's grab, which deals no damage: not a
-  `hit`); `thrown` (in the opponent's throw, until it lets go) and, on the floor after
+  `hit`); `throw` (the player's own throw: ThrowF, ThrowB, ThrowHi, ThrowLw) and
+  `up_throw` (2026-11-25: `fox-uthrow-uair` begins its try on it);
+  `thrown` (in the opponent's throw, until it lets go) and, on the floor after
   it, `tech` (`tech_in_place`, `tech_roll`: its rolls), `missed_tech` (the bounce) and
   `down` (lying there, getting up). Measured (`tests/native/engine_first_frame.py`, the drill's probes): the
   frame shield stun's animation ends is the first a new X or Y works on (Guard reads it on

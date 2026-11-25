@@ -94,8 +94,8 @@ def committed(f):
 # a word alone
 WORDS = ("in_their_range", "out_of_their_range", "in_my_range",
          "out_of_my_range", "approach", "retreat", "committed", "free",
-         "shielding", "airborne", "grounded", "on_ledge", "offstage",
-         "on_platform")
+         "stunned", "shielding", "airborne", "grounded", "on_ledge",
+         "offstage", "on_platform")
 # {"key": value}
 KEYS = ("distance", "state", "shield_below", "percent", "lag", "me", "not",
         "any", "all", "after")
@@ -238,6 +238,11 @@ def holds(c, view):
             return committed(s)
         if c == "free":
             return free(s)
+        if c == "stunned":
+            # hitstun left, or frozen in a hit: it cannot act (the state
+            # alone does not say: a fighter sent flying stays in its
+            # flight's state some frames after its hitstun is over)
+            return s.get("hitstun", 0) > 0 or bool(s.get("hitlag"))
         if c == "shielding":
             return s["state"] in SHIELDING
         if c == "airborne":
