@@ -56,8 +56,9 @@ aerial hit confirm (`fox-aerial-confirm`: it takes the hit or crouch cancels it,
 at the hit); shield pressure (`fox-shield-pressure`: a shield that grabs on its first free
 frame). Neutral: take it on shield (`fox-shield-then-punish`: an attack or a grab), read
 the stance (`fox-approach-nair-dair`), running shine (`fox-running-shine`), anti-air
-(`fox-anti-air`), wavedash back punish (`fox-wavedash-back-punish`), beat crouch cancel
-(`fox-vs-crouch-cancel`). New for them: the events
+(`fox-anti-air`), wavedash back punish (`fox-wavedash-back-punish`), lasers force the
+approach (`fox-laser-forcing`), beat crouch cancel (`fox-vs-crouch-cancel`): every row of
+the Neutral part. New for them: the events
 `shield_hit`, the states `throw` and `up_throw`, `"shield": "theirs"`; the opponent's
 `oos`, `jump`, `hold` with a `stick`, `move` with `"lcancel": false`, the condition
 `stunned` (`opponent-vocabulary.md`);
