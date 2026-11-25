@@ -1,0 +1,1390 @@
+{
+ "id": "fox-running-shine",
+ "name": "Running shine",
+ "part": "neutral",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Run at a moving opponent and shine it without stopping",
+ "why": "The shine comes out of a run on the frame it is pressed and hits on that frame: Fox can run straight at an opponent that is dashing about or jumping and shine it before it reacts. It is his fastest way to start a combo from neutral.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "Hold the stick toward the opponent to run, and press down and B as Fox reaches it. Do not stop first.",
+  "expect": "A try begins with the shine and is judged at once: it hit, or it did not reach. In the second part the opponent dashes about and jumps: it does not attack.",
+  "example": [
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": 1,
+    "hold": 200
+   },
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 1,
+    "hold": 3,
+    "from": {
+     "near": 9
+    }
+   },
+   {
+    "press": "B",
+    "frame": 1,
+    "hold": 2,
+    "from": {
+     "near": 9
+    }
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: down-B out of the run. The shine hits"
+  },
+  "lessons": [
+   {
+    "title": "The shine out of a run",
+    "text": [
+     "Fox does not have to stop to shine. Down and B pressed in a run start the shine on that frame, and it hits on its first frame: press it as he reaches {opp}.",
+     "The run begins on frame 13 of the dash. In the 12 frames before it down and B do nothing: that close, jump and shine as Fox leaves the ground instead."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 200
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 3,
+        "from": {
+         "near": 9
+        }
+       },
+       {
+        "press": "B",
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": 9
+        }
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: down-B out of the run. The shine hits"
+      }
+     }
+    }
+   },
+   {
+    "title": "A target that moves",
+    "text": [
+     "{opp} dashes in and out and jumps. A shine aimed at where it stood when Fox set off misses.",
+     "Run at it and press down and B when Fox is on top of it: its dash back is slower than his run, and the shine reaches a jump's first frames too."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": 1,
+        "hold": 200
+       },
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 3,
+        "from": {
+         "near": 9
+        }
+       },
+       {
+        "press": "B",
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": 9
+        }
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: down-B out of the run. The shine hits"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox"
+   }
+  },
+  {
+   "name": "Marth, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Jigglypuff, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff"
+   }
+  },
+  {
+   "name": "Falco, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco"
+   }
+  },
+  {
+   "name": "Sheik, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik"
+   }
+  },
+  {
+   "name": "Captain Falcon, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon"
+   }
+  },
+  {
+   "name": "Peach, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach"
+   }
+  },
+  {
+   "name": "Ice Climbers, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers"
+   }
+  },
+  {
+   "name": "Pikachu, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu"
+   }
+  },
+  {
+   "name": "Yoshi, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi"
+   }
+  },
+  {
+   "name": "Samus, standing",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus"
+   }
+  },
+  {
+   "name": "Fox, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox"
+   }
+  },
+  {
+   "name": "Marth, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth"
+   }
+  },
+  {
+   "name": "Jigglypuff, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff"
+   }
+  },
+  {
+   "name": "Falco, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco"
+   }
+  },
+  {
+   "name": "Sheik, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik"
+   }
+  },
+  {
+   "name": "Captain Falcon, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon"
+   }
+  },
+  {
+   "name": "Peach, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach"
+   }
+  },
+  {
+   "name": "Ice Climbers, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers"
+   }
+  },
+  {
+   "name": "Pikachu, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu"
+   }
+  },
+  {
+   "name": "Yoshi, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi"
+   }
+  },
+  {
+   "name": "Samus, moving",
+   "stage": "final-destination",
+   "player": {
+    "x": -50
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 10,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 4,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           0,
+           70
+          ],
+          "for": 60
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "hop"
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "move",
+          "name": "jump"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus"
+   }
+  }
+ ],
+ "attempt": {
+  "start": {
+   "enters": "shine"
+  },
+  "judge": [
+   {
+    "is": "connects",
+    "to": "shine"
+   },
+   {
+    "leaves": "shine"
+   },
+   "hit",
+   {
+    "frame": 30
+   }
+  ],
+  "cancel": [],
+  "limit": 40,
+  "timeout": "judge"
+ },
+ "measures": {
+  "hit": {
+   "happened": {
+    "is": "connects",
+    "to": "shine"
+   }
+  },
+  "moving": {
+   "happened": [
+    {
+     "enters": "shine",
+     "from": "run"
+    },
+    {
+     "enters": "shine",
+     "in_air": true
+    }
+   ]
+  }
+ },
+ "checks": {
+  "moving": {
+   "measure": "moving",
+   "equals": true,
+   "expect": "The shine out of a run or a jump",
+   "words": "Fox had stopped before the shine",
+   "headline": "Stopped first",
+   "fix": "Keep the stick toward {opp} until the frame you press down and B: the shine comes out of the run."
+  },
+  "hits": {
+   "measure": "hit",
+   "equals": true,
+   "expect": "The shine hits it",
+   "words": "the shine did not reach {opp}",
+   "headline": "Out of reach",
+   "fix": "The shine reaches a little past Fox on every side. Press down and B when he is on top of {opp}, not on the way there."
+  }
+ },
+ "verdict": {
+  "success": "The shine caught {opp}."
+ },
+ "parts": [
+  {
+   "name": "Run in and shine",
+   "teach": "{opp} stands still. Run at it and press down and B as Fox reaches it, without letting go of the stick first.",
+   "example": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 200
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": 9
+     }
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": 9
+     }
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: down-B out of the run. The shine hits"
+   },
+   "checks": [
+    "moving",
+    "hits"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Control stick",
+      "stick": "side",
+      "perfect": []
+     },
+     {
+      "label": "Shine (down and B)",
+      "state": "shine",
+      "perfect": [
+       1
+      ],
+      "window": [
+       1,
+       1
+      ]
+     }
+    ],
+    "note": "Frame 1 is the shine: it began out of the run or it did not."
+   }
+  },
+  {
+   "name": "Catch it",
+   "teach": "{opp} dashes about and jumps, and does not attack. Run it down and shine it. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 200
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": 9
+     }
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": 9
+     }
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: down-B out of the run. The shine hits"
+   },
+   "checks": [
+    "hits"
+   ],
+   "streak": 5,
+   "scenario": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "stopping in front of it first",
+   "inputs": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 200
+    },
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 40,
+     "from": {
+      "near": 9
+     }
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 30,
+     "hold": 3,
+     "from": {
+      "near": 9
+     }
+    },
+    {
+     "press": "B",
+     "frame": 30,
+     "hold": 2,
+     "from": {
+      "near": 9
+     }
+    }
+   ],
+   "fails": "moving"
+  },
+  {
+   "name": "the shine on the way there",
+   "inputs": [
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": 1,
+     "hold": 200
+    },
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 3,
+     "from": {
+      "near": 22
+     }
+    },
+    {
+     "press": "B",
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": 22
+     }
+    }
+   ],
+   "fails": "hits"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Control stick",
+    "stick": "side",
+    "perfect": []
+   },
+   {
+    "label": "Shine (down and B)",
+    "state": "shine",
+    "perfect": [
+     1
+    ],
+    "window": [
+     1,
+     1
+    ]
+   }
+  ],
+  "note": "The shine hits on its first frame, a little past Fox on every side."
+ }
+}
