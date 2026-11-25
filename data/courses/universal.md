@@ -73,10 +73,10 @@ Not in a subcourse yet (it was planned before the owner's list of 2026-11-14):
 
 | id | Drill | Goal | Knowledge | TM-CE event that covers part of it | Status |
 |-|-|-|-|-|-|
-| `universal-tech` | Tech the ground | Tech in place, in and away; lockout shown | [teching](../techniques/teching.md) | - | planned |
-| `universal-crouch-cancel` | Crouch cancel | Crouch through weak hits and punish; know where it stops | [crouch cancel](../techniques/crouch-cancel.md) | - | implemented natively (2026-11-13): split from `universal-asdi-down` |
-| `universal-asdi-down` | ASDI down | Hold the C-stick down through weak hits, land and punish; know where it stops | [ASDI](../techniques/asdi.md) | - | implemented natively (2026-11-13); the overlay's C drill is still the combined one |
-| `universal-di-survival` | Survival and combo DI | DI kill moves to live and starters to escape | [DI](../techniques/di.md) | - | planned |
+| `universal-tech` | Tech the ground | Tech in place, in and away; lockout shown | [teching](../techniques/teching.md) | - | drill format: `data/drills/universal-tech.json` (2026-11-25; not the Ice Climbers) |
+| `universal-crouch-cancel` | Crouch cancel | Crouch through weak hits and punish; know where it stops | [crouch cancel](../techniques/crouch-cancel.md) | - | drill format: `data/drills/universal-crouch-cancel.json` (2026-11-25) |
+| `universal-asdi` | ASDI down | Hold the C-stick down through weak hits, land and punish; know where it stops | [ASDI](../techniques/asdi.md) | - | the Fundamentals drill, `data/drills/universal-asdi.json`, listed here too |
+| `universal-di` | Survival and combo DI | DI kill moves to live and starters to escape | [DI](../techniques/di.md) | - | the Fundamentals drill, `data/drills/universal-di.json`, listed here too (survival DI only) |
 | `universal-sdi` | SDI multi-hits | SDI out of multi-hit moves | [SDI](../techniques/sdi.md) | legacy SDI Training | drill format: `data/drills/universal-sdi.json` |
 | `universal-wall-tech` | Wall and ledge tech | Tech the stage while recovering | [wall tech](../techniques/wall-tech.md), [Amsah tech](../techniques/amsah-tech.md) | legacy Ledgetech, Amsah Tech | planned |
 | `universal-recovery` | Recover | Sweetspot and mix the recovery against coverage | [recovery](../techniques/recovery.md), [ledge options](../techniques/ledge-options.md) | `sweetspot` | planned |

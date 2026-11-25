@@ -69,6 +69,9 @@ STATES = {
     "jump": (25, 26), "double_jump": (27, 28),
     "fall": (29, 30, 31, 32, 33, 34), "special_fall": (35, 36, 37),
     "squat": (39, 40), "landing": 42, "landing_special": 43,
+    # the attacks of the ground, Attack11 to AttackLw4: jabs, the dash
+    # attack, tilts, smashes (a crouch cancel's counter)
+    "ground_attack": tuple(range(44, 65)),   # (and CHAR_STATES)
     "up_smash": 63, "nair": 65, "fair": 66, "bair": 67, "uair": 68,
     "dair": 69, "aerial": (65, 66, 67, 68, 69),
     "aerial_landing": (70, 71, 72, 73, 74),
@@ -110,12 +113,24 @@ STATES = {
 # a state's numbers that differ by character (a character's own states are
 # numbered from 341, each its own: Kirby's and Jigglypuff's extra jumps are
 # 341 on, where Fox has his laser)
+_GROUND = tuple(range(44, 65))
 CHAR_STATES = {
-    "kirby": {"double_jump": (27, 28) + tuple(range(341, 351))},
+    # (ground attacks in states of a character's own, from the decomp's
+    # enums, ftCo_MS_Count = 341 on: Kirby's dash attack; the second swing
+    # of Link's and Young Link's forward smash; Peach's forward smash with
+    # what she pulls out; Mr. Game & Watch's jab, down tilt and forward
+    # smash; Ness's smashes)
+    "kirby": {"double_jump": (27, 28) + tuple(range(341, 351)),
+              "ground_attack": _GROUND + (351,)},
     "jigglypuff": {"double_jump": (27, 28) + tuple(range(341, 346))},
     # Ness's up smash charges in states of its own; Yoshi's shield is his
-    "ness": {"up_smash": (63, 342, 343, 344)},
+    "ness": {"up_smash": (63, 342, 343, 344),
+             "ground_attack": _GROUND + tuple(range(341, 348))},
     "yoshi": {"shield": (178, 179, 180, 181, 182) + tuple(range(341, 346))},
+    "link": {"ground_attack": _GROUND + (341,)},
+    "young-link": {"ground_attack": _GROUND + (341,)},
+    "peach": {"ground_attack": _GROUND + (349, 350, 351)},
+    "mr-game-and-watch": {"ground_attack": _GROUND + tuple(range(341, 347))},
 }
 
 BUTTONS = {

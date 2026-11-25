@@ -1,0 +1,964 @@
+{
+ "id": "universal-crouch-cancel",
+ "name": "Crouch cancel",
+ "part": "defense",
+ "characters": "all",
+ "goal": "Crouch through a weak hit and counter before the attacker can act",
+ "why": "A hit taken crouching has two thirds of its knockback, and with the stick held down {char} is back on the floor as its freeze ends. The attacker is still in its move: a down tilt, a grab or a down smash comes first. It holds until the damage is high enough that the hit knocks {char} down all the same.",
+ "switch": "success",
+ "tutorial": {
+  "what": "Hold the stick down before the hit and through its freeze. {char} lands at once: then A for a down tilt, Z for a grab, or the C-stick down.",
+  "expect": "Each hit is judged after its freeze: whether {char} was crouching and on the floor, and how soon the counter came. In one part the damage is high, and the same hits knock a crouching {char} down.",
+  "example": [
+   {
+    "stick": [
+     0,
+     -1
+    ],
+    "frame": 1,
+    "hold": "HIT+HC+LAND+3"
+   },
+   {
+    "press": "A",
+    "frame": "HC+LAND+1",
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: the stick down. {char} crouches",
+   "HIT": "Frame {HIT}: {move} hits. The freeze: {HC} frames",
+   "HIT+HC": "Frame {HIT+HC}: the freeze is over. {char} lands",
+   "HIT+HC+LAND": "Frame {HIT+HC+LAND}: the landing is over. A: a down tilt"
+  },
+  "lessons": [
+   {
+    "title": "Crouch cancel",
+    "text": [
+     "A hit taken crouching has two thirds of its knockback, and freezes {char} two thirds as long.",
+     "With the stick still down when the freeze ends, {char} is put back on the floor at once: a landing of {LAND} frames. Taken standing, the same hit lifts {char} into the air, in hitstun and open to the next one."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": "HIT+HC+2"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the stick down. {char} crouches",
+       "HIT": "Frame {HIT}: {move} hits. The freeze: {HC} frames",
+       "HIT+HC": "Frame {HIT+HC}: the freeze is over. {char} lands"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "HIT-1"
+        ],
+        "words": "Crouching",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "HIT",
+         "HIT+HC-1"
+        ],
+        "words": "The freeze: keep the stick down",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "HIT+HC",
+         "HIT+HC+LAND-1"
+        ],
+        "words": "Landing: a press here is ignored",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The counter",
+    "text": [
+     "The attacker is still in its move when {char} lands. {LAND} frames after the landing {char} can act.",
+     "With the stick still down, A is a down tilt. Z is a grab; the C-stick down, a down smash. A press during the landing is ignored."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": "HIT+HC+LAND+3"
+       },
+       {
+        "press": "A",
+        "frame": "HC+LAND+1",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the stick down. {char} crouches",
+       "HIT": "Frame {HIT}: {move} hits. The freeze: {HC} frames",
+       "HIT+HC": "Frame {HIT+HC}: the freeze is over. {char} lands",
+       "HIT+HC+LAND": "Frame {HIT+HC+LAND}: the landing is over. A: a down tilt"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "HIT-1"
+        ],
+        "words": "Crouching",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "HIT",
+         "HIT+HC-1"
+        ],
+        "words": "The freeze: keep the stick down",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "HIT+HC",
+         "HIT+HC+LAND-1"
+        ],
+        "words": "Landing: a press here is ignored",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "HIT+HC+LAND",
+         "HIT+HC+LAND+5"
+        ],
+        "words": "A, Z or the C-stick down now",
+        "kind": "go"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "Where it stops",
+    "text": [
+     "Knockback grows with damage. Once two thirds of it still sends {char} tumbling, crouching no longer holds: {char} is knocked down.",
+     "Here, at {PCT}%, {move} does that. From there on the answer is the shield, or staying out of reach."
+    ],
+    "scenario": 5,
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "stick": [
+         0,
+         -1
+        ],
+        "frame": 1,
+        "hold": 40
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: the stick down. {char} crouches",
+       "HIT": "Frame {HIT}: {move} hits, at {PCT}%"
+      },
+      "cues": [
+       {
+        "frames": [
+         "HIT",
+         "HIT+HC-1"
+        ],
+        "words": "The freeze",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "HIT+HC",
+         "HIT+40"
+        ],
+        "words": "Knocked down: crouching does not hold here",
+        "kind": "late"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Sheik's down tilt at 0%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 0
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 14,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 14,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Sheik's down tilt",
+    "opp": "Sheik",
+    "HIT": 5,
+    "HL": 5,
+    "HC": 3,
+    "PCT": 0
+   }
+  },
+  {
+   "name": "Marth's down tilt at 0%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 0
+   },
+   "opponent": {
+    "character": "marth",
+    "x": -4,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 12,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 12,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Marth's down tilt",
+    "opp": "Marth",
+    "HIT": 5,
+    "HL": 6,
+    "HC": 4,
+    "PCT": 0
+   }
+  },
+  {
+   "name": "Falco's down tilt at 0%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 0
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 12,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 12,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Falco's down tilt",
+    "opp": "Falco",
+    "HIT": 5,
+    "HL": 7,
+    "HC": 4,
+    "PCT": 0
+   }
+  },
+  {
+   "name": "Pikachu's down tilt at 0%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 0
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -10,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 12,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 12,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Pikachu's down tilt",
+    "opp": "Pikachu",
+    "HIT": 5,
+    "HL": 5,
+    "HC": 3,
+    "PCT": 0
+   }
+  },
+  {
+   "name": "Yoshi's forward tilt at 0%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 0
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -6,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0.5,
+       0
+      ],
+      "frame": 13,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 13,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Yoshi's forward tilt",
+    "opp": "Yoshi",
+    "HIT": 5,
+    "HL": 7,
+    "HC": 4,
+    "PCT": 0
+   }
+  },
+  {
+   "name": "Falco's down tilt at 70%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 70
+   },
+   "opponent": {
+    "character": "falco",
+    "x": -11,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 12,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 12,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Falco's down tilt",
+    "opp": "Falco",
+    "HIT": 5,
+    "HL": 7,
+    "HC": 4,
+    "PCT": 70
+   }
+  },
+  {
+   "name": "Yoshi's forward tilt at 100%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 100
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": -6,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0.5,
+       0
+      ],
+      "frame": 13,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 13,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Yoshi's forward tilt",
+    "opp": "Yoshi",
+    "HIT": 5,
+    "HL": 7,
+    "HC": 4,
+    "PCT": 100
+   }
+  },
+  {
+   "name": "Sheik's down tilt at 150%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 150
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": -11,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 14,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 14,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Sheik's down tilt",
+    "opp": "Sheik",
+    "HIT": 5,
+    "HL": 5,
+    "HC": 3,
+    "PCT": 150
+   }
+  },
+  {
+   "name": "Pikachu's down tilt at 170%",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": 170
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": -10,
+    "facing": "player",
+    "inputs": [
+     {
+      "stick": [
+       0,
+       -0.63
+      ],
+      "frame": 12,
+      "hold": 1
+     },
+     {
+      "press": "A",
+      "frame": 12,
+      "hold": 1
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Pikachu's down tilt",
+    "opp": "Pikachu",
+    "HIT": 5,
+    "HL": 5,
+    "HC": 3,
+    "PCT": 170
+   }
+  }
+ ],
+ "attempt": {
+  "start": "hit",
+  "judge": {
+   "frame": 30
+  },
+  "within": "HIT+19",
+  "missed": "Not counted: {move} missed. Stay in front of {opp}."
+ },
+ "measures": {
+  "air": {
+   "frames_while": "airborne",
+   "from": "hitlag_end"
+  },
+  "crouched": {
+   "happened": {
+    "enters": "damage",
+    "from": "squat"
+   }
+  },
+  "counter": {
+   "frames": [
+    "hitlag_end",
+    [
+     {
+      "enters": "ground_attack"
+     },
+     {
+      "enters": "grab"
+     }
+    ]
+   ]
+  },
+  "floored": {
+   "happened": [
+    {
+     "enters": "tumble"
+    },
+    {
+     "enters": "down"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "crouched": {
+   "measure": "crouched",
+   "equals": true,
+   "expect": "Crouching when the hit lands",
+   "words": "{char} was not crouching when {move} hit",
+   "headline": "Not crouching",
+   "fix": "Hold the stick down before the hit lands. A crouch that {char} is already getting up from does not count."
+  },
+  "grounded": {
+   "measure": "air",
+   "at_most": 0,
+   "expect": "On the floor when the freeze ended",
+   "words": "in the air for {air_frames} after the freeze",
+   "headline": "Lifted off the floor",
+   "fix": "Keep the stick down until the freeze is over. The game reads it on the freeze's last frame and puts {char} back on the floor."
+  },
+  "countered": {
+   "measure": "counter",
+   "at_most": "LAND+5",
+   "expect": "A down tilt, a grab or a down smash within {LAND+5} frames of landing",
+   "words": "no attack within {LAND+5} frames of landing",
+   "headline": "No counter",
+   "fix": "{char} lands as the freeze ends and can act {LAND} frames later. Press once, then: A with the stick still down, Z, or the C-stick down. A press during the landing is ignored."
+  },
+  "standing": {
+   "measure": "floored",
+   "equals": false,
+   "expect": "Not knocked down",
+   "words": "{char} was knocked down by {move} at {PCT}%",
+   "headline": "Knocked down",
+   "fix": "At this damage {move} knocks a crouching {char} down. Shield it, or stay out of its reach."
+  }
+ },
+ "verdict": {
+  "success": "Crouched through {move}, the counter {counter_frames} after the freeze."
+ },
+ "parts": [
+  {
+   "name": "The hit, standing",
+   "teach": "Stand still and take {move}. It lifts {char} off the floor: in the air, in hitstun.",
+   "example": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "marks": {
+    "HIT": "Frame {HIT}: {move} hits. The freeze: {HL} frames",
+    "HIT+HL": "Frame {HIT+HL}: {char} is lifted off the floor"
+   },
+   "cues": [
+    {
+     "frames": [
+      "HIT",
+      "HIT+HL-1"
+     ],
+     "words": "The freeze",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT+HL",
+      "HIT+25"
+     ],
+     "words": "In the air",
+     "kind": "info"
+    }
+   ],
+   "checks": [],
+   "streak": 1,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "success": "In the air for {air_frames} after the freeze."
+  },
+  {
+   "name": "Crouch through it",
+   "teach": "Hold the stick down before {move} lands and keep it down through the freeze. {char} stays on the floor.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": "HIT+HC+2"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the stick down. {char} crouches",
+    "HIT": "Frame {HIT}: {move} hits. The freeze: {HC} frames",
+    "HIT+HC": "Frame {HIT+HC}: the freeze is over. {char} lands"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "HIT-1"
+     ],
+     "words": "Crouching",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT",
+      "HIT+HC-1"
+     ],
+     "words": "The freeze: keep the stick down",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "HIT+HC",
+      "HIT+HC+LAND-1"
+     ],
+     "words": "Landing: a press here is ignored",
+     "kind": "info"
+    }
+   ],
+   "checks": [
+    "crouched",
+    "grounded"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "success": "Crouched through {move}: on the floor as the freeze ended."
+  },
+  {
+   "name": "Where it stops",
+   "teach": "At {PCT}%, {move} knocks a crouching {char} down. Shield it, or stay out of its reach.",
+   "example": [
+    {
+     "press": "R",
+     "frame": 1,
+     "hold": 45
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the shield",
+    "HIT": "Frame {HIT}: {move} hits the shield"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "HIT+10"
+     ],
+     "words": "Shield: at {PCT}% crouching does not hold",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "standing"
+   ],
+   "streak": 3,
+   "scenario": [
+    5,
+    6,
+    7,
+    8
+   ],
+   "attempt": {
+    "start": "their_attack",
+    "judge": [
+     "they_recover",
+     {
+      "frame": 60
+     }
+    ],
+    "within": 60,
+    "missed": "Not counted: {opp} did not attack."
+   },
+   "success": "Not knocked down.",
+   "coach": {
+    "rows": [
+     {
+      "label": "Shield (L or R)",
+      "button": "shield",
+      "held": true,
+      "perfect": []
+     }
+    ],
+    "note": "Frame 1 is the first frame of {move}. At {PCT}% it knocks a crouching {char} down."
+   }
+  },
+  {
+   "name": "Counter",
+   "teach": "Crouch through it, then counter as the landing ends: A with the stick still down, Z, or the C-stick down.",
+   "example": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": "HIT+HC+LAND+3"
+    },
+    {
+     "press": "A",
+     "frame": "HC+LAND+1",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: the stick down. {char} crouches",
+    "HIT": "Frame {HIT}: {move} hits. The freeze: {HC} frames",
+    "HIT+HC": "Frame {HIT+HC}: the freeze is over. {char} lands",
+    "HIT+HC+LAND": "Frame {HIT+HC+LAND}: the landing is over. A: a down tilt"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "HIT-1"
+     ],
+     "words": "Crouching",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT",
+      "HIT+HC-1"
+     ],
+     "words": "The freeze: keep the stick down",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "HIT+HC",
+      "HIT+HC+LAND-1"
+     ],
+     "words": "Landing: a press here is ignored",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "HIT+HC+LAND",
+      "HIT+HC+LAND+5"
+     ],
+     "words": "A, Z or the C-stick down now",
+     "kind": "go"
+    }
+   ],
+   "checks": [
+    "crouched",
+    "grounded",
+    "countered"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ],
+   "coach": {
+    "rows": [
+     {
+      "label": "Landing",
+      "state": "landing",
+      "perfect": [
+       "HC+1"
+      ],
+      "window": [
+       "HC+1",
+       "HC+1"
+      ]
+     },
+     {
+      "label": "Down tilt, down smash",
+      "state": "ground_attack",
+      "perfect": [
+       "HC+1+LAND"
+      ],
+      "window": [
+       "HC+1+LAND",
+       "HC+6+LAND"
+      ]
+     },
+     {
+      "label": "Grab",
+      "state": "grab",
+      "perfect": [
+       "HC+1+LAND"
+      ],
+      "window": [
+       "HC+1+LAND",
+       "HC+6+LAND"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the hit. Its freeze lasts {HC} frames crouching; {char} lands on frame {HC+1} and can act on frame {HC+1+LAND}."
+   }
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "standing",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "fails": "crouched"
+  },
+  {
+   "name": "the stick let go as the hit lands",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": "HIT-1"
+    }
+   ],
+   "fails": "grounded"
+  },
+  {
+   "name": "crouched through it, and nothing after",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": "HIT+HC+2"
+    }
+   ],
+   "fails": "countered"
+  },
+  {
+   "name": "crouching where it no longer holds",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      -1
+     ],
+     "frame": 1,
+     "hold": 40
+    }
+   ],
+   "fails": "standing"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Landing",
+    "state": "landing",
+    "perfect": [
+     "HC+1"
+    ],
+    "window": [
+     "HC+1",
+     "HC+1"
+    ]
+   }
+  ],
+  "note": "Frame 1 is the hit. Its freeze lasts {HC} frames crouching; with the stick down through it {char} lands on frame {HC+1}."
+ }
+}
