@@ -1,0 +1,1221 @@
+{
+ "id": "fox-wavedash-back-punish",
+ "name": "Wavedash back punish",
+ "part": "neutral",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Wavedash back out of a jump-in's range and grab it as it lands",
+ "why": "A jump-in is aimed at where Fox stands. A wavedash back takes him out from under it in a few frames and leaves him facing it, free to act as it lands: the aerial's landing lag is the opening for a grab.",
+ "switch": "success",
+ "reset": {
+  "after": "quiet",
+  "seconds": 1
+ },
+ "tutorial": {
+  "what": "When the opponent jumps at Fox: X or Y, then R with the stick back and a little down as he leaves the ground. As its aerial misses, dash in: X or Y and then Z, the jump-cancelled grab.",
+  "expect": "A try begins when the opponent starts its aerial and is judged when Fox grabs or hits it, when it hits Fox or his shield, or when it can act again. It jumps in after a wait that changes from try to try.",
+  "example": [
+   {
+    "press": "jump",
+    "frame": 1,
+    "hold": 1,
+    "from": "start"
+   },
+   {
+    "trigger": "R",
+    "frame": "J+1",
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "stick": [
+     -0.95,
+     -0.31
+    ],
+    "frame": "J+1",
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "stick": [
+     1,
+     0
+    ],
+    "frame": "GO",
+    "hold": 200,
+    "from": "start"
+   },
+   {
+    "press": "jump",
+    "frame": 1,
+    "from": {
+     "near": 16,
+     "after": {
+      "frame": "GO"
+     }
+    }
+   },
+   {
+    "press": "Z",
+    "frame": 2,
+    "from": {
+     "near": 16,
+     "after": {
+      "frame": "GO"
+     }
+    }
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: its aerial starts. X or Y",
+   "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
+   "GO": "Frame {GO}: its aerial has missed. Dash in"
+  },
+  "lessons": [
+   {
+    "title": "Out from under it",
+    "text": [
+     "{opp} jumps in with its {attack}, aimed at where Fox stands. A wavedash back is a jump and an air dodge into the ground on Fox's first frame in the air: he slides away, still facing {opp}.",
+     "The aerial comes down on empty ground."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "trigger": "R",
+        "frame": "J+1",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         -0.95,
+         -0.31
+        ],
+        "frame": "J+1",
+        "hold": 2,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: its aerial starts. X or Y",
+       "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "J+1"
+        ],
+        "words": "Wavedash back",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "J+2",
+         "GO-1"
+        ],
+        "words": "Out of its range: it misses",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   },
+   {
+    "title": "The landing",
+    "text": [
+     "An aerial that lands has landing lag: {opp} cannot act until frame {FREE} of its {attack}.",
+     "Dash back in on frame {GO}, once its hitbox is past, and within reach press X or Y and then Z: the jump-cancelled grab comes out at once, sliding with the dash."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "press": "jump",
+        "frame": 1,
+        "hold": 1,
+        "from": "start"
+       },
+       {
+        "trigger": "R",
+        "frame": "J+1",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         -0.95,
+         -0.31
+        ],
+        "frame": "J+1",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         1,
+         0
+        ],
+        "frame": "GO",
+        "hold": 200,
+        "from": "start"
+       },
+       {
+        "press": "jump",
+        "frame": 1,
+        "from": {
+         "near": 16,
+         "after": {
+          "frame": "GO"
+         }
+        }
+       },
+       {
+        "press": "Z",
+        "frame": 2,
+        "from": {
+         "near": 16,
+         "after": {
+          "frame": "GO"
+         }
+        }
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: its aerial starts. X or Y",
+       "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
+       "GO": "Frame {GO}: its aerial has missed. Dash in"
+      },
+      "cues": [
+       {
+        "frames": [
+         1,
+         "J+1"
+        ],
+        "words": "Wavedash back",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "J+2",
+         "GO-1"
+        ],
+        "words": "Out of its range: it misses",
+        "kind": "info"
+       },
+       {
+        "frames": [
+         "GO",
+         "GO+1"
+        ],
+        "words": "Dash in",
+        "kind": "go"
+       },
+       {
+        "frames": [
+         "GO+2",
+         "FREE-1"
+        ],
+        "words": "Within reach: X or Y, then Z",
+        "kind": "info"
+       }
+      ]
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 4,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "attack": "neutral air",
+    "GO": 14,
+    "FREE": 34
+   }
+  },
+  {
+   "name": "Marth",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 4,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "attack": "forward air",
+    "GO": 18,
+    "FREE": 67
+   }
+  },
+  {
+   "name": "Jigglypuff",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 10,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "attack": "forward air",
+    "GO": 24,
+    "FREE": 52
+   }
+  },
+  {
+   "name": "Falco",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 10,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_dair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "attack": "down air",
+    "GO": 18,
+    "FREE": 42
+   }
+  },
+  {
+   "name": "Captain Falcon",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 10,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "attack": "neutral air",
+    "GO": 28,
+    "FREE": 45
+   }
+  },
+  {
+   "name": "Peach",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 4,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "attack": "forward air",
+    "GO": 12,
+    "FREE": 45
+   }
+  },
+  {
+   "name": "Ice Climbers",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 4,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_fair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "attack": "forward air",
+    "GO": 20,
+    "FREE": 50
+   }
+  },
+  {
+   "name": "Pikachu",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 4,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "attack": "neutral air",
+    "GO": 20,
+    "FREE": 47
+   }
+  },
+  {
+   "name": "Yoshi",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 10,
+    "facing": "player",
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 55
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 80
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "do": "move",
+      "name": "sh_nair_in",
+      "lcancel": false
+     },
+     {
+      "do": "hold",
+      "pad": "stand"
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "attack": "neutral air",
+    "GO": 28,
+    "FREE": 43
+   }
+  }
+ ],
+ "attempt": {
+  "start": "their_attack",
+  "judge": [
+   "connects",
+   {
+    "enters": "holding"
+   },
+   "hit",
+   {
+    "enters": "shield_stun"
+   },
+   {
+    "enters": "grabbed"
+   },
+   "they_recover"
+  ],
+  "cancel": [],
+  "limit": 150,
+  "timeout": "judge",
+  "within": 300,
+  "missed": "Not counted: it did not jump in. Stand where you are and wait for it."
+ },
+ "measures": {
+  "was_hit": {
+   "happened": [
+    "hit",
+    {
+     "enters": "grabbed"
+    }
+   ]
+  },
+  "shielded": {
+   "happened": {
+    "enters": "shield_stun"
+   }
+  },
+  "slid": {
+   "happened": {
+    "enters": "landing_special"
+   }
+  },
+  "punished": {
+   "happened": [
+    "connects",
+    {
+     "enters": "holding"
+    }
+   ]
+  },
+  "at": {
+   "frame_of": [
+    "connects",
+    {
+     "enters": "holding"
+    }
+   ]
+  }
+ },
+ "checks": {
+  "out of range": {
+   "measure": "was_hit",
+   "equals": false,
+   "expect": "Out of its range as it lands",
+   "words": "its {attack} hit Fox",
+   "headline": "Caught",
+   "fix": "Wavedash back as it leaves the ground: X or Y, then R with the stick back and a little down on frame {J+1}, Fox's first in the air."
+  },
+  "no shield": {
+   "measure": "shielded",
+   "equals": false,
+   "expect": "The aerial misses",
+   "words": "its {attack} hit Fox's shield",
+   "headline": "Shielded",
+   "fix": "Let it miss: the wavedash back takes Fox out of its range, and out of the shield there is less time left to punish."
+  },
+  "wavedash": {
+   "measure": "slid",
+   "equals": true,
+   "expect": "A wavedash back",
+   "words": "no wavedash: Fox did not slide back",
+   "headline": "No wavedash",
+   "fix": "X or Y, then R with the stick back and a little down on frame {J+1}, Fox's first in the air: the air dodge meets the ground and he slides."
+  },
+  "punished": {
+   "measure": "punished",
+   "equals": true,
+   "expect": "A grab or a hit before it can act",
+   "words": "{opp} could act again before the punish",
+   "headline": "Too late",
+   "fix": "It can act on frame {FREE} of its {attack}. Dash in on frame {GO}; within reach, X or Y and then Z in the jump squat."
+  }
+ },
+ "verdict": {
+  "success": "Punished on frame {at}; {opp} could act on frame {FREE}."
+ },
+ "parts": [
+  {
+   "name": "Wavedash back",
+   "teach": "{opp} jumps in with its {attack}. X or Y, then R with the stick back and a little down on frame {J+1}: Fox slides out from under it.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -0.95,
+      -0.31
+     ],
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: its aerial starts. X or Y",
+    "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "J+1"
+     ],
+     "words": "Wavedash back",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "J+2",
+      "GO-1"
+     ],
+     "words": "Out of its range: it misses",
+     "kind": "info"
+    }
+   ],
+   "checks": [
+    "out of range",
+    "no shield",
+    "wavedash"
+   ],
+   "streak": 3,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "success": "It missed.",
+   "coach": {
+    "rows": [
+     {
+      "label": "Jump (X or Y)",
+      "button": "jump",
+      "perfect": [
+       1
+      ],
+      "window": [
+       1,
+       6
+      ]
+     },
+     {
+      "label": "Air dodge (L or R)",
+      "button": "shield",
+      "perfect": [
+       "J+1"
+      ],
+      "window": [
+       "J+1",
+       "J+3"
+      ]
+     }
+    ],
+    "note": "Frame 1 is the first frame of its aerial."
+   }
+  },
+  {
+   "name": "Punish the landing",
+   "teach": "The same, then dash in on frame {GO} and grab it as it lands: X or Y, then Z. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -0.95,
+      -0.31
+     ],
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": "GO",
+     "hold": 200,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": 16,
+      "after": {
+       "frame": "GO"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": 16,
+      "after": {
+       "frame": "GO"
+      }
+     }
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: its aerial starts. X or Y",
+    "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
+    "GO": "Frame {GO}: its aerial has missed. Dash in"
+   },
+   "cues": [
+    {
+     "frames": [
+      1,
+      "J+1"
+     ],
+     "words": "Wavedash back",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "J+2",
+      "GO-1"
+     ],
+     "words": "Out of its range: it misses",
+     "kind": "info"
+    },
+    {
+     "frames": [
+      "GO",
+      "GO+1"
+     ],
+     "words": "Dash in",
+     "kind": "go"
+    },
+    {
+     "frames": [
+      "GO+2",
+      "FREE-1"
+     ],
+     "words": "Within reach: X or Y, then Z",
+     "kind": "info"
+    }
+   ],
+   "checks": [
+    "out of range",
+    "no shield",
+    "punished"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "standing still",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "fails": "out of range"
+  },
+  {
+   "name": "the dash in 24 frames late",
+   "inputs": [
+    {
+     "press": "jump",
+     "frame": 1,
+     "hold": 1,
+     "from": "start"
+    },
+    {
+     "trigger": "R",
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      -0.95,
+      -0.31
+     ],
+     "frame": "J+1",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      1,
+      0
+     ],
+     "frame": "GO+24",
+     "hold": 200,
+     "from": "start"
+    },
+    {
+     "press": "jump",
+     "frame": 1,
+     "from": {
+      "near": 16,
+      "after": {
+       "frame": "GO+24"
+      }
+     }
+    },
+    {
+     "press": "Z",
+     "frame": 2,
+     "from": {
+      "near": 16,
+      "after": {
+       "frame": "GO+24"
+      }
+     }
+    }
+   ],
+   "fails": "punished"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Jump (X or Y)",
+    "button": "jump",
+    "perfect": [
+     1
+    ],
+    "window": [
+     1,
+     6
+    ]
+   },
+   {
+    "label": "Air dodge (L or R)",
+    "button": "shield",
+    "perfect": [
+     "J+1"
+    ],
+    "window": [
+     "J+1",
+     "J+3"
+    ]
+   },
+   {
+    "label": "Grab (Z)",
+    "button": "Z",
+    "perfect": []
+   }
+  ],
+  "note": "Frame 1 is the first frame of its aerial. It can act again on frame {FREE}."
+ }
+}

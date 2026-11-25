@@ -996,13 +996,18 @@ class Driven(Behaviour):
 class Move(Driven):
     """One named move (`name`, an engine macro), played exactly, to where
     the opponent can act again. Over when it has played (at once, if the
-    fighter's state does not allow it)."""
+    fighter's state does not allow it). An aerial is L-cancelled unless
+    `lcancel` is false: then it lands with its whole landing lag, as from
+    an opponent who misses the L-cancel (an approach that can be punished
+    on landing)."""
     name = "move"
 
     def job(self, st, pre):
         self.finished = True
         port, target, name = self.ctx.port, self.ctx.target, \
             self.spec["name"]
+        # (`lcancel`: false, an aerial lands with its whole landing lag)
+        lcancel = 1 if self.spec.get("lcancel", True) else 0
         me, them = st["p"][port], st["p"][target]
         if me is not None and them is not None and \
                 me["facing"] * (them["x"] - me["x"]) < 0 and \
@@ -1014,7 +1019,7 @@ class Move(Driven):
             if pre:
                 preroll(n, pre)
             r = search(n, port, target, horizon=len(pre) + 90, budget=0,
-                       depth=1, moves=name, lcancel=1)
+                       depth=1, moves=name, lcancel=lcancel)
             exact = [l for l in r.lines if l.names == name or
                      l.names.startswith(name + "_")] or r.lines[:1]
             return dict(pads=exact[0].raw() if exact else None, ms=r.ms,
@@ -1800,7 +1805,8 @@ PARAMS = {
         "wait": (_pair, "[LO, HI] frames"),
     },
     "move": {"name": (lambda v: isinstance(v, str) and v in MACROS + PLANNED,
-                      "an engine move's name")},
+                      "an engine move's name"),
+             "lcancel": (lambda v: isinstance(v, bool), "true or false")},
     "punish": {"moves": (_moves, "engine moves by name prefix")},
     "pressure": {"moves": (_moves, "engine moves by name prefix")},
     "chase": {"moves": (_moves, "engine moves by name prefix"),

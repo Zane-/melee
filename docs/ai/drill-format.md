@@ -56,9 +56,11 @@ aerial hit confirm (`fox-aerial-confirm`: it takes the hit or crouch cancels it,
 at the hit); shield pressure (`fox-shield-pressure`: a shield that grabs on its first free
 frame). Neutral: take it on shield (`fox-shield-then-punish`: an attack or a grab), read
 the stance (`fox-approach-nair-dair`), running shine (`fox-running-shine`), anti-air
-(`fox-anti-air`), beat crouch cancel (`fox-vs-crouch-cancel`). New for them: the events
+(`fox-anti-air`), wavedash back punish (`fox-wavedash-back-punish`), beat crouch cancel
+(`fox-vs-crouch-cancel`). New for them: the events
 `shield_hit`, the states `throw` and `up_throw`, `"shield": "theirs"`; the opponent's
-`oos`, `jump`, `hold` with a `stick`, the condition `stunned` (`opponent-vocabulary.md`);
+`oos`, `jump`, `hold` with a `stick`, `move` with `"lcancel": false`, the condition
+`stunned` (`opponent-vocabulary.md`);
 a check that asks for something only in some scenarios compares a measure to a scenario's
 number (`"at_least": "NEED"`, NEED 1 or 0), and an example input is left out of a scenario
 by a frame number that never comes (999). Not built, and why: the course rows of
