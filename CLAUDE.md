@@ -188,11 +188,13 @@ never comes, and then spins until its timeout. So:
   single frame is not seen.
 - If output stops moving, stop the test (`TaskStop`, or kill its process group) and find
   the loop; do not wait out the timeout.
-- A test that plays at the console's speed (`tests/client/*`, `drill_smoke.py --paced`)
-  runs alone: its opponent thinks beside a live game, and other game processes on the
-  machine make its answers late (2026-11-25: `tests/client/shine_oos.py` failed one check
-  beside a sweep of drill proofs and passed 11 of 11 alone). Run such tests one after
-  another, and no proofs or sweeps beside them.
+- A test whose session is drawn at random can fail for the draw, not for the change
+  under test. 2026-11-25: `tests/client/shine_oos.py` failed in two regression runs and
+  was first put down to the machine being busy; replayed, seed 8 fails three times of
+  three on that day's tree and three of three on the tree of the day before (the test
+  had never set a seed). Before blaming a change, or the machine, replay the failing
+  seed on the tree before the change (`shine_oos.py --seed N`; a run prints the seed it
+  drew). Its failing draws are an open problem.
 
 ## Waiting on background work: never wait for a notice that cannot come
 

@@ -3,7 +3,7 @@ fox-shine-oos.json, the first drill whose opponent is a script of the
 engine's vocabulary: docs/ai/opponent-vocabulary.md), checked without a
 person or a desktop: keys pressed on a virtual display.
 
-    python -u tests/client/shine_oos.py [--shots DIR]
+    python -u tests/client/shine_oos.py [--shots DIR] [--seed N]
 
 The drill opens from Fox's course (Punish). On first open the tutorial: its
 two lessons, the first the game's own pictures of the shine out of shield
@@ -17,9 +17,18 @@ twice, and the coach's card after the second miss (Settings: 2). Then the
 stand-in jumps away as the opponent commits: the attack misses the shield,
 and the try is not counted. Input delay 0 (the stand-in's keys are the
 frames it means).
+
+Which opponent and attack a try meets is drawn from the session's random
+numbers: `--seed N` sets them, and a run without it prints the seed it
+drew. Some draws fail (2026-11-25: seed 8, the late jump judged "Released
+the shield first"; unseeded, about one run in four, mostly "No hit: the
+opponent was out of reach" in the second shine), on the tree of the day
+before as on that day's: an open problem of the drill or of this stand-in,
+not yet looked into. Seeds 1 to 7 and 9 to 15 pass.
 """
 import argparse
 import os
+import random
 import sys
 import tempfile
 
@@ -234,7 +243,17 @@ class Player:
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--shots", help="directory for pictures")
+    ap.add_argument("--seed", type=int,
+                    help="the session's random numbers (which opponent "
+                         "and attack each try draws); left out, another "
+                         "every run")
     args = ap.parse_args()
+    # (the session's draws decide what the stand-in meets: with some the
+    # test fails, on any tree. Printed, so that a failure can be replayed)
+    seed = args.seed if args.seed is not None else \
+        random.randrange(1, 1 << 30)
+    random.seed(seed)
+    print("seed %d" % seed, flush=True)
     if args.shots:
         os.makedirs(args.shots, exist_ok=True)
     save = os.path.join(tempfile.mkdtemp(prefix="melee-client-"),
