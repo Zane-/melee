@@ -7,28 +7,30 @@
  "why": "A weak hit lifts you off the floor, and the opponent can hit you again before you land. Held down through hitlag, the C-stick puts {char} back on the floor at once, able to act after the normal landing lag while the opponent is still in its attack.",
  "tutorial": {
   "what": "ASDI shifts {char} 3 units toward the C-stick as hitlag ends. Held down, it puts {char} back on the floor.",
-  "expect": "{opp} plays footsies for a while, then walks up and attacks. Each hit is judged after hitlag: whether {char} was on the floor when hitlag ended, and how soon {char} jumped or shielded out of the landing.",
+  "expect": "{opp} plays footsies, comes to its distance and attacks: another attack every try. {char}'s damage is drawn for each try, up to the most at which ASDI down still works against this attack. Each hit is judged after hitlag: whether {char} was on the floor when hitlag ended, and how soon {char} jumped or shielded out of the landing.",
   "example": [
    {
     "cstick": [
      0,
      -1
     ],
-    "frame": "HIT+1",
-    "hold": "HL"
+    "frame": 2,
+    "hold": "HL",
+    "from": "start"
    },
    {
     "press": "jump",
-    "frame": "HIT+HL+LAND",
-    "hold": 1
+    "frame": "HL+LAND+1",
+    "hold": 1,
+    "from": "start"
    }
   ],
   "marks": {
-   "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
-   "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
-   "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The game reads the C-stick",
-   "HIT+HL": "Frame {HIT+HL}: shifted 3 units down. {char} lands",
-   "HIT+HL+LAND": "Frame {HIT+HL+LAND}: the landing lag is over. Jump"
+   "1": "Frame 1: {move} hits. Hitlag: {HL} frames",
+   "2": "Frame 2: the C-stick is pressed down and held",
+   "HL": "Frame {HL}: the last frame of hitlag. The game reads the C-stick",
+   "HL+1": "Frame {HL+1}: shifted 3 units down. {char} lands",
+   "HL+LAND+1": "Frame {HL+LAND+1}: the landing lag is over. Jump"
   },
   "lessons": [
    {
@@ -45,52 +47,56 @@
          0,
          -1
         ],
-        "frame": 6,
-        "hold": 5
+        "frame": 2,
+        "hold": 5,
+        "from": "start"
        }
       ],
       "marks": {
-       "5": "Frame 5: the down tilt hits. Hitlag: 5 frames",
-       "6": "Frame 6: the C-stick is pressed down and held",
-       "9": "Frame 9: the last frame of hitlag. The game reads the C-stick",
-       "10": "Frame 10: shifted 3 units down. {char} lands at once"
+       "1": "Frame 1: the down tilt hits. Hitlag: 5 frames",
+       "2": "Frame 2: the C-stick is pressed down and held",
+       "5": "Frame 5: the last frame of hitlag. The game reads the C-stick",
+       "6": "Frame 6: shifted 3 units down. {char} lands at once"
       },
       "cues": [
        {
         "frames": [
-         5,
-         8
+         1,
+         4
         ],
         "words": "Hitlag: press the C-stick down and hold it",
         "kind": "info"
        },
        {
         "frames": [
-         9,
-         9
+         5,
+         5
         ],
         "words": "Last frame of hitlag: the C-stick is read now",
         "kind": "go"
        },
        {
         "frames": [
-         10,
-         11
+         6,
+         7
         ],
         "words": "Hitlag over: too late",
         "kind": "late"
        },
        {
         "frames": [
-         12,
-         30
+         8,
+         26
         ],
         "words": "On the floor",
         "kind": "info"
        }
       ]
      }
-    }
+    },
+    "checks": [
+     "grounded"
+    ]
    },
    {
     "title": "Out of the landing",
@@ -103,49 +109,58 @@
          0,
          -1
         ],
-        "frame": 6,
-        "hold": 5
+        "frame": 2,
+        "hold": 5,
+        "from": "start"
        },
        {
         "press": "jump",
-        "frame": "10+LAND",
-        "hold": 1
+        "frame": "LAND+6",
+        "hold": 1,
+        "from": "start"
        }
       ],
       "marks": {
-       "10": "Frame 10: {char} lands. Landing lag: {LAND} frames",
-       "10+LAND": "Frame {10+LAND}: the landing lag is over. Jump"
+       "6": "Frame 6: {char} lands. Landing lag: {LAND} frames",
+       "LAND+6": "Frame {LAND+6}: the landing lag is over. Jump"
       },
       "cues": [
        {
         "frames": [
-         10,
-         "9+LAND"
+         6,
+         "LAND+5"
         ],
         "words": "Landing lag: a press here is ignored",
         "kind": "info"
        },
        {
         "frames": [
-         "10+LAND",
-         "15+LAND"
+         "LAND+6",
+         "LAND+11"
         ],
         "words": "Jump or shield now",
         "kind": "go"
        }
       ]
      }
-    }
+    },
+    "checks": [
+     "grounded",
+     "acted"
+    ]
    }
   ]
  },
  "scenarios": [
   {
-   "name": "Sheik's down tilt at 0%",
+   "name": "Sheik's down tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "sheik",
@@ -161,10 +176,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           23,
+           37
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 21.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 18.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 10.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -174,10 +260,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           23,
+           37
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 21.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 18.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 10.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -187,48 +344,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           23,
+           37
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 21.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 18.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 10.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        11.8
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0,
-         -0.63
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           23,
+           37
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 21.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 18.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 10.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -287,16 +563,99 @@
    "numbers": {
     "move": "Sheik's down tilt",
     "opp": "Sheik",
-    "HIT": 96,
-    "HL": 5
+    "HL": 5,
+    "TOP": 36
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 48
+    },
+    "captain-falcon": {
+     "TOP": 44
+    },
+    "donkey-kong": {
+     "TOP": 47
+    },
+    "dr-mario": {
+     "TOP": 43
+    },
+    "falco": {
+     "TOP": 38
+    },
+    "fox": {
+     "TOP": 36
+    },
+    "ganondorf": {
+     "TOP": 46
+    },
+    "ice-climbers": {
+     "TOP": 40
+    },
+    "jigglypuff": {
+     "TOP": 32
+    },
+    "kirby": {
+     "TOP": 35
+    },
+    "link": {
+     "TOP": 44
+    },
+    "luigi": {
+     "TOP": 43
+    },
+    "mario": {
+     "TOP": 43
+    },
+    "marth": {
+     "TOP": 40
+    },
+    "mewtwo": {
+     "TOP": 39
+    },
+    "mr-game-and-watch": {
+     "TOP": 32
+    },
+    "ness": {
+     "TOP": 42
+    },
+    "peach": {
+     "TOP": 40
+    },
+    "pichu": {
+     "TOP": 31
+    },
+    "pikachu": {
+     "TOP": 38
+    },
+    "roy": {
+     "TOP": 39
+    },
+    "samus": {
+     "TOP": 46
+    },
+    "sheik": {
+     "TOP": 40
+    },
+    "yoshi": {
+     "TOP": 45
+    },
+    "young-link": {
+     "TOP": 39
+    },
+    "zelda": {
+     "TOP": 40
+    }
    }
   },
   {
-   "name": "Sheik's jab at 0%",
+   "name": "Sheik's jab",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "sheik",
@@ -312,10 +671,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -325,10 +747,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -338,40 +823,151 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12.5
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
+       },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           24,
+           38
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -422,16 +1018,19 @@
    "numbers": {
     "move": "Sheik's jab",
     "opp": "Sheik",
-    "HIT": 91,
-    "HL": 4
+    "HL": 4,
+    "TOP": 100
    }
   },
   {
-   "name": "Marth's down tilt at 0%",
+   "name": "Marth's down tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "marth",
@@ -447,10 +1046,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           30,
+           44
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 30.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 27.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 19.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -460,10 +1130,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           30,
+           44
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 30.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 27.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 19.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -473,48 +1214,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           30,
+           44
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 30.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 27.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 19.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        22.1
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0,
-         -0.63
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           30,
+           44
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 30.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 27.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 19.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -573,16 +1433,99 @@
    "numbers": {
     "move": "Marth's down tilt",
     "opp": "Marth",
-    "HIT": 88,
-    "HL": 6
+    "HL": 6,
+    "TOP": 81
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 100
+    },
+    "captain-falcon": {
+     "TOP": 96
+    },
+    "donkey-kong": {
+     "TOP": 100
+    },
+    "dr-mario": {
+     "TOP": 94
+    },
+    "falco": {
+     "TOP": 83
+    },
+    "fox": {
+     "TOP": 81
+    },
+    "ganondorf": {
+     "TOP": 99
+    },
+    "ice-climbers": {
+     "TOP": 88
+    },
+    "jigglypuff": {
+     "TOP": 73
+    },
+    "kirby": {
+     "TOP": 78
+    },
+    "link": {
+     "TOP": 96
+    },
+    "luigi": {
+     "TOP": 94
+    },
+    "mario": {
+     "TOP": 94
+    },
+    "marth": {
+     "TOP": 87
+    },
+    "mewtwo": {
+     "TOP": 86
+    },
+    "mr-game-and-watch": {
+     "TOP": 73
+    },
+    "ness": {
+     "TOP": 91
+    },
+    "peach": {
+     "TOP": 89
+    },
+    "pichu": {
+     "TOP": 70
+    },
+    "pikachu": {
+     "TOP": 83
+    },
+    "roy": {
+     "TOP": 86
+    },
+    "samus": {
+     "TOP": 99
+    },
+    "sheik": {
+     "TOP": 89
+    },
+    "yoshi": {
+     "TOP": 98
+    },
+    "young-link": {
+     "TOP": 86
+    },
+    "zelda": {
+     "TOP": 89
+    }
    }
   },
   {
-   "name": "Fox's down tilt at 0%",
+   "name": "Fox's down tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "fox",
@@ -598,10 +1541,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -611,10 +1625,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -624,48 +1709,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        16.5
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0,
-         -0.63
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.7,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.7,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -724,16 +1928,99 @@
    "numbers": {
     "move": "Fox's down tilt",
     "opp": "Fox",
-    "HIT": 81,
-    "HL": 6
+    "HL": 6,
+    "TOP": 14
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 20
+    },
+    "captain-falcon": {
+     "TOP": 18
+    },
+    "donkey-kong": {
+     "TOP": 20
+    },
+    "dr-mario": {
+     "TOP": 17
+    },
+    "falco": {
+     "TOP": 14
+    },
+    "fox": {
+     "TOP": 14
+    },
+    "ganondorf": {
+     "TOP": 19
+    },
+    "ice-climbers": {
+     "TOP": 16
+    },
+    "jigglypuff": {
+     "TOP": 11
+    },
+    "kirby": {
+     "TOP": 13
+    },
+    "link": {
+     "TOP": 18
+    },
+    "luigi": {
+     "TOP": 17
+    },
+    "mario": {
+     "TOP": 17
+    },
+    "marth": {
+     "TOP": 15
+    },
+    "mewtwo": {
+     "TOP": 15
+    },
+    "mr-game-and-watch": {
+     "TOP": 11
+    },
+    "ness": {
+     "TOP": 17
+    },
+    "peach": {
+     "TOP": 16
+    },
+    "pichu": {
+     "TOP": 10
+    },
+    "pikachu": {
+     "TOP": 14
+    },
+    "roy": {
+     "TOP": 15
+    },
+    "samus": {
+     "TOP": 19
+    },
+    "sheik": {
+     "TOP": 16
+    },
+    "yoshi": {
+     "TOP": 19
+    },
+    "young-link": {
+     "TOP": 15
+    },
+    "zelda": {
+     "TOP": 16
+    }
    }
   },
   {
-   "name": "Fox's jab at 0%",
+   "name": "Fox's jab",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "fox",
@@ -749,10 +2036,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 23.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 20.4,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 12.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -762,10 +2112,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 23.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 20.4,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 12.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -775,40 +2188,151 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 23.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 20.4,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 12.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        15.2
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
+       },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           24,
+           38
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 23.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 20.4,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 12.4,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -859,16 +2383,19 @@
    "numbers": {
     "move": "Fox's jab",
     "opp": "Fox",
-    "HIT": 80,
-    "HL": 4
+    "HL": 4,
+    "TOP": 100
    }
   },
   {
-   "name": "Falco's down tilt at 0%",
+   "name": "Falco's down tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "falco",
@@ -884,10 +2411,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.1,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -897,10 +2495,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.1,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -910,48 +2579,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.1,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        15.9
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0,
-         -0.63
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 25.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 22.1,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 14.1,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -1010,16 +2798,99 @@
    "numbers": {
     "move": "Falco's down tilt",
     "opp": "Falco",
-    "HIT": 87,
-    "HL": 7
+    "HL": 7,
+    "TOP": 5
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 10
+    },
+    "captain-falcon": {
+     "TOP": 9
+    },
+    "donkey-kong": {
+     "TOP": 10
+    },
+    "dr-mario": {
+     "TOP": 8
+    },
+    "falco": {
+     "TOP": 6
+    },
+    "fox": {
+     "TOP": 5
+    },
+    "ganondorf": {
+     "TOP": 9
+    },
+    "ice-climbers": {
+     "TOP": 7
+    },
+    "jigglypuff": {
+     "TOP": 3
+    },
+    "kirby": {
+     "TOP": 5
+    },
+    "link": {
+     "TOP": 9
+    },
+    "luigi": {
+     "TOP": 8
+    },
+    "mario": {
+     "TOP": 8
+    },
+    "marth": {
+     "TOP": 7
+    },
+    "mewtwo": {
+     "TOP": 6
+    },
+    "mr-game-and-watch": {
+     "TOP": 3
+    },
+    "ness": {
+     "TOP": 8
+    },
+    "peach": {
+     "TOP": 7
+    },
+    "pichu": {
+     "TOP": 3
+    },
+    "pikachu": {
+     "TOP": 6
+    },
+    "roy": {
+     "TOP": 6
+    },
+    "samus": {
+     "TOP": 9
+    },
+    "sheik": {
+     "TOP": 7
+    },
+    "yoshi": {
+     "TOP": 9
+    },
+    "young-link": {
+     "TOP": 6
+    },
+    "zelda": {
+     "TOP": 7
+    }
    }
   },
   {
-   "name": "Falco's jab at 0%",
+   "name": "Falco's jab",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "falco",
@@ -1035,10 +2906,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1048,10 +2982,73 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1061,40 +3058,151 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        13.4
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
+       },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           24,
+           38
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -1145,16 +3253,19 @@
    "numbers": {
     "move": "Falco's jab",
     "opp": "Falco",
-    "HIT": 83,
-    "HL": 4
+    "HL": 4,
+    "TOP": 100
    }
   },
   {
-   "name": "Pikachu's down tilt at 0%",
+   "name": "Pikachu's down tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "pikachu",
@@ -1170,10 +3281,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1183,10 +3365,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1196,48 +3449,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12.9
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0,
-         -0.63
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           24,
+           38
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0,
+             -0.63
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -1296,16 +3668,99 @@
    "numbers": {
     "move": "Pikachu's down tilt",
     "opp": "Pikachu",
-    "HIT": 96,
-    "HL": 5
+    "HL": 5,
+    "TOP": 59
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 76
+    },
+    "captain-falcon": {
+     "TOP": 70
+    },
+    "donkey-kong": {
+     "TOP": 74
+    },
+    "dr-mario": {
+     "TOP": 69
+    },
+    "falco": {
+     "TOP": 61
+    },
+    "fox": {
+     "TOP": 59
+    },
+    "ganondorf": {
+     "TOP": 72
+    },
+    "ice-climbers": {
+     "TOP": 64
+    },
+    "jigglypuff": {
+     "TOP": 53
+    },
+    "kirby": {
+     "TOP": 57
+    },
+    "link": {
+     "TOP": 70
+    },
+    "luigi": {
+     "TOP": 69
+    },
+    "mario": {
+     "TOP": 69
+    },
+    "marth": {
+     "TOP": 64
+    },
+    "mewtwo": {
+     "TOP": 63
+    },
+    "mr-game-and-watch": {
+     "TOP": 53
+    },
+    "ness": {
+     "TOP": 66
+    },
+    "peach": {
+     "TOP": 65
+    },
+    "pichu": {
+     "TOP": 51
+    },
+    "pikachu": {
+     "TOP": 61
+    },
+    "roy": {
+     "TOP": 63
+    },
+    "samus": {
+     "TOP": 73
+    },
+    "sheik": {
+     "TOP": 65
+    },
+    "yoshi": {
+     "TOP": 72
+    },
+    "young-link": {
+     "TOP": 63
+    },
+    "zelda": {
+     "TOP": 65
+    }
    }
   },
   {
-   "name": "Yoshi's forward tilt at 0%",
+   "name": "Yoshi's forward tilt",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "yoshi",
@@ -1321,10 +3776,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 26.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 23.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 15.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0.5,
+             0
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1334,10 +3860,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 26.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 23.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 15.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0.5,
+             0
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1347,48 +3944,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 26.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 23.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 15.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0.5,
+             0
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        17.1
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         0.5,
-         0
-        ],
-        "frame": 1,
-        "hold": 1
        },
        {
-        "press": "A",
-        "frame": 1,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 26.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 23.8,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 15.8,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             0.5,
+             0
+            ],
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "press": "A",
+            "frame": 1,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -1447,16 +4163,99 @@
    "numbers": {
     "move": "Yoshi's forward tilt",
     "opp": "Yoshi",
-    "HIT": 92,
-    "HL": 7
+    "HL": 7,
+    "TOP": 13
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 20
+    },
+    "captain-falcon": {
+     "TOP": 18
+    },
+    "donkey-kong": {
+     "TOP": 19
+    },
+    "dr-mario": {
+     "TOP": 17
+    },
+    "falco": {
+     "TOP": 14
+    },
+    "fox": {
+     "TOP": 13
+    },
+    "ganondorf": {
+     "TOP": 19
+    },
+    "ice-climbers": {
+     "TOP": 15
+    },
+    "jigglypuff": {
+     "TOP": 11
+    },
+    "kirby": {
+     "TOP": 12
+    },
+    "link": {
+     "TOP": 18
+    },
+    "luigi": {
+     "TOP": 17
+    },
+    "mario": {
+     "TOP": 17
+    },
+    "marth": {
+     "TOP": 15
+    },
+    "mewtwo": {
+     "TOP": 15
+    },
+    "mr-game-and-watch": {
+     "TOP": 11
+    },
+    "ness": {
+     "TOP": 16
+    },
+    "peach": {
+     "TOP": 16
+    },
+    "pichu": {
+     "TOP": 10
+    },
+    "pikachu": {
+     "TOP": 14
+    },
+    "roy": {
+     "TOP": 15
+    },
+    "samus": {
+     "TOP": 19
+    },
+    "sheik": {
+     "TOP": 16
+    },
+    "yoshi": {
+     "TOP": 18
+    },
+    "young-link": {
+     "TOP": 15
+    },
+    "zelda": {
+     "TOP": 16
+    }
    }
   },
   {
-   "name": "Samus's dash attack at 0%",
+   "name": "Samus's dash attack",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "samus",
@@ -1472,10 +4271,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 42.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 39.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 31.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             1,
+             0
+            ],
+            "frame": 1,
+            "hold": 12
+           },
+           {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1485,10 +4355,81 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 42.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 39.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 31.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             1,
+             0
+            ],
+            "frame": 1,
+            "hold": 12
+           },
+           {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+           }
+          ]
          }
         ]
        },
@@ -1498,48 +4439,167 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 42.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 39.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 31.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             1,
+             0
+            ],
+            "frame": 1,
+            "hold": 12
+           },
+           {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        32.7
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "stick": [
-         1,
-         0
-        ],
-        "frame": 1,
-        "hold": 12
        },
        {
-        "press": "A",
-        "frame": 12,
-        "hold": 1
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 42.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 39.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 31.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "stick": [
+             1,
+             0
+            ],
+            "frame": 1,
+            "hold": 12
+           },
+           {
+            "press": "A",
+            "frame": 12,
+            "hold": 1
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -1598,8 +4658,88 @@
    "numbers": {
     "move": "Samus's dash attack",
     "opp": "Samus",
-    "HIT": 82,
-    "HL": 7
+    "HL": 7,
+    "TOP": 15
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 22
+    },
+    "captain-falcon": {
+     "TOP": 20
+    },
+    "donkey-kong": {
+     "TOP": 21
+    },
+    "dr-mario": {
+     "TOP": 19
+    },
+    "falco": {
+     "TOP": 15
+    },
+    "fox": {
+     "TOP": 15
+    },
+    "ganondorf": {
+     "TOP": 21
+    },
+    "ice-climbers": {
+     "TOP": 17
+    },
+    "jigglypuff": {
+     "TOP": 12
+    },
+    "kirby": {
+     "TOP": 14
+    },
+    "link": {
+     "TOP": 20
+    },
+    "luigi": {
+     "TOP": 19
+    },
+    "mario": {
+     "TOP": 19
+    },
+    "marth": {
+     "TOP": 17
+    },
+    "mewtwo": {
+     "TOP": 16
+    },
+    "mr-game-and-watch": {
+     "TOP": 12
+    },
+    "ness": {
+     "TOP": 18
+    },
+    "peach": {
+     "TOP": 17
+    },
+    "pichu": {
+     "TOP": 11
+    },
+    "pikachu": {
+     "TOP": 15
+    },
+    "roy": {
+     "TOP": 16
+    },
+    "samus": {
+     "TOP": 21
+    },
+    "sheik": {
+     "TOP": 17
+    },
+    "yoshi": {
+     "TOP": 20
+    },
+    "young-link": {
+     "TOP": 16
+    },
+    "zelda": {
+     "TOP": 17
+    }
    }
   }
  ],
@@ -1609,7 +4749,7 @@
    "frame": 30
   },
   "within": 900,
-  "missed": "Not counted: {move} did not hit. Hold your ground: {opp} walks up and attacks."
+  "missed": "Not counted: {move} did not hit. Hold your ground: {opp} comes to its distance and attacks."
  },
  "measures": {
   "air": {
@@ -1666,22 +4806,22 @@
     }
    ],
    "marks": {
-    "HIT": "Frame {HIT}: {move} hits. Hitlag: {HL} frames",
-    "HIT+HL": "Frame {HIT+HL}: hitlag ends. {char} is lifted off the floor"
+    "1": "Frame 1: {move} hits. Hitlag: {HL} frames",
+    "HL+1": "Frame {HL+1}: hitlag ends. {char} is lifted off the floor"
    },
    "cues": [
     {
      "frames": [
-      "HIT",
-      "HIT+HL-1"
+      1,
+      "HL"
      ],
      "words": "Hitlag",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+25"
+      "HL+1",
+      26
      ],
      "words": "In the air",
      "kind": "info"
@@ -1712,45 +4852,46 @@
       0,
       -1
      ],
-     "frame": "HIT+1",
-     "hold": "HL"
+     "frame": 2,
+     "hold": "HL",
+     "from": "start"
     }
    ],
    "marks": {
-    "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
-    "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
-    "HIT+HL-1": "Frame {HIT+HL-1}: the last frame of hitlag. The C-stick is read",
-    "HIT+HL": "Frame {HIT+HL}: {char} lands"
+    "1": "Frame 1: {move} hits. Hitlag begins",
+    "2": "Frame 2: the C-stick is pressed down and held",
+    "HL": "Frame {HL}: the last frame of hitlag. The C-stick is read",
+    "HL+1": "Frame {HL+1}: {char} lands"
    },
    "cues": [
     {
      "frames": [
-      "HIT",
-      "HIT+HL-2"
+      1,
+      "HL-1"
      ],
      "words": "Hitlag: press the C-stick down and hold it",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+HL-1",
-      "HIT+HL-1"
+      "HL",
+      "HL"
      ],
      "words": "Last frame of hitlag: the C-stick is read now",
      "kind": "go"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+HL+1"
+      "HL+1",
+      "HL+2"
      ],
      "words": "Hitlag over: too late",
      "kind": "late"
     },
     {
      "frames": [
-      "HIT+HL+2",
-      "HIT+25"
+      "HL+3",
+      26
      ],
      "words": "On the floor",
      "kind": "info"
@@ -1783,50 +4924,52 @@
       0,
       -1
      ],
-     "frame": "HIT+1",
-     "hold": "HL"
+     "frame": 2,
+     "hold": "HL",
+     "from": "start"
     },
     {
      "press": "jump",
-     "frame": "HIT+HL+LAND",
-     "hold": 1
+     "frame": "HL+LAND+1",
+     "hold": 1,
+     "from": "start"
     }
    ],
    "marks": {
-    "HIT": "Frame {HIT}: {move} hits. Hitlag begins",
-    "HIT+1": "Frame {HIT+1}: the C-stick is pressed down and held",
-    "HIT+HL": "Frame {HIT+HL}: {char} lands. Landing lag: {LAND} frames",
-    "HIT+HL+LAND": "Frame {HIT+HL+LAND}: the landing lag is over. Jump"
+    "1": "Frame 1: {move} hits. Hitlag begins",
+    "2": "Frame 2: the C-stick is pressed down and held",
+    "HL+1": "Frame {HL+1}: {char} lands. Landing lag: {LAND} frames",
+    "HL+LAND+1": "Frame {HL+LAND+1}: the landing lag is over. Jump"
    },
    "cues": [
     {
      "frames": [
-      "HIT",
-      "HIT+HL-2"
+      1,
+      "HL-1"
      ],
      "words": "Hitlag: press the C-stick down and hold it",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+HL-1",
-      "HIT+HL-1"
+      "HL",
+      "HL"
      ],
      "words": "Last frame of hitlag: the C-stick is read now",
      "kind": "go"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+HL+LAND-1"
+      "HL+1",
+      "HL+LAND"
      ],
      "words": "Landing lag: a press here is ignored",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+HL+LAND",
-      "HIT+HL+LAND+5"
+      "HL+LAND+1",
+      "HL+LAND+6"
      ],
      "words": "Jump or shield now",
      "kind": "go"
@@ -1914,8 +5057,9 @@
       0,
       -1
      ],
-     "frame": "HIT+1",
-     "hold": "max(1, HL-3)"
+     "frame": 2,
+     "hold": "max(1, HL-3)",
+     "from": "start"
     }
    ],
    "fails": "grounded"
@@ -1928,8 +5072,9 @@
       0,
       -1
      ],
-     "frame": "HIT+HL",
-     "hold": 4
+     "frame": "HL+1",
+     "hold": 4,
+     "from": "start"
     }
    ],
    "fails": "grounded"
@@ -1942,13 +5087,15 @@
       0,
       -1
      ],
-     "frame": "HIT+1",
-     "hold": "HL"
+     "frame": 2,
+     "hold": "HL",
+     "from": "start"
     },
     {
      "press": "jump",
-     "frame": "HIT+HL+LAND-2",
-     "hold": 6
+     "frame": "HL+LAND-1",
+     "hold": 6,
+     "from": "start"
     }
    ],
    "fails": "acted"
@@ -1961,13 +5108,15 @@
       0,
       -1
      ],
-     "frame": "HIT+1",
-     "hold": "HL"
+     "frame": 2,
+     "hold": "HL",
+     "from": "start"
     },
     {
      "press": "jump",
-     "frame": "HIT+HL+LAND+7",
-     "hold": 1
+     "frame": "HL+LAND+8",
+     "hold": 1,
+     "from": "start"
     }
    ],
    "fails": "acted"
@@ -2000,5 +5149,5 @@
   ],
   "note": "Frame 1 is the hit. The C-stick is read on frame {HL}, the last frame of hitlag; pressed down on frames 1 to {HL} and held through frame {HL}, {char} lands on frame {HL+1}."
  },
- "switch": "success"
+ "switch": "every"
 }

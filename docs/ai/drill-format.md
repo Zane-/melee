@@ -91,15 +91,14 @@ about 50 units away; the try begins when the shine hits), `fox-shield-pressure`,
 moves about and shields, crouches or stands when Fox comes within 40 units, and moves
 again when he backs away; each example walks up to it and stops where its sequence was
 measured), and, where the technique answers an attack, the opponent comes to the
-player: `fox-wavedash-back-punish`, `fox-combo-shine`, `universal-asdi` and
-`universal-di` (it plays footsies for 40, 80 or 120 frames, walks up to the distance its
-attack was measured from, stands 14 frames and attacks, then plays footsies again; the
-walk's stop is calibrated for each opponent so that it stands exactly there, and in the
-two universal drills the frame the hit comes on in a demonstration is measured into each
-scenario's `HIT`, the examples staying as they were), `universal-sdi` (the same; its
-three down airs were measured with the attacker placed on top of the player and pushed
-apart by the game, so it walks into the player, stands while the game pushes them apart
-the same way, and jumps), `fox-ledgedash-attack` (the opponent waiting by the ledge moves
+player: `fox-wavedash-back-punish`, `fox-combo-shine`, `universal-asdi`, `universal-di`
+and `universal-sdi` (it plays footsies past its distance for a time drawn each try, comes
+to the distance its attack was measured from and attacks, then plays footsies again: how
+it comes in is "Every run its own seed" below; in a demonstration it walks up, stands
+exactly there and attacks. `universal-sdi`'s three down airs were measured with the
+attacker placed on top of the player and pushed apart by the game, so it walks into the
+player, stands while the game pushes them apart the same way, and jumps),
+`fox-ledgedash-attack` (the opponent waiting by the ledge moves
 about). Left as they are, and why: `fox-uthrow-uair`, `fox-uthrow-chaingrab` and
 `fox-kill-confirm` (the owner's exception: "things like up throw kill confirm that are a
 specific action"; the opponent stands next to Fox to be grabbed), `universal-tech`,
@@ -131,13 +130,85 @@ stand now (`hold` with `"near"`) and attacks out of the walk: `universal-crouch-
 (1237 of 1300 runs right over all 26 characters; 75 of 75 for Fox) and `fox-combo-shine`
 (33 strings of ten opponents, each at a low and a high damage of Fox's; 252 of 252).
 
+Every run its own seed, and what that showed (2026-11-25): `check_play.py` had been
+replaying one run. A demonstration takes the last try's seed, so its "several runs a
+scenario" were the same run several times, and the walk-in above had been proved for one
+draw of each scenario (the counts above are of those). Seeded, it was loose: `footsies`
+can end with the opponent anywhere and at any speed. A dash held on at the walk's stick
+is a run, whose brake slides it in under its distance; a walk begun inside the last steps
+lets go slower and attacks from farther (over eight seeded tries: Sheik's jab from 1.4
+units instead of 10, Marth's down tilt from 11.2 and 18.4 instead of 16; in
+`fox-wavedash-back-punish` Marth's down air caught the correct wavedash 3 runs of 4). The
+step-in of `universal-asdi`, `universal-di`, `universal-sdi` and
+`fox-wavedash-back-punish` now: what footsies left it doing ends (`hold` standing,
+`"until": {"me": {"state": "wait"}}`); a step back if it is nearer than where its last
+steps begin (`hold` with `"far"`); the turn to face the player; a walk up, the last 8
+units slowly (stick 0.25: whatever speed it came with is gone by their end, so it lets
+go at the same speed every time); a stop of 6 to 10 frames; the attack. Where it lets go
+is calibrated per scenario on the distance at the hit, not at the attack's start (an
+attack out of a walk slides on). The hit then comes from within about half a unit of the
+measured distance (Captain Falcon's forward smash, measured from the edge of its reach,
+comes 1 unit nearer: 0.3 units farther its first frames missed and it hit late, from 1
+unit instead of 6.6). Played so by all 26 characters, 3 seeded runs a scenario:
+`universal-asdi` 780 of 780 in each of its two judged parts, `universal-di` 1092 of 1092
+in each, `universal-sdi` 312 of 312 in each; `fox-wavedash-back-punish`, 5 runs a
+scenario: 110 of 110 and 109 of 110 (82 and 79 of 88 with the earlier walk-in).
+`universal-crouch-cancel` and `fox-combo-shine` keep the earlier walk-in; seeded, 4 runs a
+scenario, Fox: crouch cancel 100 of 100, 24 of 24 and 94 of 100 (its getup part 20 of 28
+counted: one knocked-down opponent in five only stands up, as the part says), combo shine
+334 of 336 in both parts.
+
+Counted from the hit (2026-11-25): the tutorial numbers an example's frames from the
+try's start (frame 1 is the frame the attempt's `start` holds on), and marks, cues and
+the coach's rows are keyed by those numbers; an input without `"from"` counts from the
+demonstration's first frame. The two agree only where the try starts on the
+demonstration's own first input. `universal-asdi`, `universal-di` and `universal-sdi`
+start on a hit and keyed everything by the demonstration's frames (the hit on frame
+`HIT`): once the opponent walked in, their captions were never shown (frame 96 of a try
+judged on frame 30) and their lessons pressed long before the hit (the C-stick on frame 6
+with the opponent 55 units away). They are counted from the hit now: every input
+`"from": "start"`, every mark and cue from frame 1, `HIT` gone. A drill whose try starts
+on what the opponent does times its inputs from an event.
+
+Lessons proved (2026-11-25): `check.py` did not prove a lesson's example, and the client
+recorded it on whichever scenario the session's deck drew: the pictures were of that
+entry's opponent under the lesson's own script, numbers and captions (`universal-asdi`'s
+first lesson, Sheik's down tilt, played by Falco: his freezes 7 frames, the lesson held
+the C-stick for Sheik's 5 and showed a miss; all six lessons of the three drills showed a
+miss). A recording is now played on the deck entry of the scenario it shows
+(`JsonDrill.shown_entry`: a lesson's own, also where the part now does not have that
+scenario: crouch cancel's lessons of the floor were Marth under Fox's captions; a part
+card's the one whose numbers its words use). Before a part's card a deck not yet turned
+draws the scenario the first try will be (`Client.first_scenario`), so the card shows
+that one, as before, now with its own numbers and words. A lesson may name the checks
+its example passes (`"checks"`), `check.py` proves them in the lesson's own scenario for
+every character, and `tests/client/drill_smoke.py` checks that each card's pictures are
+of the opponent of the scenario the card is about.
+
+The damage drawn (2026-11-25): in the three universal drills the player's damage is
+drawn for each try inside what `python tools/melee_drills/percent_range.py DRILL`
+measured, per scenario and character, as the range in which the last part's example
+holds. `universal-asdi`: from 0 to 3% under the most at which the example still lands at
+once (Sheik's down tilt to 36% for Fox, 31% for Pichu, 48% for Bowser; Falco's down tilt
+to 5%; the jabs to 100%, where the range is cut off); the same limits as
+`cc_limits.py --asdi` measured apart from the drill (`data/actor/asdi_down.json`).
+`universal-di`: 20% either side of the damage each attack was built at, proved at both
+ends. `universal-sdi`: from 0 to 21% (Pikachu's down smash against Fox) up to 60%, every
+percent tried (`--step 1`): which hits of a multi-hit attack connect changes from one
+damage to the next, and a binary search had put Falco's top against Jigglypuff's down air
+at 45% or more where it first fails at 43%. `check.py`, every character, lessons included:
+`universal-asdi` 2236 of 2236 cases, `universal-di` 2704 of 2704 (and as many
+with every damage at its low end), `universal-sdi` 650 of 650,
+`fox-wavedash-back-punish` 93 of 93.
+
 ## Where things are
 
 | | |
 |-|-|
 | A drill | `data/drills/<id>.json`: nothing but the words below |
 | The words, the checking of a file | `tools/melee_drills/format.py` |
-| Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, and says how often the part's checks pass. A scenario that never passes is one the drill teaches wrongly |
+| Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, each with a seed of its own, and says how often the part's checks pass. A scenario that never passes is one the drill teaches wrongly |
+| The damage a part's example holds at | `python tools/melee_drills/percent_range.py <id> [--part N] [--lo A] [--hi B] [--step N]`: per scenario and character, the range around the scenario's own damage in which the example still passes the part's checks (a binary search each way; `--step 1` tries every percent, for a multi-hit attack). A drill draws a try's damage inside it: `"percent": [LO, "TOP"]`, `TOP` a number of the scenario and, per character, of its `numbers_for` |
 | Playing one | `tools/melee_drills/drill.py`: `JsonDrill`, a course drill on the course runtime (`tools/melee_course/engine.py`: loads with no loading screen, attempts, resets, the demonstration, the input timeline) |
 | Its proof | `python tools/melee_drills/check.py <id>` |
 | In the client | `tools/melee_client/client.py`: the tutorial (`tutorial`, `tutorial_example`), the parts in the drill loop (`course_drill`), the coach (`coach`); `tests/client/short_hop.py` |
@@ -271,7 +342,11 @@ its proof, never written into one drill's file.
   `{"cstick": [x, y], ...}`, `{"trigger": "L"|"R", "amount": 0..1, ...}`; entries on the
   same frame combine (down-B: a stick and a press). An input may be timed from an event,
   `"from": EVENT` (`"start"`: the attempt's start): its `frame` counts from it, 1 the frame
-  the event happens on (none before it). A demonstration finds that frame before it is
+  the event happens on (none before it). An input without it counts from the
+  demonstration's first frame, while marks, cues and the coach's rows always count from
+  the try's start: where a try starts on what the opponent does, after a time of its
+  own, the inputs are timed `"from": "start"` (or another event), or the captions are of
+  other frames than the inputs. A demonstration finds that frame before it is
   played: each frame while the event is due the coming frame is played ahead in the game
   (`melee_actor/ahead.py`, the opponent's pad as it chose it) and undone, and where the
   event happens on it the input goes on it (the jump on the first frame after shield stun:
@@ -468,9 +543,12 @@ its proof, never written into one drill's file.
                                         "lands": "any"}]}]},
       {"do": "hold", "pad": "stand"}]}
     ```
-- **Lessons**: `{"title", "text", "show", "characters", "scenario"}` (played in their own
-  scenario, the first by default, whichever part the player is on, and charted with the
-  drill's own coach rows, the whole technique); `text` is a paragraph or a list, 500
+- **Lessons**: `{"title", "text", "show", "characters", "scenario", "checks"}` (played in
+  their own scenario, the first by default, against that scenario's opponent, whichever
+  part the player is on, and charted with the drill's own coach rows, the whole
+  technique; `"checks"`: the names of the checks its example passes, all counted by one
+  part: `check.py` proves them for every character, so name them for any lesson that
+  shows the technique or a piece of it); `text` is a paragraph or a list, 500
   characters at most with the longest name filled in (`LESSON_MAX`: it fits beside the
   picture at 13dp or larger; under 440 reads at 15dp)
   of them; `show` is `{"example": {"inputs", "marks", "cues"}}` (played frame by frame from

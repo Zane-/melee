@@ -7,110 +7,122 @@
  "why": "A multi-hit attack holds you in place for its last, strongest hit. Each new smash of the control stick during hitlag moves {char} 6 units while still frozen, and one on every hit takes {char} out of the attack before that hit comes. A stick held still moves {char} once.",
  "tutorial": {
   "what": "SDI moves {char} 6 units toward the control stick for every new smash of the stick during hitlag.",
-  "expect": "{opp} plays footsies for a while, then walks up and attacks. Each attack is judged after its last hit could have landed: how far SDI moved {char}, how many of its hits landed, and whether the last launched {char}.",
+  "expect": "{opp} plays footsies, comes to its distance and attacks: another attack every try. {char}'s damage is drawn for each try. Each attack is judged after its last hit could have landed: how far SDI moved {char}, how many of its hits landed, and whether the last launched {char}.",
   "example": [
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1",
-    "hold": 1
+    "frame": 2,
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+AGAIN",
-    "hold": 1
+    "frame": "AGAIN+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+1*GAP",
-    "hold": 1
+    "frame": "1*GAP+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+1*GAP+AGAIN",
-    "hold": 1
+    "frame": "1*GAP+AGAIN+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+2*GAP",
-    "hold": 1
+    "frame": "2*GAP+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+2*GAP+AGAIN",
-    "hold": 1
+    "frame": "2*GAP+AGAIN+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+3*GAP",
-    "hold": 1
+    "frame": "3*GAP+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+3*GAP+AGAIN",
-    "hold": 1
+    "frame": "3*GAP+AGAIN+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+4*GAP",
-    "hold": 1
+    "frame": "4*GAP+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+4*GAP+AGAIN",
-    "hold": 1
+    "frame": "4*GAP+AGAIN+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+5*GAP",
-    "hold": 1
+    "frame": "5*GAP+2",
+    "hold": 1,
+    "from": "start"
    },
    {
     "stick": [
      "SX",
      "SY"
     ],
-    "frame": "HIT+1+5*GAP+AGAIN",
-    "hold": 1
+    "frame": "5*GAP+AGAIN+2",
+    "hold": 1,
+    "from": "start"
    }
   ],
   "marks": {
-   "HIT": "Frame {HIT}: the first hit. Hitlag: {HL} frames",
-   "HIT+1": "Frame {HIT+1}: the stick smashed {way}. {char} moves 6 units",
-   "HIT+2": "Frame {HIT+2}: the stick back to the center",
-   "HIT+1+AGAIN": "Frame {HIT+1+AGAIN}: smashed {way} again"
+   "1": "Frame 1: the first hit. Hitlag: {HL} frames",
+   "2": "Frame 2: the stick smashed {way}. {char} moves 6 units",
+   "3": "Frame 3: the stick back to the center",
+   "AGAIN+2": "Frame {AGAIN+2}: smashed {way} again"
   },
   "lessons": [
    {
@@ -127,44 +139,48 @@
          0,
          1
         ],
-        "frame": 8,
-        "hold": 1
+        "frame": 2,
+        "hold": 1,
+        "from": "start"
        }
       ],
       "marks": {
-       "7": "Frame 7: the first hit. Hitlag: 4 frames",
-       "8": "Frame 8: the stick smashed up. {char} moves 6 units, still frozen",
-       "10": "Frame 10: the last frame of hitlag",
-       "11": "Frame 11: hitlag ends"
+       "1": "Frame 1: the first hit. Hitlag: 4 frames",
+       "2": "Frame 2: the stick smashed up. {char} moves 6 units, still frozen",
+       "4": "Frame 4: the last frame of hitlag",
+       "5": "Frame 5: hitlag ends"
       },
       "cues": [
        {
         "frames": [
-         7,
-         7
+         1,
+         1
         ],
         "words": "The hit: SDI is not read on this frame",
         "kind": "info"
        },
        {
         "frames": [
-         8,
-         10
+         2,
+         4
         ],
         "words": "Hitlag: smash the stick now",
         "kind": "go"
        },
        {
         "frames": [
-         11,
-         12
+         5,
+         6
         ],
         "words": "Hitlag over: too late for this hit",
         "kind": "late"
        }
       ]
      }
-    }
+    },
+    "checks": [
+     "sdi"
+    ]
    },
    {
     "title": "Out of a multi-hit",
@@ -177,150 +193,170 @@
          0,
          1
         ],
-        "frame": 8,
-        "hold": 1
+        "frame": 2,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 11,
-        "hold": 1
+        "frame": 5,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 13,
-        "hold": 1
+        "frame": 7,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 16,
-        "hold": 1
+        "frame": 10,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 18,
-        "hold": 1
+        "frame": 12,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 21,
-        "hold": 1
+        "frame": 15,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 23,
-        "hold": 1
+        "frame": 17,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 26,
-        "hold": 1
+        "frame": 20,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 28,
-        "hold": 1
+        "frame": 22,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 31,
-        "hold": 1
+        "frame": 25,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 33,
-        "hold": 1
+        "frame": 27,
+        "hold": 1,
+        "from": "start"
        },
        {
         "stick": [
          0,
          1
         ],
-        "frame": 36,
-        "hold": 1
+        "frame": 30,
+        "hold": 1,
+        "from": "start"
        }
       ],
       "marks": {
-       "7": "Frame 7: the first hit",
-       "8": "Frame 8: smashed up: 6 units",
-       "9": "Frame 9: the stick back to the center",
-       "11": "Frame 11: hitlag ends. Smashed up again, for the next hit"
+       "1": "Frame 1: the first hit",
+       "2": "Frame 2: smashed up: 6 units",
+       "3": "Frame 3: the stick back to the center",
+       "5": "Frame 5: hitlag ends. Smashed up again, for the next hit"
       },
       "cues": [
        {
         "frames": [
-         7,
-         7
+         1,
+         1
         ],
         "words": "The hit: SDI is not read on this frame",
         "kind": "info"
        },
        {
         "frames": [
-         8,
-         10
+         2,
+         4
         ],
         "words": "Hitlag: smash the stick now",
         "kind": "go"
        },
        {
         "frames": [
-         11,
-         12
+         5,
+         6
         ],
         "words": "Hitlag over: too late for this hit",
         "kind": "late"
        },
        {
         "frames": [
-         11,
-         40
+         5,
+         34
         ],
         "words": "Smash again on every hit, back to the center between",
         "kind": "info"
        }
       ]
      }
-    }
+    },
+    "checks": [
+     "sdi",
+     "out",
+     "not launched"
+    ]
    }
   ]
  },
  "scenarios": [
   {
-   "name": "Pikachu's down smash at 0%",
+   "name": "Pikachu's down smash",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "pikachu",
@@ -336,10 +372,76 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 1,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -349,10 +451,76 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 1,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -362,43 +530,157 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           24,
+           38
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 1,
+            "hold": 2
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12.9
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "press",
-      "inputs": [
+       },
        {
-        "cstick": [
-         0,
-         -1
-        ],
-        "frame": 1,
-        "hold": 2
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           24,
+           38
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 30,
+          "until": {
+           "me": {
+            "state": "wait"
+           }
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           -0.49,
+           0
+          ],
+          "far": 22.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "near": 19.5,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.25,
+           0
+          ],
+          "near": 11.5,
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 6
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 1,
+            "hold": 2
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -452,7 +734,6 @@
    "numbers": {
     "move": "Pikachu's down smash",
     "opp": "Pikachu",
-    "HIT": 96,
     "HL": 4,
     "GAP": 5,
     "AGAIN": 3,
@@ -465,15 +746,99 @@
     "TY": 0,
     "way": "up",
     "into": "toward Pikachu",
-    "clear": "Up and away often drifts back beside Pikachu and into the 7th hit; up keeps clear."
+    "clear": "Up and away often drifts back beside Pikachu and into the 7th hit; up keeps clear.",
+    "TOP": 21
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 52
+    },
+    "captain-falcon": {
+     "TOP": 49
+    },
+    "donkey-kong": {
+     "TOP": 51
+    },
+    "dr-mario": {
+     "TOP": 47
+    },
+    "falco": {
+     "TOP": 42
+    },
+    "fox": {
+     "TOP": 21
+    },
+    "ganondorf": {
+     "TOP": 50
+    },
+    "ice-climbers": {
+     "TOP": 43
+    },
+    "jigglypuff": {
+     "TOP": 36
+    },
+    "kirby": {
+     "TOP": 39
+    },
+    "link": {
+     "TOP": 49
+    },
+    "luigi": {
+     "TOP": 47
+    },
+    "mario": {
+     "TOP": 47
+    },
+    "marth": {
+     "TOP": 44
+    },
+    "mewtwo": {
+     "TOP": 42
+    },
+    "mr-game-and-watch": {
+     "TOP": 35
+    },
+    "ness": {
+     "TOP": 46
+    },
+    "peach": {
+     "TOP": 45
+    },
+    "pichu": {
+     "TOP": 35
+    },
+    "pikachu": {
+     "TOP": 41
+    },
+    "roy": {
+     "TOP": 42
+    },
+    "samus": {
+     "TOP": 50
+    },
+    "sheik": {
+     "TOP": 45
+    },
+    "yoshi": {
+     "TOP": 50
+    },
+    "young-link": {
+     "TOP": 43
+    },
+    "zelda": {
+     "TOP": 45
+    }
    }
   },
   {
-   "name": "Jigglypuff's down air at 0%",
+   "name": "Jigglypuff's down air",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "jigglypuff",
@@ -489,10 +854,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -502,10 +918,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -515,56 +982,127 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "for": 16
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 16
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "press": "X",
-        "frame": 1,
-        "hold": 1
        },
        {
-        "cstick": [
-         0,
-         -1
-        ],
-        "frame": 6,
-        "hold": 2
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -631,7 +1169,6 @@
    "numbers": {
     "move": "Jigglypuff's down air",
     "opp": "Jigglypuff",
-    "HIT": 163,
     "HL": 3,
     "GAP": 5,
     "AGAIN": 2,
@@ -644,15 +1181,99 @@
     "TY": 0.7071,
     "way": "away",
     "into": "up and toward Jigglypuff",
-    "clear": "Smashed up or down, its hits keep dragging along under Jigglypuff; away, they stop."
+    "clear": "Smashed up or down, its hits keep dragging along under Jigglypuff; away, they stop.",
+    "TOP": 60
+   },
+   "numbers_for": {
+    "bowser": {
+     "TOP": 60
+    },
+    "captain-falcon": {
+     "TOP": 60
+    },
+    "donkey-kong": {
+     "TOP": 60
+    },
+    "dr-mario": {
+     "TOP": 60
+    },
+    "falco": {
+     "TOP": 39
+    },
+    "fox": {
+     "TOP": 60
+    },
+    "ganondorf": {
+     "TOP": 60
+    },
+    "ice-climbers": {
+     "TOP": 60
+    },
+    "jigglypuff": {
+     "TOP": 60
+    },
+    "kirby": {
+     "TOP": 60
+    },
+    "link": {
+     "TOP": 60
+    },
+    "luigi": {
+     "TOP": 60
+    },
+    "mario": {
+     "TOP": 60
+    },
+    "marth": {
+     "TOP": 60
+    },
+    "mewtwo": {
+     "TOP": 42
+    },
+    "mr-game-and-watch": {
+     "TOP": 60
+    },
+    "ness": {
+     "TOP": 60
+    },
+    "peach": {
+     "TOP": 60
+    },
+    "pichu": {
+     "TOP": 60
+    },
+    "pikachu": {
+     "TOP": 60
+    },
+    "roy": {
+     "TOP": 60
+    },
+    "samus": {
+     "TOP": 60
+    },
+    "sheik": {
+     "TOP": 60
+    },
+    "yoshi": {
+     "TOP": 60
+    },
+    "young-link": {
+     "TOP": 60
+    },
+    "zelda": {
+     "TOP": 60
+    }
    }
   },
   {
-   "name": "Fox's down air at 0%",
+   "name": "Fox's down air",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "fox",
@@ -668,10 +1289,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 4,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -681,10 +1353,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 4,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -694,56 +1417,127 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 4,
+            "hold": 2
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "for": 16
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 16
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "press": "X",
-        "frame": 1,
-        "hold": 1
        },
        {
-        "cstick": [
-         0,
-         -1
-        ],
-        "frame": 4,
-        "hold": 2
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 4,
+            "hold": 2
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -810,7 +1604,6 @@
    "numbers": {
     "move": "Fox's down air",
     "opp": "Fox",
-    "HIT": 103,
     "HL": 4,
     "GAP": 5,
     "AGAIN": 2,
@@ -823,15 +1616,19 @@
     "TY": 0,
     "way": "away",
     "into": "toward Fox",
-    "clear": "Smashed up or down, the drill keeps dragging along under Fox; away, it stops."
+    "clear": "Smashed up or down, the drill keeps dragging along under Fox; away, it stops.",
+    "TOP": 60
    }
   },
   {
-   "name": "Peach's down air at 0%",
+   "name": "Peach's down air",
    "stage": "final-destination",
    "player": {
     "x": -20,
-    "percent": 0
+    "percent": [
+     0,
+     "TOP"
+    ]
    },
    "opponent": {
     "character": "peach",
@@ -847,10 +1644,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 7,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -860,10 +1708,61 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 7,
+            "hold": 2
+           }
+          ]
          }
         ]
        },
@@ -873,56 +1772,127 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           26,
+           40
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 7,
+            "hold": 2
+           }
+          ]
          }
         ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        12
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "for": 16
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 16
-     },
-     {
-      "do": "press",
-      "inputs": [
-       {
-        "press": "X",
-        "frame": 1,
-        "hold": 1
        },
        {
-        "cstick": [
-         0,
-         -1
-        ],
-        "frame": 7,
-        "hold": 2
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 16
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 7,
+            "hold": 2
+           }
+          ]
+         }
+        ]
        }
       ]
      }
@@ -989,7 +1959,6 @@
    "numbers": {
     "move": "Peach's down air",
     "opp": "Peach",
-    "HIT": 152,
     "HL": 4,
     "GAP": 8,
     "AGAIN": 2,
@@ -1002,7 +1971,8 @@
     "TY": 1,
     "way": "away",
     "into": "up into Peach",
-    "clear": "Smashed up, its hits keep holding under Peach; away from her, they stop."
+    "clear": "Smashed up, its hits keep holding under Peach; away from her, they stop.",
+    "TOP": 60
    }
   }
  ],
@@ -1012,7 +1982,7 @@
    "frame": "END"
   },
   "within": 900,
-  "missed": "Not counted: {move} did not hit. Hold your ground: {opp} walks up and attacks."
+  "missed": "Not counted: {move} did not hit. Hold your ground: {opp} comes to its distance and attacks."
  },
  "measures": {
   "sdi": {
@@ -1066,36 +2036,37 @@
       "SX",
       "SY"
      ],
-     "frame": "HIT+1",
-     "hold": 1
+     "frame": 2,
+     "hold": 1,
+     "from": "start"
     }
    ],
    "marks": {
-    "HIT": "Frame {HIT}: the first hit. Hitlag: {HL} frames",
-    "HIT+1": "Frame {HIT+1}: the stick smashed {way}. {char} moves 6 units",
-    "HIT+HL": "Frame {HIT+HL}: hitlag ends"
+    "1": "Frame 1: the first hit. Hitlag: {HL} frames",
+    "2": "Frame 2: the stick smashed {way}. {char} moves 6 units",
+    "HL+1": "Frame {HL+1}: hitlag ends"
    },
    "cues": [
     {
      "frames": [
-      "HIT",
-      "HIT"
+      1,
+      1
      ],
      "words": "The hit: SDI is not read on this frame",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+1",
-      "HIT+HL-1"
+      2,
+      "HL"
      ],
      "words": "Hitlag: smash the stick now",
      "kind": "go"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+HL+1"
+      "HL+1",
+      "HL+2"
      ],
      "words": "Hitlag over: too late for this hit",
      "kind": "late"
@@ -1122,133 +2093,145 @@
       "SX",
       "SY"
      ],
-     "frame": "HIT+1",
-     "hold": 1
+     "frame": 2,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+AGAIN",
-     "hold": 1
+     "frame": "AGAIN+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+1*GAP",
-     "hold": 1
+     "frame": "1*GAP+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+1*GAP+AGAIN",
-     "hold": 1
+     "frame": "1*GAP+AGAIN+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+2*GAP",
-     "hold": 1
+     "frame": "2*GAP+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+2*GAP+AGAIN",
-     "hold": 1
+     "frame": "2*GAP+AGAIN+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+3*GAP",
-     "hold": 1
+     "frame": "3*GAP+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+3*GAP+AGAIN",
-     "hold": 1
+     "frame": "3*GAP+AGAIN+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+4*GAP",
-     "hold": 1
+     "frame": "4*GAP+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+4*GAP+AGAIN",
-     "hold": 1
+     "frame": "4*GAP+AGAIN+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+5*GAP",
-     "hold": 1
+     "frame": "5*GAP+2",
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "SX",
       "SY"
      ],
-     "frame": "HIT+1+5*GAP+AGAIN",
-     "hold": 1
+     "frame": "5*GAP+AGAIN+2",
+     "hold": 1,
+     "from": "start"
     }
    ],
    "marks": {
-    "HIT": "Frame {HIT}: the first hit",
-    "HIT+1": "Frame {HIT+1}: smashed {way}",
-    "HIT+2": "Frame {HIT+2}: the stick back to the center",
-    "HIT+1+AGAIN": "Frame {HIT+1+AGAIN}: smashed {way} again"
+    "1": "Frame 1: the first hit",
+    "2": "Frame 2: smashed {way}",
+    "3": "Frame 3: the stick back to the center",
+    "AGAIN+2": "Frame {AGAIN+2}: smashed {way} again"
    },
    "cues": [
     {
      "frames": [
-      "HIT",
-      "HIT"
+      1,
+      1
      ],
      "words": "The hit: SDI is not read on this frame",
      "kind": "info"
     },
     {
      "frames": [
-      "HIT+1",
-      "HIT+HL-1"
+      2,
+      "HL"
      ],
      "words": "Hitlag: smash the stick now",
      "kind": "go"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+HL+1"
+      "HL+1",
+      "HL+2"
      ],
      "words": "Hitlag over: too late for this hit",
      "kind": "late"
     },
     {
      "frames": [
-      "HIT+HL",
-      "HIT+33"
+      "HL+1",
+      34
      ],
      "words": "Smash again on every hit, back to the center between",
      "kind": "info"
@@ -1291,8 +2274,9 @@
       "SX",
       "SY"
      ],
-     "frame": "HIT",
-     "hold": 30
+     "frame": 1,
+     "hold": 30,
+     "from": "start"
     }
    ],
    "fails": "sdi"
@@ -1305,80 +2289,90 @@
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+0",
-     "hold": 1
+     "frame": 2,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+3",
-     "hold": 1
+     "frame": 5,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+6",
-     "hold": 1
+     "frame": 8,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+9",
-     "hold": 1
+     "frame": 11,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+12",
-     "hold": 1
+     "frame": 14,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+15",
-     "hold": 1
+     "frame": 17,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+18",
-     "hold": 1
+     "frame": 20,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+21",
-     "hold": 1
+     "frame": 23,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+24",
-     "hold": 1
+     "frame": 26,
+     "hold": 1,
+     "from": "start"
     },
     {
      "stick": [
       "TX",
       "TY"
      ],
-     "frame": "HIT+1+27",
-     "hold": 1
+     "frame": 29,
+     "hold": 1,
+     "from": "start"
     }
    ],
    "fails": "out"
@@ -1400,5 +2394,5 @@
   ],
   "note": "Frame 1 is the first hit. Its SDI frames are 2 to {HL}, the frozen frames after it; every later hit has its own."
  },
- "switch": "success"
+ "switch": "every"
 }
