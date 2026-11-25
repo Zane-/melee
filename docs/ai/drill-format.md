@@ -44,6 +44,27 @@ measured, `tests/engine/chase.py`), chasing by the engine's `chase` (`melee-engi
 "Answers ready before the player chooses"): its answers to each of Fox's options worked
 out before he chooses. Every try begins in the opponent's grab (the player's `held`) and
 runs from the throw's first frame to the cover that lands, or `END` frames untouched.
+The rest of the queue (2026-11-25, built overnight at the owner's word, each passing
+`check.py` and opened in the client by `tests/client/drill_smoke.py`; none played by the
+owner yet, and each course row says what its drill leaves out). Defense: escape the chain
+grab (`fox-escape-chaingrab`), shine out of combos (`fox-combo-shine`). Punish: waveshine
+to up smash (`fox-waveshine-usmash`: the frames with the hit's freeze), up throw up air
+(`fox-uthrow-uair`) and kill confirms (`fox-kill-confirm`): the follow-ups searched in the
+game for each opponent, percent and DI, the opponent jumping away the frame its hitstun
+ends; chain grab fast fallers (`fox-uthrow-chaingrab`: the regrabs searched the same way);
+aerial hit confirm (`fox-aerial-confirm`: it takes the hit or crouch cancels it, shown only
+at the hit); shield pressure (`fox-shield-pressure`: a shield that grabs on its first free
+frame). Neutral: take it on shield (`fox-shield-then-punish`: an attack or a grab), read
+the stance (`fox-approach-nair-dair`), running shine (`fox-running-shine`), anti-air
+(`fox-anti-air`), beat crouch cancel (`fox-vs-crouch-cancel`). New for them: the events
+`shield_hit`, the states `throw` and `up_throw`, `"shield": "theirs"`; the opponent's
+`oos`, `jump`, `hold` with a `stick`, the condition `stunned` (`opponent-vocabulary.md`);
+a check that asks for something only in some scenarios compares a measure to a scenario's
+number (`"at_least": "NEED"`, NEED 1 or 0), and an example input is left out of a scenario
+by a frame number that never comes (999). Not built, and why: the course rows of
+`fox-shine-knockdown` and the floor half of the chain grab (no opponent behaviour that
+techs), `fox-recovery-mixup` (no `edgeguard` behaviour), and the others still listed as
+the first implementation.
 
 ## Where things are
 

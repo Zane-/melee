@@ -1,0 +1,756 @@
+{
+ "id": "fox-anti-air",
+ "name": "Anti-air",
+ "part": "neutral",
+ "characters": [
+  "fox"
+ ],
+ "goal": "Beat a jump-in with an up tilt or an up smash",
+ "why": "An opponent in the air has committed to where it lands. Fox's up tilt and up smash both reach above him and come out fast: started as the jump-in arrives, they hit it before its aerial hits him. The up smash is a kill move at high damage.",
+ "switch": "success",
+ "tutorial": {
+  "what": "Stand your ground. When the opponent jumps at Fox, press the C-stick up as it arrives: the up smash. Or tilt the stick up and press A: the up tilt.",
+  "expect": "A try begins when the opponent starts an aerial and is judged when Fox's attack hits it, when its aerial hits Fox or his shield, or when it has landed and can act. It only jumps in where an up tilt or an up smash can beat it.",
+  "example": [
+   {
+    "cstick": [
+     0,
+     1
+    ],
+    "frame": 1,
+    "hold": 2,
+    "from": {
+     "near": "D",
+     "after": "start"
+    }
+   },
+   {
+    "cstick": [
+     0,
+     1
+    ],
+    "frame": "UF",
+    "hold": 2,
+    "from": "start"
+   },
+   {
+    "stick": [
+     0,
+     0.55
+    ],
+    "frame": "TF",
+    "hold": 3,
+    "from": "start"
+   },
+   {
+    "press": "A",
+    "frame": "TF",
+    "hold": 1,
+    "from": "start"
+   }
+  ],
+  "marks": {
+   "1": "Frame 1: its aerial starts. It is coming in"
+  },
+  "lessons": [
+   {
+    "title": "The jump-in",
+    "text": [
+     "{opp} plays footsies out of reach, then jumps at Fox with an aerial. From the jump on, where it comes down is fixed: it cannot stop or turn back.",
+     "That is the moment to attack upward instead of shielding or backing off."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": "D",
+         "after": "start"
+        }
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": "UF",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         0,
+         0.55
+        ],
+        "frame": "TF",
+        "hold": 3,
+        "from": "start"
+       },
+       {
+        "press": "A",
+        "frame": "TF",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: its aerial starts. It is coming in"
+      }
+     }
+    }
+   },
+   {
+    "title": "Up smash, up tilt",
+    "text": [
+     "The up smash hits above Fox {7} frames after the C-stick goes up. Press it as the opponent arrives overhead, not when it leaves the ground: too early and it is over before the jump-in gets there.",
+     "The up tilt is faster ({5} frames) and reaches behind Fox too: the stick tilted up, not flicked, with A."
+    ],
+    "show": {
+     "example": {
+      "inputs": [
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": 1,
+        "hold": 2,
+        "from": {
+         "near": "D",
+         "after": "start"
+        }
+       },
+       {
+        "cstick": [
+         0,
+         1
+        ],
+        "frame": "UF",
+        "hold": 2,
+        "from": "start"
+       },
+       {
+        "stick": [
+         0,
+         0.55
+        ],
+        "frame": "TF",
+        "hold": 3,
+        "from": "start"
+       },
+       {
+        "press": "A",
+        "frame": "TF",
+        "hold": 1,
+        "from": "start"
+       }
+      ],
+      "marks": {
+       "1": "Frame 1: its aerial starts. It is coming in"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "scenarios": [
+  {
+   "name": "Fox",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "D": 0,
+    "UF": 2,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Jigglypuff",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "D": 0,
+    "UF": 4,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Falco",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "D": 0,
+    "UF": 7,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Sheik",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "D": 18,
+    "UF": 999,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Captain Falcon",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "D": 0,
+    "UF": 8,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Peach",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "D": 0,
+    "UF": 10,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Ice Climbers",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "D": 22,
+    "UF": 999,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Pikachu",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "D": 0,
+    "UF": 1,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Yoshi",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "D": 27,
+    "UF": 999,
+    "TF": 999
+   }
+  },
+  {
+   "name": "Samus",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "samus",
+    "x": 25,
+    "facing": "player",
+    "react": 15,
+    "loop": true,
+    "script": [
+     {
+      "do": "footsies",
+      "range": [
+       30,
+       48
+      ],
+      "for": 30
+     },
+     {
+      "do": "approach",
+      "moves": "sh_,fh_",
+      "lands": "hit",
+      "wait": [
+       0,
+       40
+      ],
+      "contract": {
+       "answer": "utilt,usmash",
+       "within": 20
+      }
+     }
+    ]
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Samus",
+    "D": 16,
+    "UF": 999,
+    "TF": 999
+   }
+  }
+ ],
+ "attempt": {
+  "start": "their_attack",
+  "judge": [
+   "connects",
+   "hit",
+   {
+    "enters": "shield_stun"
+   },
+   "they_recover"
+  ],
+  "cancel": [],
+  "limit": 150,
+  "timeout": "judge",
+  "within": 600,
+  "missed": "Not counted: it did not jump in. Stand your ground and wait for it."
+ },
+ "measures": {
+  "was_hit": {
+   "happened": "hit"
+  },
+  "shielded": {
+   "happened": {
+    "enters": "shield_stun"
+   }
+  },
+  "beat": {
+   "happened": "connects"
+  },
+  "at": {
+   "frame_of": "connects"
+  }
+ },
+ "checks": {
+  "not hit": {
+   "measure": "was_hit",
+   "equals": false,
+   "expect": "Its aerial does not hit Fox",
+   "words": "its aerial hit Fox",
+   "headline": "Hit",
+   "fix": "Attack upward as it arrives: the C-stick up, or the stick tilted up with A. Later than that and its aerial is already out over Fox."
+  },
+  "no shield": {
+   "measure": "shielded",
+   "equals": false,
+   "expect": "Not shielded",
+   "words": "the aerial hit Fox's shield",
+   "headline": "Shielded",
+   "fix": "The shield gives the jump-in its pressure. Hit it out of the air instead: the up smash or the up tilt as it arrives."
+  },
+  "anti-air": {
+   "measure": "beat",
+   "equals": true,
+   "expect": "Fox's attack hits it first",
+   "words": "nothing hit {opp} before it landed",
+   "headline": "No anti-air",
+   "fix": "Press the C-stick up as {opp} comes over Fox, about a third of a second after it leaves the ground: the up smash hits above him {7} frames later."
+  }
+ },
+ "verdict": {
+  "success": "Hit out of the air on frame {at} of its aerial."
+ },
+ "parts": [
+  {
+   "name": "Anti-air",
+   "teach": "{opp} jumps in with an aerial. Press the C-stick up as it arrives over Fox: the up smash. D-pad left and right: another opponent.",
+   "example": [
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": 1,
+     "hold": 2,
+     "from": {
+      "near": "D",
+      "after": "start"
+     }
+    },
+    {
+     "cstick": [
+      0,
+      1
+     ],
+     "frame": "UF",
+     "hold": 2,
+     "from": "start"
+    },
+    {
+     "stick": [
+      0,
+      0.55
+     ],
+     "frame": "TF",
+     "hold": 3,
+     "from": "start"
+    },
+    {
+     "press": "A",
+     "frame": "TF",
+     "hold": 1,
+     "from": "start"
+    }
+   ],
+   "marks": {
+    "1": "Frame 1: its aerial starts. It is coming in"
+   },
+   "checks": [
+    "not hit",
+    "no shield",
+    "anti-air"
+   ],
+   "streak": 5,
+   "scenario": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  }
+ ],
+ "mistakes": [
+  {
+   "name": "nothing pressed",
+   "inputs": [
+    {
+     "stick": [
+      0,
+      0
+     ],
+     "frame": 1,
+     "hold": 1
+    }
+   ],
+   "fails": "not hit"
+  }
+ ],
+ "coach": {
+  "rows": [
+   {
+    "label": "Up smash or up tilt",
+    "state": "ground_attack",
+    "perfect": []
+   }
+  ],
+  "note": "Frame 1 is its aerial's first frame. The up smash hits 7 frames after the C-stick, the up tilt 5 after A."
+ }
+}
