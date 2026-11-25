@@ -7,14 +7,14 @@
  ],
  "goal": "Wavedash back out of a jump-in's range and grab it as it lands",
  "why": "A jump-in is aimed at where Fox stands. A wavedash back takes him out from under it in a few frames and leaves him facing it, free to act as it lands: the aerial's landing lag is the opening for a grab.",
- "switch": "success",
+ "switch": "every",
  "reset": {
   "after": "quiet",
   "seconds": 1
  },
  "tutorial": {
   "what": "When the opponent jumps at Fox: X or Y, then R with the stick back and a little down as he leaves the ground. As its aerial misses, dash in: X or Y and then Z, the jump-cancelled grab.",
-  "expect": "A try begins when the opponent starts its aerial and is judged when Fox grabs or hits it, when it hits Fox or his shield, or when it can act again. The opponent plays footsies for a while, then walks up to its range and jumps in.",
+  "expect": "The opponent plays footsies, comes to its distance and jumps in: another opponent and aerial every try. A try begins when it starts its aerial and is judged when Fox grabs or hits it, when it hits Fox or his shield, or when it can act again.",
   "example": [
    {
     "press": "jump",
@@ -68,9 +68,9 @@
    }
   ],
   "marks": {
-   "1": "Frame 1: its aerial starts. X or Y",
+   "1": "Frame 1: its {attack} starts. X or Y",
    "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
-   "GO": "Frame {GO}: its aerial has missed. Dash in"
+   "GO": "Frame {GO}: its {attack} has missed. Dash in"
   },
   "lessons": [
    {
@@ -105,7 +105,7 @@
        }
       ],
       "marks": {
-       "1": "Frame 1: its aerial starts. X or Y",
+       "1": "Frame 1: its {attack} starts. X or Y",
        "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back"
       },
       "cues": [
@@ -190,9 +190,9 @@
        }
       ],
       "marks": {
-       "1": "Frame 1: its aerial starts. X or Y",
+       "1": "Frame 1: its {attack} starts. X or Y",
        "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
-       "GO": "Frame {GO}: its aerial has missed. Dash in"
+       "GO": "Frame {GO}: its {attack} has missed. Dash in"
       },
       "cues": [
        {
@@ -235,15 +235,16 @@
  },
  "scenarios": [
   {
-   "name": "Fox",
+   "name": "Fox's forward air",
    "stage": "final-destination",
    "player": {
     "x": -20
    },
    "opponent": {
     "character": "fox",
-    "x": 37.1,
+    "x": 41.9,
     "facing": "player",
+    "loop": true,
     "script": [
      {
       "mix": [
@@ -253,10 +254,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
          }
         ]
        },
@@ -266,10 +297,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
          }
         ]
        },
@@ -279,40 +340,89 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
          }
         ]
        }
       ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        29.1
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
      }
     ],
-    "loop": true,
     "example": {
      "script": [
       {
@@ -329,14 +439,719 @@
        "until": {
         "distance": [
          0,
-         29.1
+         24.9
         ]
        }
       },
       {
        "do": "hold",
        "pad": "stand",
-       "for": 14
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "attack": "forward air",
+    "GO": 16,
+    "FREE": 42,
+    "T": 20
+   }
+  },
+  {
+   "name": "Fox's down air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 41.9,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         24.9
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "attack": "down air",
+    "GO": 14,
+    "FREE": 38,
+    "T": 20
+   }
+  },
+  {
+   "name": "Fox's back air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "fox",
+    "x": 41.9,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 28.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         24.9
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_bair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Fox",
+    "attack": "back air",
+    "GO": 16,
+    "FREE": 40,
+    "T": 20
+   }
+  },
+  {
+   "name": "Marth's neutral air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "marth",
+    "x": 43.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         26.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
       },
       {
        "do": "move",
@@ -352,22 +1167,24 @@
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Fox",
+    "opp": "Marth",
     "attack": "neutral air",
-    "GO": 14,
-    "FREE": 34
+    "GO": 22,
+    "FREE": 68,
+    "T": 20
    }
   },
   {
-   "name": "Jigglypuff",
+   "name": "Marth's down air",
    "stage": "final-destination",
    "player": {
     "x": -20
    },
    "opponent": {
-    "character": "jigglypuff",
-    "x": 32.9,
+    "character": "marth",
+    "x": 43.0,
     "facing": "player",
+    "loop": true,
     "script": [
      {
       "mix": [
@@ -377,10 +1194,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -390,10 +1237,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -403,40 +1280,89 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           28,
+           42
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 27.4
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        }
       ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        30.9
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
      }
     ],
-    "loop": true,
     "example": {
      "script": [
       {
@@ -453,14 +1379,249 @@
        "until": {
         "distance": [
          0,
-         30.9
+         26.0
         ]
        }
       },
       {
        "do": "hold",
        "pad": "stand",
-       "for": 14
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Marth",
+    "attack": "down air",
+    "GO": 22,
+    "FREE": 70,
+    "T": 20
+   }
+  },
+  {
+   "name": "Jigglypuff's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 37.8,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         36.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
       },
       {
        "do": "move",
@@ -478,20 +1639,22 @@
    "numbers": {
     "opp": "Jigglypuff",
     "attack": "forward air",
-    "GO": 24,
-    "FREE": 52
+    "GO": 32,
+    "FREE": 52,
+    "T": 36
    }
   },
   {
-   "name": "Falco",
+   "name": "Jigglypuff's down air",
    "stage": "final-destination",
    "player": {
     "x": -20
    },
    "opponent": {
-    "character": "falco",
-    "x": 35.4,
+    "character": "jigglypuff",
+    "x": 37.8,
     "facing": "player",
+    "loop": true,
     "script": [
      {
       "mix": [
@@ -501,10 +1664,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -514,10 +1707,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -527,40 +1750,89 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           44,
+           58
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.8
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        }
       ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        33.4
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_dair_in",
-      "lcancel": false
      }
     ],
-    "loop": true,
     "example": {
      "script": [
       {
@@ -577,14 +1849,719 @@
        "until": {
         "distance": [
          0,
-         33.4
+         36.8
         ]
        }
       },
       {
        "do": "hold",
        "pad": "stand",
-       "for": 14
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "attack": "down air",
+    "GO": 32,
+    "FREE": 62,
+    "T": 36
+   }
+  },
+  {
+   "name": "Jigglypuff's back air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "jigglypuff",
+    "x": 37.9,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 21.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 21.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 21.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 21.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         20.9
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_bair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Jigglypuff",
+    "attack": "back air",
+    "GO": 14,
+    "FREE": 36,
+    "T": 20
+   }
+  },
+  {
+   "name": "Falco's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 40.8,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.9
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.9
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.9
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.9
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         23.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Falco",
+    "attack": "forward air",
+    "GO": 20,
+    "FREE": 46,
+    "T": 20
+   }
+  },
+  {
+   "name": "Falco's down air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "falco",
+    "x": 40.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 34.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 34.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 34.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 34.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         31.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
       },
       {
        "do": "move",
@@ -602,20 +2579,257 @@
    "numbers": {
     "opp": "Falco",
     "attack": "down air",
-    "GO": 18,
-    "FREE": 42
+    "GO": 16,
+    "FREE": 42,
+    "T": 28
    }
   },
   {
-   "name": "Captain Falcon",
+   "name": "Sheik's down air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "sheik",
+    "x": 40.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.6
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         35.0
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Sheik",
+    "attack": "down air",
+    "GO": 36,
+    "FREE": 57,
+    "T": 32
+   }
+  },
+  {
+   "name": "Captain Falcon's down air",
    "stage": "final-destination",
    "player": {
     "x": -20
    },
    "opponent": {
     "character": "captain-falcon",
-    "x": 33.5,
+    "x": 38.3,
     "facing": "player",
+    "loop": true,
     "script": [
      {
       "mix": [
@@ -625,10 +2839,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           40,
+           54
           ],
-          "for": 40
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 35.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -638,10 +2882,40 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           40,
+           54
           ],
-          "for": 80
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 35.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        },
@@ -651,536 +2925,89 @@
          {
           "do": "footsies",
           "range": [
-           34,
-           52
+           40,
+           54
           ],
-          "for": 120
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 35.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 35.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
          }
         ]
        }
       ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        31.5
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
      }
     ],
-    "loop": true,
-    "example": {
-     "script": [
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 20
-      },
-      {
-       "do": "hold",
-       "stick": [
-        0.35,
-        0
-       ],
-       "until": {
-        "distance": [
-         0,
-         31.5
-        ]
-       }
-      },
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 14
-      },
-      {
-       "do": "move",
-       "name": "sh_nair_in",
-       "lcancel": false
-      },
-      {
-       "do": "hold",
-       "pad": "stand"
-      }
-     ]
-    }
-   },
-   "camera": "normal",
-   "numbers": {
-    "opp": "Captain Falcon",
-    "attack": "neutral air",
-    "GO": 28,
-    "FREE": 45
-   }
-  },
-  {
-   "name": "Peach",
-   "stage": "final-destination",
-   "player": {
-    "x": -20
-   },
-   "opponent": {
-    "character": "peach",
-    "x": 33.2,
-    "facing": "player",
-    "script": [
-     {
-      "mix": [
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 40
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 80
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 120
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        25.2
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
-     }
-    ],
-    "loop": true,
-    "example": {
-     "script": [
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 20
-      },
-      {
-       "do": "hold",
-       "stick": [
-        0.35,
-        0
-       ],
-       "until": {
-        "distance": [
-         0,
-         25.2
-        ]
-       }
-      },
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 14
-      },
-      {
-       "do": "move",
-       "name": "sh_fair_in",
-       "lcancel": false
-      },
-      {
-       "do": "hold",
-       "pad": "stand"
-      }
-     ]
-    }
-   },
-   "camera": "normal",
-   "numbers": {
-    "opp": "Peach",
-    "attack": "forward air",
-    "GO": 12,
-    "FREE": 45
-   }
-  },
-  {
-   "name": "Ice Climbers",
-   "stage": "final-destination",
-   "player": {
-    "x": -20
-   },
-   "opponent": {
-    "character": "ice-climbers",
-    "x": 35.8,
-    "facing": "player",
-    "script": [
-     {
-      "mix": [
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 40
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 80
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 120
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        27.8
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_fair_in",
-      "lcancel": false
-     }
-    ],
-    "loop": true,
-    "example": {
-     "script": [
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 20
-      },
-      {
-       "do": "hold",
-       "stick": [
-        0.35,
-        0
-       ],
-       "until": {
-        "distance": [
-         0,
-         27.8
-        ]
-       }
-      },
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 14
-      },
-      {
-       "do": "move",
-       "name": "sh_fair_in",
-       "lcancel": false
-      },
-      {
-       "do": "hold",
-       "pad": "stand"
-      }
-     ]
-    }
-   },
-   "camera": "normal",
-   "numbers": {
-    "opp": "Ice Climbers",
-    "attack": "forward air",
-    "GO": 20,
-    "FREE": 50
-   }
-  },
-  {
-   "name": "Pikachu",
-   "stage": "final-destination",
-   "player": {
-    "x": -20
-   },
-   "opponent": {
-    "character": "pikachu",
-    "x": 34.6,
-    "facing": "player",
-    "script": [
-     {
-      "mix": [
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 40
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 80
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 120
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        26.6
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
-     }
-    ],
-    "loop": true,
-    "example": {
-     "script": [
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 20
-      },
-      {
-       "do": "hold",
-       "stick": [
-        0.35,
-        0
-       ],
-       "until": {
-        "distance": [
-         0,
-         26.6
-        ]
-       }
-      },
-      {
-       "do": "hold",
-       "pad": "stand",
-       "for": 14
-      },
-      {
-       "do": "move",
-       "name": "sh_nair_in",
-       "lcancel": false
-      },
-      {
-       "do": "hold",
-       "pad": "stand"
-      }
-     ]
-    }
-   },
-   "camera": "normal",
-   "numbers": {
-    "opp": "Pikachu",
-    "attack": "neutral air",
-    "GO": 20,
-    "FREE": 47
-   }
-  },
-  {
-   "name": "Yoshi",
-   "stage": "final-destination",
-   "player": {
-    "x": -20
-   },
-   "opponent": {
-    "character": "yoshi",
-    "x": 35.3,
-    "facing": "player",
-    "script": [
-     {
-      "mix": [
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 40
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 80
-         }
-        ]
-       },
-       {
-        "weight": 1,
-        "steps": [
-         {
-          "do": "footsies",
-          "range": [
-           34,
-           52
-          ],
-          "for": 120
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "do": "hold",
-      "stick": [
-       0.35,
-       0
-      ],
-      "until": {
-       "distance": [
-        0,
-        33.3
-       ]
-      }
-     },
-     {
-      "do": "hold",
-      "pad": "stand",
-      "for": 14
-     },
-     {
-      "do": "move",
-      "name": "sh_nair_in",
-      "lcancel": false
-     }
-    ],
-    "loop": true,
     "example": {
      "script": [
       {
@@ -1204,7 +3031,477 @@
       {
        "do": "hold",
        "pad": "stand",
-       "for": 14
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "attack": "down air",
+    "GO": 24,
+    "FREE": 55,
+    "T": 32
+   }
+  },
+  {
+   "name": "Captain Falcon's up air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "captain-falcon",
+    "x": 38.5,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 23.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_uair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 23.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_uair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 23.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_uair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 23.0
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_uair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         21.5
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_uair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Captain Falcon",
+    "attack": "up air",
+    "GO": 14,
+    "FREE": 34,
+    "T": 20
+   }
+  },
+  {
+   "name": "Peach's neutral air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 38.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         25.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
       },
       {
        "do": "move",
@@ -1220,10 +3517,1891 @@
    },
    "camera": "normal",
    "numbers": {
-    "opp": "Yoshi",
+    "opp": "Peach",
     "attack": "neutral air",
+    "GO": 10,
+    "FREE": 46,
+    "T": 24
+   }
+  },
+  {
+   "name": "Peach's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "peach",
+    "x": 38.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 26.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         25.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Peach",
+    "attack": "forward air",
+    "GO": 10,
+    "FREE": 45,
+    "T": 24
+   }
+  },
+  {
+   "name": "Ice Climbers's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 40.7,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 37.2
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         35.7
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "attack": "forward air",
+    "GO": 20,
+    "FREE": 50,
+    "T": 32
+   }
+  },
+  {
+   "name": "Ice Climbers's neutral air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 40.7,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         23.7
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "attack": "neutral air",
+    "GO": 18,
+    "FREE": 48,
+    "T": 20
+   }
+  },
+  {
+   "name": "Ice Climbers's down air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "ice-climbers",
+    "x": 40.7,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           28,
+           42
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 25.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_dair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         23.7
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_dair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Ice Climbers",
+    "attack": "down air",
     "GO": 28,
-    "FREE": 43
+    "FREE": 54,
+    "T": 20
+   }
+  },
+  {
+   "name": "Pikachu's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 39.3,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 33.1
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 33.1
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 33.1
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           36,
+           50
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 33.1
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         30.3
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "attack": "forward air",
+    "GO": 22,
+    "FREE": 52,
+    "T": 28
+   }
+  },
+  {
+   "name": "Pikachu's neutral air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 39.8,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 36.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 36.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 36.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           40,
+           54
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 36.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_nair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         34.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_nair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "attack": "neutral air",
+    "GO": 18,
+    "FREE": 47,
+    "T": 32
+   }
+  },
+  {
+   "name": "Pikachu's back air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "pikachu",
+    "x": 39.8,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 40.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 40.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 40.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           44,
+           58
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 40.3
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_bair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         38.8
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_bair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Pikachu",
+    "attack": "back air",
+    "GO": 30,
+    "FREE": 62,
+    "T": 36
+   }
+  },
+  {
+   "name": "Yoshi's forward air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 40.1,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 29.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 29.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 29.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           32,
+           46
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 120,
+          "near": 29.5
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 8
+         },
+         {
+          "do": "move",
+          "name": "sh_fair_in",
+          "lcancel": false
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         27.1
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 24
+      },
+      {
+       "do": "move",
+       "name": "sh_fair_in",
+       "lcancel": false
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "opp": "Yoshi",
+    "attack": "forward air",
+    "GO": 26,
+    "FREE": 43,
+    "T": 24
    }
   }
  ],
@@ -1247,7 +5425,7 @@
   "limit": 150,
   "timeout": "judge",
   "within": 900,
-  "missed": "Not counted: it did not jump in. Hold your ground: it walks up to its range and jumps."
+  "missed": "Not counted: it did not jump in. Hold your ground: it comes to its distance and jumps."
  },
  "measures": {
   "was_hit": {
@@ -1320,12 +5498,12 @@
   }
  },
  "verdict": {
-  "success": "Punished on frame {at}; {opp} could act on frame {FREE}."
+  "success": "Punished {opp}'s {attack} on frame {at}; it could act on frame {FREE}."
  },
  "parts": [
   {
    "name": "Wavedash back",
-   "teach": "{opp} jumps in with its {attack}. X or Y, then R with the stick back and a little down on frame {J+1}: Fox slides out from under it.",
+   "teach": "{opp} comes to its distance and jumps in with its {attack}. X or Y, then R with the stick back and a little down on frame {J+1}: Fox slides out from under it.",
    "example": [
     {
      "press": "jump",
@@ -1350,7 +5528,7 @@
     }
    ],
    "marks": {
-    "1": "Frame 1: its aerial starts. X or Y",
+    "1": "Frame 1: its {attack} starts. X or Y",
     "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back"
    },
    "cues": [
@@ -1385,9 +5563,23 @@
     4,
     5,
     6,
-    7
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
    ],
-   "success": "It missed.",
+   "success": "Its {attack} missed.",
    "coach": {
     "rows": [
      {
@@ -1418,7 +5610,7 @@
   },
   {
    "name": "Punish the landing",
-   "teach": "The same, then dash in on frame {GO} and grab it as it lands: X or Y, then Z. D-pad left and right: another opponent.",
+   "teach": "The same, then dash in on frame {GO} and grab it as it lands: X or Y, then Z.",
    "example": [
     {
      "press": "jump",
@@ -1472,9 +5664,9 @@
     }
    ],
    "marks": {
-    "1": "Frame 1: its aerial starts. X or Y",
+    "1": "Frame 1: its {attack} starts. X or Y",
     "J+1": "Frame {J+1}: R, the stick back and a little down: the wavedash back",
-    "GO": "Frame {GO}: its aerial has missed. Dash in"
+    "GO": "Frame {GO}: its {attack} has missed. Dash in"
    },
    "cues": [
     {
@@ -1524,7 +5716,21 @@
     4,
     5,
     6,
-    7
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
    ]
   }
  ],
@@ -1544,7 +5750,7 @@
    "fails": "out of range"
   },
   {
-   "name": "the dash in 24 frames late",
+   "name": "the dash in once it can act",
    "inputs": [
     {
      "press": "jump",
@@ -1572,7 +5778,7 @@
       1,
       0
      ],
-     "frame": "GO+24",
+     "frame": "FREE",
      "hold": 200,
      "from": "start"
     },
@@ -1582,7 +5788,7 @@
      "from": {
       "near": 16,
       "after": {
-       "frame": "GO+24"
+       "frame": "FREE"
       }
      }
     },
@@ -1592,7 +5798,7 @@
      "from": {
       "near": 16,
       "after": {
-       "frame": "GO+24"
+       "frame": "FREE"
       }
      }
     }
