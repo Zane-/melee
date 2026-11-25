@@ -67,9 +67,13 @@ condition `stunned` (`opponent-vocabulary.md`); the knockback's speed in a fight
 (`kvx`, `kvy`: where a hit will send it, known through its freeze);
 a check that asks for something only in some scenarios compares a measure to a scenario's
 number (`"at_least": "NEED"`, NEED 1 or 0), and an example input is left out of a scenario
-by a frame number that never comes (999). Not built, and why: `fox-recovery-mixup` (no
-`edgeguard` behaviour), and the others still listed as the first implementation in their
-course rows.
+by a frame number that never comes (999). Not built (six rows; each says in
+`data/courses/fox.md` what it needs): `fox-oos-choice` (out-of-shield answers the engine
+does not have as moves, and a contract that rules an answer out), `fox-shine-spike` and
+`fox-edgeguard-onstage` (an example found off the stage against each recovery),
+`fox-escape-pressure` (the engine's `pressure` leaves 15 to 40 frames between hits: a
+scripted string needs its own measurements), `universal-wall-tech` (the player launched at
+a wall), `fox-recovery-mixup` (no `edgeguard` behaviour).
 
 ## Where things are
 
