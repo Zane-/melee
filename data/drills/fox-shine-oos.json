@@ -213,7 +213,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -239,7 +241,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -286,7 +290,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -312,7 +318,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -359,7 +367,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -385,7 +395,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -432,7 +444,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -458,7 +472,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -505,7 +521,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -531,7 +549,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -578,7 +598,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -604,7 +626,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -651,7 +675,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -677,7 +703,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -724,7 +752,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -750,7 +780,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -797,7 +829,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -823,7 +857,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -870,7 +906,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -896,7 +934,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -943,7 +983,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]
@@ -969,7 +1011,9 @@
                     ],
                     "contract": {
                       "answer": "oos_down_b",
-                      "within": 4
+                      "within": 4,
+                      "one_hit": 9,
+                      "late": 3
                     }
                   }
                 ]

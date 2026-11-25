@@ -180,7 +180,20 @@ first frame the player can answer by which the answer hits, that frame 1: a shie
 player out of the shield the frame its stun is over (found by playing the option ahead;
 `{"answer": "oos_down_b", "within": 4}`: the frame-4 shine out of shield hits), any other
 no sooner than `react` frames after the commitment and before the option lands. The
-answer is searched with the opponent letting go after its line, as it plays it. Up to four
+answer is searched with the opponent letting go after its line, as it plays it.
+`"late": N` (2026-11-25): the answer must also hit pressed 1, 2 ... N frames after the
+first it can be (each of them: Captain Falcon's forward tilt on a shield is hit on his
+leg by the frame-4 shine and by one 3 frames late, not by one 2 frames late), and the
+opponent stays as that check assumed it, not off into its next step, until the latest
+would have landed: a drill that lets its player be late (`fox-shine-oos`:
+the jump on frame 3, the shine a frame after it is first possible: `"late": 3`) is promised
+an attack its allowed timing punishes, not one only a frame-perfect answer reaches (found:
+Fox's up air on a shield, which the frame-4 shine hits and a shine two frames later does
+not). `"one_hit": N`: only an attack that hits the shield once, with no second hit before
+its stun is over (Fox's down air keeps a shield in stun for seven hits and has pushed the
+two apart by its end: the shine promised of the first hit no longer reaches) and none in
+the N frames from the first the player can act on (Fox's forward air hits again 4 frames
+later: a jump a frame or two late meets it in the shield and is ignored). Up to four
 of the best lines are looked at each time; the first answered is committed to, and the
 player's answer is kept with it (`Approach.answer`: the frame asked at, its pads), as the
 check and the demonstration play it. On a shield the line is also on its front (`front`,

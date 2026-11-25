@@ -15,16 +15,25 @@ coming) the stand-in presses Y with the shield held and down-B 3 frames
 later: a success, twice. Then Y 4 frames after the stun: "Late jump",
 twice, and the coach's card after the second miss (Settings: 2). Then the
 stand-in jumps away as the opponent commits: the attack misses the shield,
-and the try is not counted. Input delay 0 (the stand-in's keys are the
-frames it means).
+and the try is not counted (an attack too fast to leave, a jab from next
+to it, lands on the shield all the same: the jump away is then tried
+again, three more times at most). Input delay 0 (the stand-in's keys are
+the frames it means).
 
 Which opponent and attack a try meets is drawn from the session's random
 numbers: `--seed N` sets them, and a run without it prints the seed it
-drew. Some draws fail (2026-11-25: seed 8, the late jump judged "Released
-the shield first"; unseeded, about one run in four, mostly "No hit: the
-opponent was out of reach" in the second shine), on the tree of the day
-before as on that day's: an open problem of the drill or of this stand-in,
-not yet looked into. Seeds 1 to 7 and 9 to 15 pass.
+drew. With TRACE set a run says which attack each try meets and, frame by
+frame from the hit, both fighters' states; TRIES=oos,oos,... sets the
+tries. Five draws that failed (2026-11-25), each replayed and traced: seed
+8 and 650256554 (Fox's forward air hits the shield again as the late jump
+is pressed), 260468154 (Fox's down air, then his up air: the shine a frame
+or two late did not reach), 1008632531 (Captain Falcon's forward tilt: the
+stand-in's shine, a frame late, missed the leg a frame-perfect one hits),
+435630502 (a jab from next to the stand-in, too fast to jump away from).
+The drill's contracts now ask for one hit and for an answer that holds at
+every lateness up to 3 frames ("one_hit", "late":
+docs/ai/opponent-vocabulary.md), and the jump away is tried again: the
+five pass.
 """
 import argparse
 import os
@@ -71,7 +80,8 @@ class Player:
     on the first frame it sees coming), "late" (Y 4 frames after the stun
     ends), "away" (a jump away as the opponent commits)."""
 
-    BUDGET = 20000              # calls before the test is called stuck
+    BUDGET = 30000              # calls before the test is called stuck
+    AGAIN = 3                   # more jumps away, while none got away
     TRY_BUDGET = 1500           # frames a try may take (a reset: 480)
 
     def __init__(self, c, tries, shots=None):
@@ -174,7 +184,12 @@ class Player:
             if self.after_success == 0:
                 self.shot(game, "success")
         done = len(res) + len(self.skipped)
-        if done >= len(self.tries):
+        # (the last kind, a jump away, again while its attack was too fast
+        # to leave: a jab from next to the stand-in lands on the shield all
+        # the same and that try is judged. Until one misses the shield.)
+        more = self.tries[-1] == "away" and not self.skipped and \
+            done < len(self.tries) + self.AGAIN
+        if done >= len(self.tries) and not more:
             for key in KEYS:
                 game.key(key, False)
             self.leaving = self.leaving or Chooser(c, "list")
@@ -184,9 +199,10 @@ class Player:
             for key in KEYS:
                 game.key(key, False)
             self.try_at = done
-            self.t = dict(kind=self.tries[done], step="shield", n=0, all=0)
-            print("   try %d: %s" % (done + 1, self.tries[done]),
-                  file=sys.stderr, flush=True)
+            kind = self.tries[min(done, len(self.tries) - 1)]
+            self.t = dict(kind=kind, step="shield", n=0, all=0)
+            print("   try %d: %s" % (done + 1, kind), file=sys.stderr,
+                  flush=True)
             return
         t = self.t
         t["n"] += 1
@@ -196,6 +212,51 @@ class Player:
                 done + 1, t["kind"], t["step"], t["all"]))
         f = game.fighter(0)
         kind = t["kind"]
+        if os.environ.get("TRACE"):
+            d = c.session.d
+            b = d.op_script.cur if d.op_script is not None else None
+            line = getattr(getattr(b, "opp", None), "line", None)
+            if line is not None and t.get("line") is not line:
+                t["line"] = line
+                print("   %s commits to %s (apart %.1f)" % (
+                    d.scenario()["name"], line.names,
+                    abs(game.fighter(1).pos[0] - f.pos[0])),
+                    file=sys.stderr, flush=True)
+                ans = b.opp.answer
+                if ans is not None:
+                    held = next((i for i, raw in enumerate(ans[1])
+                                 if raw != ans[1][0]), len(ans[1]))
+                    print("      its frame %d: the answer asked on frame %d, "
+                          "the shield held %d frames, free on its frame %d"
+                          % (b.opp.frame, ans[0], held, ans[0] + held),
+                          file=sys.stderr, flush=True)
+                    from melee_actor.ahead import compress, look
+                    from melee_engine.behave import raw_pad
+                    o_ = b.opp
+                    rest = list(o_.plan[max(0, o_.frame - o_.plan_at):])
+                    plan = compress([raw_pad(r) for r in rest]) + \
+                        [(40, raw_pad((0, 0, 0, 0, 0, 0, 0)))]
+                    seen = look(game, 1, 0, plan, stop=0)
+                    for k, row in enumerate(seen.rows):
+                        if row.t_hitlag > 0 or row.t_state == STUN or \
+                                k + 1 == len(seen.rows):
+                            print("      ahead: its frame %d me %3d hitlag "
+                                  "%.0f | it %3d apart %5.1f" % (
+                                      o_.frame + k, row.t_state,
+                                      row.t_hitlag, row.a_state,
+                                      abs(row.a_x - row.t_x)),
+                                  file=sys.stderr, flush=True)
+            o = game.fighter(1)
+            if f.state == STUN or t.get("traced", 0) > 0:
+                if f.state == STUN and not t.get("traced"):
+                    t["traced"] = 26
+                t["traced"] -= 1
+                print("      %s/%d me %3d hitlag %.0f | it %3d apart %5.1f | "
+                      "shield %.1f | its frame %s" % (
+                          t["step"], t["n"], f.state, f.hitlag, o.state,
+                          abs(o.pos[0] - f.pos[0]), f.shield,
+                          getattr(getattr(b, "opp", None), "frame", None)),
+                      file=sys.stderr, flush=True)
         if t["step"] == "shield":
             game.key("s")                       # R held
             if kind == "away":
@@ -300,7 +361,7 @@ def main():
               part == "Punish" and
               c.drills()[c.row[c.part]]["id"] == DRILL, str(part))
 
-        tries = ["oos", "oos", "late", "late", "away"]
+        tries = os.environ.get("TRIES", "oos,oos,late,late,away").split(",")
         p = Player(c, tries, args.shots)
         told = []
         show, say = c.show_result, c.banner_say
@@ -381,7 +442,9 @@ def main():
         check("a jump away as the opponent commits: the attack misses the "
               "shield, the try not counted", len(p.skipped) >= 1 and
               p.skipped[0].startswith("Not counted:") and
-              len(told) == 4, "%s; %d counted" % (p.skipped[:1], len(told)))
+              4 <= len(told) <= 4 + Player.AGAIN,
+              "%s; %d counted, %d of them jumps away an attack was too "
+              "fast for" % (p.skipped[:1], len(told), len(told) - 4))
         bad = [line.strip()[:160] for line in w.log
                if "aurora" in line and ("warn" in line or "error" in line)]
         check("the interface raised no warnings", not bad,

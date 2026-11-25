@@ -645,7 +645,7 @@ def raw_pad(raw):
     return raw_to_pad(raw)
 
 
-def stun_over(n, port, target, raws, most=40, clear=0):
+def stun_over(n, port, target, raws, most=40, clear=0, single=False):
     """Where `port` plays `raws` against a shielding `target` (holding its
     pad), the first frame (counted from now, 1 the first) the target can
     act out of the shield after the first hit on it; None if none hits
@@ -654,7 +654,11 @@ def stun_over(n, port, target, raws, most=40, clear=0):
     Fighter_procInput): an answer holds the shield the frames before it
     and is pressed on it. `clear`: None too if the shield, still held, is
     hit again in the `clear` frames from that one (a multi-hit attack's
-    next hit: an answer pressed late would meet it in the shield)."""
+    next hit: an answer pressed late would meet it in the shield).
+    `single`: None too if the shield is hit a second time before its stun
+    is over (an attack that keeps it in stun hit after hit: by the stun's
+    end it has pushed the two apart, and what was promised of the first
+    hit no longer holds)."""
     from melee_actor.ahead import compress, look
     plan = compress([raw_pad(r) for r in raws]) + [(most, raw_pad(NONE))]
     out = look(n, port, target, plan, stop=0)
@@ -664,6 +668,9 @@ def stun_over(n, port, target, raws, most=40, clear=0):
             if row.t_hitlag > 0 and row.t_state in S.SHIELDING:
                 hit = i
             continue
+        if single and row.t_state in S.SHIELDING and \
+                row.t_hitlag > out.rows[i - 1].t_hitlag:
+            return None
         if row.t_state in (S.GUARD, S.GUARD_ON) and row.t_hitlag <= 0:
             if any(r.t_hitlag > 0 and r.t_state in S.SHIELDING
                    for r in out.rows[i + 1:i + clear]):
@@ -707,7 +714,14 @@ class Commit(Contract):
 
     def __init__(self, moves, kinds=LANDS["any"], answer=None, within=15,
                  near=50, trial=30, front=False, pick="best", recent=None,
-                 weights=None, tried=None):
+                 weights=None, tried=None, one_hit=None, late=None):
+        # (the answer out of the shield must also hit pressed `late`
+        # frames after the first it can be: as late as a drill lets it)
+        self.late = late or 0
+        # (only an attack that hits a shield once: none again before its
+        # stun is over, nor in `one_hit` frames from the first the player
+        # can act on)
+        self.one_hit = one_hit
         self.moves = moves
         self.kinds = kinds
         self.front = within if front else 0
@@ -929,7 +943,9 @@ class Commit(Contract):
             # again in those frames (a late answer is then judged late, not
             # hit again: the drill's "one hit")
             self.answer.holds = "none"
-            first = stun_over(n, port, target, raws, clear=self.within)
+            first = stun_over(n, port, target, raws,
+                              clear=max(self.within, self.one_hit or 0),
+                              single=bool(self.one_hit))
             if first is None:
                 return None, 0.0
             wait = first - 1
@@ -946,7 +962,21 @@ class Commit(Contract):
                                    wait, by)
         if not good:
             return None, a.ms
-        return ([tuple(my_pad)] * wait + good[0].raw(), good[0]), a.ms
+        ms = a.ms
+        if self.late and shielding(my_pad):
+            # the same answer, the shield held 1 to `late` frames more
+            # (each of them: an attacker's limb comes and goes): a line
+            # only a frame-perfect answer reaches is not promised (Fox's up
+            # air on a shield: the frame-4 shine hits, two frames later it
+            # does not)
+            for more in range(1, self.late + 1):
+                again, b = self.answer.find(
+                    n, target, port, raws + [self.after] * 90,
+                    tuple(my_pad), wait + more, by + more)
+                ms += b.ms
+                if not again:
+                    return None, ms
+        return ([tuple(my_pad)] * wait + good[0].raw(), good[0]), ms
 
     owner = None          # the EngineOpponent playing it
 
@@ -958,6 +988,15 @@ class Commit(Contract):
         if o is not None and o.plan_at is not None and \
                 o.frame - o.plan_at < len(o.plan) - 1:
             return False
+        if o is not None and self.late and o.answer is not None:
+            # until the answer it promised, pressed as late as allowed,
+            # would have landed, it stays as that was checked: not off
+            # into its next step
+            asked, pads = o.answer
+            held = next((i for i, raw in enumerate(pads) if raw != pads[0]),
+                        len(pads))
+            if o.frame <= asked + held + self.within + self.late:
+                return False
         return Contract.over(self, me)
 
     def retrack(self, n, port, target, remaining, my_pad, lead, rng,
@@ -1031,7 +1070,9 @@ class Approach(Behaviour):
                                front=spec.get("front", lands_on == "shield"),
                                pick=spec.get("pick", "variety"),
                                recent=self.recent,
-                               weights=spec.get("weights"), tried=tried)
+                               weights=spec.get("weights"), tried=tried,
+                               one_hit=con.get("one_hit"),
+                               late=con.get("late"))
         self.noted = None         # the commitment its family was kept for
         body = spec.get("body", "footsies")
         if body == "footsies":
@@ -1987,10 +2028,13 @@ PARAMS = {
             for k, w in v.items()), "{FAMILY: WEIGHT}, e.g. "
             '{"fsmash": 0.5}'),
         "contract": (lambda v: isinstance(v, dict) and
-                     set(v) <= {"answer", "within"} and _moves(
-                         v.get("answer", "")) and
-                     isinstance(v.get("within", 15), int),
-                     '{"answer": MOVE_PREFIXES, "within": FRAMES}'),
+                     set(v) <= {"answer", "within", "one_hit", "late"} and
+                     _moves(v.get("answer", "")) and
+                     isinstance(v.get("within", 15), int) and
+                     isinstance(v.get("one_hit", 1), int) and
+                     isinstance(v.get("late", 0), int),
+                     '{"answer": MOVE_PREFIXES, "within": FRAMES, '
+                     '"one_hit": FRAMES, "late": FRAMES}'),
         "body": (lambda v: v in ("footsies",) + tuple(Hold.PADS),
                  "footsies, stand, shield or crouch"),
         "wait": (_pair, "[LO, HI] frames"),
