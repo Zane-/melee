@@ -198,13 +198,36 @@ From that table the drill has 14 more attacks, 24 of ten opponents (all of the t
 but the Ice Climbers, whose partner hits after the first): each lifts every character at
 0% when nothing is held (Fox's and Falco's forward tilts do not: nothing to ASDI down)
 and freezes every character as long.
+
+More attacks for DI and SDI (2026-11-25): `universal-di` has 21 attacks of ten opponents
+(Pikachu's forward and up smash, Yoshi's forward and down smash, Samus's forward and down
+smash and Jigglypuff's up smash added; all of the top 11 but the Ice Climbers). Each was
+probed against Fox (the hit, its freeze, the angle he moves at with no DI and with the
+stick each of eight ways, the least damage at which it kills him with no DI) and then
+measured for all 26 characters with no DI, the DI taught, 45 degrees off it and the wrong
+way; the bounds of its checks lie between what the characters measured (a forward smash:
+raised from 47 degrees, the whole of it from 56, where no DI measured 41 to 43, half 50 to
+53 and the whole 59 to 61). It is built at about 10% over where it kills Fox with no DI.
+Left out, measured: the Ice Climbers' forward smash (the partner's hit comes into the
+first's freeze, and the DI held turns the launch for some characters only) and up smash
+(over Kirby's head), Yoshi's up smash (over four short characters), Marth's down smash
+(another part of it hits by the character's size). Played against the opponent a person
+plays, every character, 3 seeded runs a scenario: 1638 of 1638 in each judged part.
+`universal-sdi` has a fifth attack, Yoshi's down air (away: out after one hit for every
+character; toward him: 4 hits or more; kept at 0% damage: from 17% on the mistake "stick
+already held when the hit lands" makes its first hit miss Young Link, who walks out of it
+on the hit's own frame). Left out, measured for all 26 characters: the
+rapid jabs of Fox, Falco and Sheik (any way that moves a character gets it out, so the
+drill has no wrong way to prove), Captain Falcon's jabs and Sheik's forward smash; probed
+against Fox: Peach's down smash, Captain Falcon's up smash and Samus's screw attack
+(every hit launches or carries, which the drill counts as launched). 390 of 390 in its two parts.
 `universal-di`: 20% either side of the damage each attack was built at, proved at both
 ends. `universal-sdi`: from 0 to 21% (Pikachu's down smash against Fox) up to 60%, every
 percent tried (`--step 1`): which hits of a multi-hit attack connect changes from one
 damage to the next, and a binary search had put Falco's top against Jigglypuff's down air
 at 45% or more where it first fails at 43%. `check.py`, every character, lessons included:
-`universal-asdi` 5148 of 5148 cases, `universal-di` 2704 of 2704 (and as many
-with every damage at its low end), `universal-sdi` 650 of 650,
+`universal-asdi` 5148 of 5148 cases, `universal-di` 3978 of 3978 (and as many
+with every damage at its low end), `universal-sdi` 780 of 780,
 `fox-wavedash-back-punish` 93 of 93.
 
 ## Where things are

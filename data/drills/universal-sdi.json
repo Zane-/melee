@@ -1974,6 +1974,361 @@
     "clear": "Smashed up, its hits keep holding under Peach; away from her, they stop.",
     "TOP": 60
    }
+  },
+  {
+   "name": "Yoshi's down air",
+   "stage": "final-destination",
+   "player": {
+    "x": -20,
+    "percent": [
+     0,
+     "TOP"
+    ]
+   },
+   "opponent": {
+    "character": "yoshi",
+    "x": 35.0,
+    "facing": "player",
+    "loop": true,
+    "script": [
+     {
+      "mix": [
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 30
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 28
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 60
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 28
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 100
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 28
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "weight": 1,
+        "steps": [
+         {
+          "do": "footsies",
+          "range": [
+           26,
+           40
+          ],
+          "for": 150
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.49,
+           0
+          ],
+          "for": 14,
+          "until": {
+           "me": "facing"
+          }
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "near": 12,
+          "for": 160
+         },
+         {
+          "do": "hold",
+          "stick": [
+           0.35,
+           0
+          ],
+          "for": 28
+         },
+         {
+          "do": "hold",
+          "pad": "stand",
+          "for": 16
+         },
+         {
+          "do": "press",
+          "inputs": [
+           {
+            "press": "X",
+            "frame": 1,
+            "hold": 1
+           },
+           {
+            "cstick": [
+             0,
+             -1
+            ],
+            "frame": 6,
+            "hold": 2
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "example": {
+     "script": [
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 20
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "until": {
+        "distance": [
+         0,
+         12
+        ]
+       }
+      },
+      {
+       "do": "hold",
+       "stick": [
+        0.35,
+        0
+       ],
+       "for": 28
+      },
+      {
+       "do": "hold",
+       "pad": "stand",
+       "for": 16
+      },
+      {
+       "do": "press",
+       "inputs": [
+        {
+         "press": "X",
+         "frame": 1,
+         "hold": 1
+        },
+        {
+         "cstick": [
+          0,
+          -1
+         ],
+         "frame": 6,
+         "hold": 2
+        }
+       ]
+      },
+      {
+       "do": "hold",
+       "pad": "stand"
+      }
+     ]
+    }
+   },
+   "camera": "normal",
+   "numbers": {
+    "move": "Yoshi's down air",
+    "opp": "Yoshi",
+    "HL": 4,
+    "GAP": 5,
+    "AGAIN": 2,
+    "HITS": 10,
+    "OUT": 2,
+    "END": 50,
+    "SX": -1,
+    "SY": 0,
+    "TX": 1,
+    "TY": 0,
+    "way": "away",
+    "into": "toward Yoshi",
+    "clear": "Smashed up or down, its hits keep landing under Yoshi; away, they stop.",
+    "TOP": 0
+   }
   }
  ],
  "attempt": {
@@ -2081,7 +2436,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   },
   {
@@ -2247,7 +2603,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  ],
