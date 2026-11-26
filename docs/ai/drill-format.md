@@ -153,10 +153,12 @@ unit instead of 6.6). Played so by all 26 characters, 3 seeded runs a scenario:
 `universal-asdi` 780 of 780 in each of its two judged parts, `universal-di` 1092 of 1092
 in each, `universal-sdi` 312 of 312 in each; `fox-wavedash-back-punish`, 5 runs a
 scenario: 110 of 110 and 109 of 110 (82 and 79 of 88 with the earlier walk-in).
-`universal-crouch-cancel` and `fox-combo-shine` keep the earlier walk-in; seeded, 4 runs a
-scenario, Fox: crouch cancel 100 of 100, 24 of 24 and 94 of 100 (its getup part 20 of 28
-counted: one knocked-down opponent in five only stands up, as the part says), combo shine
-334 of 336 in both parts.
+`fox-combo-shine` has it too (calibrated per opponent and first move on the distance at
+the first hit): seeded, 4 runs a scenario, 336 of 336 in both parts (334 with the earlier
+walk-in). `universal-crouch-cancel` keeps the earlier walk-in, its opponent attacking
+when the player comes in: crouch cancel 100 of 100, 24 of 24 and 94 of 100 (its getup
+part 20 of 28 counted: one knocked-down opponent in five only stands up, as the part
+says).
 
 Counted from the hit (2026-11-25): the tutorial numbers an example's frames from the
 try's start (frame 1 is the frame the attempt's `start` holds on), and marks, cues and
@@ -212,6 +214,7 @@ with every damage at its low end), `universal-sdi` 650 of 650,
 | A drill | `data/drills/<id>.json`: nothing but the words below |
 | The words, the checking of a file | `tools/melee_drills/format.py` |
 | Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, each with a seed of its own, and says how often the part's checks pass. A scenario that never passes is one the drill teaches wrongly |
+| Pictures of a drill's tutorial cards | `python -u tests/client/drill_smoke.py <id> --shots build/shots/cards/<id> --frames 1,2,5`: each card that plays an example, paused on each frame named (stepped to with the D-pad), for a person to read the caption and the cue on that frame. Not into the repository |
 | The damage a part's example holds at | `python tools/melee_drills/percent_range.py <id> [--part N] [--lo A] [--hi B] [--step N]`: per scenario and character, the range around the scenario's own damage in which the example still passes the part's checks (a binary search each way; `--step 1` tries every percent, for a multi-hit attack). A drill draws a try's damage inside it: `"percent": [LO, "TOP"]`, `TOP` a number of the scenario and, per character, of its `numbers_for` |
 | Playing one | `tools/melee_drills/drill.py`: `JsonDrill`, a course drill on the course runtime (`tools/melee_course/engine.py`: loads with no loading screen, attempts, resets, the demonstration, the input timeline) |
 | Its proof | `python tools/melee_drills/check.py <id>` |

@@ -53,8 +53,13 @@ class Player:
     BUDGET = 90000              # calls before the test is called stuck
     TRY_BUDGET = 2400           # frames a try may take
 
-    def __init__(self, c, w, tries, keys=(), hold=(), come=0.0):
+    def __init__(self, c, w, tries, keys=(), hold=(), come=0.0, shots=None,
+                 frames=()):
         self.c, self.w, self.tries, self.keys = c, w, tries, list(keys)
+        # pictures of the tutorial's cards: a directory, and the frames of
+        # each example to stop on ("F1": frame 1)
+        self.shots, self.frames = shots, ["F%d" % f for f in frames]
+        self.want, self.steps, self.due = [], 0, None
         self.hold = list(hold)
         self.come, self.walking, self.there = come, None, False
         self.cards, self.coaches = [], []
@@ -111,6 +116,30 @@ class Player:
                 self.shown.append((
                     c.session.cpu_char if c.session else None,
                     op["character"] if isinstance(op, dict) else None))
+                self.want = list(self.frames) if self.shots and \
+                    v.get("pic") else []
+                self.steps = 0
+            if self.want:
+                # its example stepped a frame at a time (the D-pad, which
+                # pauses it), a picture on each frame asked for
+                play = c.tutorial_play
+                seq = play.panels[0]["seq"] if play.panels else []
+                at = seq[play.k]["label"] if 0 <= play.k < len(seq) else ""
+                if self.due is not None:
+                    # (the frame stepped to is on the screen a call later)
+                    game.shot(os.path.join(self.shots, "card%d-%s.png" % (
+                        len(self.cards), self.due)))
+                    self.want.remove(self.due)
+                    self.due = None
+                elif play.paused and at in self.want:
+                    self.due = at
+                    return
+                self.steps += 1
+                if self.want and self.steps < 480:
+                    if self.steps % 4 == 1:
+                        self.tap(game, "h")     # D-pad right: a frame on
+                    return
+                self.want = []
             self.tap(game, "x")                 # A: next, or start
             return
         if frame == -4:
@@ -180,6 +209,11 @@ def main():
                     help="walk to within this many units of the opponent "
                          "before the keys of --hold and --keys, each try")
     ap.add_argument("--seed", type=int, default=5)
+    ap.add_argument("--shots", help="a directory for pictures of the "
+                                    "tutorial's cards (not the repository)")
+    ap.add_argument("--frames", default="1,2",
+                    help="with --shots: the frames of each card's example "
+                         "to take a picture of")
     ap.add_argument("--gpu", action="store_true")
     ap.add_argument("--paced", action="store_true",
                     help="at the console's speed, as a person plays it: an "
@@ -242,8 +276,11 @@ def main():
               c.drills()[c.row[c.part]]["id"] == args.drill,
               str(c.screen))
 
+        if args.shots:
+            os.makedirs(args.shots, exist_ok=True)
         p = Player(c, w, args.tries, [k for k in args.keys.split(",") if k],
-                   [k for k in args.hold.split(",") if k], args.come)
+                   [k for k in args.hold.split(",") if k], args.come,
+                   args.shots, [int(f) for f in args.frames.split(",") if f])
         told = []
         show, say = c.show_result, c.banner_say
 
