@@ -265,11 +265,19 @@ class Opponent:
     def _ended(self, b, s):
         if b.done:
             return "done"
+        why = None
         if "for" in s and b.frame >= s["for"]:
-            return "for"
-        if "until" in s and self.sense.test(s["until"], after=b.frame):
-            return "until"
-        return None
+            why = "for"
+        elif "until" in s and self.sense.test(s["until"], after=b.frame):
+            why = "until"
+        # a behaviour may play out what it is in the middle of first
+        # (footsies with "finish": its phrase): asked to end once, it ends
+        # when it can, whatever the condition says by then
+        why = why or b.ending
+        if why is not None and not b.may_end():
+            b.ending = why
+            return None
+        return why
 
     def _next(self):
         try:

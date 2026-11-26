@@ -194,11 +194,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -300,11 +322,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -384,7 +428,7 @@
     "opp": "Marth",
     "answer": "down tilt",
     "DL": 30,
-    "DS": 41
+    "DS": 44
    }
   },
   {
@@ -406,11 +450,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -512,11 +578,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -618,11 +706,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -724,11 +834,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -830,11 +962,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -913,8 +1067,8 @@
    "numbers": {
     "opp": "Peach",
     "answer": "down tilt",
-    "DL": 29,
-    "DS": 40
+    "DL": 30,
+    "DS": 44
    }
   },
   {
@@ -936,11 +1090,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1042,11 +1218,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1125,8 +1323,8 @@
    "numbers": {
     "opp": "Pikachu",
     "answer": "jab",
-    "DL": 27,
-    "DS": 38
+    "DL": 29,
+    "DS": 43
    }
   },
   {
@@ -1148,11 +1346,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1232,7 +1452,7 @@
     "opp": "Yoshi",
     "answer": "jab",
     "DL": 29,
-    "DS": 40
+    "DS": 43
    }
   },
   {
@@ -1254,11 +1474,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1533,7 +1775,7 @@
   },
   {
    "name": "Down air, then shine",
-   "teach": "Short hop, the C-stick down at once, L before landing, and down-B on the first frame after the landing lag. The down air's hits keep {opp} in stun until the shine.",
+   "teach": "Short hop next to {opp}, the C-stick down at once, the stick lightly toward it as Fox falls, L before landing, and down-B on the first frame after the landing lag. The down air's hits keep {opp} in stun until the shine, and push it away: drifting in keeps it within the shine's reach.",
    "example": [
     {
      "stick": [
@@ -1551,7 +1793,7 @@
      "frame": 1,
      "hold": 900,
      "from": {
-      "near": 10.0
+      "near": 7.5
      }
     },
     {
@@ -1559,7 +1801,18 @@
      "frame": 13,
      "hold": 1,
      "from": {
-      "near": 10.0
+      "near": 7.5
+     }
+    },
+    {
+     "stick": [
+      0.4,
+      0
+     ],
+     "frame": 17,
+     "hold": 10,
+     "from": {
+      "near": 7.5
      }
     },
     {
@@ -1570,7 +1823,7 @@
      "frame": "J+1+12",
      "hold": 2,
      "from": {
-      "near": 10.0
+      "near": 7.5
      }
     },
     {
@@ -1578,7 +1831,7 @@
      "frame": "DL+12",
      "hold": 1,
      "from": {
-      "near": 10.0
+      "near": 7.5
      }
     },
     {
@@ -1586,24 +1839,25 @@
       0,
       -1
      ],
-     "frame": "DS+12",
+     "frame": 11,
      "hold": 3,
      "from": {
-      "near": 10.0
+      "enters": "aerial_landing"
      }
     },
     {
      "press": "B",
-     "frame": "DS+12",
+     "frame": 11,
      "hold": 2,
      "from": {
-      "near": 10.0
+      "enters": "aerial_landing"
      }
     }
    ],
    "marks": {
     "1": "Frame 1: X or Y tapped: a short hop",
     "J+1": "Frame {J+1}: the C-stick down. The down air",
+    "J+2": "Frame {J+2}: the stick lightly toward it. Fox drifts in",
     "DL": "Frame {DL}: L, just before landing",
     "DS": "Frame {DS}: down-B on the first free frame"
    },

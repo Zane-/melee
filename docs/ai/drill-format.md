@@ -230,13 +230,90 @@ at 45% or more where it first fails at 43%. `check.py`, every character, lessons
 with every damage at its low end), `universal-sdi` 780 of 780,
 `fox-wavedash-back-punish` 93 of 93.
 
+Every drill with a scripted opponent, checked in play (2026-11-25; the owner: "go ahead
+and do all 3"): `check_play.py --follow`, 4 seeded runs a scenario, every part with
+checks, Fox. Runs right by part, before and after what it led to:
+
+| Drill | Runs right, by part | |
+|-|-|-|
+| `fox-kill-confirm`, `fox-laser-forcing`, `fox-shield-then-punish`, `fox-shine-oos`, `fox-uthrow-chaingrab`, `fox-uthrow-uair`, `fox-escape-chaingrab` | every run of every part (4 to 80 a part) | hold |
+| `fox-waveshine-usmash` | 28 of 28, 28 of 28, 27 of 28 | holds |
+| `fox-whiff-punish` | 44 of 44, 44 of 44 (were 53 and 47 of 66) | retuned: below |
+| `fox-approach-nair-dair` | 44 of 44, 44 of 44, 36 of 36, 124 of 124 (were 42, 32, 36, 111) | fixed: the stance's stop and turn |
+| `fox-vs-crouch-cancel` | 44 of 44, 16 of 16, 44 of 44 (were 32, 7 and 32) | fixed: the stance's stop and turn; the down air from nearer, drifting in |
+| `fox-shield-pressure` | 36 of 36, 36 of 36, 72 of 72 (were 28, 33 and 68) | fixed: the stance's stop and turn; the short hop drifting in |
+| `fox-running-shine` | 44 of 44, 34 of 44 | part 2's target moves: fixed inputs do not catch it every time |
+| `fox-ledgedash-attack` | 59 of 80 | the opponent by the ledge moves 18 to 30 units off and thinks (`punish`): the example's shine reaches it only from near |
+| `fox-anti-air` | 23 of 40 | one fixed answer against jump-ins the engine chooses; its contract promises that an answer exists, not that it is this one |
+| `fox-aerial-confirm` | 11 of 40, 14 of 40, 18 of 80 | the opponent roams until an aerial hits it: fixed inputs miss it more often than not ("Not counted"), and the follow-up is timed from the walk's end, not from the hit |
+| `fox-shine-knockdown` | 11 of 16, 9 of 20, 13 of 16, 33 of 52 | the same, and its chase is timed for one knockdown spot |
+| `fox-edgeguard`, `fox-escape-techchase` | 44 of 44 and 1 of 44; 42 of 44, then 11 to 15 of 44 in two parts (it thinks against the clock: not the same run twice) | opponents that think: fixed inputs lose to them by design (`recoveries.py`, `chases.py` measure them against stand-ins) |
+
+What an example proves in play: it is no person. Where the opponent's action sets the
+situation (it comes and attacks, it takes a stance, it is thrown) the example's inputs,
+timed from that, hold in every seeded run or something is wrong: with the drill (the
+first two below) or with the example (the next two). Where the player has to find the
+opponent (it roams, it thinks) the example shows one way in one situation, and what it
+fails says where the example is rigid; those drills are as they were.
+
+- The stance's stop and turn. In `fox-vs-crouch-cancel`, `fox-approach-nair-dair` and
+  `fox-shield-pressure` the opponent plays footsies and takes its stance when the player
+  comes within 40 units. Footsies was cut where it stood. In a shield, the stance's
+  crouch was a spot dodge; "committed" by that, the opponent went on to its answer and
+  hit a player who was only walking in (Fox down-tilted three times on the way). With its
+  back to the player it shielded and grabbed the other way: its grab could not catch a
+  mistake, and leaning away it was out of the shine's reach (Marth, from 9.0 units; hit
+  from 9.1 when he faced Fox). It now lets what it was doing end (`hold` standing until
+  `{"me": {"state": "wait"}}`), finishes a wavedash it has jumped (`footsies` with
+  `"finish": true`: cut after its jump, the air dodge never came and it was a full jump)
+  and turns to face the player (`hold` the stick toward them until `{"me": "facing"}`),
+  then takes its stance.
+- `fox-whiff-punish`, retuned. Its seven opponents that play footsies threw their attack
+  with `move` from wherever footsies had them: out of a dash or facing away a `move`
+  takes up to 27 frames to begin, the player walks on in meanwhile, and the attacks began
+  with the two anywhere from 1 to 53 units apart. They now play footsies farther out and,
+  when the player comes within 24 units of their farthest attack's distance, stop, face
+  the player and hold their ground as the four that stand do. Which attack is drawn then,
+  and each has its own distance: thrown when the opponent sees the player come within it,
+  its reaction time late. One distance for all of an opponent's attacks threw the short
+  ones from too far (Marth's down tilt at the 52 units his forward smash wants was over
+  before a player walking on into it was there: a miss for free). Each attack's distance
+  and each opponent's dash-in frame were measured over the distances 20 to 56: the
+  nearest at which the example beats the attack in every seeded run and a walk on into
+  it is hit. Every attack played alone, 6 seeded runs: the example 270 of 270; the walk
+  on into it failed 135 of 135; the dash in 30 frames late was never a punish (0 of
+  135). Attacks changed: Fox has his down smash, forward tilt and down tilt too; Marth
+  his down smash, down tilt and dash grab for his up tilt (no dash-in frame beat it and
+  his forward smash both); Captain Falcon his down smash for his up tilt.
+- `fox-vs-crouch-cancel`, the down air into shine. From 9 units some of the down air's
+  hits miss a crouching opponent, and which do turns on a fifth of a unit: Fox landed
+  anywhere from frame 27 to 33 of the try (2 frames with each hit). The example's L, one
+  frame before the demonstration's landing, came after it or too soon, and 18 frames of
+  lag let the opponent's answer out; or the shine met the opponent at the edge of its
+  reach (Peach from 10.6 units: missed on her last frame of stun, hit a frame later). The
+  example now jumps from 7.5 units, where every hit connects and the landing is on one
+  frame in every run (frame 34 against Marth and Peach, 33 against Pikachu and Yoshi),
+  presses L 4 frames before it, drifts toward the opponent as it falls (the hits push it
+  away) and shines on the first frame after the landing lag, timed from the landing. The
+  part's words and a caption say the drift.
+- `fox-shield-pressure`, the short hop. The neutral air's hit pushes the shield 4.4 units
+  away, to the edge of the shine's reach (Falco's grab from 11.5 units: hit in one seeded
+  run, missed in the next). The examples drift toward the shield before the A (the stick
+  let go by then: held, the A is a forward air), and the words say so. The mistake shown,
+  the neutral air early in the hop, is played from where it stands: drifting in, its late
+  hit meets some opponents' grabs.
+- `check_play.py --follow` turns the example to the side the opponent is on only until
+  the try begins. Followed through the try, a thrown opponent flying over Fox turned the
+  example round and its "follow the DI" went the wrong way (`fox-kill-confirm` 16 of 32
+  so, 32 of 32 as it is).
+
 ## Where things are
 
 | | |
 |-|-|
 | A drill | `data/drills/<id>.json`: nothing but the words below |
 | The words, the checking of a file | `tools/melee_drills/format.py` |
-| Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, each with a seed of its own, and says how often the part's checks pass. A scenario that never passes is one the drill teaches wrongly |
+| Its example against the opponent a person plays | `python tools/melee_drills/check_play.py <id>`: `check.py` proves an example against the demonstration's opponent, which does one thing; this plays it against the scenario's own script, several runs a scenario, each with a seed of its own, and says how often the part's checks pass. `--follow`: until the try begins the example's left and right follow the side the opponent is on (one that plays footsies can cross over; a person turns to it). A scenario that never passes is one the drill teaches wrongly, where the opponent's action sets the situation; against an opponent that roams or thinks it says where the example is rigid ("Every drill with a scripted opponent, checked in play") |
 | Pictures of a drill's tutorial cards | `python -u tests/client/drill_smoke.py <id> --shots build/shots/cards/<id> --frames 1,2,5`: each card that plays an example, paused on each frame named (stepped to with the D-pad), for a person to read the caption and the cue on that frame. Not into the repository |
 | The damage a part's example holds at | `python tools/melee_drills/percent_range.py <id> [--part N] [--lo A] [--hi B] [--step N]`: per scenario and character, the range around the scenario's own damage in which the example still passes the part's checks (a binary search each way; `--step 1` tries every percent, for a multi-hit attack). A drill draws a try's damage inside it: `"percent": [LO, "TOP"]`, `TOP` a number of the scenario and, per character, of its `numbers_for` |
 | Playing one | `tools/melee_drills/drill.py`: `JsonDrill`, a course drill on the course runtime (`tools/melee_course/engine.py`: loads with no loading screen, attempts, resets, the demonstration, the input timeline) |

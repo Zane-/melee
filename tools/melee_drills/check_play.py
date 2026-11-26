@@ -10,11 +10,20 @@ failed when they did not: whether what the drill teaches still works when
 the situation arises from play.
 
     python tools/melee_drills/check_play.py DRILL|FILE [--part N]
-        [--runs R] [--chars a,b] [--scenarios i,j] [--quiet]
+        [--runs R] [--chars a,b] [--scenarios i,j] [--follow] [--quiet]
 
 Only for an example timed from events (`"from": "start"`, a hit, a
 distance): one timed from the demonstration's own first frame has nothing
-to go by against an opponent that takes its time. A drill is not held to
+to go by against an opponent that takes its time. --follow: until the try
+begins the example's left and right follow the side the opponent is on (it
+is written for an opponent on one side; one that plays footsies can cross
+to the other, and a person turns to it: without this the example walks on
+the old way. Once the try has begun its directions are the technique's: a
+thrown opponent flies over Fox, and following the DI is not turning). An
+example is still no person: against an opponent that roams it cannot
+chase, and against one that thinks it shows one answer of several; what
+it fails there says where the example is rigid, not that the drill is
+wrong. A drill is not held to
 every run (a thinking opponent can win), but a scenario that never passes
 is one the drill teaches wrongly: found so, 2026-11-25, the engine's free
 approach landing a jab from its full reach, where Fox's shine does not
@@ -37,6 +46,33 @@ from melee_drills import format as F  # noqa: E402
 from melee_drills.drill import JsonDrill, inputs_to_refs  # noqa: E402
 
 
+def follow(s):
+    """An each_frame for Session.run: the example's left and right kept
+    toward the opponent until the try begins (the runtime's `toward`, set
+    once when the try is set up, turned when the opponent is on the other
+    side of the player from where it was then)."""
+    was = {}
+
+    def each(game, frame):
+        if s.cpu_port is None:
+            return
+        me, op = game.fighter(s.person), game.fighter(s.cpu_port)
+        if not me.fp or not op.fp:
+            return
+        right = op.pos[0] >= me.pos[0]
+        if frame <= was.get("frame", frame + 1) - 2 or "base" not in was:
+            # (a new pass, a new try: as it is set up)
+            was.update(base=s.c.toward, right=right)
+        was["frame"] = frame
+        if s.c.phase:
+            # (the try has begun: its directions are the technique's. A
+            # thrown opponent flies over Fox, and following the DI is not
+            # turning to it)
+            return
+        s.c.toward = was["base"] if right == was["right"] else -was["base"]
+    return each
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("drill", help="a drill's id, or a drill file's path")
@@ -47,6 +83,9 @@ def main():
     ap.add_argument("--chars", help="characters, comma separated (by "
                                     "default the drill's first)")
     ap.add_argument("--scenarios", help="scenario indexes, comma separated")
+    ap.add_argument("--follow", action="store_true",
+                    help="the example's left and right follow the side the "
+                         "opponent is on")
     ap.add_argument("--quiet", action="store_true",
                     help="only the scenarios with a run that failed, and "
                          "the total")
@@ -87,7 +126,9 @@ def main():
                         # (its own seed: a demonstration otherwise
                         # replays the last try's, the same run again)
                         r = s.run(demo=True, scenario=at,
-                                  run=1000 * k + n)
+                                  run=1000 * k + n,
+                                  each_frame=follow(s) if args.follow
+                                  else None)
                     finally:
                         del drill.build_reference
                     if r.get("success"):

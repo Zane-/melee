@@ -219,11 +219,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -289,11 +311,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -359,11 +403,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -429,11 +495,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -499,11 +587,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -569,11 +679,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -639,11 +771,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -709,11 +863,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -779,11 +955,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -849,11 +1047,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -919,11 +1139,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -989,11 +1231,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1095,11 +1359,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1201,11 +1487,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1307,11 +1615,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1413,11 +1743,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1519,11 +1871,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1625,11 +1999,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1731,11 +2127,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1837,11 +2255,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1943,11 +2383,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2049,11 +2511,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2155,11 +2639,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2223,11 +2729,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2291,11 +2819,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2359,11 +2909,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2427,11 +2999,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2495,11 +3089,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2563,11 +3179,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2631,11 +3269,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -2699,11 +3359,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {

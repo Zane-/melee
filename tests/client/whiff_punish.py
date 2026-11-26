@@ -6,20 +6,24 @@ keys pressed on a virtual display.
 
 The drill opens from Fox's course (Neutral). On first open the tutorial: its
 lesson, then the parts' cards; R turns to the second part (the punish). A
-stand-in plays as the example does: it walks in (the keyboard's light push);
-with the attack's first frame (the walk was within the opponent's trigger
-distance, which it sees 15 frames late) it dashes back, and on the
-scenario's frame GO of the attack dashes in again and jump-cancels a grab
-once within 22 units. Every try is its own exchange (the session numbers
-its tries, and each draws its own opponent's choices). Tries:
+stand-in plays as the example does: it walks (the keyboard's light push) to
+12 units past the opponent's farthest attack's distance, waits there until
+the opponent has stood for 10 frames (its footsies over), and walks on in;
+with the attack's first frame (the walk was within the attack's trigger
+distance, which the opponent sees 15 frames late; each attack has its own)
+it dashes back, and on the scenario's frame GO of the attack dashes in
+again and jump-cancels a grab once within 22 units. Every try is its own
+exchange (the session numbers its tries, and each draws its own opponent's
+choices). Tries:
 
 1. the punish: a success; after the verdict it pummels and throws, and the
    reset waits until 3 seconds after that damage (Reset: After damage
    stops, the default);
 2. the dash in only once the opponent can act again: "Too late"; with no
    damage after it, the reset comes 3 seconds after the verdict;
-3. a dash in, let go, standing next to the opponent: caught, a failure
-   saying so, and the coach's card after this second miss (Settings: 2);
+3. a walk in and on into the opponent, let go next to it: caught, a
+   failure saying so, and the coach's card after this second miss
+   (Settings: 2);
 4. the punish (a dash attack, which lands at any spacing) with Reset on
    When judged: the reset at once (the client's 45 frames to read the
    verdict).
@@ -42,7 +46,7 @@ import client  # noqa: E402
 import courses  # noqa: E402
 import window  # noqa: E402
 from melee_drills import format as F  # noqa: E402
-from melee_engine.sense import FREE  # noqa: E402
+from melee_engine.sense import FREE, WAIT  # noqa: E402
 from pausekeys import Chooser  # noqa: E402
 
 DRILL = "fox-whiff-punish"
@@ -51,15 +55,40 @@ KEYS = ("c", "x", "z", "s", "d", "h", "f", "t", "g", "Down", "Left",
 DASH = 20
 QUIET = 180                  # 3 seconds
 SEEN = 16                    # frames: its 15 of reaction, and its start seen
+NEXT_TO = 12                 # units: standing next to the opponent
+EDGE = 12                    # units past its farthest attack's distance
+SETTLED = 10                 # frames it has stood: settled
 GRAB_FROM = 22               # units: the jump of the stand-in's grab
 HIT_FROM = 26                # units: its dash attack
 
 
+def reach(c):
+    """The scenario's trigger distances, nearest and farthest: where its
+    script waits to see the player come in (`approach` and a distance;
+    each of an opponent's attacks has its own)."""
+    found = []
+
+    def find(c2):
+        if isinstance(c2, dict):
+            if "approach" in c2.get("all", ()):
+                found.extend(x["distance"][1] for x in c2["all"]
+                             if isinstance(x, dict) and "distance" in x)
+            for v in c2.values():
+                find(v)
+        elif isinstance(c2, list):
+            for v in c2:
+                find(v)
+    find(c.session.d.scenario()["opponent"]["script"])
+    return min(found), max(found)
+
+
 def near(c):
-    """The scenario's trigger distance: its script's first step's."""
-    until = c.session.d.scenario()["opponent"]["script"][0]["until"]
-    return next(x["distance"][1] for x in until["all"]
-                if isinstance(x, dict) and "distance" in x)
+    """The nearest of them: the stand-in's reckoning of when it has been
+    seen is never early (an attack thrown from farther it sees begin,
+    and answers then)."""
+    return reach(c)[0]
+
+
 checks = []
 
 
@@ -227,11 +256,31 @@ class Player:
             if t["n"] < 30:
                 return                          # (the opponent's footsies)
             if t["kind"] == "stand":
-                # a dash in, let go: it carries Fox up to the opponent,
-                # where it stands (the drill's mistake)
+                # a walk in and on into it, let go next to the opponent,
+                # where Fox stands (the drill's mistake: its attack comes
+                # as he walks into its reach; a run from far brings it out
+                # early, over before he is there)
+                game.key("Shift_L")
                 game.key(toward)
                 t.update(step="stand", n=0, toward=toward)
                 return
+            if not t.get("settled"):
+                # to the edge of its farthest attack's distance, and there
+                # until it has settled (its footsies over, standing): a
+                # person steps in then. Walked on in through its stop and
+                # turn, its attack comes with Fox deeper in its reach than
+                # a dash back gets out of (a forward smash of Marth's met
+                # from 28 units: caught, and rightly)
+                t["calm"] = t.get("calm", 0) + 1 if op.state == WAIT else 0
+                if gap > reach(c)[1] + EDGE:
+                    game.key("Shift_L")         # a walk in
+                    game.key(toward)
+                    return
+                game.key("Shift_L", False)
+                game.key(toward, False)
+                if t["calm"] < SETTLED and t["n"] < 240:
+                    return
+                t["settled"] = True
             hist = t.setdefault("gaps", [])
             hist.append(gap)
             # the opponent attacks when it sees the walk within its
@@ -243,14 +292,24 @@ class Player:
                 game.key("Shift_L", False)
                 game.key(toward, False)
                 game.key(away)                  # a dash back
+                if os.environ.get("TRACE"):
+                    print("   dash back at gap %.1f, opponent %d (seen "
+                          "within %d: %s)" % (
+                              gap, op.state, near(c),
+                              len(hist) > SEEN and
+                              hist[-SEEN - 1] <= near(c)),
+                          file=sys.stderr, flush=True)
                 t.update(step="back", n=1, away=away, toward=toward,
                          att=0 if op.state in F.THEIR_ATTACKS else None)
                 return
             game.key("Shift_L")                 # a walk in
             game.key(toward)
         elif t["step"] == "stand":
-            if t["n"] >= 6:
+            # (until next to it: in reach of whatever it attacks with,
+            # from however far it saw the run come)
+            if gap <= NEXT_TO or t["n"] >= 150:
                 game.key(t["toward"], False)
+                game.key("Shift_L", False)
         elif t["step"] == "back":
             if t["n"] > 6:
                 game.key(t["away"], False)
@@ -266,6 +325,11 @@ class Player:
                     raise RuntimeError("no attack after the dash back")
                 return
             t["att"] += 1                       # its frame, as seen
+            if os.environ.get("TRACE") and t["kind"] == "late" and \
+                    t["att"] <= 40:
+                print("      back+%d: Fox %d at %.1f, opponent %d at %.1f"
+                      % (t["n"], me.state, me.pos[0], op.state, op.pos[0]),
+                      file=sys.stderr, flush=True)
             if t["kind"] == "late" and op.state in FREE:
                 game.key(t["toward"])           # a dash in, too late
                 t.update(step="in", n=0)

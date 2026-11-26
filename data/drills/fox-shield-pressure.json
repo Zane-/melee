@@ -14,7 +14,7 @@
   "seconds": 1
  },
  "tutorial": {
-  "what": "Short hop next to the shield, press A late so the neutral air hits just before Fox lands, L before the landing, and down-B on the first frame after it. Then out of the shine: a jump, and the next aerial.",
+  "what": "Short hop next to the shield with the stick lightly toward it, press A late so the neutral air hits just before Fox lands, L before the landing, and down-B on the first frame after it. Then out of the shine: a jump, and the next aerial.",
   "expect": "The opponent moves about and puts its shield up when Fox comes close; back away and it lets it down. A try begins when something hits its shield and is judged when Fox hits the opponent, or when it grabs or hits him. It grabs on the first frame it can, every time: with no gap in the pressure the grab never lands.",
   "example": [
    {
@@ -40,6 +40,17 @@
     "press": "jump",
     "frame": 13,
     "hold": 1,
+    "from": {
+     "near": 8.0
+    }
+   },
+   {
+    "stick": [
+     0.4,
+     0
+    ],
+    "frame": 17,
+    "hold": 10,
     "from": {
      "near": 8.0
     }
@@ -202,6 +213,17 @@
         }
        },
        {
+        "stick": [
+         0.4,
+         0
+        ],
+        "frame": 17,
+        "hold": 10,
+        "from": {
+         "near": 8.0
+        }
+       },
+       {
         "press": "A",
         "frame": 28,
         "hold": 1,
@@ -286,11 +308,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -351,11 +395,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -416,11 +482,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -481,11 +569,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -546,11 +656,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -611,11 +743,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -676,11 +830,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -741,11 +917,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -806,11 +1004,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -871,11 +1091,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -950,11 +1192,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1029,11 +1293,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1108,11 +1394,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1187,11 +1495,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1266,11 +1596,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1345,11 +1697,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1424,11 +1798,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1503,11 +1899,33 @@
        42,
        60
       ],
+      "finish": true,
       "until": {
        "distance": [
         0,
         40
        ]
+      }
+     },
+     {
+      "do": "hold",
+      "pad": "stand",
+      "for": 30,
+      "until": {
+       "me": {
+        "state": "wait"
+       }
+      }
+     },
+     {
+      "do": "hold",
+      "stick": [
+       0.49,
+       0
+      ],
+      "for": 14,
+      "until": {
+       "me": "facing"
       }
      },
      {
@@ -1631,7 +2049,7 @@
  "parts": [
   {
    "name": "Late aerial, shine",
-   "teach": "{opp} grabs out of its shield the moment it can. Short hop, A late, L before landing, down-B on the first free frame: the shine hits it out of its grab.",
+   "teach": "{opp} grabs out of its shield the moment it can. Short hop, the stick lightly toward it, A late, L before landing, down-B on the first free frame: the shine hits it out of its grab. The hit pushes its shield away: drifting in keeps it within the shine's reach.",
    "example": [
     {
      "stick": [
@@ -1656,6 +2074,17 @@
      "press": "jump",
      "frame": 13,
      "hold": 1,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "stick": [
+      0.4,
+      0
+     ],
+     "frame": 17,
+     "hold": 10,
      "from": {
       "near": 8.0
      }
@@ -1793,6 +2222,17 @@
      "press": "jump",
      "frame": 13,
      "hold": 1,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "stick": [
+      0.4,
+      0
+     ],
+     "frame": 17,
+     "hold": 10,
      "from": {
       "near": 8.0
      }
@@ -1982,6 +2422,17 @@
      "press": "jump",
      "frame": 13,
      "hold": 1,
+     "from": {
+      "near": 8.0
+     }
+    },
+    {
+     "stick": [
+      0.4,
+      0
+     ],
+     "frame": 17,
+     "hold": 10,
      "from": {
       "near": 8.0
      }

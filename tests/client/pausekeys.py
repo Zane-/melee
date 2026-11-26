@@ -3,13 +3,16 @@ pause menu, with keys on the virtual display.
 
 The pause menu opens on a START tap (let go within 3 s) and runs until a
 row is chosen, calling the client's `person` hook every frame: so a test
-gives that hook a Chooser, which taps START (Return), goes to the tab with
+gives that hook a Chooser, which taps START (Return, held two frames, and
+again if the menu has not opened two seconds later), goes to the tab with
 the row asked for (R, the s key), moves down (the Down key, one frame
 pressed, one not) until the row is in focus, and presses A (x).
 """
 
 
 class Chooser:
+    AGAIN = 120         # frames without the menu before START is tapped again
+
     def __init__(self, client, ident):
         self.c = client
         self.ident = ident
@@ -24,12 +27,21 @@ class Chooser:
             return True
         if self.step == 0:
             game.key("Return")
-            self.step = 1
+            self.step, self.held = 1, 0
         elif self.step == 1:
-            game.key("Return", False)        # let go: the menu opens
-            self.step = 2
+            # held two frames (pressed and let go inside one, a key is not
+            # seen), then let go: the menu opens
+            self.held += 1
+            if self.held < 2:
+                return False
+            game.key("Return", False)
+            self.step, self.waited = 2, 0
         elif self.step == 2:
             if not c.pause_open:
+                # (not seen all the same, on a busy machine: again)
+                self.waited += 1
+                if self.waited > self.AGAIN:
+                    self.step = 0
                 return False
             if self.down:
                 game.key("Down", False)

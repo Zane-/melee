@@ -172,6 +172,15 @@ class Behaviour:
         """What it will press over the next `k` frames (raw pads)."""
         return [self.last] * k
 
+    # asked to end (the step's `for` or `until` came) while it could not
+    # yet: "for" or "until", ended as soon as it can
+    ending = None
+
+    def may_end(self):
+        """Can the step be over now that its `for` or `until` has come?
+        (A behaviour in the middle of something plays it out first.)"""
+        return True
+
     def stop(self):
         """It is over (its condition, its time): what it waits for is
         dropped."""
@@ -517,8 +526,15 @@ class Footsies(Behaviour):
     so the opponent hovers at the edge of the player's range ("their
     reach", kept for the next behaviour). "edge": the same with its own
     range (sense's "my"): in range at a distance, the reach is at least
-    that; out of it, less."""
+    that; out of it, less.
+
+    "finish": true: when the step's `until` or `for` comes in the middle
+    of a wavedash (its jump pressed, its air dodge still to come), the air
+    dodge is pressed before the step is over (at most FINISH frames more).
+    Cut there, the jump went on as a full jump: the opponent in the air
+    for half a second while the player walked in under it."""
     name = "footsies"
+    FINISH = 12           # frames a wavedash's air dodge may still take
     MARGIN = 3.0          # units outside the reach found
     WIDTH = 8.0
     SINK = 0.25           # units the reach sinks each look that finds none
@@ -534,6 +550,8 @@ class Footsies(Behaviour):
         self.body = Body(ctx.port, ctx.target, band=band, rng=self.rng,
                          half=ctx.half, crouch=spec.get("crouch", True))
         self.body.keep = self.mode == "band"
+        self.finish = bool(spec.get("finish", False))
+        self.asked = None         # the frame it was first asked to end on
         if self.mode == "outside":
             ctx.sense.wants.add("guard")
         elif self.mode == "edge":
@@ -606,6 +624,21 @@ class Footsies(Behaviour):
         else:
             m["my_reach"] = max(self.LEAST, min(m["my_reach"], d - 0.5))
         self._band()
+
+    def may_end(self):
+        if not self.finish:
+            return True
+        # the air dodge of a wavedash still to come (L or R, held or
+        # pressed), and no jump before it in what is planned: its jump has
+        # been pressed
+        q = self.body.queue
+        k = next((i for i, raw in enumerate(q)
+                  if raw[5] or raw[6] or raw[0] & 0x60), None)
+        if k is None or any(raw[0] & 0xC00 for raw in q[:k]):
+            return True
+        if self.asked is None:
+            self.asked = self.frame
+        return self.frame - self.asked > self.FINISH
 
     def step(self, st):
         self._segment(st)
@@ -2036,7 +2069,8 @@ PARAMS = {
              "wait": (_pair, "[LO, HI] frames")},
     "footsies": {"range": (lambda v: v in ("outside", "edge") or _pair(v),
                            'outside, edge or [LO, HI]'),
-                 "crouch": (lambda v: isinstance(v, bool), "true or false")},
+                 "crouch": (lambda v: isinstance(v, bool), "true or false"),
+                 "finish": (lambda v: isinstance(v, bool), "true or false")},
     "retreat": {},
     "approach": {
         "moves": (_moves, "engine moves by name prefix, comma separated"),

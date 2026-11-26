@@ -11,6 +11,8 @@ condition holds and stops; times; if/else; loop. Then, Fox the player
 - footsies "outside" stays out of a standing player's range (searched
   again afterwards, frame by frame, with what the opponent really did) while
   it moves, and near its edge;
+- footsies with "finish": cut in the middle of a wavedash, it completes
+  it (without, the jump goes on as a full jump);
 - `until: "approach"` fires when the stand-in dashes in, `react` frames
   after, not sooner;
 - approach with lands "shield" meets a shielding player's shield;
@@ -187,6 +189,42 @@ def footsies(n):
           "distances %.0f to %.0f, %.0f on average; reach learnt %.1f" % (
               r12, r16, min(gaps), max(gaps), mean,
               opp.ctx.memory["their_reach"]))
+
+
+def finish(n):
+    """Footsies cut on every third frame of 150, then standing: how long
+    the opponent is in the air afterwards. Cut after a wavedash's jump its
+    air dodge never came: a full jump. With "finish" the wavedash is
+    completed first."""
+    from melee_engine.drill import Here
+    longest = {}
+    for fin in (False, True):
+        worst = (0, None)
+        for cut in range(12, 150, 3):
+            place(n, -40, 30)
+            step = {"do": "footsies", "range": [60, 76], "for": cut}
+            if fin:
+                step["finish"] = True
+            opp = Opponent(Here(n), 1, 0, dict(script=[
+                step, {"do": "hold", "pad": "stand", "for": 50}]),
+                seed=4, half=FD_HALF)
+            frames, log = drive(n, opp, lambda f, st: NONE, cut + 80)
+            ended = next((f for f, w in opp.trace
+                          if w.startswith("end footsies")), None)
+            run = most = 0
+            for st, _, _ in log[ended or 0:]:
+                run = run + 1 if st["p"][1]["air"] else 0
+                most = max(most, run)
+            if most > worst[0]:
+                worst = (most, cut)
+        longest[fin] = worst
+    check("footsies cut anywhere: somewhere a wavedash's jump is left a "
+          "full jump (the test's premise)", longest[False][0] >= 20,
+          "%d frames in the air, cut on frame %s" % longest[False])
+    check('footsies with "finish": a wavedash it has jumped is finished, '
+          "never in the air for more than 8 frames after the cut",
+          longest[True][0] <= 8,
+          "%d frames in the air, cut on frame %s" % longest[True])
 
 
 def until_approach(n):
@@ -568,7 +606,7 @@ def main():
     interpreter()
     with Native() as n:
         restart(n, "fox", "marth")
-        for test in (footsies, until_approach, approach_shield,
+        for test in (footsies, finish, until_approach, approach_shield,
                      front_of_shield, contract, punish, chain_grab,
                      same_seed, forks, pivots):
             t = time.time()
